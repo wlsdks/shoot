@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.document.message
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.common.BaseMongoDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
+import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.index.CompoundIndexes
@@ -22,7 +23,7 @@ data class ChatMessageDocument(
     val roomId: ObjectId,
     val senderId: ObjectId,
     val content: MessageContentDocument,
-    val status: String, // "SENT", "DELIVERED", "READ"
+    val status: MessageStatus = MessageStatus.SENT,
     val replyToMessageId: ObjectId? = null,
     val reactions: Map<String, Set<ObjectId>> = emptyMap(), // 이모티콘 ID to 사용자 ID 목록
     val mentions: Set<ObjectId> = emptySet() // 멘션된 사용자 ID 목록

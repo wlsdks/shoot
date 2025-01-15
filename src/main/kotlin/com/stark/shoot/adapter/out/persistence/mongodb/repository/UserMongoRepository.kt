@@ -7,8 +7,6 @@ import org.springframework.data.mongodb.repository.MongoRepository
 interface UserMongoRepository : MongoRepository<UserDocument, ObjectId> {
 
     fun findByUsername(username: String): UserDocument?
-    fun findByEmail(email: String): UserDocument?
     fun existsByUsername(username: String): Boolean
-    fun existsByEmail(email: String): Boolean
 
 }

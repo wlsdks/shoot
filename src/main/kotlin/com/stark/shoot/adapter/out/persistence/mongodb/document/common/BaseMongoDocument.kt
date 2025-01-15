@@ -1,9 +1,11 @@
-package com.stark.shoot.domain.common
+package com.stark.shoot.adapter.out.persistence.mongodb.document.common
 
 import org.bson.types.ObjectId
+import org.springframework.data.annotation.Id
 import java.time.Instant
 
-abstract class BaseEntity {
+abstract class BaseMongoDocument {
+    @Id
     var id: ObjectId? = null
     val createdAt: Instant = Instant.now()
     var updatedAt: Instant? = null

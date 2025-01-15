@@ -1,5 +1,6 @@
 package com.stark.shoot.application.port.out
 
+import com.stark.shoot.domain.chat.message.ChatMessage
 import org.bson.types.ObjectId
 import java.time.Instant
 

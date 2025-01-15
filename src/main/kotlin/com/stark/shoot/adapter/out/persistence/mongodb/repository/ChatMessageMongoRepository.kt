@@ -14,7 +14,7 @@ interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, Obje
         createdAt: Instant
     ): List<ChatMessageDocument>
 
-    @Query("{'roomId': ?0, 'status': {$ne: 'READ'}}")
+    @Query("{'roomId': ?0, 'status': {\$ne: 'READ'}}")  // $ 앞에 \ 추가
     fun countUnreadMessages(roomId: ObjectId): Long
 
 }

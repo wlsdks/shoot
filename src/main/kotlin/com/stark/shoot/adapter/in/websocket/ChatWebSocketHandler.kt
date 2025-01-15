@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.websocket
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.stark.shoot.domain.chat.message.ChatMessage
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession

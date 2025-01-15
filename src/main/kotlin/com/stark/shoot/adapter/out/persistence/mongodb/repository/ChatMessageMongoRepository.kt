@@ -3,17 +3,18 @@ package com.stark.shoot.adapter.out.persistence.mongodb.repository
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.ChatMessageDocument
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.mongodb.repository.Query
 import java.time.Instant
 
 interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, ObjectId> {
 
-    fun findByRoomIdOrderByCreatedAtDesc(roomId: ObjectId): List<ChatMessageDocument>
-
+    fun findByRoomId(roomId: ObjectId): List<ChatMessageDocument>
     fun findByRoomIdAndCreatedAtBeforeOrderByCreatedAtDesc(
         roomId: ObjectId,
         createdAt: Instant
     ): List<ChatMessageDocument>
 
-    fun countByRoomIdAndStatusNot(roomId: ObjectId, status: String): Long
+    @Query("{'roomId': ?0, 'status': {$ne: 'READ'}}")
+    fun countUnreadMessages(roomId: ObjectId): Long
 
 }

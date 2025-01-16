@@ -28,4 +28,10 @@ class ChatWebSocketHandler : TextWebSocketHandler() {
         }
     }
 
+    fun broadcastMessage(message: ChatMessage) {
+        message.mentions.forEach { userId -> {
+            sendMessageToUser(userId, message)
+        }}
+    }
+
 }

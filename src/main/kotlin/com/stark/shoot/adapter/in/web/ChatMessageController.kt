@@ -1,9 +1,12 @@
 package com.stark.shoot.adapter.`in`.web
 
+import com.stark.shoot.adapter.`in`.web.dto.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.SendMessageRequest
 import com.stark.shoot.application.port.`in`.SendMessageUseCase
 import com.stark.shoot.domain.chat.message.ChatMessage
 import org.springframework.http.ResponseEntity
+import org.springframework.messaging.handler.annotation.MessageMapping
+import org.springframework.messaging.handler.annotation.SendTo
 import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/v1/messages")
@@ -26,6 +29,15 @@ class ChatMessageController(
             messageContent = request.toDomain()
         )
         return ResponseEntity.ok(message)
+    }
+
+    @MessageMapping("/chat/send")
+    @SendTo("/topic/messages")
+    fun sendMessage(message: ChatMessageRequest): String {
+        println("서버에서 메시지 수신: ${message.content}") // 디버깅을 위한 로그 추가
+        val response = "Received: ${message.content}"
+        println("서버에서 응답 전송: $response") // 디버깅을 위한 로그 추가
+        return response
     }
 
 }

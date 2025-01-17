@@ -37,7 +37,7 @@ class ChatRoomMapper {
     fun toDomain(document: ChatRoomDocument): ChatRoom {
         return ChatRoom(
             id = document.id?.toString(),
-            participants = document.participants.map { it.toString() }.toSet(),
+            participants = document.participants.map { it.toString() }.toMutableSet(),
             lastMessageId = document.lastMessageId?.toString(),
             metadata = toMetadata(document.metadata),
             lastActiveAt = document.lastActiveAt,

@@ -5,7 +5,7 @@ import java.time.Instant
 
 data class ChatRoom(
     val id: String? = null,
-    val participants: Set<String>,
+    val participants: MutableSet<String>,
     val lastMessageId: String? = null,
     val metadata: ChatRoomMetadata,
     val lastActiveAt: Instant = Instant.now(),

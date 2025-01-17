@@ -2,17 +2,21 @@ package com.stark.shoot.application.service
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.room.embedded.type.ChatRoomType
 import com.stark.shoot.application.port.`in`.CreateChatRoomUseCase
+import com.stark.shoot.application.port.`in`.ManageChatRoomUseCase
+import com.stark.shoot.application.port.out.LoadChatRoomPort
 import com.stark.shoot.application.port.out.SaveChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomMetadata
 import com.stark.shoot.domain.chat.room.ChatRoomSettings
 import com.stark.shoot.domain.chat.room.Participant
+import com.stark.shoot.infrastructure.common.toObjectId
 import org.springframework.stereotype.Service
 
 @Service
 class ChatRoomService(
-    private val saveCharRoomPort: SaveChatRoomPort
-) : CreateChatRoomUseCase {
+    private val loadChatRoomPort: LoadChatRoomPort,
+    private val saveChatRoomPort: SaveChatRoomPort
+) : CreateChatRoomUseCase, ManageChatRoomUseCase {
 
     /**
      * @param title 채팅방 제목
@@ -31,11 +35,42 @@ class ChatRoomService(
         )
 
         val chatRoom = ChatRoom(
-            participants = participants,
+            participants = participants.toMutableSet(), // MutableSet으로 변환
             metadata = metadata
         )
 
-        return saveCharRoomPort.save(chatRoom)
+        return saveChatRoomPort.save(chatRoom)
+    }
+
+    override fun addParticipant(roomId: String, userId: String): Boolean {
+        val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
+            ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
+        chatRoom.participants.add(userId)
+        saveChatRoomPort.save(chatRoom)
+        return true
+    }
+
+    override fun removeParticipant(roomId: String, userId: String): Boolean {
+        val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
+            ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
+        chatRoom.participants.remove(userId)
+        saveChatRoomPort.save(chatRoom)
+        return true
+    }
+
+    override fun updateRoomSettings(roomId: String, title: String?, notificationEnabled: Boolean?) {
+        val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
+            ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
+
+        val updatedMetadata = chatRoom.metadata.copy(
+            title = title ?: chatRoom.metadata.title,
+            settings = chatRoom.metadata.settings.copy(
+                isNotificationEnabled = notificationEnabled ?: chatRoom.metadata.settings.isNotificationEnabled
+            )
+        )
+
+        val updatedChatRoom = chatRoom.copy(metadata = updatedMetadata)
+        saveChatRoomPort.save(updatedChatRoom)
     }
 
 }

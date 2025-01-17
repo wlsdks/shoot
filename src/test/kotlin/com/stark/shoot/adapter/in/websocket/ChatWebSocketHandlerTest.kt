@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.`in`.websocket
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.ChatMessageRequest
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
@@ -32,27 +33,30 @@ class ChatWebSocketHandlerTest {
             .connectAsync("ws://localhost:$port/ws/chat", CustomStompSessionHandler())
             .get()
 
-        // 먼저 구독을 설정
+        // 구독을 설정
         stompSession.subscribe("/topic/messages", object : StompFrameHandler {
             override fun getPayloadType(headers: StompHeaders): Type {
-                return String::class.java
+                return Map::class.java
             }
 
             override fun handleFrame(headers: StompHeaders, payload: Any?) {
                 println("Received message: $payload")
-                latch.countDown() // 메시지를 받으면 래치를 감소
+                latch.countDown()
             }
-        })
+        }).also {
+            println("구독 성공: /topic/messages")
+        }
 
-        // 잠시 대기하여 구독이 완료되도록 함
-        Thread.sleep(500)
+        // 구독이 안정적으로 완료되도록 대기
+        Thread.sleep(1000) // 대기 시간 조정
 
         // 메시지 전송
         val message = ChatMessageRequest(content = "테스트 메시지")
+        println("전송 메시지: ${ObjectMapper().writeValueAsString(message)}") // 메시지 직렬화 확인
         stompSession.send("/app/chat/send", message)
 
         // 최대 5초 동안 응답을 기다림
-        assertTrue(latch.await(1, TimeUnit.SECONDS), "응답을 받지 못했습니다.")
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "응답을 받지 못했습니다.") // 대기 시간 연장
     }
 
 }

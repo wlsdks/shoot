@@ -2,10 +2,9 @@ server:
   port: 8100
 
 spring:
-  # MongoDB 설정
   data:
     mongodb:
-      uri: mongodb://admin:admin123@mongodb.mongo-system.svc.cluster.local:27017/shoot
+      uri: mongodb://admin:admin123@localhost:27017/shoot
       database: shoot  # 원하는 데이터베이스 이름
 
   servlet:

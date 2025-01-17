@@ -33,10 +33,10 @@ class ChatMessageController(
 
     @MessageMapping("/chat/send")
     @SendTo("/topic/messages")
-    fun sendMessage(message: ChatMessageRequest): String {
-        println("서버에서 메시지 수신: ${message.content}") // 디버깅을 위한 로그 추가
-        val response = "Received: ${message.content}"
-        println("서버에서 응답 전송: $response") // 디버깅을 위한 로그 추가
+    fun sendMessage(message: ChatMessageRequest): Map<String, String> {
+        println("서버에서 메시지 수신: ${message.content}")
+        val response = mapOf("status" to "success", "content" to "Received: ${message.content}")
+        println("서버에서 응답 전송: $response")
         return response
     }
 

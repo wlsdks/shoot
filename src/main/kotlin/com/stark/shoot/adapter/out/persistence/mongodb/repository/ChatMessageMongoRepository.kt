@@ -9,9 +9,11 @@ import java.time.Instant
 interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, ObjectId> {
 
     fun findByRoomId(roomId: ObjectId): List<ChatMessageDocument>
+
+    @Query("{ 'roomId': ?0, 'createdAt': { \$lt: ?1 } }")
     fun findByRoomIdAndCreatedAtBeforeOrderByCreatedAtDesc(
         roomId: ObjectId,
-        createdAt: Instant
+        before: Instant
     ): List<ChatMessageDocument>
 
     @Query("{'roomId': ?0, 'status': {\$ne: 'READ'}}")  // $ 앞에 \ 추가

@@ -1,4 +1,4 @@
-package com.stark.shoot.application.service
+package com.stark.shoot.application.service.chat
 
 import com.stark.shoot.application.port.`in`.RetrieveMessageUseCase
 import com.stark.shoot.application.port.out.LoadChatMessagePort

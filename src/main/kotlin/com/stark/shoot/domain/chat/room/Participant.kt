@@ -6,6 +6,7 @@ import java.time.Instant
 data class Participant(
     var lastReadMessageId: String? = null,
     var lastReadAt: Instant? = null,
+    val unreadCount: Int = 0,
     val joinedAt: Instant = Instant.now(),
     val role: ParticipantRole = ParticipantRole.MEMBER,
     val nickname: String? = null,

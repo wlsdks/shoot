@@ -7,10 +7,6 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.messaging.handler.annotation.MessageMapping
@@ -27,25 +23,6 @@ class ChatMessageController(
     @Operation(
         summary = "메시지 전송 (REST)",
         description = "특정 채팅방(roomId)에 메시지를 전송합니다."
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200", description = "메시지 전송 성공",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ChatMessage::class)
-                )]
-            ),
-            ApiResponse(
-                responseCode = "400", description = "잘못된 요청",
-                content = [Content(mediaType = "application/json")]
-            ),
-            ApiResponse(
-                responseCode = "500", description = "서버 오류",
-                content = [Content(mediaType = "application/json")]
-            )
-        ]
     )
     @Parameters(
         Parameter(name = "roomId", description = "채팅방 ID", required = true, example = "12345"),
@@ -69,18 +46,6 @@ class ChatMessageController(
     @Operation(
         summary = "메시지 전송 (WebSocket)",
         description = "WebSocket을 통해 메시지를 전송합니다."
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200", description = "메시지 전송 성공",
-                content = [Content(mediaType = "application/json")]
-            ),
-            ApiResponse(
-                responseCode = "500", description = "서버 오류",
-                content = [Content(mediaType = "application/json")]
-            )
-        ]
     )
     @MessageMapping("/chat/send")
     @SendTo("/topic/messages")

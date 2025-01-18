@@ -1,0 +1,20 @@
+### 몽고db 테스트
+GET http://localhost:8100/test-mongo
+
+### 채팅방 생성
+POST http://localhost:8100/api/v1/chatrooms
+Content-Type: application/json
+
+{
+  "title": "Team Discussion",
+  "participants": ["user1", "user2"]
+}
+
+### 유저 생성
+POST http://localhost:8100/api/v1/users
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "nickname": "user1"
+}

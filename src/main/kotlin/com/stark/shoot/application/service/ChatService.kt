@@ -35,9 +35,8 @@ class ChatService(
             content = messageContent.content,
             status = messageContent.status
         )
-        val savedMessage = saveChatMessagePort.save(chatMessage)
 
-        // 이벤트 발행
+        val savedMessage = saveChatMessagePort.save(chatMessage)
         eventPublisher.publish(ChatMessageSentEvent(savedMessage))
 
         return savedMessage

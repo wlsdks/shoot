@@ -25,15 +25,15 @@ Content-Type: application/json
 
 {
   "title": "Team Discussion",
-  "participants": ["678bb75e49f8de2dbcf39e1c", "678bb9b449f8de2dbcf39e1d"]
+  "participants": ["678bb75e49f8de2dbcf39e1c", "678bdb8672191c638735b4e5"]
 }
 
-### 채팅 메시지 전송
-POST http://localhost:8100/api/v1/messages
-Content-Type: application/json
+### 채팅방 목록 조회
+GET http://localhost:8100/api/v1/chatrooms?
+    userId=678bb75e49f8de2dbcf39e1c
 
-{
-  "roomId": "678bb9ea49f8de2dbcf39e1e",
-  "senderId": "678bb9b449f8de2dbcf39e1d",
-  "content": "Hello, this is a test message!"
-}
+### 특정 채팅방의 메시지 목록 조회
+GET http://localhost:8100/api/v1/messages/get?
+    roomId=678bdba172191c638735b4e6&
+    before=2021-08-01T00:00:00Z&
+    limit=10

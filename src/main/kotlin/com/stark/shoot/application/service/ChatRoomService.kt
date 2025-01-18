@@ -10,6 +10,7 @@ import com.stark.shoot.domain.chat.room.ChatRoomMetadata
 import com.stark.shoot.domain.chat.room.ChatRoomSettings
 import com.stark.shoot.domain.chat.room.Participant
 import com.stark.shoot.infrastructure.common.toObjectId
+import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 
 @Service
@@ -24,7 +25,7 @@ class ChatRoomService(
      * @return ChatRoom 채팅방
      * @apiNote 채팅방 생성
      */
-    override fun create(title: String?, participants: Set<String>): ChatRoom {
+    override fun create(title: String?, participants: Set<ObjectId>): ChatRoom {
         require(participants.size == 2) { "채팅방은 최소 2명 이상의 참여자가 필요합니다." }
 
         val metadata = ChatRoomMetadata(
@@ -35,7 +36,7 @@ class ChatRoomService(
         )
 
         val chatRoom = ChatRoom(
-            participants = participants.toMutableSet(), // MutableSet으로 변환
+            participants = participants.map { it.toString() }.toMutableSet(),
             metadata = metadata
         )
 

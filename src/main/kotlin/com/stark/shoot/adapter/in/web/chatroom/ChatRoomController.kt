@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.bson.types.ObjectId
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -32,7 +33,7 @@ class ChatRoomController(
         Parameter(name = "userId", description = "사용자 ID", required = true, example = "user1")
     )
     @GetMapping
-    fun getChatRooms(@RequestParam userId: String): ResponseEntity<List<ChatRoomResponse>> {
+    fun getChatRooms(@RequestParam userId: ObjectId): ResponseEntity<List<ChatRoomResponse>> {
         val chatRooms = retrieveChatRoomUseCase.getChatRoomsForUser(userId)
         return ResponseEntity.ok(chatRooms)
     }

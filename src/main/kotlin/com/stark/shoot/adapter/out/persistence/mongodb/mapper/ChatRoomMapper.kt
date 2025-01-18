@@ -54,30 +54,25 @@ class ChatRoomMapper {
 
     // ChatRoomMetadata -> ChatRoomMetadataDocument 변환
     private fun toMetadataDocument(metadata: ChatRoomMetadata): ChatRoomMetadataDocument {
-        // 참여자 메타데이터의 키를 ObjectId로 변환하고, 값을 ParticipantDocument로 변환
-        val participantMetadata = metadata.participantsMetadata.entries.associate { (key, value) ->
-            ObjectId(key) to toParticipantDocument(value)
-        }
-
         return ChatRoomMetadataDocument(
             title = metadata.title,
             type = metadata.type,
-            participantsMetadata = participantMetadata,
+            // metaData document를 entries로 변환
+            participantsMetadata = metadata.participantsMetadata.entries.associate { (key, value) ->
+                key to toParticipantDocument(value)
+            },
             settings = toSettingsDocument(metadata.settings)
         )
     }
 
     // ChatRoomMetadataDocument -> ChatRoomMetadata 변환
     private fun toMetadata(document: ChatRoomMetadataDocument): ChatRoomMetadata {
-        // 참여자 메타데이터의 키를 String으로 변환하고, 값을 Participant로 변환
-        val participantMetadata = document.participantsMetadata.entries.associate { (key, value) ->
-            key.toString() to toParticipant(value)
-        }
-
         return ChatRoomMetadata(
             title = document.title,
             type = document.type,
-            participantsMetadata = participantMetadata,
+            participantsMetadata = document.participantsMetadata.entries.associate { (key, value) ->
+                key to toParticipant(value)
+            },
             settings = toSettings(document.settings)
         )
     }

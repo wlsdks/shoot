@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.`in`.event.listener
 
-import com.stark.shoot.adapter.`in`.websocket.ChatWebSocketHandler
 import com.stark.shoot.domain.chat.event.ChatMessageSentEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -10,9 +9,7 @@ import org.springframework.stereotype.Component
  * 외부(이벤트 시스템)에서 애플리케이션 코어로 이벤트를 수신하는 인바운드 어댑터.
  */
 @Component
-class ChatMessageSentEventListener(
-    private val webSocketHandler: ChatWebSocketHandler
-) {
+class ChatMessageSentEventListener() {
 
     @EventListener
     fun handle(event: ChatMessageSentEvent) {

@@ -5,6 +5,7 @@ import com.stark.shoot.application.port.`in`.SendMessageUseCase
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
+import java.security.Principal
 
 @Controller
 class ChatMessageHandler(
@@ -19,8 +20,14 @@ class ChatMessageHandler(
      * @param message 클라이언트로부터 받은 메시지 요청 객체.
      */
     @MessageMapping("/chat")
-    fun handleChatMessage(message: ChatMessageRequest) {
+    fun handleChatMessage(message: ChatMessageRequest, principal: Principal) {
         println("Received message: ${message.content}")
+
+        val userId = principal.name // 현재 사용자 ID 가져오기
+//        if(!hasPermissionToSendMessage(userId, message.roomId)) {
+        // 권한이 없는 경우
+//            throw AccessDeniedException("You don't have permission to send message to this room.")
+//        }
 
         // 메시지 저장
         val savedMessage = sendMessageUseCase.sendMessage(
@@ -32,5 +39,11 @@ class ChatMessageHandler(
         // 브로드캐스트
         messagingTemplate.convertAndSend("/topic/messages/${message.roomId}", savedMessage)
     }
+
+//    private fun hasPermissionToSendMessage(userId: String, roomId: String): Boolean {
+//        val chatRoom = loadChatRoomPort.findById(roomId.toObjectId()) ?: return false
+//        return chatRoom.participants.contains(userId)
+//    }
+
 
 }

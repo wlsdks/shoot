@@ -17,6 +17,7 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer {
 
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
         registry.addEndpoint("/ws/chat") // WebSocket 엔드포인트
+            .addInterceptors(AuthHandshakeInterceptor()) // 인증 인터셉터 추가
             .setAllowedOriginPatterns("*") // CORS 문제 방지
     }
 

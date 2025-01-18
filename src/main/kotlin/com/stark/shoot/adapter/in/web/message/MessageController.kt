@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.web
+package com.stark.shoot.adapter.`in`.web.message
 
 import com.stark.shoot.application.port.`in`.RetrieveMessageUseCase
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -29,7 +29,7 @@ class MessageController(
         Parameter(name = "before", description = "이전 메시지 조회 기준 시간", required = false, example = "2021-08-01T00:00:00Z"),
         Parameter(name = "limit", description = "조회할 메시지 개수", required = false, example = "20")
     )
-    @GetMapping
+    @GetMapping("/get")
     fun getMessages(
         @RequestParam roomId: String,
         @RequestParam(required = false) before: Instant?,

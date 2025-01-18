@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.web
+package com.stark.shoot.adapter.`in`.websocket
 
 import com.stark.shoot.adapter.`in`.web.dto.ChatMessageRequest
 import com.stark.shoot.application.port.`in`.SendMessageUseCase

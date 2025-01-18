@@ -11,6 +11,7 @@ services:
       - "27017:27017"
     volumes:
       - mongodb-data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js # 초기화 스크립트 추가
 
   mongo-express:
     image: mongo-express:latest

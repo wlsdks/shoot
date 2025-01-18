@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.ChatMessageRequest
 import com.stark.shoot.application.port.`in`.SendMessageUseCase
 import com.stark.shoot.domain.chat.message.ChatMessage
+import org.springframework.messaging.simp.SimpMessageSendingOperations
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
@@ -18,7 +19,8 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @Component
 class ChatWebSocketHandler(
-    private val sendMessageUseCase: SendMessageUseCase
+    private val sendMessageUseCase: SendMessageUseCase,
+    private val messagingTemplate: SimpMessageSendingOperations
 ) : TextWebSocketHandler() {
 
     // 사용자 ID와 WebSocketSession 간의 매핑을 저장하는 데이터 구조.
@@ -64,9 +66,7 @@ class ChatWebSocketHandler(
      * @param message 전송할 메시지.
      */
     private fun broadcastMessage(roomId: String, message: ChatMessage) {
-        sessions.values.forEach { session ->
-            session.sendMessage(TextMessage(ObjectMapper().writeValueAsString(message)))
-        }
+        messagingTemplate.convertAndSend("/topic/messages/$roomId", message)
     }
 
 }

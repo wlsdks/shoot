@@ -18,3 +18,5 @@ logging:
     root: INFO
     com.example: DEBUG
     org.springframework.data.mongodb: DEBUG
+    org.springframework.messaging: DEBUG
+    org.springframework.web: DEBUG

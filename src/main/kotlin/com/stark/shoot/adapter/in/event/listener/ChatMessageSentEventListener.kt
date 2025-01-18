@@ -16,7 +16,8 @@ class ChatMessageSentEventListener(
 
     @EventListener
     fun handle(event: ChatMessageSentEvent) {
-        webSocketHandler.broadcastMessage(event.chatMessage)
+        println("ChatMessageSentEvent 수신: ${event.chatMessage}")
+//        webSocketHandler.broadcastMessage(event.chatMessage)
     }
 
 }

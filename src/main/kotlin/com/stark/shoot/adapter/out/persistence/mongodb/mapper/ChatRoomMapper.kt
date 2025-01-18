@@ -18,7 +18,13 @@ class ChatRoomMapper {
     // ChatRoom -> ChatRoomDocument 변환
     fun toDocument(domain: ChatRoom): ChatRoomDocument {
         // 참여자 ID 변환 (String -> ObjectId)
-        val participantIds = domain.participants.map(::ObjectId).toSet()
+        val participantIds = domain.participants.map { participant ->
+            try {
+                ObjectId(participant)
+            } catch (e: IllegalArgumentException) {
+                throw IllegalArgumentException("Invalid participant ID format: $participant")
+            }
+        }.toMutableSet()
 
         // 마지막 메시지 ID 변환
         val lastMsgId = domain.lastMessageId?.let { ObjectId(it) }

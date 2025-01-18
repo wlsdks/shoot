@@ -16,7 +16,7 @@ import java.time.Instant
     )
 )
 data class ChatRoomDocument(
-    val participants: Set<ObjectId>,              // 채팅방 참여자들의 ID
+    val participants: MutableSet<ObjectId>,       // 채팅방 참여자들의 ID
     val lastMessageId: ObjectId? = null,          // 마지막 메시지 ID
     val metadata: ChatRoomMetadataDocument,       // 채팅방 메타데이터 (임베디드)
     val lastActiveAt: Instant = Instant.now()     // 마지막 활동 시간

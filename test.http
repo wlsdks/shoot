@@ -1,20 +1,39 @@
 ### 몽고db 테스트
 GET http://localhost:8100/test-mongo
 
-### 채팅방 생성
-POST http://localhost:8100/api/v1/chatrooms
-Content-Type: application/json
-
-{
-  "title": "Team Discussion",
-  "participants": ["user1", "user2"]
-}
-
-### 유저 생성
+### 유저 생성1
 POST http://localhost:8100/api/v1/users
 Content-Type: application/json
 
 {
   "username": "user1",
   "nickname": "user1"
+}
+
+### 유저 생성2
+POST http://localhost:8100/api/v1/users
+Content-Type: application/json
+
+{
+  "username": "user2",
+  "nickname": "user2"
+}
+
+### 채팅방 생성
+POST http://localhost:8100/api/v1/chatrooms/create
+Content-Type: application/json
+
+{
+  "title": "Team Discussion",
+  "participants": ["678bb75e49f8de2dbcf39e1c", "678bb9b449f8de2dbcf39e1d"]
+}
+
+### 채팅 메시지 전송
+POST http://localhost:8100/api/v1/messages
+Content-Type: application/json
+
+{
+  "roomId": "678bb9ea49f8de2dbcf39e1e",
+  "senderId": "678bb9b449f8de2dbcf39e1d",
+  "content": "Hello, this is a test message!"
 }

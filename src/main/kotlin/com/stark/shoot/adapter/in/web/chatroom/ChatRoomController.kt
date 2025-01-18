@@ -1,10 +1,12 @@
-package com.stark.shoot.adapter.`in`.web
+package com.stark.shoot.adapter.`in`.web.chatroom
 
 import com.stark.shoot.adapter.`in`.web.dto.CreateChatRoomRequest
 import com.stark.shoot.adapter.`in`.web.dto.ManageParticipantRequest
 import com.stark.shoot.adapter.`in`.web.dto.UpdateRoomSettingsRequest
+import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.ManageChatRoomUseCase
+import com.stark.shoot.application.port.`in`.chatroom.RetrieveChatRoomUseCase
 import com.stark.shoot.domain.chat.room.ChatRoom
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -18,8 +20,22 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/v1/chatrooms")
 class ChatRoomController(
     private val createChatRoomUseCase: CreateChatRoomUseCase,
+    private val retrieveChatRoomUseCase: RetrieveChatRoomUseCase,
     private val manageChatRoomUseCase: ManageChatRoomUseCase
 ) {
+
+    @Operation(
+        summary = "사용자의 채팅방 목록 조회",
+        description = "특정 사용자의 채팅방 전체 목록을 조회합니다."
+    )
+    @Parameters(
+        Parameter(name = "userId", description = "사용자 ID", required = true, example = "user1")
+    )
+    @GetMapping
+    fun getChatRooms(@RequestParam userId: String): ResponseEntity<List<ChatRoomResponse>> {
+        val chatRooms = retrieveChatRoomUseCase.getChatRoomsForUser(userId)
+        return ResponseEntity.ok(chatRooms)
+    }
 
     @Operation(
         summary = "채팅방 생성",
@@ -29,7 +45,7 @@ class ChatRoomController(
         Parameter(name = "title", description = "채팅방 제목", required = true, example = "채팅방 제목"),
         Parameter(name = "participants", description = "참여자 ID 목록", required = true, example = "[\"user1\", \"user2\"]")
     )
-    @PostMapping
+    @PostMapping("/create")
     fun createChatRoom(@RequestBody request: CreateChatRoomRequest): ResponseEntity<ChatRoom> {
         val chatRoom = createChatRoomUseCase.create(
             title = request.title,

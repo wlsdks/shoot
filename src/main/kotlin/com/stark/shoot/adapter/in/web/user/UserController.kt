@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.web
+package com.stark.shoot.adapter.`in`.web.user
 
 import com.stark.shoot.adapter.`in`.web.dto.user.CreateUserRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse

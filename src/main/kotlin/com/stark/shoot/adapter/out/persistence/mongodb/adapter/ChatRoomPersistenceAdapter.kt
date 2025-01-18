@@ -36,6 +36,7 @@ class ChatRoomPersistenceAdapter(
         return chatRoomRepository.findByAllParticipants(participants) != null
     }
 
+
     override fun save(chatRoom: ChatRoom): ChatRoom {
         val document = chatRoomMapper.toDocument(chatRoom)
         return chatRoomRepository.save(document)

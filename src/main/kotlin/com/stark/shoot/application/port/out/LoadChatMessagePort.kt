@@ -9,5 +9,6 @@ interface LoadChatMessagePort {
     fun findById(id: ObjectId): ChatMessage?
     fun findByRoomId(roomId: ObjectId): List<ChatMessage>
     fun findByRoomIdAndBeforeCreatedAt(roomId: ObjectId, createdAt: Instant): List<ChatMessage>
+    fun countUnreadMessages(roomId: String, lastReadMessageId: String?): Int
 
 }

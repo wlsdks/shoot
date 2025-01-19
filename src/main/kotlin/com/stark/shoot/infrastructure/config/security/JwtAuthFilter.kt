@@ -31,7 +31,7 @@ class JwtAuthFilter(
         // 2. 유효한 토큰이면 userId(Principal) 꺼내서 인증 객체 등록
         if (!token.isNullOrBlank()) {
             try {
-                val userId = jwtProvider.validateToken(token)
+                val userId = jwtProvider.extractUsername(token)
                 val authentication = UsernamePasswordAuthenticationToken(
                     userId,            // principal: 사용자 식별자
                     null,    // credentials

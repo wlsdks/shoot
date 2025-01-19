@@ -31,21 +31,33 @@ class JwtProvider(
     }
 
     /**
-     * JWT 토큰 문자열을 검증하고, 내부에 담긴 subject(예: userId)를 반환합니다.
-     * 유효하지 않은 경우 UnauthorizedException 발생.
+     * 토큰 검증 + subject(사용자 식별자) 추출
+     * - parseClaimsJws() : 서명 검증 포함
+     * - 잘못된 서명/만료/형식 오류가 있으면 예외 발생
      */
     fun validateToken(token: String): String {
         return try {
             val claims = Jwts.parser()
-                .verifyWith(key)
+                .verifyWith(key)          // 서명 검증 시 필요한 key
                 .build()
-                .parseUnsecuredClaims(token)
+                .parseSignedClaims(token)       // 서명 & 만료 확인
                 .payload
 
             claims.subject
         } catch (e: Exception) {
-            throw UnauthorizedException("Invalid JWT token")
+            // Jwts에 정의된 JwtException(ExpiredJwtException 등)을 포괄적으로 처리
+            throw UnauthorizedException("유효하지 않은 토큰입니다.")
         }
+    }
+
+    // 토큰에서 사용자 이름 추출
+    fun extractUsername(token: String?): String {
+        return Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .payload
+            .subject
     }
 
 }

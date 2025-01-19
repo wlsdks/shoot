@@ -54,7 +54,8 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 // 인증 없이 접근 가능한 경로
-                it.requestMatchers("/api/v1/users/**").permitAll()
+                it.requestMatchers(("POST"), "/api/v1/chatrooms/**").authenticated()
+                it.requestMatchers("/api/v1/users/**").permitAll() // 사용자 생성
                 it.requestMatchers("/api/v1/auth/**").permitAll()  // 로그인, 회원가입 허용
                 it.requestMatchers("/ws/**").permitAll()           // 웹소켓 핸드셰이크
                 // 그 외는 인증 필요

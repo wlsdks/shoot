@@ -1,4 +1,4 @@
-package com.stark.shoot.application.port.`in`
+package com.stark.shoot.application.port.`in`.chatroom
 
 interface ManageChatRoomUseCase {
     fun addParticipant(roomId: String, userId: String): Boolean

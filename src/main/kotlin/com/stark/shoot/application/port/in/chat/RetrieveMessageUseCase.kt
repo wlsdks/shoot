@@ -1,4 +1,4 @@
-package com.stark.shoot.application.port.`in`
+package com.stark.shoot.application.port.`in`.chat
 
 import com.stark.shoot.domain.chat.message.ChatMessage
 import java.time.Instant

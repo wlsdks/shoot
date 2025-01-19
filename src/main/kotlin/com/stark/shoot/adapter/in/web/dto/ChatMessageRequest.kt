@@ -1,12 +1,11 @@
 package com.stark.shoot.adapter.`in`.web.dto
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 
-data class ChatMessageRequest @JsonCreator constructor(
+data class ChatMessageRequest(
     val roomId: String,       // 채팅방 ID
     val senderId: String,     // 보낸 사람 ID
     val content: String       // 메시지 내용

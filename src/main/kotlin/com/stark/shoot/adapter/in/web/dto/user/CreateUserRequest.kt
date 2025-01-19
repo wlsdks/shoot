@@ -1,8 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.dto.user
 
-import com.fasterxml.jackson.annotation.JsonCreator
-
-data class CreateUserRequest @JsonCreator constructor(
+data class CreateUserRequest(
     val username: String,
     val nickname: String
 )

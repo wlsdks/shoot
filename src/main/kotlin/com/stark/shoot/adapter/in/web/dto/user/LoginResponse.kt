@@ -1,8 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.dto.user
 
-import com.fasterxml.jackson.annotation.JsonCreator
-
-data class LoginResponse @JsonCreator constructor(
+data class LoginResponse(
     val userId: String,
     val accessToken: String
 )

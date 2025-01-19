@@ -1,12 +1,11 @@
 package com.stark.shoot.adapter.`in`.web.dto
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 
-data class SendMessageRequest @JsonCreator constructor(
+data class SendMessageRequest(
     val senderId: String,
     val roomId: String,
     val content: String,

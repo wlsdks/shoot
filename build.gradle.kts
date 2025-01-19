@@ -23,8 +23,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 
-	// MongoDB
+	// MongoDB, Redis, Kafka
 	implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation("org.springframework.kafka:spring-kafka")
 
 	// kotlin
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -36,7 +38,7 @@ dependencies {
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 
 	// logging
-	runtimeOnly("io.github.oshai:kotlin-logging:7.0.3")
+	implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
 
 	// jsoup
 	implementation("org.jsoup:jsoup:1.18.3")

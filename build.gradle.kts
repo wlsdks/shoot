@@ -22,6 +22,7 @@ dependencies {
 	// Spring Boot
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
+	implementation("org.springframework.boot:spring-boot-starter-security")
 
 	// MongoDB, Redis, Kafka
 	implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
@@ -36,6 +37,11 @@ dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+
+	// jwt
+	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
 	// logging
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")

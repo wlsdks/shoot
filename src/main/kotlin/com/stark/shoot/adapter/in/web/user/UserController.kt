@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.`in`.web.user
 import com.stark.shoot.adapter.`in`.web.dto.user.CreateUserRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.application.port.`in`.user.UserCreateUseCase
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -15,6 +16,10 @@ class UserController(
     private val userCreateUseCase: UserCreateUseCase
 ) {
 
+    @Operation(
+        summary = "사용자 생성",
+        description = "사용자를 생성합니다."
+    )
     @PostMapping
     fun createUser(@RequestBody request: CreateUserRequest): ResponseEntity<UserResponse> {
         val user = userCreateUseCase.createUser(request.username, request.nickname)

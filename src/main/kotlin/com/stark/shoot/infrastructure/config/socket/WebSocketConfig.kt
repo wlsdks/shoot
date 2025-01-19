@@ -2,51 +2,34 @@ package com.stark.shoot.infrastructure.config.socket
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.messaging.simp.config.ChannelRegistration
 import org.springframework.messaging.simp.config.MessageBrokerRegistry
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer
-import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration
 
 @Configuration
 @EnableWebSocketMessageBroker // STOMP 메시징을 활성화 이로 인해 서버는 STOMP 프로토콜 형식의 메시지를 기대합니다.
-class WebSocketConfig(
-    private val rateLimitInterceptor: RateLimitInterceptor
-) : WebSocketMessageBrokerConfigurer {
+class WebSocketConfig : WebSocketMessageBrokerConfigurer {
 
     /**
-     * WebSocket 전송 관련 제한 설정
-     * - sendTimeLimit: 메시지 전송 시간 제한 (15초) : 단일 메시지 전송 시간 제한
-     * - sendBufferSizeLimit: 전송 버퍼 크기 제한 (512KB)
-     * - messageSizeLimit: 단일 메시지 크기 제한 (128KB)
+     * WebSocket Heartbeat 처리용 스케줄러 설정
+     * - poolSize: 동시에 처리할 수 있는 heartbeat 스레드 수 (2개)
+     * - threadNamePrefix: 스레드 식별을 위한 이름 접두사
+     *
+     * 동작 방식:
+     * 1. 설정된 주기(10초)마다 연결된 모든 클라이언트에 heartbeat 전송
+     * 2. 2개의 스레드가 번갈아가며 heartbeat 처리
+     * 3. 클라이언트로부터 heartbeat 응답이 없으면 연결 종료 처리
      */
-    override fun configureWebSocketTransport(registration: WebSocketTransportRegistration) {
-        registration
-            .setSendTimeLimit(15 * 1000) // 15초
-            .setSendBufferSizeLimit(512 * 1024) // 512KB
-            .setMessageSizeLimit(128 * 1024) // 128KB
-    }
-
-    /**
-     * 클라이언트로부터 들어오는 메시지 처리 채널 설정
-     * - StompChannelInterceptor를 통해 메시지 인터셉트
-     * - 스레드 풀 설정으로 동시 처리량 조절
-     *   - corePoolSize: 기본 실행 스레드 수 (4개)
-     *   - maxPoolSize: 최대 스레드 수 (10개)
-     *   - queueCapacity: 대기열 크기 (50개)
-     */
-    override fun configureClientInboundChannel(registration: ChannelRegistration) {
-        registration.interceptors(
-            StompChannelInterceptor(),
-            rateLimitInterceptor
-        )
-        registration.taskExecutor() // 작업 처리를 위한 Executor 설정
-            .corePoolSize(4)
-            .maxPoolSize(10)
-            .queueCapacity(50)
+    @Bean
+    fun heartbeatScheduler(): TaskScheduler {
+        return ThreadPoolTaskScheduler().apply {
+            poolSize = 2 // heartbeat 처리용 스레드 풀
+            setThreadNamePrefix("ws-heartbeat-")
+            initialize()
+        }
     }
 
     /**
@@ -83,25 +66,6 @@ class WebSocketConfig(
         registry.addEndpoint("/ws/chat") // WebSocket 엔드포인트
             .addInterceptors(AuthHandshakeInterceptor()) // 인증 인터셉터 추가
             .setAllowedOriginPatterns("*") // CORS 문제 방지
-    }
-
-    /**
-     * WebSocket Heartbeat 처리용 스케줄러 설정
-     * - poolSize: 동시에 처리할 수 있는 heartbeat 스레드 수 (2개)
-     * - threadNamePrefix: 스레드 식별을 위한 이름 접두사
-     *
-     * 동작 방식:
-     * 1. 설정된 주기(10초)마다 연결된 모든 클라이언트에 heartbeat 전송
-     * 2. 2개의 스레드가 번갈아가며 heartbeat 처리
-     * 3. 클라이언트로부터 heartbeat 응답이 없으면 연결 종료 처리
-     */
-    @Bean
-    fun heartbeatScheduler(): TaskScheduler {
-        return ThreadPoolTaskScheduler().apply {
-            poolSize = 2 // heartbeat 처리용 스레드 풀
-            setThreadNamePrefix("ws-heartbeat-")
-            initialize()
-        }
     }
 
 }

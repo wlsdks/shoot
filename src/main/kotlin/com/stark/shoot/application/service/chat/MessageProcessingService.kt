@@ -32,16 +32,17 @@ class MessageProcessingService(
         // 메시지 저장
         val savedMessage = saveChatMessagePort.save(message)
 
-        // 채팅방 메타데이터 업데이트
+        // 채팅방 메타데이터 업데이트 (unreadCount 증가)
         val senderObjectId = ObjectId(message.senderId)
-        val updatedParticipants = chatRoom.metadata.participantsMetadata.mapValues { (participantId, participantDoc) ->
+        val updatedParticipants = chatRoom.metadata.participantsMetadata.mapValues { (participantId, participant) ->
             if (participantId != senderObjectId) {
-                participantDoc.copy(unreadCount = participantDoc.unreadCount + 1)
+                participant.copy(unreadCount = participant.unreadCount + 1)
             } else {
-                participantDoc
+                participant
             }
         }
 
+        // 채팅방 업데이트
         val updatedRoom = chatRoom.copy(
             metadata = chatRoom.metadata.copy(
                 participantsMetadata = updatedParticipants
@@ -50,6 +51,8 @@ class MessageProcessingService(
         )
 
         saveChatRoomPort.save(updatedRoom)
+
+        // 이벤트 발행
         eventPublisher.publish(ChatMessageSentEvent(savedMessage))
 
         return savedMessage

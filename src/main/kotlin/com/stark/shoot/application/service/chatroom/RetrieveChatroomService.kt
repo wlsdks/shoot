@@ -13,25 +13,17 @@ class RetrieveChatroomService(
 ) : RetrieveChatRoomUseCase {
 
     override fun getChatRoomsForUser(userId: ObjectId): List<ChatRoomResponse> {
-        // 사용자가 참여한 채팅방 목록을 가져옴
         val chatRooms: List<ChatRoom> = loadChatRoomPort.findByParticipantId(userId)
 
-        // 응답 DTO 구성
         return chatRooms.map { room ->
-            val unreadMessages = getUnreadCount(room, userId)
             ChatRoomResponse(
                 roomId = room.id!!,
                 title = room.metadata.title ?: "Untitled Room",
-                lastMessage = room.lastMessageId, // 실제 메시지 내용을 가져오려면 다른 로직이 필요
-                unreadMessages = unreadMessages
+                lastMessage = room.lastMessageId,
+                // participantsMetadata에서 직접 가져옴
+                unreadMessages = room.metadata.participantsMetadata[userId]?.unreadCount ?: 0
             )
         }
-    }
-
-    private fun getUnreadCount(chatRoom: ChatRoom, userId: ObjectId): Int {
-        // participantId는 ObjectId, userId도 ObjectId
-        val participantDoc = chatRoom.metadata.participantsMetadata[userId]
-        return participantDoc?.unreadCount ?: 0
     }
 
 }

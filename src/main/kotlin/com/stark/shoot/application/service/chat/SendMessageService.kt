@@ -4,21 +4,17 @@ import com.stark.shoot.adapter.`in`.web.dto.ChatMessageRequest
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
 import com.stark.shoot.application.port.`in`.chat.SendMessageUseCase
+import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
-import com.stark.shoot.infrastructure.common.util.handleCompletion
-import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 
 @Service
 class SendMessageService(
-    private val kafkaTemplate: KafkaTemplate<String, ChatEvent>
+    private val kafkaMessagePublishPort: KafkaMessagePublishPort
 ) : SendMessageUseCase {
-
-    private val logger = KotlinLogging.logger {}
 
     override fun handleMessage(message: ChatMessageRequest, userId: String?) {
         // ChatMessage 생성
@@ -39,11 +35,11 @@ class SendMessageService(
         )
 
         // kafka로 이벤트 발행
-        kafkaTemplate.send("chat-messages", message.roomId, chatEvent)
-            .handleCompletion(
-                onSuccess = { logger.info { "Message sent successfully: $chatMessage" } },
-                onFailure = { logger.error(it) { "Failed to send message: $chatMessage" } }
-            )
+        kafkaMessagePublishPort.publishChatEvent(
+            topic = "chat-messages",
+            key = message.roomId,
+            event = chatEvent
+        )
     }
 
 }

@@ -14,7 +14,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 
 @Service
-class SendChatService(
+class SendMessageService(
     private val kafkaTemplate: KafkaTemplate<String, ChatEvent>
 ) : SendMessageUseCase {
 

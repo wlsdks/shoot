@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 import java.time.Instant
 
 @Service
-class MessageService(
+class RetrieveMessageService(
     private val loadChatMessagePort: LoadChatMessagePort
 ) : RetrieveMessageUseCase {
 

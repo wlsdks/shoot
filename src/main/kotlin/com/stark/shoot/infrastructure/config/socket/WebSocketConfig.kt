@@ -1,6 +1,7 @@
-package com.stark.shoot.infrastructure.config
+package com.stark.shoot.infrastructure.config.socket
 
 import org.springframework.context.annotation.Configuration
+import org.springframework.messaging.simp.config.ChannelRegistration
 import org.springframework.messaging.simp.config.MessageBrokerRegistry
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry
@@ -19,6 +20,10 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws/chat") // WebSocket 엔드포인트
             .addInterceptors(AuthHandshakeInterceptor()) // 인증 인터셉터 추가
             .setAllowedOriginPatterns("*") // CORS 문제 방지
+    }
+
+    override fun configureClientInboundChannel(registration: ChannelRegistration) {
+        registration.interceptors(StompChannelInterceptor()) // STOMP 채널 인터셉터 추가
     }
 
 }

@@ -3,17 +3,19 @@ package com.stark.shoot.adapter.`in`.web.user
 import com.stark.shoot.adapter.`in`.web.dto.user.CreateUserRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.application.port.`in`.user.UserCreateUseCase
+import com.stark.shoot.application.port.`in`.user.UserLoginUseCase
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.security.Principal
 
 @RequestMapping("/api/v1/users")
 @RestController
 class UserController(
-    private val userCreateUseCase: UserCreateUseCase
+    private val userCreateUseCase: UserCreateUseCase,
 ) {
 
     @Operation(

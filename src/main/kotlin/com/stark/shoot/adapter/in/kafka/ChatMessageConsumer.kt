@@ -20,7 +20,10 @@ class ChatMessageConsumer(
     /**
      * 채팅 메시지 이벤트를 수신하여 처리합니다.
      */
-    @KafkaListener(topics = ["chat-messages"])
+    @KafkaListener(
+        topics = ["chat-messages"],
+        errorHandler = "chatMessageErrorHandler"
+    )
     fun consumeMessage(event: ChatEvent) {
         when (event.type) {
             EventType.MESSAGE_CREATED -> {

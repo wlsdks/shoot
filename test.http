@@ -37,3 +37,6 @@ GET http://localhost:8100/api/v1/messages/get?
     roomId=678bdba172191c638735b4e6&
     before=2021-08-01T00:00:00Z&
     limit=10
+
+
+### {"roomId": "678bb9ea49f8de2dbcf39e1e", "senderId": "678bb75e49f8de2dbcf39e1c", "content": "Hello STOMP"}

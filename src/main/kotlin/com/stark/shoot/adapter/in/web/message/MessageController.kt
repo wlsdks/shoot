@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.message
 
-import com.stark.shoot.application.port.`in`.RetrieveMessageUseCase
+import com.stark.shoot.application.port.`in`.chat.RetrieveMessageUseCase
 import com.stark.shoot.domain.chat.message.ChatMessage
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter

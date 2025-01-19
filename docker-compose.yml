@@ -11,7 +11,9 @@ services:
       - "27017:27017"
     volumes:
       - mongodb-data:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js # 초기화 스크립트 추가
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+    networks:
+      - spring-network
 
   mongo-express:
     image: mongo-express:latest
@@ -28,6 +30,24 @@ services:
       ME_CONFIG_BASICAUTH_PASSWORD: admin123
     ports:
       - "8081:8081"
+    networks:
+      - spring-network
+
+  redis:
+    image: redis:7.2.3-alpine
+    container_name: redis-shoot
+    ports:
+      - "${REDIS_BINDING_PORT:-6379}:${REDIS_PORT:-6379}"
+    volumes:
+      - ${REDIS_DATA_PATH:-./redis/data}:/data
+      - ${REDIS_DEFAULT_CONFIG_FILE:-./redis/config/redis.conf}:/usr/local/conf/redis.conf
+    command: redis-server /usr/local/conf/redis.conf
+    networks:
+      - spring-network
 
 volumes:
   mongodb-data:
+
+networks:
+  spring-network:
+    driver: bridge

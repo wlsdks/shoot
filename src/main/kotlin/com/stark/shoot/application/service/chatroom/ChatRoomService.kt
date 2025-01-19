@@ -1,8 +1,8 @@
 package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.room.embedded.type.ChatRoomType
-import com.stark.shoot.application.port.`in`.CreateChatRoomUseCase
-import com.stark.shoot.application.port.`in`.ManageChatRoomUseCase
+import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
+import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
 import com.stark.shoot.application.port.out.LoadChatRoomPort
 import com.stark.shoot.application.port.out.SaveChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom

@@ -18,8 +18,8 @@ class AuthHandshakeInterceptor : HandshakeInterceptor {
         attributes: MutableMap<String, Any>
     ): Boolean {
         val headers = request.headers
-        val token = headers["Authorization"]?.firstOrNull()?.removePrefix("Bearer ")
-            ?: return false
+//        val token = headers["Authorization"]?.firstOrNull()?.removePrefix("Bearer ")
+//            ?: return false
 
         // 토큰 검증
 //        val userId = validateTokenAndGetUserId(token) // JWT 인증

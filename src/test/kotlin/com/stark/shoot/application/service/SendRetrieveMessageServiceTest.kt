@@ -5,7 +5,7 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 import com.stark.shoot.application.port.out.EventPublisher
 import com.stark.shoot.application.port.out.LoadChatRoomPort
 import com.stark.shoot.application.port.out.SaveChatMessagePort
-import com.stark.shoot.application.service.chat.ChatService
+import com.stark.shoot.application.service.chat.SendMessageService
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.room.ChatRoom
@@ -17,14 +17,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.*
 
-class ChatServiceTest {
+class SendRetrieveMessageServiceTest {
 
     private val saveChatMessagePort = mock(SaveChatMessagePort::class.java)
     private val loadChatRoomPort = mock(LoadChatRoomPort::class.java)
     private val eventPublisher = mock(EventPublisher::class.java)
 
-    // 일단 위에서 생성한 mock 객체를 사용하여 ChatService 객체를 생성한다.
-    private val chatService = ChatService(saveChatMessagePort, loadChatRoomPort, eventPublisher)
+    // 일단 위에서 생성한 mock 객체를 사용하여 SendMessageService 객체를 생성한다.
+    private val sendMessageService = SendMessageService(saveChatMessagePort, loadChatRoomPort, eventPublisher)
 
 
     @DisplayName("sendMessage 성공 테스트")
@@ -53,7 +53,7 @@ class ChatServiceTest {
         `when`(saveChatMessagePort.save(any(ChatMessage::class.java))).thenReturn(message)
 
         // 메서드 호출
-        val result = chatService.sendMessage(roomId, senderId, message)
+        val result = sendMessageService.sendMessage(roomId, senderId, message)
 
         // 결과 검증
         verify(loadChatRoomPort).findById(ObjectId(roomId))
@@ -77,7 +77,7 @@ class ChatServiceTest {
 
         // 예외 발생 검증
         assertThrows<ResourceNotFoundException> {
-            chatService.sendMessage(
+            sendMessageService.sendMessage(
                 roomId, senderId, ChatMessage(
                     roomId = roomId,
                     senderId = senderId,

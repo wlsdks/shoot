@@ -4,8 +4,8 @@ import com.stark.shoot.adapter.`in`.web.dto.CreateChatRoomRequest
 import com.stark.shoot.adapter.`in`.web.dto.ManageParticipantRequest
 import com.stark.shoot.adapter.`in`.web.dto.UpdateRoomSettingsRequest
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
-import com.stark.shoot.application.port.`in`.CreateChatRoomUseCase
-import com.stark.shoot.application.port.`in`.ManageChatRoomUseCase
+import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
+import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.RetrieveChatRoomUseCase
 import com.stark.shoot.domain.chat.room.ChatRoom
 import io.swagger.v3.oas.annotations.Operation

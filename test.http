@@ -31,7 +31,7 @@ Content-Type: application/json
 ### 채팅방 생성
 POST http://localhost:8100/api/v1/chatrooms/create
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMSIsImlhdCI6MTczNzI4OTM5OCwiZXhwIjoxNzM3MjkyOTk4fQ.2iNkke7W9h7eKcu4pD__yc7SeAJpK-FD2EveHaD3eaI
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMSIsImlhdCI6MTczNzI5NDM5NiwiZXhwIjoxNzM3Mjk3OTk2fQ.5OgDgQl6PGEhR19FVnxXzp2iKeyfLJzFNbOaUpW6_ZE
 
 {
   "title": "Team Discussion",

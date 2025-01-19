@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.config.socket
+package com.stark.shoot.infrastructure.config.socket.interceptor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.ChatMessageRequest
@@ -41,8 +41,9 @@ class StompChannelInterceptor(
      * @throws AccessDeniedException 권한이 없는 사용자가 접근하려 할 경우 발생
      */
     override fun preSend(message: Message<*>, channel: MessageChannel): Message<*>? {
-        // STOMP 헤더를 래핑해 편하게 분석하기 위해 사용
         val accessor = StompHeaderAccessor.wrap(message)
+        // Handshake 시점에 "authentication"을 attributes에 저장했다면,
+        // accessor.user: Principal? 형태로도 가져올 수 있음
         val userId = accessor.user?.name ?: throw UnauthorizedException("인증되지 않은 사용자")
 
         when (accessor.command) {
@@ -64,8 +65,7 @@ class StompChannelInterceptor(
                 validateRoomAccess(userId, chatMessage.roomId)
             }
 
-            else -> { /* 다른 커맨드 처리 */
-            }
+            else -> { /* 다른 커맨드(UNSUBSCRIBE 등) 처리 필요 시 추가 */ }
         }
 
         // 별다른 문제가 없다면 메시지를 그대로 반환 -> 다음 단계로 진행

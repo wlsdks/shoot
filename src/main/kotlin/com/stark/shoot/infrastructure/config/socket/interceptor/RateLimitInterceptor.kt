@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.config.socket
+package com.stark.shoot.infrastructure.config.socket.interceptor
 
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.Message

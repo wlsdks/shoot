@@ -1,13 +1,13 @@
-package com.stark.shoot.infrastructure.config.socket
+package com.stark.shoot.infrastructure.config.socket.interceptor
 
-import com.stark.shoot.infrastructure.config.jwt.JwtProvider
+import com.stark.shoot.infrastructure.config.security.JwtAuthenticationService
 import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
 import org.springframework.web.socket.WebSocketHandler
 import org.springframework.web.socket.server.HandshakeInterceptor
 
 class AuthHandshakeInterceptor(
-    private val jwtProvider: JwtProvider
+    private val jwtAuthenticationService: JwtAuthenticationService
 ) : HandshakeInterceptor {
 
     /**
@@ -21,9 +21,14 @@ class AuthHandshakeInterceptor(
         attributes: MutableMap<String, Any>
     ): Boolean {
         val token = extractToken(request) ?: return false
+
         return try {
-            val userId = jwtProvider.validateToken(token)
-            attributes["userId"] = userId
+            // 1) `jwtAuthenticationService`를 통해 토큰 검증 + 사용자 로딩
+            val authentication = jwtAuthenticationService.authenticateToken(token)
+
+            // 2) 연결된 사용자 식별자(또는 인증 객체)를 attributes에 저장
+            // ex) attributes["userId"] = authentication.name
+            attributes["authentication"] = authentication
             true
         } catch (e: Exception) {
             false

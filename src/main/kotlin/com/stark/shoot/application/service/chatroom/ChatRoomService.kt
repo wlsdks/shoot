@@ -28,6 +28,8 @@ class ChatRoomService(
     override fun create(title: String?, participants: Set<ObjectId>): ChatRoom {
         require(participants.size == 2) { "채팅방은 최소 2명 이상의 참여자가 필요합니다." }
 
+        // todo: 이미 2명과 연관된 채팅방이 존재하면 생성하지 않는다.
+
         val metadata = ChatRoomMetadata(
             title = title,
             type = if (participants.size == 2) ChatRoomType.INDIVIDUAL else ChatRoomType.GROUP,

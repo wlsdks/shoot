@@ -1,6 +1,6 @@
 package com.stark.shoot.infrastructure.config.jwt
 
-import com.stark.shoot.infrastructure.common.exception.UnauthorizedException
+import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
@@ -30,26 +30,6 @@ class JwtProvider(
             .compact()
     }
 
-    /**
-     * 토큰 검증 + subject(사용자 식별자) 추출
-     * - parseClaimsJws() : 서명 검증 포함
-     * - 잘못된 서명/만료/형식 오류가 있으면 예외 발생
-     */
-    fun validateToken(token: String): String {
-        return try {
-            val claims = Jwts.parser()
-                .verifyWith(key)          // 서명 검증 시 필요한 key
-                .build()
-                .parseSignedClaims(token)       // 서명 & 만료 확인
-                .payload
-
-            claims.subject
-        } catch (e: Exception) {
-            // Jwts에 정의된 JwtException(ExpiredJwtException 등)을 포괄적으로 처리
-            throw UnauthorizedException("유효하지 않은 토큰입니다.")
-        }
-    }
-
     // 토큰에서 사용자 이름 추출
     fun extractUsername(token: String?): String {
         return Jwts.parser()
@@ -58,6 +38,21 @@ class JwtProvider(
             .parseSignedClaims(token)
             .payload
             .subject
+    }
+
+    // 토큰 유효성 검사
+    fun isTokenValid(token: String?): Boolean {
+        try {
+            Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+            return true
+        } catch (e: JwtException) {
+            return false
+        } catch (e: IllegalArgumentException) {
+            return false
+        }
     }
 
 }

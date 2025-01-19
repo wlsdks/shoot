@@ -29,7 +29,7 @@ class SecurityConfig(
             val principal = authentication.principal
             if (principal is String) {
                 // 여기서 토큰이 유효한지 다시 한번 확인
-                jwtProvider.validateToken(principal)
+                jwtProvider.isTokenValid(principal)
                 authentication.isAuthenticated = true
                 return@AuthenticationManager authentication
             }
@@ -53,12 +53,11 @@ class SecurityConfig(
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
-                // 인증 없이 접근 가능한 경로
-                it.requestMatchers(("POST"), "/api/v1/chatrooms/**").authenticated()
+                // 인증이 필요하지 않은 경로
                 it.requestMatchers("/api/v1/users/**").permitAll() // 사용자 생성
                 it.requestMatchers("/api/v1/auth/**").permitAll()  // 로그인, 회원가입 허용
                 it.requestMatchers("/ws/**").permitAll()           // 웹소켓 핸드셰이크
-                // 그 외는 인증 필요
+                // 그 외 모든 요청은 인증 필요
                 it.anyRequest().authenticated()
             }
             // JwtAuthFilter를 UsernamePasswordAuthenticationFilter보다 앞단에 추가

@@ -27,8 +27,9 @@ class AuthHandshakeInterceptor(
             val authentication = jwtAuthenticationService.authenticateToken(token)
 
             // 2) 연결된 사용자 식별자(또는 인증 객체)를 attributes에 저장
-            // ex) attributes["userId"] = authentication.name
             attributes["authentication"] = authentication
+            attributes["userId"] = authentication.name
+
             true
         } catch (e: Exception) {
             false

@@ -38,14 +38,14 @@ class ChatRoomService(
         )
 
         val chatRoom = ChatRoom(
-            participants = participants.map { it.toString() }.toMutableSet(),
+            participants = participants.toMutableSet(),
             metadata = metadata
         )
 
         return saveChatRoomPort.save(chatRoom)
     }
 
-    override fun addParticipant(roomId: String, userId: String): Boolean {
+    override fun addParticipant(roomId: String, userId: ObjectId): Boolean {
         val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
             ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
         chatRoom.participants.add(userId)
@@ -53,7 +53,7 @@ class ChatRoomService(
         return true
     }
 
-    override fun removeParticipant(roomId: String, userId: String): Boolean {
+    override fun removeParticipant(roomId: String, userId: ObjectId): Boolean {
         val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
             ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
         chatRoom.participants.remove(userId)

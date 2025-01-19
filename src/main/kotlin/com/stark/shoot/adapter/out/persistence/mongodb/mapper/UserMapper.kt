@@ -3,7 +3,6 @@ package com.stark.shoot.adapter.out.persistence.mongodb.mapper
 import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.user.type.UserStatus
 import com.stark.shoot.domain.chat.user.User
-import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 
 @Component
@@ -23,7 +22,7 @@ class UserMapper {
             profileImageUrl = domain.profileImageUrl,
             lastSeenAt = domain.lastSeenAt
         ).apply {
-            id = domain.id?.let { ObjectId(it) }
+            id = domain.id
         }
     }
 
@@ -35,7 +34,7 @@ class UserMapper {
      */
     fun toDomain(document: UserDocument): User {
         return User(
-            id = document.id?.toHexString(),
+            id = document.id,
             username = document.username,
             nickname = document.nickname,
             status = UserStatus.valueOf(document.status),

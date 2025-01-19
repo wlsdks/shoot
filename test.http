@@ -24,7 +24,7 @@ POST http://localhost:8100/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "username": "user1",
+  "username": "user2",
   "password": ""
 }
 
@@ -51,4 +51,5 @@ GET http://localhost:8100/api/v1/messages/get?
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMSIsImlhdCI6MTczNzI4OTM5OCwiZXhwIjoxNzM3MjkyOTk4fQ.2iNkke7W9h7eKcu4pD__yc7SeAJpK-FD2EveHaD3eaI
 
 
+// ws://localhost:8100/ws/chat?token=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMiIsImlhdCI6MTczNzI5ODMwMiwiZXhwIjoxNzM3MzAxOTAyfQ.NkfyCGBpioCffsEv2Dp0w6EbR963Uxln2sFpilDd5Rg
 ### {"roomId": "678bb9ea49f8de2dbcf39e1e", "senderId": "678bb75e49f8de2dbcf39e1c", "content": "Hello STOMP"}

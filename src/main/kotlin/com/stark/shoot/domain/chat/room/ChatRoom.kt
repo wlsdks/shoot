@@ -1,11 +1,12 @@
 package com.stark.shoot.domain.chat.room
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.room.embedded.type.ChatRoomType
+import org.bson.types.ObjectId
 import java.time.Instant
 
 data class ChatRoom(
     val id: String? = null,
-    val participants: MutableSet<String>,
+    val participants: MutableSet<ObjectId>,
     val lastMessageId: String? = null,
     val metadata: ChatRoomMetadata,
     val lastActiveAt: Instant = Instant.now(),

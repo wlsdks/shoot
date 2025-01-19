@@ -16,11 +16,11 @@ class SendMessageService(
     private val kafkaMessagePublishPort: KafkaMessagePublishPort
 ) : SendMessageUseCase {
 
-    override fun handleMessage(message: ChatMessageRequest, userId: String?) {
+    override fun handleMessage(message: ChatMessageRequest) {
         // ChatMessage 생성
         val chatMessage = ChatMessage(
             roomId = message.roomId,
-            senderId = userId ?: throw IllegalArgumentException("User ID is required"),
+            senderId = message.senderId ?: throw IllegalArgumentException("User ID is required"),
             content = MessageContent(
                 text = message.content,
                 type = MessageType.TEXT

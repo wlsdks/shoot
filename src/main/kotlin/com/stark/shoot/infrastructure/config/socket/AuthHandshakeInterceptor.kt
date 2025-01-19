@@ -17,16 +17,15 @@ class AuthHandshakeInterceptor : HandshakeInterceptor {
         wsHandler: WebSocketHandler,
         attributes: MutableMap<String, Any>
     ): Boolean {
-        // 예: HTTP 헤더에서 JWT 토큰 추출
-        val token = request.headers["Authorization"]?.firstOrNull()
-            ?: return false // 토큰 없을 시 handshake 중단
+        val headers = request.headers
+        val token = headers["Authorization"]?.firstOrNull()?.removePrefix("Bearer ")
+            ?: return false
 
-        // 토큰 검증 후 유저 ID 파싱
-//        val userId = validateAndParseToken(token)
-//            ?: return false // 토큰 검증 실패 시 handshake 중단
-//
+        // 토큰 검증
+//        val userId = validateTokenAndGetUserId(token) // JWT 인증
+//            ?: return false
+
 //        attributes["userId"] = userId
-
         return true
     }
 

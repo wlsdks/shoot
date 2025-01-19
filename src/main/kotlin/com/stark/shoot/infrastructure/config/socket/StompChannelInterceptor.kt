@@ -32,6 +32,12 @@ class StompChannelInterceptor : ChannelInterceptor {
         val accessor = StompHeaderAccessor.wrap(message)
 
         when (accessor.command) {
+            StompCommand.CONNECT -> {
+                val userId = accessor.sessionAttributes?.get("userId") as? String
+                if (userId != null) {
+                    accessor.user = StompPrincipal(userId)
+                }
+            }
             // 구독 명령어 (SUBSCRIBE)
             StompCommand.SUBSCRIBE -> {
                 val destination = accessor.destination

@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.common
+package com.stark.shoot.infrastructure.common.util
 
 import org.bson.types.ObjectId
 

@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.chat
 import com.stark.shoot.application.port.`in`.RetrieveMessageUseCase
 import com.stark.shoot.application.port.out.LoadChatMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.infrastructure.common.toObjectId
+import com.stark.shoot.infrastructure.common.util.toObjectId
 import org.springframework.stereotype.Service
 import java.time.Instant
 

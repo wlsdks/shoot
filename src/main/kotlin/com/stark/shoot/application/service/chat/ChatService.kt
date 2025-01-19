@@ -8,7 +8,7 @@ import com.stark.shoot.application.port.out.SaveChatRoomPort
 import com.stark.shoot.domain.chat.event.ChatMessageSentEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
-import com.stark.shoot.infrastructure.common.toObjectId
+import com.stark.shoot.infrastructure.common.util.toObjectId
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

@@ -9,7 +9,7 @@ import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomMetadata
 import com.stark.shoot.domain.chat.room.ChatRoomSettings
 import com.stark.shoot.domain.chat.room.Participant
-import com.stark.shoot.infrastructure.common.toObjectId
+import com.stark.shoot.infrastructure.common.util.toObjectId
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 

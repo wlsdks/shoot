@@ -3,6 +3,7 @@ server:
 
 spring:
   data:
+    # 몽고 DB 설정
     mongodb:
       authentication-database: shoot
       username: admin
@@ -10,7 +11,21 @@ spring:
       host: localhost
       port: 27017
       database: shoot
+    # 레디스 설정
+    redis:
+      host: localhost
+      port: 6379
+      password: redis
 
+  # 카프카 설정
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
+      group-id: shoot
+    producer:
+      bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
+
+  # 파일 업로드 설정
   servlet:
     multipart:
       max-file-size: 10MB

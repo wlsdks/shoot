@@ -43,25 +43,22 @@ class StompChannelInterceptor(
      * HandshakeInterceptor에서 저장했던 인증 객체를, 실제 메시지 처리가 시작되기 전에 StompHeaderAccessor의 user 필드(Principal)에 주입하게 됩니다.
      * 그 결과, 컨트롤러의 STOMP 핸들러 메서드(@MessageMapping)에서 principal 파라미터를 받을 수 있게 됩니다.
      */
-    override fun preSend(message: Message<*>, channel: MessageChannel): Message<*>? {
+    override fun preSend(message: Message<*>, channel: MessageChannel): Message<*> {
         val accessor = StompHeaderAccessor.wrap(message)
+        // 하트비트 프레임 등은 command가 null일 수 있으므로 스킵
+        val command = accessor.command ?: return message
 
-        // 명령어 확인
-        val command = accessor.command
-            ?: return message
-
-        // Handshake에서 저장했던 sessionAttributes를 확인
+        // 세션 어트리뷰트에서 HandshakeInterceptor에서 넣어둔 인증 객체를 가져옴
         val sessionAttributes = accessor.sessionAttributes
         val authentication = sessionAttributes?.get("authentication") as? Authentication
 
         // 만약 인증 성공했다면 accessor.user에 Principal 설정
         if (authentication != null) {
-            // authentication.name == 인증 성공한 사용자 아이디(혹은 username)
+            // 1) 커스텀 Principal 생성
             val userId = authentication.name
-            // 커스텀 Principal 객체 생성
-            val stompPrincipal = StompPrincipal(userId)
+            val stompPrincipal = StompPrincipal(userId) // java.security.Principal 구현체
 
-            // STOMP 세션의 principal로 설정
+            // 2) STOMP 메시지의 user(Principal) 설정
             accessor.user = stompPrincipal
         } else {
             logger.error { "인증 정보가 없습니다" }

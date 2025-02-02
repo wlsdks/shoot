@@ -30,9 +30,9 @@ class ChatRoomController(
     )
     @GetMapping
     fun getChatRooms(
-        @RequestParam userId: ObjectId
+        @RequestParam userId: String
     ): ResponseEntity<List<ChatRoomResponse>> {
-        val chatRooms = retrieveChatRoomUseCase.getChatRoomsForUser(userId)
+        val chatRooms = retrieveChatRoomUseCase.getChatRoomsForUser(userId.toObjectId())
         return ResponseEntity.ok(chatRooms)
     }
 

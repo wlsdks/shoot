@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   mongodb:
-    image: mongo:6.0
+    image: mongo:latest
     container_name: mongodb-shoot
     restart: always
     environment:

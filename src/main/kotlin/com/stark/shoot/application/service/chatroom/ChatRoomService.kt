@@ -31,8 +31,7 @@ class ChatRoomService(
     ): ChatRoom {
         require(participants.size == 2) { "채팅방은 최소 2명 이상의 참여자가 필요합니다." }
 
-        // todo: 이미 2명과 연관된 채팅방이 존재하면 생성하지 않는다.
-
+        // todo: 근데 메타데이터의 Participant()로 만드는 데이터가 애매한데.. 그냥 깡통 데이터를 만들어서 넣는건가? 그럴 필요가 있을까
         val metadata = ChatRoomMetadata(
             title = title,
             type = if (participants.size == 2) ChatRoomType.INDIVIDUAL else ChatRoomType.GROUP,

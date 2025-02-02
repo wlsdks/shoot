@@ -8,6 +8,7 @@ import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.RetrieveChatRoomUseCase
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.infrastructure.common.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.bson.types.ObjectId
@@ -43,10 +44,16 @@ class ChatRoomController(
     fun createChatRoom(
         @RequestBody request: CreateChatRoomRequest
     ): ResponseEntity<ChatRoom> {
+        // 문자열을 ObjectId로 변환 (유효하지 않은 값에 대해서는 예외 처리 필요)
+        val participantIds = request.participants.map {
+            it.toObjectId()
+        }.toMutableSet()
+
         val chatRoom = createChatRoomUseCase.create(
             title = request.title,
-            participants = request.participants
+            participants = participantIds
         )
+
         return ResponseEntity.ok(chatRoom)
     }
 
@@ -60,7 +67,7 @@ class ChatRoomController(
         @PathVariable roomId: String,
         @RequestBody request: ManageParticipantRequest
     ): ResponseEntity<Boolean> {
-        val result = manageChatRoomUseCase.addParticipant(roomId, request.userId)
+        val result = manageChatRoomUseCase.addParticipant(roomId, request.userId.toObjectId())
         return ResponseEntity.ok(result)
     }
 
@@ -73,7 +80,7 @@ class ChatRoomController(
         @PathVariable roomId: String,
         @RequestBody request: ManageParticipantRequest
     ): ResponseEntity<Boolean> {
-        val result = manageChatRoomUseCase.removeParticipant(roomId, request.userId)
+        val result = manageChatRoomUseCase.removeParticipant(roomId, request.userId.toObjectId())
         return ResponseEntity.ok(result)
     }
 

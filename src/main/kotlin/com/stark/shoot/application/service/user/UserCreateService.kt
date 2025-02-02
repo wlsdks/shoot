@@ -10,7 +10,10 @@ class UserCreateService(
     private val userCreatePort: UserCreatePort
 ) : UserCreateUseCase {
 
-    override fun createUser(username: String, nickname: String): User {
+    override fun createUser(
+        username: String,
+        nickname: String
+    ): User {
         val user = User(
             username = username,
             nickname = nickname

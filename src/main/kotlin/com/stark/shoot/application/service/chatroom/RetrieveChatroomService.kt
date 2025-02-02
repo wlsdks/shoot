@@ -12,7 +12,9 @@ class RetrieveChatroomService(
     private val loadChatRoomPort: LoadChatRoomPort
 ) : RetrieveChatRoomUseCase {
 
-    override fun getChatRoomsForUser(userId: ObjectId): List<ChatRoomResponse> {
+    override fun getChatRoomsForUser(
+        userId: ObjectId
+    ): List<ChatRoomResponse> {
         val chatRooms: List<ChatRoom> = loadChatRoomPort.findByParticipantId(userId)
 
         return chatRooms.map { room ->

@@ -17,7 +17,9 @@ class SendMessageService(
     private val kafkaMessagePublishPort: KafkaMessagePublishPort
 ) : SendMessageUseCase {
 
-    override fun handleMessage(message: ChatMessageRequest): CompletableFuture<Void> {
+    override fun handleMessage(
+        message: ChatMessageRequest
+    ): CompletableFuture<Void> {
         // ChatMessage 생성
         val chatMessage = ChatMessage(
             roomId = message.roomId,

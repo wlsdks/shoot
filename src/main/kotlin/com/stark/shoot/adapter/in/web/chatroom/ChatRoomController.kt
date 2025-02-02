@@ -9,8 +9,6 @@ import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.RetrieveChatRoomUseCase
 import com.stark.shoot.domain.chat.room.ChatRoom
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.bson.types.ObjectId
 import org.springframework.http.ResponseEntity
@@ -29,11 +27,10 @@ class ChatRoomController(
         summary = "사용자의 채팅방 목록 조회",
         description = "특정 사용자의 채팅방 전체 목록을 조회합니다."
     )
-    @Parameters(
-        Parameter(name = "userId", description = "사용자 ID", required = true, example = "user1")
-    )
     @GetMapping
-    fun getChatRooms(@RequestParam userId: ObjectId): ResponseEntity<List<ChatRoomResponse>> {
+    fun getChatRooms(
+        @RequestParam userId: ObjectId
+    ): ResponseEntity<List<ChatRoomResponse>> {
         val chatRooms = retrieveChatRoomUseCase.getChatRoomsForUser(userId)
         return ResponseEntity.ok(chatRooms)
     }
@@ -42,12 +39,10 @@ class ChatRoomController(
         summary = "채팅방 생성",
         description = "채팅방을 생성합니다.",
     )
-    @Parameters(
-        Parameter(name = "title", description = "채팅방 제목", required = true, example = "채팅방 제목"),
-        Parameter(name = "participants", description = "참여자 ID 목록", required = true, example = "[\"user1\", \"user2\"]")
-    )
     @PostMapping("/create")
-    fun createChatRoom(@RequestBody request: CreateChatRoomRequest): ResponseEntity<ChatRoom> {
+    fun createChatRoom(
+        @RequestBody request: CreateChatRoomRequest
+    ): ResponseEntity<ChatRoom> {
         val chatRoom = createChatRoomUseCase.create(
             title = request.title,
             participants = request.participants
@@ -59,10 +54,6 @@ class ChatRoomController(
     @Operation(
         summary = "채팅방 참여자 추가",
         description = "채팅방에 참여자를 추가합니다."
-    )
-    @Parameters(
-        Parameter(name = "roomId", description = "채팅방 ID", required = true, example = "12345"),
-        Parameter(name = "userId", description = "참여자 ID", required = true, example = "user1")
     )
     @PostMapping("/{roomId}/participants")
     fun addParticipant(
@@ -77,10 +68,6 @@ class ChatRoomController(
         summary = "채팅방 참여자 제거",
         description = "채팅방에서 참여자를 제거합니다."
     )
-    @Parameters(
-        Parameter(name = "roomId", description = "채팅방 ID", required = true, example = "12345"),
-        Parameter(name = "userId", description = "참여자 ID", required = true, example = "user1")
-    )
     @DeleteMapping("/{roomId}/participants")
     fun removeParticipant(
         @PathVariable roomId: String,
@@ -93,9 +80,6 @@ class ChatRoomController(
     @Operation(
         summary = "채팅방 설정 변경",
         description = "채팅방의 설정을 변경합니다."
-    )
-    @Parameters(
-        Parameter(name = "roomId", description = "채팅방 ID", required = true, example = "12345")
     )
     @PutMapping("/{roomId}/settings")
     fun updateRoomSettings(

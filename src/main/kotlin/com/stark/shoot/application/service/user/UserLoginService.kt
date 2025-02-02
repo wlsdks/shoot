@@ -17,7 +17,10 @@ class UserLoginService(
      * - 비밀번호 검증 (여기서는 예시로 'password' 필드가 있다 가정)
      * - JWT 생성 후 반환
      */
-    override fun login(username: String, password: String): String {
+    override fun login(
+        username: String,
+        password: String
+    ): String {
         // 포트에서 null이 반환될 수 있음
         val user = retrieveUserPort.findByUsername(username)
             ?: throw IllegalArgumentException("해당 username의 사용자를 찾을 수 없습니다.")

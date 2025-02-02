@@ -21,7 +21,9 @@ class AuthController(
         description = "username, password로 로그인 후 JWT 토큰 발급"
     )
     @PostMapping("/login")
-    fun login(@RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
+    fun login(
+        @RequestBody request: LoginRequest
+    ): ResponseEntity<LoginResponse> {
         val token = userLoginUseCase.login(request.username, request.password)
 
         // 예시: token 발급 후, userId도 함께 반환한다고 가정

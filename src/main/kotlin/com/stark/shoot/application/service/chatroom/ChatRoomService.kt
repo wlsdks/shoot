@@ -25,7 +25,10 @@ class ChatRoomService(
      * @return ChatRoom 채팅방
      * @apiNote 채팅방 생성
      */
-    override fun create(title: String?, participants: Set<ObjectId>): ChatRoom {
+    override fun create(
+        title: String?,
+        participants: Set<ObjectId>
+    ): ChatRoom {
         require(participants.size == 2) { "채팅방은 최소 2명 이상의 참여자가 필요합니다." }
 
         // todo: 이미 2명과 연관된 채팅방이 존재하면 생성하지 않는다.
@@ -45,7 +48,10 @@ class ChatRoomService(
         return saveChatRoomPort.save(chatRoom)
     }
 
-    override fun addParticipant(roomId: String, userId: ObjectId): Boolean {
+    override fun addParticipant(
+        roomId: String,
+        userId: ObjectId
+    ): Boolean {
         val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
             ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
         chatRoom.participants.add(userId)
@@ -53,7 +59,10 @@ class ChatRoomService(
         return true
     }
 
-    override fun removeParticipant(roomId: String, userId: ObjectId): Boolean {
+    override fun removeParticipant(
+        roomId: String,
+        userId: ObjectId
+    ): Boolean {
         val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
             ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
         chatRoom.participants.remove(userId)
@@ -61,7 +70,11 @@ class ChatRoomService(
         return true
     }
 
-    override fun updateRoomSettings(roomId: String, title: String?, notificationEnabled: Boolean?) {
+    override fun updateRoomSettings(
+        roomId: String,
+        title: String?,
+        notificationEnabled: Boolean?
+    ) {
         val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
             ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
 

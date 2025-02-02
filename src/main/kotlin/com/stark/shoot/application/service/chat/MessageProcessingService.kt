@@ -24,7 +24,9 @@ class MessageProcessingService(
      * 메시지 저장 및 채팅방 메타데이터 업데이트 담당
      * @param message 메시지
      */
-    override fun processMessage(message: ChatMessage): ChatMessage {
+    override fun processMessage(
+        message: ChatMessage
+    ): ChatMessage {
         val roomObjectId = message.roomId.toObjectId()
         val chatRoom = loadChatRoomPort.findById(roomObjectId)
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")

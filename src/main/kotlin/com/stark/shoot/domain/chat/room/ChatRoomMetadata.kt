@@ -7,5 +7,6 @@ data class ChatRoomMetadata(
     val title: String? = null,
     val type: ChatRoomType,
     val participantsMetadata: Map<ObjectId, Participant>,
-    val settings: ChatRoomSettings
+    val settings: ChatRoomSettings,
+    val announcement: String? = null // 공지사항
 )

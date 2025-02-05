@@ -55,7 +55,8 @@ class ChatRoomMapper {
             participantsMetadata = metadata.participantsMetadata.entries.associate { (key, value) ->
                 key to toParticipantDocument(value)
             },
-            settings = toSettingsDocument(metadata.settings)
+            settings = toSettingsDocument(metadata.settings),
+            announcement = metadata.announcement
         )
     }
 
@@ -67,7 +68,8 @@ class ChatRoomMapper {
             participantsMetadata = document.participantsMetadata.entries.associate { (key, value) ->
                 key to toParticipant(value)
             },
-            settings = toSettings(document.settings)
+            settings = toSettings(document.settings),
+            announcement = document.announcement
         )
     }
 

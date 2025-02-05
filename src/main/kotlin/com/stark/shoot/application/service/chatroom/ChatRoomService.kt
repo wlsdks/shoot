@@ -53,6 +53,7 @@ class ChatRoomService(
     ): Boolean {
         val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
             ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
+
         chatRoom.participants.add(userId)
         saveChatRoomPort.save(chatRoom)
         return true
@@ -64,6 +65,7 @@ class ChatRoomService(
     ): Boolean {
         val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
             ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
+
         chatRoom.participants.remove(userId)
         saveChatRoomPort.save(chatRoom)
         return true
@@ -85,6 +87,19 @@ class ChatRoomService(
         )
 
         val updatedChatRoom = chatRoom.copy(metadata = updatedMetadata)
+        saveChatRoomPort.save(updatedChatRoom)
+    }
+
+    override fun updateAnnouncement(
+        roomId: String,
+        announcement: String?
+    ) {
+        val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
+            ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
+
+        val updatedMetadata = chatRoom.metadata.copy(announcement = announcement)
+        val updatedChatRoom = chatRoom.copy(metadata = updatedMetadata)
+
         saveChatRoomPort.save(updatedChatRoom)
     }
 

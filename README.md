@@ -1,102 +1,27 @@
-MongoDB에서 어떻게 저장되고 응답되는지 보여드리겠습니다.
+## 클라이언트가 구독해야 하는 채널들
+1. 실제 채팅 내용 수신:
+- 클라이언트는 자신이 참여 중인 채팅방에 대해 /topic/messages/{roomId}를 구독합니다.
+- 예: 채팅방 A에 참여한 경우, /topic/messages/A를 구독.
 
-```bash
-# 1. ChatMessageDocument 저장/조회 예시
-> db.messages.insertOne({
-  roomId: ObjectId("5f7d3a2e9d3e2a1234567890"),
-  senderId: ObjectId("5f7d3a2e9d3e2a1234567891"),
-  content: {
-    text: "안녕하세요",
-    type: "TEXT",
-    metadata: {
-      urlPreview: null,
-      readAt: null
-    },
-    attachments: [],
-    isEdited: false,
-    isDeleted: false
-  },
-  status: "SENT",
-  replyToMessageId: null,
-  reactions: {},
-  mentions: [],
-  createdAt: ISODate("2024-01-15T10:00:00Z"),
-  updatedAt: null
-})
+2. 채팅방 상태 업데이트(예: unreadCount) 수신:
+- 클라이언트는 자신의 사용자 ID에 해당하는 /topic/chatrooms/{userId}/updates 채널도 구독합니다.
+- 예: 사용자 ID가 123인 경우, /topic/chatrooms/123/updates를 구독. 
+ 
+따라서 클라이언트는 두 종류의 정보를 각각 다른 채널에서 받아 처리하게 됩니다.
 
-# 2. ChatRoomDocument 저장/조회 예시
-> db.chat_rooms.insertOne({
-  participants: [
-    ObjectId("5f7d3a2e9d3e2a1234567891"),
-    ObjectId("5f7d3a2e9d3e2a1234567892")
-  ],
-  lastMessageId: ObjectId("5f7d3a2e9d3e2a1234567893"),
-  metadata: {
-    title: "프로젝트 논의방",
-    type: "INDIVIDUAL",
-    participantsMetadata: {
-      "5f7d3a2e9d3e2a1234567891": {
-        lastReadMessageId: ObjectId("5f7d3a2e9d3e2a1234567893"),
-        lastReadAt: ISODate("2024-01-15T10:00:00Z"),
-        joinedAt: ISODate("2024-01-01T00:00:00Z"),
-        role: "OWNER",
-        nickname: null,
-        isActive: true
-      },
-      "5f7d3a2e9d3e2a1234567892": {
-        lastReadMessageId: ObjectId("5f7d3a2e9d3e2a1234567892"),
-        lastReadAt: ISODate("2024-01-15T09:55:00Z"),
-        joinedAt: ISODate("2024-01-01T00:00:00Z"),
-        role: "MEMBER",
-        nickname: null,
-        isActive: true
-      }
-    },
-    settings: {
-      isNotificationEnabled: true,
-      retentionDays: null,
-      isEncrypted: false,
-      customSettings: {}
-    }
-  },
-  lastActiveAt: ISODate("2024-01-15T10:00:00Z"),
-  createdAt: ISODate("2024-01-01T00:00:00Z"),
-  updatedAt: null
-})
+## 웹소켓 상호작용 요약
+1. 메시지 전송 시나리오:
+- 클라이언트가 /app/chat (즉, @MessageMapping("/chat")로 매핑된 핸들러)로 메시지를 전송합니다.
+- 서버는 이 메시지를 처리한 후, 채팅 메시지를 /topic/messages/{roomId} 채널로 브로드캐스트합니다.
+- 채팅방에 참여한 모든 클라이언트는 이 채널을 구독하고 있으므로, 메시지를 실시간으로 수신하여 화면에 표시합니다.
 
-# 3. UserDocument 저장/조회 예시
-> db.users.insertOne({
-  username: "john.doe",
-  nickname: "John",
-  status: "ONLINE",
-  profileImageUrl: "https://example.com/profile.jpg",
-  lastSeenAt: ISODate("2024-01-15T10:00:00Z"),
-  createdAt: ISODate("2024-01-01T00:00:00Z"),
-  updatedAt: null
-})
+2. 메타데이터 업데이트 시나리오 (예: unreadCount 업데이트):
+- 메시지가 처리되어 unreadCount가 변경되면, 서버에서 ChatUnreadCountUpdatedEvent 이벤트를 발행합니다.
+- 이벤트 리스너가 이 이벤트를 받아, 각 사용자별로 /topic/chatrooms/{userId}/updates 채널에 업데이트 정보를 전송합니다.
+- 클라이언트는 자신의 사용자 ID에 해당하는 이 채널을 구독하여, 채팅방 목록 등의 UI에서 읽지 않은 메시지 수 등을 실시간으로 업데이트합니다.
 
-# 채팅방 조회 예시 (인덱스 활용)
-> db.chat_rooms.find({
-  participants: ObjectId("5f7d3a2e9d3e2a1234567891")
-}).sort({ lastActiveAt: -1 })
+서버 측에서는 메시지 전송과 메타데이터 업데이트를 위한 서로 다른 목적의 채널을 운영하며, 클라이언트는 각각의 목적에 맞게 구독해야 합니다.
 
-# 메시지 조회 예시 (인덱스 활용)
-> db.messages.find({
-  roomId: ObjectId("5f7d3a2e9d3e2a1234567890")
-}).sort({ createdAt: -1 })
-```
-
-이 구조의 주요 장점들:
-
-1. 임베디드 문서(embedded documents) 활용:
-    - `MessageContentDocument`, `ChatRoomMetadataDocument` 등이 중첩 구조로 저장되어 조회가 효율적
-    - 관련 데이터를 단일 쿼리로 가져올 수 있음
-
-2. 효과적인 인덱싱:
-    - `room_created_idx`: 채팅방별 메시지 조회 최적화
-    - `sender_created_idx`: 발신자별 메시지 조회 최적화
-    - `participants_idx`: 사용자별 채팅방 조회 최적화
-
-3. 유연한 확장성:
-    - `customSettings`와 같은 필드로 추가 설정 확장 가능
-    - `metadata` 맵을 통한 동적 데이터 저장 가능
+실제 채팅 내용은 /topic/messages/{roomId}에서 받으며,
+채팅방 상태 업데이트는 /topic/chatrooms/{userId}/updates에서 받게 됩니다.
+이 두 채널은 서로 다른 정보를 전달하지만, 클라이언트에서 모두 구독해야 전체적인 채팅 경험(실시간 채팅과 상태 업데이트)을 완벽하게 지원할 수 있습니다.

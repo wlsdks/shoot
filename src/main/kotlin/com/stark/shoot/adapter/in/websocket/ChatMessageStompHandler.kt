@@ -16,6 +16,8 @@ class ChatMessageStompHandler(
 ) {
     private val logger = KotlinLogging.logger {}
 
+    // @MessageMapping("/chat")은 클라이언트가 메시지를 전송할 때 사용하는 서버 측 핸들러입니다.
+    // 클라이언트가 채팅 메시지를 보낼 때, 이 핸들러가 호출되어 메시지를 받아 처리하고, 그 결과를 다시 /topic/messages/{roomId}로 전송합니다.
     @MessageMapping("/chat")
     fun handleChatMessage(
         message: ChatMessageRequest,
@@ -41,7 +43,8 @@ class ChatMessageStompHandler(
                 }
             }
 
-        // 2. 실시간으로 클라이언트에 전송
+        // 2. 실시간으로 클라이언트에 전송 (클라이언트는 채팅방에 입장할 때, 해당 채팅방의 메시지를 받기 위해 이 채널을 구독합니다.)
+        // 예를 들어, 채팅방 A의 모든 참가자는 /topic/messages/A를 구독하여 메시지가 도착하면 화면에 표시합니다. (즉, 실시간 채팅 내용을 보여주기 위한 채널입니다.)
         messagingTemplate.convertAndSend(
             "/topic/messages/${message.roomId}",
             message

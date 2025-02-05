@@ -1,21 +1,20 @@
 package com.stark.shoot.adapter.`in`.web.message
 
+import com.stark.shoot.application.port.`in`.chat.MessageReadUseCase
 import com.stark.shoot.application.port.`in`.chat.RetrieveMessageUseCase
 import com.stark.shoot.domain.chat.message.ChatMessage
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.time.Instant
 
 @Tag(name = "메시지", description = "메시지 관련 API")
 @RequestMapping("/api/v1/messages")
 @RestController
 class MessageController(
-    private val retrieveMessageUseCase: RetrieveMessageUseCase
+    private val retrieveMessageUseCase: RetrieveMessageUseCase,
+    private val messageReadUseCase: MessageReadUseCase
 ) {
 
     @Operation(
@@ -30,6 +29,19 @@ class MessageController(
     ): ResponseEntity<List<ChatMessage>> {
         val message = retrieveMessageUseCase.getMessages(roomId, before, limit)
         return ResponseEntity.ok(message)
+    }
+
+    @Operation(
+        summary = "메시지 읽음 처리",
+        description = "해당 채팅방의 메시지를 읽음 처리하여 unreadCount를 초기화합니다."
+    )
+    @PostMapping("/mark-read")
+    fun markMessageRead(
+        @RequestParam roomId: String,
+        @RequestParam userId: String
+    ) : ResponseEntity<Unit> {
+        messageReadUseCase.markRead(roomId, userId)
+        return ResponseEntity.noContent().build()
     }
 
 }

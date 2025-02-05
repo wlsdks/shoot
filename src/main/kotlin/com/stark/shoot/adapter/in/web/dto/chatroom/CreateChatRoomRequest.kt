@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.web.dto
+package com.stark.shoot.adapter.`in`.web.dto.chatroom
 
 data class CreateChatRoomRequest(
     val title: String?,                   // 채팅방 제목

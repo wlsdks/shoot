@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.websocket
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.adapter.`in`.web.dto.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort

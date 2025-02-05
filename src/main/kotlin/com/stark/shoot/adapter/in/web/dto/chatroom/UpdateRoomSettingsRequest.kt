@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.web.dto
+package com.stark.shoot.adapter.`in`.web.dto.chatroom
 
 data class UpdateRoomSettingsRequest(
     val title: String?,               // 변경할 제목 (선택)

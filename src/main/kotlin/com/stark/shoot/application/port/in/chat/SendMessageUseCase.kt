@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.chat
 
-import com.stark.shoot.adapter.`in`.web.dto.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import java.util.concurrent.CompletableFuture
 
 interface SendMessageUseCase {

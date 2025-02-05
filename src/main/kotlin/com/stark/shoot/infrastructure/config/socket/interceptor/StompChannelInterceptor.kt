@@ -1,7 +1,7 @@
 package com.stark.shoot.infrastructure.config.socket.interceptor
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.adapter.`in`.web.dto.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.out.LoadChatRoomPort
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException

@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.chat
 
-import com.stark.shoot.adapter.`in`.web.dto.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
 import com.stark.shoot.application.port.`in`.chat.SendMessageUseCase

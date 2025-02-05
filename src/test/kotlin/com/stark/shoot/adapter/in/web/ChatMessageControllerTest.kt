@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.web
 
-import com.stark.shoot.adapter.`in`.web.dto.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.SendTo
 

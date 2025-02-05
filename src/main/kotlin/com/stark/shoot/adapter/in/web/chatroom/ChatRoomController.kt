@@ -1,8 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.chatroom
 
-import com.stark.shoot.adapter.`in`.web.dto.CreateChatRoomRequest
-import com.stark.shoot.adapter.`in`.web.dto.ManageParticipantRequest
-import com.stark.shoot.adapter.`in`.web.dto.UpdateRoomSettingsRequest
+import com.stark.shoot.adapter.`in`.web.dto.chatroom.CreateChatRoomRequest
+import com.stark.shoot.adapter.`in`.web.dto.chatroom.ManageParticipantRequest
+import com.stark.shoot.adapter.`in`.web.dto.chatroom.UpdateRoomSettingsRequest
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase

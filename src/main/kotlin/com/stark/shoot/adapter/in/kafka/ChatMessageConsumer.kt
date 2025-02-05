@@ -4,7 +4,10 @@ import com.stark.shoot.application.port.`in`.chat.ProcessMessageUseCase
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.kafka.annotation.DltHandler
 import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.messaging.handler.annotation.Header
+import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Component
 
 /**
@@ -18,9 +21,13 @@ class ChatMessageConsumer(
 
     @KafkaListener(
         topics = ["chat-messages"],
+        groupId = "chat-group",
         errorHandler = "chatMessageErrorHandler"
     )
-    fun consumeMessage(event: ChatEvent) {
+    fun consumeMessage(
+        @Payload event: ChatEvent,
+        @Header("correlationId") correlationId: String
+    ) {
         when (event.type) {
             EventType.MESSAGE_CREATED -> {
                 try {
@@ -33,6 +40,11 @@ class ChatMessageConsumer(
             // 다른 이벤트 타입은 무시
             else -> {}
         }
+    }
+
+    @DltHandler
+    fun handleDlt(event: ChatEvent) {
+        logger.error { "Failed to process message: ${event.data}" }
     }
 
 }

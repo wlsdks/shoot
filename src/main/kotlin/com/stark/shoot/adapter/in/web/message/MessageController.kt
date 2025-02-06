@@ -61,6 +61,7 @@ class MessageController(
         return ResponseEntity.ok(deletedMessage)
     }
 
+    @Deprecated("사용하지 않지만 추후 수동으로 읽음 처리할 때 사용할 수 있습니다.")
     @Operation(
         summary = "메시지 읽음 처리",
         description = "해당 채팅방의 메시지를 읽음 처리하여 unreadCount를 초기화합니다."

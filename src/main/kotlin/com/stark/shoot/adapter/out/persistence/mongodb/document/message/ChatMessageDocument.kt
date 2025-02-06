@@ -26,5 +26,6 @@ data class ChatMessageDocument(
     val status: MessageStatus = MessageStatus.SENT, // 메시지 상태 (e.g., SENT, READ 등)
     val replyToMessageId: ObjectId? = null,         // 답장할 메시지 ID
     val reactions: Map<String, Set<ObjectId>> = emptyMap(), // 이모티콘 ID to 사용자 ID 목록
-    val mentions: Set<ObjectId> = emptySet()        // 멘션된 사용자 ID 목록
+    val mentions: Set<ObjectId> = emptySet(),       // 멘션된 사용자 ID 목록
+    val isDeleted: Boolean = false                  // 삭제 여부
 ) : BaseMongoDocument()

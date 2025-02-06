@@ -13,5 +13,6 @@ data class ChatMessage(
     val reactions: Map<String, Set<String>> = emptyMap(),
     val mentions: Set<String> = emptySet(),
     val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant? = null
+    val updatedAt: Instant? = null,
+    val isDeleted: Boolean = false
 )

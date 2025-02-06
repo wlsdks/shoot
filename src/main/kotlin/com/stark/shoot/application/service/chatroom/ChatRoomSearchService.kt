@@ -7,7 +7,7 @@ import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 
 @Service
-class ChatRoomSearchServiceImpl(
+class ChatRoomSearchService(
     private val loadChatRoomPort: LoadChatRoomPort,
 ) : ChatRoomSearchUseCase {
 

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 import java.time.Instant
 
 @Service
-class MessageReadServiceImpl(
+class MessageReadService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort
 ) : MessageReadUseCase {

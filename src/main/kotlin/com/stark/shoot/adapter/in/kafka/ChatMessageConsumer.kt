@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.kafka
 
-import com.stark.shoot.application.port.`in`.chat.ProcessMessageUseCase
+import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
 import io.github.oshai.kotlinlogging.KotlinLogging

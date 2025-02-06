@@ -1,6 +1,6 @@
-package com.stark.shoot.application.service.chat
+package com.stark.shoot.application.service.message
 
-import com.stark.shoot.application.port.`in`.chat.MessageReadUseCase
+import com.stark.shoot.application.port.`in`.message.MessageReadUseCase
 import com.stark.shoot.application.port.out.LoadChatRoomPort
 import com.stark.shoot.application.port.out.SaveChatRoomPort
 import com.stark.shoot.infrastructure.common.util.toObjectId

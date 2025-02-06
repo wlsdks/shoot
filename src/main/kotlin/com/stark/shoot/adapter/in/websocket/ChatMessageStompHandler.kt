@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.websocket
 
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
-import com.stark.shoot.application.port.`in`.chat.SendMessageUseCase
+import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.infrastructure.common.exception.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.messaging.handler.annotation.MessageMapping

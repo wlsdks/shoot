@@ -1,9 +1,9 @@
-package com.stark.shoot.application.service.chat
+package com.stark.shoot.application.service.message
 
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
-import com.stark.shoot.application.port.`in`.chat.SendMessageUseCase
+import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType

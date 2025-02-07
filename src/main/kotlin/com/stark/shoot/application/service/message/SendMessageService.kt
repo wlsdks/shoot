@@ -25,7 +25,7 @@ class SendMessageService(
             roomId = message.roomId,
             senderId = message.senderId ?: throw IllegalArgumentException("User ID is required"),
             content = MessageContent(
-                text = message.content,
+                text = message.content.text,
                 type = MessageType.TEXT
             ),
             status = MessageStatus.SENT

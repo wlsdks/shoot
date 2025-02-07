@@ -7,7 +7,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
-import java.security.Principal
 
 @Controller
 class ChatMessageStompHandler(
@@ -20,12 +19,8 @@ class ChatMessageStompHandler(
     // 클라이언트가 채팅 메시지를 보낼 때, 이 핸들러가 호출되어 메시지를 받아 처리하고, 그 결과를 다시 /topic/messages/{roomId}로 전송합니다.
     @MessageMapping("/chat")
     fun handleChatMessage(
-        message: ChatMessageRequest,
-        principal: Principal
+        message: ChatMessageRequest
     ) {
-        // principal.name -> userId
-        logger.info { "Received message from ${principal.name}: ${message.content}" }
-
         // 1. Kafka로 메시지 발행 (비동기)
         sendMessageUseCase.handleMessage(message)
             .whenComplete { _, throwable ->

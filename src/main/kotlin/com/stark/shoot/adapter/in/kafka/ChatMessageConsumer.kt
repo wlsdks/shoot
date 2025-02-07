@@ -26,7 +26,7 @@ class ChatMessageConsumer(
     )
     fun consumeMessage(
         @Payload event: ChatEvent,
-        @Header("correlationId") correlationId: String
+//        @Header("correlationId") correlationId: String
     ) {
         when (event.type) {
             EventType.MESSAGE_CREATED -> {

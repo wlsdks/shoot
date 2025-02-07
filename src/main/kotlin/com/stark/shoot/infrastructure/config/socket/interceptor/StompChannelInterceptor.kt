@@ -41,6 +41,7 @@ class StompChannelInterceptor(
      * 그 결과, 컨트롤러의 STOMP 핸들러 메서드(@MessageMapping)에서 principal 파라미터를 받을 수 있게 됩니다.
      */
     override fun preSend(message: Message<*>, channel: MessageChannel): Message<*> {
+        // todo: 여기서 계속 인증오류남
         val accessor = StompHeaderAccessor.wrap(message)
         val command = accessor.command ?: return message
 

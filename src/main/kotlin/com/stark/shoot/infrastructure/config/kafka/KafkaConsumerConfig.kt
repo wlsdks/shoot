@@ -32,6 +32,7 @@ class KafkaConsumerConfig {
             // JSON Deserializer 설정
             JsonDeserializer.TRUSTED_PACKAGES to "com.stark.shoot.domain.chat.event",
             JsonDeserializer.TYPE_MAPPINGS to "chatEvent:com.stark.shoot.domain.chat.event.ChatEvent",
+            JsonDeserializer.VALUE_DEFAULT_TYPE to ChatEvent::class.java.name,
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest"
         )
 

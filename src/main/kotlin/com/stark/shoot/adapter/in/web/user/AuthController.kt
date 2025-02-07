@@ -24,15 +24,7 @@ class AuthController(
     fun login(
         @RequestBody request: LoginRequest
     ): ResponseEntity<LoginResponse> {
-        val token = userLoginUseCase.login(request.username, request.password)
-
-        // 예시: token 발급 후, userId도 함께 반환한다고 가정
-        // userId를 username 대신 저장했으면, username으로 응답할 수도 있습니다.
-        val response = LoginResponse(
-            userId = request.username,
-            accessToken = token
-        )
-
+        val response = userLoginUseCase.login(request.username, request.password)
         return ResponseEntity.ok(response)
     }
 

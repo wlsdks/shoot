@@ -1,5 +1,6 @@
 package com.stark.shoot.application.service.user
 
+import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.UserLoginUseCase
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
@@ -20,7 +21,7 @@ class UserLoginService(
     override fun login(
         username: String,
         password: String
-    ): String {
+    ): LoginResponse {
         // 포트에서 null이 반환될 수 있음
         val user = retrieveUserPort.findByUsername(username)
             ?: throw IllegalArgumentException("해당 username의 사용자를 찾을 수 없습니다.")
@@ -30,8 +31,14 @@ class UserLoginService(
 //            throw IllegalArgumentException("비밀번호가 올바르지 않습니다.")
 //        }
 
-        // user.id를 subject로 JWT 생성
-        return jwtProvider.generateToken(subject = user.nickname)
+        // JWT 생성
+        val generatedAccessToken = jwtProvider.generateToken(subject = user.nickname)
+
+        // 사용자 ID와 생성된 토큰 반환 (ObjectId를 String으로 변환해서 반환)
+        return LoginResponse(
+            userId = user.id.toString(),
+            accessToken = generatedAccessToken
+        )
     }
 
 }

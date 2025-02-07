@@ -37,6 +37,7 @@ class WebSocketConfig(
         registry.addEndpoint("/ws/chat") // WebSocket 엔드포인트
             .addInterceptors(AuthHandshakeInterceptor(jwtAuthenticationService)) // 인증 인터셉터 추가
             .setAllowedOriginPatterns("*") // CORS 문제 방지
+            .withSockJS() // SockJS fallback 엔드포인트 활성화
     }
 
     /**

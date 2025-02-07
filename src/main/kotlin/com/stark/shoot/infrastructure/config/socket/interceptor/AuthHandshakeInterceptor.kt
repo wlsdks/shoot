@@ -21,7 +21,11 @@ class AuthHandshakeInterceptor(
         attributes: MutableMap<String, Any>
     ): Boolean {
         // info 엔드포인트는 SockJS 내부에서 사용하는 경로로, 인증을 생략해야 500 오류가 발생하지 않습니다. (이것만으로 안먹힘 SockJs를 활성화해야 함)
-        if (request.uri.path.endsWith("/info")) {
+        // 또한 /xhr, /xhr_streaming 등의 경로도 인증을 생략해야 합니다. (아니면 요청을 무한으로 보내게 됩니다.)
+        val path = request.uri.path
+
+        // SockJS fallback 요청 (예: /info, /xhr, /xhr_streaming 등)은 인증 없이 허용
+        if (path.endsWith("/info") || path.contains("/xhr")) {
             return true
         }
 

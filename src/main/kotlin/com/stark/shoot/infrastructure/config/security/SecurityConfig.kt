@@ -11,6 +11,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
@@ -38,6 +41,30 @@ class SecurityConfig(
     }
 
     /**
+     * CORS 설정
+     * - 프론트엔드 URL을 허용
+     * - 허용할 HTTP 메서드 설정
+     * - 모든 헤더를 허용
+     * - 자격 증명(쿠키, Authorization 헤더 등)을 허용
+     */
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val configuration = CorsConfiguration().apply {
+            // 프론트엔드 URL을 허용합니다.
+            allowedOrigins = listOf("http://localhost:3000")
+            // 허용할 HTTP 메서드 설정
+            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            // 모든 헤더를 허용합니다.
+            allowedHeaders = listOf("*")
+            // 자격 증명(쿠키, Authorization 헤더 등)을 허용합니다.
+            allowCredentials = true
+        }
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", configuration)
+        return source
+    }
+
+    /**
      * JWT 토큰 검증 필터를 SecurityFilterChain에 등록합니다.
      * - CSRF 보안 기능 비활성화
      * - 세션 관리 정책: STATELESS
@@ -51,6 +78,7 @@ class SecurityConfig(
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         return http
             .csrf { it.disable() }
+            .cors { it.configurationSource(corsConfigurationSource()) }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 // 인증이 필요하지 않은 경로

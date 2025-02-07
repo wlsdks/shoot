@@ -4,18 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.out.LoadChatRoomPort
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
-import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
 import com.stark.shoot.infrastructure.common.exception.WebSocketException
 import com.stark.shoot.infrastructure.config.socket.StompPrincipal
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.bson.types.ObjectId
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.simp.stomp.StompCommand
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor
 import org.springframework.messaging.support.ChannelInterceptor
 import org.springframework.security.core.Authentication
-import java.nio.file.AccessDeniedException
 
 /**
  * StompChannelInterceptor는 STOMP 프로토콜 기반의 메시지를 가로채어
@@ -45,82 +42,39 @@ class StompChannelInterceptor(
      */
     override fun preSend(message: Message<*>, channel: MessageChannel): Message<*> {
         val accessor = StompHeaderAccessor.wrap(message)
-        // 하트비트 프레임 등은 command가 null일 수 있으므로 스킵
         val command = accessor.command ?: return message
+
+        // 먼저 fallback 요청인지 확인 (URL에 '/xhr_send' 혹은 '/xhr_streaming'이 포함되어 있다면)
+        val path = accessor.sessionAttributes?.get("sockJsPath") as? String ?: ""
+        if (path.contains("/xhr_send") || path.contains("/xhr_streaming") || path.endsWith("/info")) {
+            // fallback 전송 요청은 인증 없이 그대로 반환
+            return message
+        }
 
         // 세션 어트리뷰트에서 HandshakeInterceptor에서 넣어둔 인증 객체를 가져옴
         val sessionAttributes = accessor.sessionAttributes
         val authentication = sessionAttributes?.get("authentication") as? Authentication
 
-        // 만약 인증 성공했다면 accessor.user에 Principal 설정
-        if (authentication != null) {
-            // 1) 커스텀 Principal 생성
-            val userId = authentication.name
-            val stompPrincipal = StompPrincipal(userId) // java.security.Principal 구현체
-
-            // 2) STOMP 메시지의 user(Principal) 설정
-            accessor.user = stompPrincipal
-        } else {
+        // 만약 인증 정보가 없다면, fallback 요청이 아닌 경우라면 로그를 남기하고 반환
+        if (authentication == null) {
             logger.error { "인증 정보가 없습니다" }
+            return message  // fallback이 아닌 일반 요청이라면 여기서 메시지를 차단할 수도 있지만,
+            // fallback 요청에서는 이미 인증이 생략되어야 하므로 그냥 반환합니다.
         }
 
-        val user = accessor.user?.name?.let { retrieveUserPort.findByUsername(username = it) }
-        val userId = user?.id
+        // 이미 인증이 있는 경우, 커스텀 Principal을 설정
+        val userId = authentication.name
+        val stompPrincipal = StompPrincipal(userId)
+        accessor.user = stompPrincipal
 
-        when (accessor.command) {
-            StompCommand.CONNECT -> {
-                logger.info { "Connected: $userId" }
-            }
-
-            // 구독 요청시: 해당 유저가 그 채팅방에 접근 권한이 있는지 확인
-            StompCommand.SUBSCRIBE -> {
-                val destination = accessor.destination
-                if (destination?.startsWith(TOPIC_PREFIX) == true ||
-                    destination?.startsWith(QUEUE_PREFIX) == true
-                ) {
-                    val roomId = getRoomIdFromDestination(destination)
-                    if (userId != null) {
-                        validateRoomAccess(userId, roomId)
-                    }
-                }
-            }
-
-            // 메시지 전송 요청시: 메시지 형식이 올바른지, 발신자가 해당 채팅방 접근 권한이 있는지 확인
-            StompCommand.SEND -> {
-                val chatMessage = getMessage(message)
-                validateMessage(chatMessage)
-                if (userId != null) {
-                    validateRoomAccess(userId, chatMessage.roomId)
-                }
-            }
-
-            else -> { /* 다른 커맨드(UNSUBSCRIBE 등) 처리 필요 시 추가 */
-            }
+        // 만약 명령어가 SEND라면, 메시지 파싱 시도
+        if (command == StompCommand.SEND) {
+            // 만약 payload가 비어 있으면, 추가 검증 없이 그대로 반환
+            val parsedMessage = getMessage(message) ?: return message
+            // 여기에 필요하다면 추가 유효성 검사를 수행할 수 있습니다.
+            validateMessage(parsedMessage)
         }
-
-        // 별다른 문제가 없다면 메시지를 그대로 반환 -> 다음 단계로 진행
         return message
-    }
-
-    /**
-     * STOMP destination에서 roomId 추출
-     * 예: /topic/messages/123 -> 123
-     */
-    private fun getRoomIdFromDestination(destination: String?): String {
-        return destination?.split("/")?.lastOrNull()
-            ?: throw WebSocketException("Invalid destination format")
-    }
-
-    /**
-     * 채팅방 접근 권한 검사
-     */
-    private fun validateRoomAccess(userId: ObjectId, roomId: String) {
-        val chatRoom = loadChatRoomPort.findById(ObjectId(roomId))
-            ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다")
-
-        if (!chatRoom.participants.contains(userId)) {
-            throw AccessDeniedException("채팅방에 접근 권한이 없습니다")
-        }
     }
 
     /**
@@ -130,7 +84,7 @@ class StompChannelInterceptor(
         if (message.roomId.isBlank()) {
             throw WebSocketException("Room ID is required")
         }
-        if (message.content.length > 1000) {  // 예시: 1000자 제한
+        if (message.content.text.length > 1000) {  // 예시: 1000자 제한
             throw WebSocketException("Message content too long")
         }
     }
@@ -138,7 +92,13 @@ class StompChannelInterceptor(
     /**
      * 이 메서드는 STOMP 메시지의 페이로드를 ChatMessageRequest 객체로 변환하는 역할을 합니다.
      */
-    private fun getMessage(message: Message<*>): ChatMessageRequest {
+    private fun getMessage(message: Message<*>): ChatMessageRequest? {
+        val payload = message.payload
+        // payload가 null이거나 빈 문자열이면 파싱하지 않고 null 반환
+        if (payload == null || (payload is String && payload.trim().isEmpty())) {
+            return null
+        }
+
         return try {
             val payload = message.payload
             when (payload) {

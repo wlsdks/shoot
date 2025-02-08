@@ -7,5 +7,4 @@ data class MessageContentRequest(
     val isEdited: Boolean = false,
     val isDeleted: Boolean = false
 ) {
-
 }

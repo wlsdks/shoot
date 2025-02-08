@@ -34,6 +34,21 @@ class ChatRoomController(
         return ResponseEntity.ok(chatRoom)
     }
 
+    @PostMapping("/create/direct")
+    fun createDirectChat(
+        @RequestParam userId: String,
+        @RequestParam friendId: String
+    ): ResponseEntity<Any> {
+        // 새로운 UseCase 혹은 기존 createChatRoomUseCase를 재활용
+        // 내부에서 "이미 존재하는 1:1 채팅방" 체크 후,
+        // 없으면 새로 만들고 그 채팅방 정보 반환
+        val room = createChatRoomUseCase.createDirectChat(
+            userId.toObjectId(),
+            friendId.toObjectId()
+        )
+        return ResponseEntity.ok(room)
+    }
+
     @Operation(summary = "채팅방 참여자 추가", description = "채팅방에 참여자를 추가합니다.")
     @PostMapping("/{roomId}/participants")
     fun addParticipant(

@@ -47,6 +47,53 @@ class ChatRoomService(
         return saveChatRoomPort.save(chatRoom)
     }
 
+    /**
+     * @param userId 사용자 ID
+     * @param friendId 친구 ID
+     * @return ChatRoom 채팅방
+     * @apiNote 1:1 채팅방 생성
+     */
+    override fun createDirectChat(
+        userId: ObjectId,
+        friendId: ObjectId
+    ): ChatRoom {
+        // 1) 먼저 "이미 존재하는 1:1 채팅방" 있는지 찾는다
+        val existingRooms = loadChatRoomPort.findByParticipantId(userId)
+            .filter { it.participants.size == 2 && it.participants.contains(friendId) }
+        // 만약 ChatRoomType.INDIVIDUAL 필드가 있다면 여기서도 체크
+
+        if (existingRooms.isNotEmpty()) {
+            // 이미 둘만의 방이 하나라도 있으면 그걸 재활용
+            return existingRooms.first()
+        }
+
+        // 2) 없으면 새로 만듦
+        val participants = setOf(userId, friendId)
+
+        // [중요] metadata 파라미터를 포함해서 생성
+        val metadata = ChatRoomMetadata(
+            title = null,  // 1:1 채팅방 제목을 "개인채팅" or "둘 닉네임 조합" etc.
+            type = ChatRoomType.INDIVIDUAL,
+            participantsMetadata = participants.associateWith { Participant() },
+            settings = ChatRoomSettings()
+            // announcement, etc. 필요 시 여기에
+        )
+
+        val chatRoom = ChatRoom(
+            participants = participants.toMutableSet(),
+            metadata = metadata
+            // lastMessageId, etc.는 기본값이면 생략 가능
+        )
+
+        return saveChatRoomPort.save(chatRoom)
+    }
+
+    /**
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @return Boolean 참여자 추가 성공 여부
+     * @apiNote 채팅방 참여자 추가
+     */
     override fun addParticipant(
         roomId: String,
         userId: ObjectId
@@ -59,6 +106,12 @@ class ChatRoomService(
         return true
     }
 
+    /**
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @return Boolean 참여자 제거 성공 여부
+     * @apiNote 채팅방 참여자 제거
+     */
     override fun removeParticipant(
         roomId: String,
         userId: ObjectId
@@ -71,6 +124,12 @@ class ChatRoomService(
         return true
     }
 
+    /**
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @return Boolean 퇴장 성공 여부
+     * @apiNote 채팅방 퇴장
+     */
     override fun updateRoomSettings(
         roomId: String,
         title: String?,
@@ -90,6 +149,11 @@ class ChatRoomService(
         saveChatRoomPort.save(updatedChatRoom)
     }
 
+    /**
+     * @param roomId 채팅방 ID
+     * @param announcement 공지사항
+     * @apiNote 채팅방 공지사항 설정
+     */
     override fun updateAnnouncement(
         roomId: String,
         announcement: String?

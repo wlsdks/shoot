@@ -7,4 +7,7 @@ interface RetrieveUserPort {
     fun findByUsername(username: String): User?
     fun findById(id: ObjectId): User?
     fun findAll(): List<User>
+
+    fun findByUserCode(userCode: String): User?
+    fun findRandomUsers(excludeUserId: ObjectId, limit: Int): List<User>
 }

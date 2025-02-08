@@ -18,4 +18,7 @@ data class User(
     val friends: Set<ObjectId> = emptySet(),                   // 이미 친구인 사용자들의 ObjectId
     val incomingFriendRequests: Set<ObjectId> = emptySet(),    // 내가 받은(아직 수락/거절 전인) 요청 보낸 사용자 IDs
     val outgoingFriendRequests: Set<ObjectId> = emptySet(),    // 내가 보냈지만 아직 상대방이 수락/거절 안 한 사용자 IDs
+
+    // 유저 찾기 코드 (예: "ABCD1234")
+    val userCode: String? = null
 )

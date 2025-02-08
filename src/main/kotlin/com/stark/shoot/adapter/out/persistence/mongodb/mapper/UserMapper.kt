@@ -25,7 +25,8 @@ class UserMapper {
             // 친구 관련 필드 매핑
             friends = domain.friends,
             incomingFriendRequests = domain.incomingFriendRequests,
-            outgoingFriendRequests = domain.outgoingFriendRequests
+            outgoingFriendRequests = domain.outgoingFriendRequests,
+            userCode = domain.userCode ?: ""
         ).apply {
             id = domain.id
         }
@@ -52,7 +53,8 @@ class UserMapper {
             // 친구 관련 필드 매핑
             friends = document.friends,
             incomingFriendRequests = document.incomingFriendRequests,
-            outgoingFriendRequests = document.outgoingFriendRequests
+            outgoingFriendRequests = document.outgoingFriendRequests,
+            userCode = document.userCode
         )
     }
 

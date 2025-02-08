@@ -52,7 +52,7 @@ class FriendController(
         manageFriendUseCase.sendFriendRequest(userId.toObjectId(), targetUserId.toObjectId())
     }
 
-    @Operation(summary = "유저코드로 친구 요청", description = "상대방 코드로 사용자 찾은 후 친구 요청")
+    @Operation(summary = "유저 코드로 친구 요청", description = "상대방 코드로 사용자 찾은 후 친구 요청")
     @PostMapping("/request/by-code")
     fun sendFriendRequestByCode(
         @RequestParam userId: String,   // 현재 로그인 사용자

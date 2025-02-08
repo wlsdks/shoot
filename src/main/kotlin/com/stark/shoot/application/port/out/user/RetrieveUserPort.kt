@@ -10,4 +10,5 @@ interface RetrieveUserPort {
 
     fun findByUserCode(userCode: String): User?
     fun findRandomUsers(excludeUserId: ObjectId, limit: Int): List<User>
+    fun findByCode(newCode: String): User?
 }

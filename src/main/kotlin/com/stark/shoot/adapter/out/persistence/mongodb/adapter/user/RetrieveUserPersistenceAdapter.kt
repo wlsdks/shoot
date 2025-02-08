@@ -77,4 +77,14 @@ class RetrieveUserPersistenceAdapter(
         return docs.map(userMapper::toDomain)
     }
 
+    /**
+     * 코드로 사용자 조회
+     */
+    override fun findByCode(
+        newCode: String
+    ): User? {
+        val doc = userMongoRepository.findByUserCode(newCode) ?: return null
+        return userMapper.toDomain(doc)
+    }
+
 }

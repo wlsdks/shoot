@@ -20,11 +20,17 @@ class UserMapper {
             nickname = domain.nickname,
             status = domain.status.name,
             profileImageUrl = domain.profileImageUrl,
-            lastSeenAt = domain.lastSeenAt
+            lastSeenAt = domain.lastSeenAt,
+
+            // 친구 관련 필드 매핑
+            friends = domain.friends,
+            incomingFriendRequests = domain.incomingFriendRequests,
+            outgoingFriendRequests = domain.outgoingFriendRequests
         ).apply {
             id = domain.id
         }
     }
+
 
     /**
      * UserDocument -> User 변환
@@ -41,7 +47,12 @@ class UserMapper {
             profileImageUrl = document.profileImageUrl,
             lastSeenAt = document.lastSeenAt,
             createdAt = document.createdAt,
-            updatedAt = document.updatedAt
+            updatedAt = document.updatedAt,
+
+            // 친구 관련 필드 매핑
+            friends = document.friends,
+            incomingFriendRequests = document.incomingFriendRequests,
+            outgoingFriendRequests = document.outgoingFriendRequests
         )
     }
 

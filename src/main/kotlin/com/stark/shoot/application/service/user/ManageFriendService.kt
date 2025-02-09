@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.user
 import com.stark.shoot.application.port.`in`.user.ManageFriendUseCase
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
 import com.stark.shoot.application.port.out.user.UpdateUserFriendPort
+import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.common.exception.InvalidInputException
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
 import org.bson.types.ObjectId
@@ -118,6 +119,37 @@ class ManageFriendService(
         // 요청 보낸 쪽에서 outgoing에서 제거
         updateUserFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
         updateUserFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
+    }
+
+    /**
+     * 친구 요청 거절
+     */
+    override fun searchPotentialFriends(
+        currentUserId: ObjectId,
+        query: String
+    ): List<User> {
+        // 현재 사용자 조회
+        val currentUser = retrieveUserPort.findById(currentUserId)
+            ?: throw ResourceNotFoundException("User not found: $currentUserId")
+
+        // 제외할 사용자 목록: 본인, 이미 친구, 받은/보낸 친구 요청 대상
+        val excludedIds = mutableSetOf<ObjectId>().apply {
+            add(currentUserId)
+            addAll(currentUser.friends)
+            addAll(currentUser.incomingFriendRequests)
+            addAll(currentUser.outgoingFriendRequests)
+        }
+
+        // 모든 사용자 조회 (대규모 DB의 경우 효율적 쿼리로 대체 필요)
+        val allUsers = retrieveUserPort.findAll()
+
+        // username 또는 nickname에 검색어(query)가 포함된 사용자 필터링 (대소문자 무시)
+        return allUsers.filter { user ->
+            user.id != null &&
+                    !excludedIds.contains(user.id) &&
+                    (user.username.contains(query, ignoreCase = true) ||
+                            user.nickname.contains(query, ignoreCase = true))
+        }
     }
 
 }

@@ -9,10 +9,12 @@ import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
 import com.stark.shoot.infrastructure.common.exception.UnauthorizedException
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
+@Tag(name = "인증", description = "사용자 인증 관련 API")
 @RequestMapping("/api/v1/auth")
 @RestController
 class AuthController(

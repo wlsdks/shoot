@@ -3,11 +3,13 @@ package com.stark.shoot.adapter.`in`.web.user
 import com.stark.shoot.application.port.`in`.user.RetrieveUserUseCase
 import com.stark.shoot.infrastructure.common.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "친구 추천", description = "친구 추천 API")
 @RestController
 @RequestMapping("/api/v1/friends")
 class UserRecommendController(

@@ -82,16 +82,4 @@ class FriendController(
         manageFriendUseCase.rejectFriendRequest(userId.toObjectId(), requesterId.toObjectId())
     }
 
-    @Operation(summary = "친구와 채팅방 생성", description = "특정 친구와 1:1 채팅방을 만들기")
-    @PostMapping("/create-chat")
-    fun createChatWithFriend(
-        @RequestParam userId: String,
-        @RequestParam friendId: String
-    ) {
-        // 내부에서 createChatRoomUseCase 등을 호출해 1:1 채팅방 생성
-        // 예: participants = setOf(userId, friendId)
-        // (이미 존재하면 재활용하거나, 새로 만들거나...)
-        // manageFriendUseCase.createChatRoom(userId, friendId) // 별도 UseCase 구현도 가능
-    }
-
 }

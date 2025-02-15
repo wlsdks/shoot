@@ -48,4 +48,18 @@ class RetrieveUserService(
         return retrieveUserPort.findRandomUsers(excludeId, limit)
     }
 
+    /**
+     * BFS를 이용한 친구 추천
+     * - maxDepth: 친구 네트워크 탐색 최대 깊이 (예: 2단계까지)
+     * - 내부적으로 MongoDB 집계 파이프라인($graphLookup)으로 최적화된 쿼리를 수행
+     */
+    override fun findBFSRecommendedUsers(
+        userId: ObjectId,
+        maxDepth: Int,
+        limit: Int
+    ): List<User> {
+        // maxDepth는 필요에 따라 조정 (여기서는 2단계까지)
+        return retrieveUserPort.findBFSRecommendedUsers(userId, maxDepth = 2, limit = limit)
+    }
+
 }

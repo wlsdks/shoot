@@ -17,15 +17,41 @@ class UserRecommendController(
     private val retrieveUserUseCase: RetrieveUserUseCase
 ) {
 
-    @Operation(summary = "친구 추천", description = "랜덤으로 N명을 추출 (자기 자신 제외)")
+    @Operation(
+        summary = "랜덤 추천",
+        description = "랜덤으로 N명을 추출 (자기 자신 제외)"
+    )
     @GetMapping("/recommend")
     fun recommendFriends(
         @RequestParam userId: String,
         @RequestParam(defaultValue = "3") limit: Int
     ): List<RecommendedUserResponse> {
-        // 로그인한 사용자의 ObjectId로 변환
         val randomUsers = retrieveUserUseCase.findRandomUsers(userId.toObjectId(), limit)
         return randomUsers.map { user ->
+            RecommendedUserResponse(
+                id = user.id.toString(),
+                username = user.username,
+                nickname = user.nickname
+            )
+        }
+    }
+
+    @Operation(
+        summary = "BFS 추천",
+        description = "BFS를 통해 친구 네트워크를 탐색하여 추천 후보를 반환 (자기 자신, 기존 친구, 친구 요청 제외)"
+    )
+    @GetMapping("/recommend/bfs")
+    fun recommendFriendsBFS(
+        @RequestParam userId: String,
+        @RequestParam(defaultValue = "3") limit: Int,
+        @RequestParam(defaultValue = "2") maxDepth: Int
+    ): List<RecommendedUserResponse> {
+        // BFS 탐색을 통해 추천 친구 목록을 반환
+        val recommendedUsers =
+            retrieveUserUseCase.findBFSRecommendedUsers(userId.toObjectId(), maxDepth, limit)
+
+        // RecommendedUserResponse로 변환하여 반환
+        return recommendedUsers.map { user ->
             RecommendedUserResponse(
                 id = user.id.toString(),
                 username = user.username,

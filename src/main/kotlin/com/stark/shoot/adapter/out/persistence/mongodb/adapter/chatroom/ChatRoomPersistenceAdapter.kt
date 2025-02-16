@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.out.persistence.mongodb.adapter
+package com.stark.shoot.adapter.out.persistence.mongodb.adapter.chatroom
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.room.ChatRoomDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatRoomMapper

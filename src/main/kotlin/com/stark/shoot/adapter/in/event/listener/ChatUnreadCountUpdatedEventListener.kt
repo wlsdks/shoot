@@ -14,8 +14,10 @@ class ChatUnreadCountUpdatedEventListener(
     private val messagingTemplate: SimpMessagingTemplate
 ) {
 
-    // todo: 중요사항! 클라이언트는 자신의 사용자 ID에 해당하는 채널을 구독합니다. (클라이언트 코드 구성이 필요)
-    //  서버에서 전송한 메시지를 수신하여, 채팅방 목록이나 알림 뱃지를 실시간으로 갱신합니다.
+    /**
+     * 백엔드에서는 unreadCount 정보를 담은 이벤트를 "/topic/chatrooms/{userId}/updates" 채널로 보내고,
+     * 클라이언트에서는 이 채널을 구독하여 받은 데이터를 기반으로 채팅방 목록의 알림 뱃지(또는 unreadCount)를 업데이트해야 합니다.
+     */
     @EventListener
     fun handle(event: ChatUnreadCountUpdatedEvent) {
         // 각 참여자별로 업데이트된 unreadCount를 전송

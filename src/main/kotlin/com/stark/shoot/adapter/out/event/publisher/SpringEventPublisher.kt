@@ -13,7 +13,9 @@ import org.springframework.stereotype.Component
 class SpringEventPublisher(
     private val applicationEventPublisher: ApplicationEventPublisher
 ) : EventPublisher {
+
     override fun publish(event: DomainEvent) {
         applicationEventPublisher.publishEvent(event)
     }
+
 }

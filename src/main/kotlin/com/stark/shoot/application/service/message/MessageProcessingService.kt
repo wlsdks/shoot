@@ -5,7 +5,6 @@ import com.stark.shoot.application.port.out.EventPublisher
 import com.stark.shoot.application.port.out.LoadChatRoomPort
 import com.stark.shoot.application.port.out.SaveChatMessagePort
 import com.stark.shoot.application.port.out.SaveChatRoomPort
-import com.stark.shoot.domain.chat.event.ChatMessageSentEvent
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
@@ -21,9 +20,11 @@ class MessageProcessingService(
     private val eventPublisher: EventPublisher
 ) : ProcessMessageUseCase {
 
+
     /**
-     * 메시지 저장 후 채팅방의 메타데이터(특히 unreadCount)를 업데이트합니다.
-     * 이후 메시지 전송 이벤트와 unreadCount 업데이트 이벤트를 발행하여 WebSocket을 통해 실시간 업데이트를 전파합니다.
+     * 메시지 저장 및 채팅방 메타데이터 업데이트 담당
+     * 새 메시지가 도착할 때 sender를 제외한 다른 참여자의 unreadCount가 증가하고,
+     * 사용자가 해당 채팅방을 열거나 스크롤하여 메시지를 확인하면(예: "모두 읽음" 버튼 또는 자동 감지), unreadCount가 0으로 업데이트되도록 하면 됩니다.
      */
     override fun processMessage(message: ChatMessage): ChatMessage {
         val roomObjectId = message.roomId.toObjectId()
@@ -33,7 +34,7 @@ class MessageProcessingService(
         // 메시지 저장
         val savedMessage = saveChatMessagePort.save(message)
 
-        // sender를 제외한 각 참여자의 unreadCount 증가
+        // 보낸 사람(sender)을 제외한 참여자의 unreadCount를 1 증가시킵니다.
         val senderObjectId = ObjectId(message.senderId)
         val updatedParticipants = chatRoom.metadata.participantsMetadata.mapValues { (participantId, participant) ->
             if (participantId != senderObjectId) {
@@ -51,9 +52,6 @@ class MessageProcessingService(
             lastMessageId = savedMessage.id
         )
         saveChatRoomPort.save(updatedRoom)
-
-        // 메시지 발송 이벤트 (예: 로그 출력 또는 추가 처리를 위해)
-        eventPublisher.publish(ChatMessageSentEvent(savedMessage))
 
         // unreadCount 업데이트 이벤트 발행
         val unreadCounts: Map<String, Int> = updatedParticipants.mapKeys { it.key.toString() }

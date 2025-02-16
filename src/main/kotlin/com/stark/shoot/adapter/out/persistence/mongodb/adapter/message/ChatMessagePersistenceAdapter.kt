@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.out.persistence.mongodb.adapter
+package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message
 
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMongoRepository

@@ -1,24 +1,29 @@
 package com.stark.shoot.adapter.`in`.web.dto.chatroom
 
 import com.stark.shoot.domain.chat.room.ChatRoom
+import org.bson.types.ObjectId
 
 data class ChatRoomResponse(
     val roomId: String,
     val title: String,
     val lastMessage: String?,
-    val unreadMessages: Int   // 읽지 않은 메시지 수
+    val unreadMessages: Int,
+    val isPinned: Boolean
 ) {
 
     companion object {
-        fun from(chatRoom: ChatRoom): ChatRoomResponse {
+        /**
+         * 특정 사용자의 관점에서 도메인 ChatRoom을 DTO로 변환합니다.
+         */
+        fun from(chatRoom: ChatRoom, userId: ObjectId): ChatRoomResponse {
+            val participant = chatRoom.metadata.participantsMetadata[userId]
+
             return ChatRoomResponse(
                 roomId = chatRoom.id ?: "",
-                // ChatRoom의 metadata에 제목(title)이 있다고 가정합니다.
                 title = chatRoom.metadata.title ?: "채팅방",
-                // 현재 예시에서는 lastMessageText가 없으므로 null로 처리합니다.
-                lastMessage = null,
-                // unreadMessages는 별도 계산 로직이 없다면 0으로 처리합니다.
-                unreadMessages = 0
+                lastMessage = chatRoom.lastMessageId, // 만약 별도의 로직이 있다면 수정
+                unreadMessages = participant?.unreadCount ?: 0,
+                isPinned = participant?.isPinned ?: false
             )
         }
     }

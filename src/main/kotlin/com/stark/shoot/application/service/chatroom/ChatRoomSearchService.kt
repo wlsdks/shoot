@@ -30,7 +30,8 @@ class ChatRoomSearchService(
                 roomId = room.id!!,
                 title = room.metadata.title ?: "Untitled Room",
                 lastMessage = room.lastMessageId,
-                unreadMessages = room.metadata.participantsMetadata[userId]?.unreadCount ?: 0
+                unreadMessages = room.metadata.participantsMetadata[userId]?.unreadCount ?: 0,
+                isPinned = room.metadata.participantsMetadata[userId]?.isPinned ?: false
             )
         }
     }

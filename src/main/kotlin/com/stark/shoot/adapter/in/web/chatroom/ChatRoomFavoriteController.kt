@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.web.chatroom
 
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.UpdateChatRoomFavoriteUseCase
+import com.stark.shoot.infrastructure.common.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.PostMapping
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/chatrooms")
 class ChatRoomFavoriteController(
-    private val updateChatRoomFavoriteUseCase: UpdateChatRoomFavoriteUseCase
+    private val updateFavoriteUseCase: UpdateChatRoomFavoriteUseCase
 ) {
 
     @Operation(
@@ -26,8 +27,9 @@ class ChatRoomFavoriteController(
         @RequestParam userId: String,
         @RequestParam isFavorite: Boolean
     ): ChatRoomResponse {
-        val updatedRoom = updateChatRoomFavoriteUseCase.updateFavoriteStatus(roomId, userId, isFavorite)
-        return ChatRoomResponse.from(updatedRoom)  // 여기서 변환 후 반환
+        val updatedRoom = updateFavoriteUseCase.updateFavoriteStatus(roomId, userId, isFavorite)
+        // userId는 요청한 사용자이므로 변환 시 사용
+        return ChatRoomResponse.from(updatedRoom, userId.toObjectId())
     }
 
 }

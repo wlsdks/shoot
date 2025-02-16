@@ -82,7 +82,8 @@ class ChatRoomMapper {
             role = participant.role,
             nickname = participant.nickname,
             isActive = participant.isActive,
-            isPinned = participant.isPinned
+            isPinned = participant.isPinned,
+            pinTimestamp = participant.pinTimestamp
         )
     }
 
@@ -95,7 +96,8 @@ class ChatRoomMapper {
             role = document.role,
             nickname = document.nickname,
             isActive = document.isActive,
-            isPinned = document.isPinned
+            isPinned = document.isPinned,
+            pinTimestamp = document.pinTimestamp
         )
     }
 

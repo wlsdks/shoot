@@ -11,5 +11,6 @@ data class Participant(
     val role: ParticipantRole = ParticipantRole.MEMBER,
     val nickname: String? = null,
     val isActive: Boolean = true,
-    val isPinned: Boolean = false
+    val isPinned: Boolean = false,
+    val pinTimestamp: Instant? = null
 )

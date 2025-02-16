@@ -12,5 +12,6 @@ data class ParticipantDocument(
     val role: ParticipantRole = ParticipantRole.MEMBER, // 참여자 역할
     val nickname: String? = null,                 // 채팅방 내 별칭 (없으면 null)
     val isActive: Boolean = true,                 // 활성 상태 (나가기/초대 상태 표시)
-    val isPinned: Boolean = false                 // 즐겨찾기(고정) (채팅방 상단 고정 여부)
+    val isPinned: Boolean = false,                // 즐겨찾기(고정) (채팅방 상단 고정 여부)
+    val pinTimestamp: Instant? = null             // 즐겨찾기한 시각 (최신 순 정렬용)
 )

@@ -38,19 +38,17 @@ class UpdateChatRoomFavoriteService(
         val chatRoom: ChatRoom = loadChatRoomPort.findById(roomId.toObjectId())
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. id=$roomId")
 
-        // 현재 사용자의 핀 채팅방 목록 조회 (추가된 포트 이용)
-        val pinnedRooms: List<ChatRoom> = loadUserPinnedRoomsPort.findByUserId(userId)
+        // 현재 사용자의 핀 채팅방 목록 조회
+        val pinnedRooms = loadUserPinnedRoomsPort.findByUserId(userId)
 
         // 참여자 메타데이터 업데이트: 사용자의 즐겨찾기 플래그 변경
         val updatedParticipants = chatRoom.metadata.participantsMetadata.mapValues { (participantId, participant) ->
             // 참여자 ID가 사용자 ID와 일치하면 즐겨찾기 상태 변경
             if (participantId == userId.toObjectId()) {
                 if (isFavorite) {
-                    // 핀 요청: 이미 핀되어 있지 않으면 추가 처리
-                    // 만약 이미 최대 5개 핀이면, 설계에 따라 거부하거나 자동 해제
+                    // 새 핀 요청: 이미 핀 상태가 아니면서 최대 제한에 도달한 경우 예외 발생
                     if (pinnedRooms.size >= MAX_PINNED && !participant.isPinned) {
                         throw IllegalStateException("최대 핀 채팅방 개수를 초과했습니다. (MAX_PINNED=$MAX_PINNED)")
-                        // 또는, 가장 오래된 핀을 자동 해제하는 로직을 추가할 수 있음.
                     }
                     // 핀 상태 true와 함께 현재 시간 저장 (추가 필드: pinTimestamp 필요)
                     participant.copy(isPinned = true, pinTimestamp = Instant.now())

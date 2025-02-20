@@ -1,6 +1,7 @@
 package com.stark.shoot.infrastructure.config.kafka
 
 import com.stark.shoot.domain.chat.event.ChatEvent
+import io.confluent.kafka.serializers.KafkaAvroSerializer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
@@ -10,13 +11,16 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 import org.springframework.kafka.listener.KafkaListenerErrorHandler
-import org.springframework.kafka.support.serializer.JsonSerializer
 
 @Configuration
 class KafkaProducerConfig {
 
     @Value("\${spring.kafka.producer.bootstrap-servers}")
     private lateinit var bootstrapServers: String
+
+    // schema.registry.url을 프로퍼티나 기본값으로 설정
+    @Value("\${schema.registry.url:http://localhost:8111}")
+    private lateinit var schemaRegistryUrl: String
 
     @Bean
     fun kafkaTemplate(
@@ -30,10 +34,11 @@ class KafkaProducerConfig {
         val configProps = mapOf(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to JsonSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to KafkaAvroSerializer::class.java,
+            "schema.registry.url" to schemaRegistryUrl,
             // 메시지 순서 보장을 위한 설정
-            ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to true,                  // 메시지 중복 전송 방지
-            ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to 5,         // 동시에 처리할 수 있는 요청 수 제한
+            ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to true,
+            ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to 5,
             // 신뢰성 관련 설정 (acks=all로 모든 복제본에 저장 확인)
             ProducerConfig.ACKS_CONFIG to "all",
             ProducerConfig.RETRIES_CONFIG to 3,
@@ -41,7 +46,7 @@ class KafkaProducerConfig {
             ProducerConfig.BATCH_SIZE_CONFIG to 16384,
             ProducerConfig.LINGER_MS_CONFIG to 1,
             // 메모리 버퍼 설정 (프로듀서가 사용할 메모리 버퍼 크기)
-            ProducerConfig.BUFFER_MEMORY_CONFIG to 33554432, // 32MB
+            ProducerConfig.BUFFER_MEMORY_CONFIG to 33554432,
             // 압축 설정 (메시지 압축 방식 설정)
             ProducerConfig.COMPRESSION_TYPE_CONFIG to "snappy"
         )
@@ -53,7 +58,6 @@ class KafkaProducerConfig {
     @Bean
     fun chatMessageErrorHandler(): KafkaListenerErrorHandler {
         return KafkaListenerErrorHandler { _, exception ->
-            // 에러 처리 로직
             println("Error occurred: $exception")
         }
     }

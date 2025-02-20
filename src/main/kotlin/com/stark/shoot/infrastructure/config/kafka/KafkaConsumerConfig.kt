@@ -1,6 +1,7 @@
 package com.stark.shoot.infrastructure.config.kafka
 
 import com.stark.shoot.domain.chat.event.ChatEvent
+import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -13,7 +14,6 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer
 import org.springframework.kafka.listener.DefaultErrorHandler
-import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.util.backoff.FixedBackOff
 
 @Configuration
@@ -22,24 +22,35 @@ class KafkaConsumerConfig {
     @Value("\${spring.kafka.producer.bootstrap-servers}")
     private lateinit var bootstrapServers: String
 
+    // schema.registry.url을 프로퍼티나 기본값으로 설정
+    @Value("\${schema.registry.url:http://localhost:8111}")
+    private lateinit var schemaRegistryUrl: String
+
     @Bean
     fun consumerFactory(): ConsumerFactory<String, ChatEvent> {
         val configProps = mapOf(
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ConsumerConfig.GROUP_ID_CONFIG to "shoot",
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
-            // JSON Deserializer 설정
-            JsonDeserializer.TRUSTED_PACKAGES to "com.stark.shoot.domain.chat.event",
-            JsonDeserializer.TYPE_MAPPINGS to "chatEvent:com.stark.shoot.domain.chat.event.ChatEvent",
-            JsonDeserializer.VALUE_DEFAULT_TYPE to ChatEvent::class.java.name,
-            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest"
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
+
+            // Avro 스키마 레지스트리 설정
+            "schema.registry.url" to schemaRegistryUrl,       // 스키마 레지스트리 URL
+            "specific.avro.reader" to true,                   // Avro SpecificRecord 사용
+            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest",
         )
 
+        // KafkaAvroDeserializer를 ChatEvent 타입으로 캐스팅하여 사용
+        @Suppress("UNCHECKED_CAST")
+        val avroDeserializer = KafkaAvroDeserializer().apply {
+            configure(configProps, false)
+        } as org.apache.kafka.common.serialization.Deserializer<ChatEvent>
+
+        // 제네릭 타입을 명시적으로 지정하여 타입 불일치 해결
         return DefaultKafkaConsumerFactory(
             configProps,
             StringDeserializer(),
-            JsonDeserializer(ChatEvent::class.java, false)
+            avroDeserializer
         )
     }
 

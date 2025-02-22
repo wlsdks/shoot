@@ -10,6 +10,7 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
 import com.stark.shoot.infrastructure.common.util.toObjectId
 import org.bson.types.ObjectId
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
 
 @Service
@@ -17,7 +18,8 @@ class MessageProcessingService(
     private val saveChatMessagePort: SaveChatMessagePort,
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
-    private val eventPublisher: EventPublisher
+    private val eventPublisher: EventPublisher,
+    private val redisTemplate: StringRedisTemplate
 ) : ProcessMessageUseCase {
 
 
@@ -34,7 +36,7 @@ class MessageProcessingService(
         // 메시지 저장
         val savedMessage = saveChatMessagePort.save(message)
 
-        // 보낸 사람(sender)을 제외한 참여자의 unreadCount를 1 증가시킵니다.
+        // 보낸 사람 제외 unreadCount 증가
         val senderObjectId = ObjectId(message.senderId)
         val updatedParticipants = chatRoom.metadata.participantsMetadata.mapValues { (participantId, participant) ->
             if (participantId != senderObjectId) {
@@ -46,12 +48,20 @@ class MessageProcessingService(
 
         // 채팅방 업데이트 (마지막 메시지 및 unreadCount 반영)
         val updatedRoom = chatRoom.copy(
-            metadata = chatRoom.metadata.copy(
-                participantsMetadata = updatedParticipants
-            ),
+            metadata = chatRoom.metadata.copy(participantsMetadata = updatedParticipants),
             lastMessageId = savedMessage.id
         )
         saveChatRoomPort.save(updatedRoom)
+
+        // Redis에 unreadCount 캐싱 (사용자별 Hash : unread:<userId> 키에 roomId와 unreadCount를 Hash로 저장.)
+        // 역할: 사용자가 자신의 모든 채팅방에 대한 unreadCount를 빠르게 조회 가능. MongoDB 대신 Redis에서 읽어 부하 감소.
+        updatedParticipants.forEach { (userId, participant) ->
+            redisTemplate.opsForHash<String, String>().put(
+                "unread:$userId",
+                message.roomId,
+                participant.unreadCount.toString()
+            )
+        }
 
         // unreadCount 업데이트 이벤트 발행
         val unreadCounts: Map<String, Int> = updatedParticipants.mapKeys { it.key.toString() }
@@ -60,7 +70,8 @@ class MessageProcessingService(
         eventPublisher.publish(
             ChatUnreadCountUpdatedEvent(
                 roomId = roomObjectId.toString(),
-                unreadCounts = unreadCounts
+                unreadCounts = unreadCounts,
+                lastMessage = savedMessage.content.text
             )
         )
 

@@ -4,7 +4,6 @@ import com.stark.shoot.adapter.`in`.web.dto.message.DeleteMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.EditMessageRequest
 import com.stark.shoot.application.port.`in`.message.DeleteMessageUseCase
 import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
-import com.stark.shoot.application.port.`in`.message.MessageReadUseCase
 import com.stark.shoot.application.port.`in`.message.RetrieveMessageUseCase
 import com.stark.shoot.domain.chat.message.ChatMessage
 import io.swagger.v3.oas.annotations.Operation
@@ -19,8 +18,7 @@ import java.time.Instant
 class MessageController(
     private val retrieveMessageUseCase: RetrieveMessageUseCase,
     private val editMessageUseCase: EditMessageUseCase,
-    private val deleteMessageUseCase: DeleteMessageUseCase,
-    private val messageReadUseCase: MessageReadUseCase
+    private val deleteMessageUseCase: DeleteMessageUseCase
 ) {
 
     @Operation(
@@ -59,20 +57,6 @@ class MessageController(
     ): ResponseEntity<ChatMessage> {
         val deletedMessage = deleteMessageUseCase.deleteMessage(request.messageId)
         return ResponseEntity.ok(deletedMessage)
-    }
-
-    @Deprecated("사용하지 않지만 추후 수동으로 읽음 처리할 때 사용할 수 있습니다.")
-    @Operation(
-        summary = "메시지 읽음 처리",
-        description = "해당 채팅방의 메시지를 읽음 처리하여 unreadCount를 초기화합니다."
-    )
-    @PostMapping("/mark-read")
-    fun markMessageRead(
-        @RequestParam roomId: String,
-        @RequestParam userId: String
-    ): ResponseEntity<Unit> {
-        messageReadUseCase.markRead(roomId, userId)
-        return ResponseEntity.noContent().build()
     }
 
 }

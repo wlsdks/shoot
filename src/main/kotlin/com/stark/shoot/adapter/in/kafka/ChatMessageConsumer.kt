@@ -3,48 +3,37 @@ package com.stark.shoot.adapter.`in`.kafka
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
+import com.stark.shoot.domain.chat.message.ChatMessage
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.kafka.annotation.DltHandler
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.kafka.annotation.KafkaListener
-import org.springframework.messaging.handler.annotation.Header
 import org.springframework.messaging.handler.annotation.Payload
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
 
-/**
- * 채팅 메시지 이벤트를 수신하여 처리합니다.
- */
 @Component
 class ChatMessageConsumer(
-    private val processMessageUseCase: ProcessMessageUseCase
+    private val processMessageUseCase: ProcessMessageUseCase,
+    private val redisTemplate: RedisTemplate<String, ChatMessage>,
+    private val messagingTemplate: SimpMessagingTemplate
 ) {
     private val logger = KotlinLogging.logger {}
 
-    @KafkaListener(
-        topics = ["chat-messages"],
-        groupId = "chat-group",
-        errorHandler = "chatMessageErrorHandler"
-    )
-    fun consumeMessage(
-        @Payload event: ChatEvent,
-//        @Header("correlationId") correlationId: String
-    ) {
-        when (event.type) {
-            EventType.MESSAGE_CREATED -> {
-                try {
-                    // MongoDB에 저장하고 채팅방 메타데이터 업데이트
-                    processMessageUseCase.processMessage(event.data)
-                } catch (e: Exception) {
-                    logger.error(e) { "Failed to process message: ${event.data}" }
-                }
-            }
-            // 다른 이벤트 타입은 무시
-            else -> {}
-        }
-    }
+    @KafkaListener(topics = ["chat-messages"], groupId = "shoot-\${random.uuid}")
+    fun consumeMessage(@Payload event: ChatEvent) {
+        if (event.type == EventType.MESSAGE_CREATED) {
+            // ChatMessage 객체 처리
+            val savedMessage = processMessageUseCase.processMessage(event.data)
 
-    @DltHandler
-    fun handleDlt(event: ChatEvent) {
-        logger.error { "Failed to process message: ${event.data}" }
+            // WebSocket으로 ChatMessage 객체 전송
+            messagingTemplate.convertAndSend("/topic/messages/${savedMessage.roomId}", savedMessage)
+            logger.info { "Message pushed to /topic/messages/${savedMessage.roomId}: ${savedMessage.content.text}" }
+
+            // Redis에 ChatMessage 객체 저장 (ChatMessage 객체를 chat:<roomId>:messages 키에 List로 저장, 최근 10개만 유지.)
+            // 역할: 클라이언트가 채팅방에 입장할 때 최근 메시지를 빠르게 로드하기 위함. MongoDB 조회를 줄여 성능 향상.
+            redisTemplate.opsForList().leftPush("chat:${savedMessage.roomId}:messages", savedMessage)
+            redisTemplate.opsForList().trim("chat:${savedMessage.roomId}:messages", 0, 9)
+        }
     }
 
 }

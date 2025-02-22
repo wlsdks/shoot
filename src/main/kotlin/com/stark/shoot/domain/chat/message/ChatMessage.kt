@@ -15,4 +15,26 @@ data class ChatMessage(
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant? = null,
     val isDeleted: Boolean = false
-)
+) {
+    fun toJson(): String {
+        val reactionsJson = reactions.entries.joinToString(prefix = "{", postfix = "}") { (key, value) ->
+            """"$key": [${value.joinToString { "\"$it\"" }}]"""
+        }
+        val mentionsJson = mentions.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }
+        return """
+            {
+                "id": "${id ?: ""}",
+                "roomId": "$roomId",
+                "senderId": "$senderId",
+                "content": {"text": "${content.text}", "type": "${content.type}"},
+                "status": "$status",
+                "replyToMessageId": "${replyToMessageId ?: ""}",
+                "reactions": $reactionsJson,
+                "mentions": $mentionsJson,
+                "createdAt": "${createdAt.toString()}",
+                "updatedAt": "${updatedAt?.toString() ?: ""}",
+                "isDeleted": $isDeleted
+            }
+        """.trimIndent().replace("\n", "").replace("\\s+".toRegex(), " ")
+    }
+}

@@ -70,7 +70,8 @@ class MessageProcessingService(
         eventPublisher.publish(
             ChatUnreadCountUpdatedEvent(
                 roomId = roomObjectId.toString(),
-                unreadCounts = unreadCounts
+                unreadCounts = unreadCounts,
+                lastMessage = savedMessage.content.text
             )
         )
 

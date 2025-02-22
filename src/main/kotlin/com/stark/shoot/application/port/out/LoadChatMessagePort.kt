@@ -5,10 +5,9 @@ import org.bson.types.ObjectId
 import java.time.Instant
 
 interface LoadChatMessagePort {
-
     fun findById(id: ObjectId): ChatMessage?
     fun findByRoomId(roomId: ObjectId): List<ChatMessage>
     fun findByRoomIdAndBeforeCreatedAt(roomId: ObjectId, createdAt: Instant): List<ChatMessage>
     fun countUnreadMessages(roomId: String, lastReadMessageId: String?): Int
-
+    fun findUnreadByRoomId(roomId: ObjectId, userId: ObjectId): List<ChatMessage>
 }

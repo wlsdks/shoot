@@ -42,12 +42,12 @@ class MessageReadService(
         val updatedRoom = chatRoom.copy(metadata = chatRoom.metadata.copy(participantsMetadata = updatedParticipants))
         saveChatRoomPort.save(updatedRoom)
 
-        // 모든 메시지의 readBy 업데이트 (최근 메시지 대상으로 예시, 마지막 메시지 ID가 있으면 실행.)
-        chatRoom.lastMessageId?.let { messageId ->
-            // 마지막 메시지를 DB에서 가져와 → 없으면 스킵.
-            val message = loadChatMessagePort.findById(messageId.toObjectId()) ?: return@let
+        // 모든 안 읽은 메시지 조회
+        val unReadMessages = loadChatMessagePort
+            .findUnreadByRoomId(roomId.toObjectId(), userId.toObjectId()) ?: emptyList()
 
-            // 메시지의 readBy에 누가 읽었는지 추가 → 저장 → 웹소켓으로 전송.
+        // 안 읽은 메시지를 사용자가 읽었음을 표시
+        unReadMessages.forEach { message ->
             val updatedMessage = message.copy(readBy = message.readBy.toMutableMap().apply { put(userId, true) })
             saveChatMessagePort.save(updatedMessage)
             messagingTemplate.convertAndSend("/topic/messages/$roomId", updatedMessage)

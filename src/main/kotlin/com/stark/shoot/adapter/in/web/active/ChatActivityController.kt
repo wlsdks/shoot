@@ -1,14 +1,12 @@
 package com.stark.shoot.adapter.`in`.web.active
 
-import com.stark.shoot.adapter.`in`.web.dto.active.ChatActivity
-import org.springframework.data.redis.core.StringRedisTemplate
+import com.stark.shoot.application.port.`in`.active.UserActiveUseCase
 import org.springframework.messaging.handler.annotation.MessageMapping
-import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Controller
 
 @Controller
 class ChatActivityController(
-    private val redisTemplate: StringRedisTemplate
+    private val userActiveUseCase: UserActiveUseCase
 ) {
 
     /**
@@ -17,9 +15,8 @@ class ChatActivityController(
      * true: 채팅방에 참여 중, false: 채팅방에 참여하지 않음
      */
     @MessageMapping("/active")
-    fun handleActivity(@Payload activity: ChatActivity) {
-        redisTemplate.opsForValue()
-            .set("active:${activity.userId}:${activity.roomId}", activity.active.toString())
+    fun handleActivity(message: String) {
+        userActiveUseCase.updateUserActive(message)
     }
 
 }

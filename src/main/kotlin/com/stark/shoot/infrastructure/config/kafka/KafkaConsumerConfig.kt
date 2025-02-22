@@ -19,23 +19,21 @@ import org.springframework.util.backoff.FixedBackOff
 @Configuration
 class KafkaConsumerConfig {
 
-    @Value("\${spring.kafka.producer.bootstrap-servers}")
+    @Value("\${spring.kafka.consumer.bootstrap-servers}")
     private lateinit var bootstrapServers: String
 
     @Bean
     fun consumerFactory(): ConsumerFactory<String, ChatEvent> {
         val configProps = mapOf(
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
-            ConsumerConfig.GROUP_ID_CONFIG to "shoot",
+            ConsumerConfig.GROUP_ID_CONFIG to "shoot-\${random.uuid}", // 인스턴스별 고유 그룹 ID
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
-            // JSON Deserializer 설정
             JsonDeserializer.TRUSTED_PACKAGES to "com.stark.shoot.domain.chat.event",
             JsonDeserializer.TYPE_MAPPINGS to "chatEvent:com.stark.shoot.domain.chat.event.ChatEvent",
             JsonDeserializer.VALUE_DEFAULT_TYPE to ChatEvent::class.java.name,
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest"
         )
-
         return DefaultKafkaConsumerFactory(
             configProps,
             StringDeserializer(),
@@ -55,20 +53,11 @@ class KafkaConsumerConfig {
     }
 
     @Bean
-    fun kafkaErrorHandler(
-        kafkaTemplate: KafkaTemplate<String, ChatEvent>
-    ): DefaultErrorHandler {
-        // 재시도: 3회, 1초 간격
-        val fixedBackOff = FixedBackOff(1000L, 3)
-
-        // BiFunction<ConsumerRecord<*, *>, Exception, TopicPartition>를 람다로 작성
-        val recoverer = DeadLetterPublishingRecoverer(
-            kafkaTemplate
-        ) { record, _ ->
-            // DLT 토픽 이름과 partition 지정 (여기서는 record의 partition 번호 사용)
+    fun kafkaErrorHandler(kafkaTemplate: KafkaTemplate<String, ChatEvent>): DefaultErrorHandler {
+        val fixedBackOff = FixedBackOff(1000L, 3) // 3회 재시도, 1초 간격
+        val recoverer = DeadLetterPublishingRecoverer(kafkaTemplate) { record, _ ->
             TopicPartition("dead-letter-topic", record.partition())
         }
-
         return DefaultErrorHandler(recoverer, fixedBackOff)
     }
 

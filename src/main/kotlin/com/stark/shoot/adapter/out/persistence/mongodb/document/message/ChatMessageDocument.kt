@@ -10,14 +10,8 @@ import org.springframework.data.mongodb.core.mapping.Document
 
 @Document(collection = "messages")
 @CompoundIndexes(
-    CompoundIndex(
-        name = "room_created_idx",
-        def = "{'roomId': 1, 'createdAt': -1}"
-    ),
-    CompoundIndex(
-        name = "sender_created_idx",
-        def = "{'senderId': 1, 'createdAt': -1}"
-    )
+    CompoundIndex(name = "room_created_idx", def = "{'roomId': 1, 'createdAt': -1}"),
+    CompoundIndex(name = "sender_created_idx", def = "{'senderId': 1, 'createdAt': -1}")
 )
 data class ChatMessageDocument(
     val roomId: ObjectId,                           // 메시지가 속한 채팅방 ID
@@ -27,5 +21,6 @@ data class ChatMessageDocument(
     val replyToMessageId: ObjectId? = null,         // 답장할 메시지 ID
     val reactions: Map<String, Set<ObjectId>> = emptyMap(), // 이모티콘 ID to 사용자 ID 목록
     val mentions: Set<ObjectId> = emptySet(),       // 멘션된 사용자 ID 목록
-    val isDeleted: Boolean = false                  // 삭제 여부
+    val isDeleted: Boolean = false,                 // 삭제 여부
+    val readBy: MutableMap<ObjectId, Boolean> = mutableMapOf() // 읽음 상태 추가
 ) : BaseMongoDocument()

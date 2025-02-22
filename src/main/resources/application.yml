@@ -16,7 +16,6 @@ spring:
       host: localhost
       port: 6379
       password: redis
-
   # 카프카 설정
   kafka:
     consumer:
@@ -24,6 +23,10 @@ spring:
       group-id: shoot
     producer:
       bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
+    topics:
+      chat-messages:
+        partitions: 128 # 대용량 처리용
+        replicas: 2 # 복제 팩터 (Docker Compose에서 2로 설정됨)
 
   # 파일 업로드 설정
   servlet:
@@ -35,10 +38,11 @@ spring:
 logging:
   level:
     root: INFO
-    com.example: DEBUG
+    com.stark.shoot: DEBUG
     org.springframework.data.mongodb: DEBUG
     org.springframework.messaging: DEBUG
     org.springframework.web: DEBUG
+    org.springframework.kafka: DEBUG
 
 jwt:
   secret: "your-256-bit-secret-key-base64-encoded"

@@ -22,7 +22,6 @@ class MessageProcessingService(
     private val redisTemplate: StringRedisTemplate
 ) : ProcessMessageUseCase {
 
-
     /**
      * 메시지 저장 및 채팅방 메타데이터 업데이트 담당
      * 새 메시지가 도착할 때 sender를 제외한 다른 참여자의 unreadCount가 증가하고,
@@ -33,8 +32,15 @@ class MessageProcessingService(
         val chatRoom = loadChatRoomPort.findById(roomObjectId)
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
 
+        // readBy 초기화
+        val initializedMessage = message.copy(
+            readBy = chatRoom.metadata.participantsMetadata.keys.associate {
+                it.toString() to (it == ObjectId(message.senderId))
+            }.toMutableMap()
+        )
+
         // 메시지 저장
-        val savedMessage = saveChatMessagePort.save(message)
+        val savedMessage = saveChatMessagePort.save(initializedMessage)
 
         // 보낸 사람 제외 unreadCount 증가
         val senderObjectId = ObjectId(message.senderId)

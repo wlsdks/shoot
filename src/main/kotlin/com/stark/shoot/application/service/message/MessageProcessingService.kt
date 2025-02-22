@@ -39,7 +39,12 @@ class MessageProcessingService(
         // 보낸 사람 제외 unreadCount 증가
         val senderObjectId = ObjectId(message.senderId)
         val updatedParticipants = chatRoom.metadata.participantsMetadata.mapValues { (participantId, participant) ->
-            if (participantId != senderObjectId) {
+            // Redis에서 isActive 조회
+            val isActive = redisTemplate.opsForValue()
+                .get("active:$participantId:${message.roomId}")?.toBoolean() ?: false
+
+            // 보낸 사람이 아니고 isActive가 아닌 경우 unreadCount 증가
+            if (participantId != senderObjectId && !isActive) {
                 participant.copy(unreadCount = participant.unreadCount + 1)
             } else {
                 participant

@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.user
 
+import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.ManageFriendUseCase
 import com.stark.shoot.application.port.`in`.user.RetrieveUserUseCase
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
@@ -20,27 +21,24 @@ class FriendController(
     @GetMapping
     fun getMyFriends(
         @RequestParam userId: String
-    ): List<String> {
-        val friendIds = manageFriendUseCase.getFriends(userId.toObjectId())
-        return friendIds.map { it.toString() }
+    ): List<FriendResponse> {
+        return manageFriendUseCase.getFriends(userId.toObjectId());
     }
 
     @Operation(summary = "받은 친구 요청 목록", description = "내가 받은 친구 요청들(incoming)")
     @GetMapping("/incoming")
     fun getIncomingFriendRequests(
         @RequestParam userId: String
-    ): List<String> {
-        val reqs = manageFriendUseCase.getIncomingFriendRequests(userId.toObjectId())
-        return reqs.map { it.toString() }
+    ): List<FriendResponse> {
+        return manageFriendUseCase.getIncomingFriendRequests(userId.toObjectId())
     }
 
     @Operation(summary = "보낸 친구 요청 목록", description = "내가 보낸 친구 요청들(outgoing)")
     @GetMapping("/outgoing")
     fun getOutgoingFriendRequests(
         @RequestParam userId: String
-    ): List<String> {
-        val reqs = manageFriendUseCase.getOutgoingFriendRequests(userId.toObjectId())
-        return reqs.map { it.toString() }
+    ): List<FriendResponse> {
+        return manageFriendUseCase.getOutgoingFriendRequests(userId.toObjectId())
     }
 
     @Operation(summary = "친구 요청 보내기", description = "다른 사용자에게 친구 요청(“shoot”)을 보냄")

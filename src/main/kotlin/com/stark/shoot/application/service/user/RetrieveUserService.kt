@@ -1,5 +1,6 @@
 package com.stark.shoot.application.service.user
 
+import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.RetrieveUserUseCase
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
 import com.stark.shoot.domain.chat.user.User
@@ -57,9 +58,11 @@ class RetrieveUserService(
         userId: ObjectId,
         maxDepth: Int,
         limit: Int
-    ): List<User> {
+    ): List<FriendResponse> {
         // maxDepth는 필요에 따라 조정 (여기서는 2단계까지)
-        return retrieveUserPort.findBFSRecommendedUsers(userId, maxDepth = 2, limit = limit)
+        return retrieveUserPort.findBFSRecommendedUsers(userId, maxDepth, limit).map {
+            FriendResponse(id = it.id.toString(), name = it.username)
+        }
     }
 
 }

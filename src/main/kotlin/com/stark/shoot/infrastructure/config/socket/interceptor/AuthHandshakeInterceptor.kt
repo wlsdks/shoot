@@ -37,6 +37,8 @@ class AuthHandshakeInterceptor(
             // 인증 객체와 사용자 ID를 attributes에 저장
             attributes["authentication"] = authentication
             attributes["userId"] = authentication.name
+            // Principal 설정 (Spring이 Principal로 인식하도록 (SessionDisconnectEvent에서 event.user?.name으로 가져올 수 있음))
+            request.headers["user"] = listOf(authentication.name)
             true
         } catch (e: Exception) {
             false

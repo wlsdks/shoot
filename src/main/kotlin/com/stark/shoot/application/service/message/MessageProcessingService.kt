@@ -22,7 +22,6 @@ class MessageProcessingService(
     private val redisTemplate: StringRedisTemplate
 ) : ProcessMessageUseCase {
 
-
     /**
      * 메시지 저장 및 채팅방 메타데이터 업데이트 담당
      * 새 메시지가 도착할 때 sender를 제외한 다른 참여자의 unreadCount가 증가하고,
@@ -33,20 +32,32 @@ class MessageProcessingService(
         val chatRoom = loadChatRoomPort.findById(roomObjectId)
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
 
-        // 메시지 저장
-        val savedMessage = saveChatMessagePort.save(message)
+        // readBy 초기화 (메시지에 readBy 추가 → 발신자는 읽음(true), 나머지는 안 읽음(false).)
+        val initializedMessage = message.copy(
+            readBy = chatRoom.metadata.participantsMetadata.keys.associate {
+                it.toString() to (it == ObjectId(message.senderId))
+            }.toMutableMap()
+        )
+
+        // 초기화된 메시지를 DB에 저장
+        val savedMessage = saveChatMessagePort.save(initializedMessage)
 
         // 보낸 사람 제외 unreadCount 증가
         val senderObjectId = ObjectId(message.senderId)
         val updatedParticipants = chatRoom.metadata.participantsMetadata.mapValues { (participantId, participant) ->
-            if (participantId != senderObjectId) {
+            // Redis에서 참여자가 방에 있는지(active) 확인. 없으면 false로 간주.
+            val isActive = redisTemplate.opsForValue()
+                .get("active:$participantId:${message.roomId}")?.toBoolean() ?: false
+
+            // 발신자가 아니고 방에 없으면 unreadCount 1 증가.
+            if (participantId != senderObjectId && !isActive) {
                 participant.copy(unreadCount = participant.unreadCount + 1)
             } else {
                 participant
             }
         }
 
-        // 채팅방 업데이트 (마지막 메시지 및 unreadCount 반영)
+        // 채팅방 업데이트 (unreadCount 갱신과 마지막 메시지 ID 저장.)
         val updatedRoom = chatRoom.copy(
             metadata = chatRoom.metadata.copy(participantsMetadata = updatedParticipants),
             lastMessageId = savedMessage.id
@@ -63,10 +74,11 @@ class MessageProcessingService(
             )
         }
 
-        // unreadCount 업데이트 이벤트 발행
+        // unreadCount 정보 추출
         val unreadCounts: Map<String, Int> = updatedParticipants.mapKeys { it.key.toString() }
             .mapValues { it.value.unreadCount }
 
+        // unreadCount와 마지막 메시지 정보 발행 → SSE로 ChatRoomList에 반영.
         eventPublisher.publish(
             ChatUnreadCountUpdatedEvent(
                 roomId = roomObjectId.toString(),

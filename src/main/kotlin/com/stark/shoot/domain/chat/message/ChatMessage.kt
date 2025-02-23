@@ -14,13 +14,17 @@ data class ChatMessage(
     val mentions: Set<String> = emptySet(),
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant? = null,
-    val isDeleted: Boolean = false
+    val isDeleted: Boolean = false,
+    val readBy: MutableMap<String, Boolean> = mutableMapOf() // 읽음 상태 추가
 ) {
     fun toJson(): String {
         val reactionsJson = reactions.entries.joinToString(prefix = "{", postfix = "}") { (key, value) ->
             """"$key": [${value.joinToString { "\"$it\"" }}]"""
         }
         val mentionsJson = mentions.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }
+        val readByJson = readBy.entries.joinToString(prefix = "{", postfix = "}") { (key, value) ->
+            """"$key": $value"""
+        }
         return """
             {
                 "id": "${id ?: ""}",
@@ -33,7 +37,8 @@ data class ChatMessage(
                 "mentions": $mentionsJson,
                 "createdAt": "${createdAt.toString()}",
                 "updatedAt": "${updatedAt?.toString() ?: ""}",
-                "isDeleted": $isDeleted
+                "isDeleted": $isDeleted,
+                "readBy": $readByJson
             }
         """.trimIndent().replace("\n", "").replace("\\s+".toRegex(), " ")
     }

@@ -47,6 +47,11 @@ class ChatMessagePersistenceAdapter(
         }
     }
 
+    override fun findUnreadByRoomId(roomId: ObjectId, userId: ObjectId): List<ChatMessage> {
+        val notReadMessage = chatMessageRepository.findByRoomIdAndReadByNotContaining(roomId, userId)
+        return notReadMessage.map(chatMessageMapper::toDomain)
+    }
+
     override fun save(message: ChatMessage): ChatMessage {
         val document = chatMessageMapper.toDocument(message)
         return chatMessageRepository.save(document)

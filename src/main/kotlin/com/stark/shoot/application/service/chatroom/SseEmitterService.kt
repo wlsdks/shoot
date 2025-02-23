@@ -19,6 +19,19 @@ class SseEmitterService : SseEmitterUseCase {
         emitters[userId] = emitter                        // 연결 저장
         emitter.onCompletion { emitters.remove(userId) }  // 연결 종료시 제거
         emitter.onTimeout { emitters.remove(userId) }     // 타임아웃시 제거
+        // Heartbeat 추가 → 연결 유지
+        Thread {
+            while (true) {
+                try {
+                    emitter.send(SseEmitter.event().name("heartbeat").data("ping"));
+                    Thread.sleep(15000); // 15초마다 Heartbeat
+                } catch (e: Exception) {
+                    emitters.remove(userId)
+                    break
+                }
+            }
+        }.start();
+
         return emitter
     }
 

@@ -1,9 +1,9 @@
 package com.stark.shoot.application.service.user
 
+import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.ManageFriendUseCase
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
 import com.stark.shoot.application.port.out.user.UpdateUserFriendPort
-import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.common.exception.InvalidInputException
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
 import org.bson.types.ObjectId
@@ -20,10 +20,19 @@ class ManageFriendService(
      */
     override fun getFriends(
         currentUserId: ObjectId
-    ): List<ObjectId> {
+    ): List<FriendResponse> {
+        // 현재 사용자 조회
         val user = retrieveUserPort.findById(currentUserId)
             ?: throw ResourceNotFoundException("User not found")
-        return user.friends.toList()
+
+        // 친구 목록 조회
+        return user.friends.map { friendId ->
+            val friend = retrieveUserPort.findById(friendId)
+                ?: throw ResourceNotFoundException("Friend not found: $friendId")
+
+            // 친구 정보를 DTO로 변환
+            FriendResponse(id = friendId.toString(), name = friend.username)
+        }
     }
 
     /**
@@ -31,10 +40,19 @@ class ManageFriendService(
      */
     override fun getIncomingFriendRequests(
         currentUserId: ObjectId
-    ): List<ObjectId> {
+    ): List<FriendResponse> {
+        // 현재 사용자 조회
         val user = retrieveUserPort.findById(currentUserId)
             ?: throw ResourceNotFoundException("User not found")
-        return user.incomingFriendRequests.toList()
+
+        // 받은 친구 요청 목록 조회
+        return user.incomingFriendRequests.map { requesterId ->
+            val requester = retrieveUserPort.findById(requesterId)
+                ?: throw ResourceNotFoundException("Requester not found: $requesterId")
+
+            // 친구 정보를 DTO로 변환
+            FriendResponse(id = requesterId.toString(), name = requester.username)
+        }
     }
 
     /**
@@ -42,10 +60,19 @@ class ManageFriendService(
      */
     override fun getOutgoingFriendRequests(
         currentUserId: ObjectId
-    ): List<ObjectId> {
+    ): List<FriendResponse> {
+        // 현재 사용자 조회
         val user = retrieveUserPort.findById(currentUserId)
             ?: throw ResourceNotFoundException("User not found")
-        return user.outgoingFriendRequests.toList()
+
+        // 보낸 친구 요청 목록 조회
+        return user.outgoingFriendRequests.map { targetId ->
+            val target = retrieveUserPort.findById(targetId)
+                ?: throw ResourceNotFoundException("Target not found: $targetId")
+
+            // 친구 정보를 DTO로 변환
+            FriendResponse(id = target.id.toString(), name = target.username)
+        }
     }
 
     /**
@@ -127,7 +154,7 @@ class ManageFriendService(
     override fun searchPotentialFriends(
         currentUserId: ObjectId,
         query: String
-    ): List<User> {
+    ): List<FriendResponse> {
         // 현재 사용자 조회
         val currentUser = retrieveUserPort.findById(currentUserId)
             ?: throw ResourceNotFoundException("User not found: $currentUserId")
@@ -147,9 +174,8 @@ class ManageFriendService(
         return allUsers.filter { user ->
             user.id != null &&
                     !excludedIds.contains(user.id) &&
-                    (user.username.contains(query, ignoreCase = true) ||
-                            user.nickname.contains(query, ignoreCase = true))
-        }
+                    (user.username.contains(query, ignoreCase = true) || user.nickname.contains(query, ignoreCase = true))
+        }.map { FriendResponse(id = it.id.toString(), name = it.username) }
     }
 
 }

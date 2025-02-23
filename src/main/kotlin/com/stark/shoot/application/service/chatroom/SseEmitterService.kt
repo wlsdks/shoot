@@ -1,6 +1,7 @@
 package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
+import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import org.springframework.stereotype.Service
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.concurrent.ConcurrentHashMap
@@ -36,6 +37,23 @@ class SseEmitterService : SseEmitterUseCase {
             } catch (e: Exception) {
                 // 에러 발생시 연결 제거
                 emitters.remove(userId)
+            }
+        }
+    }
+
+    override fun sendChatRoomCreatedEvent(
+        event: ChatRoomCreatedEvent
+    ) {
+        emitters[event.userId]?.let {
+            try {
+                // 채팅방 생성 이벤트 전송
+                it.send(
+                    SseEmitter.event()
+                        .name("chatRoomCreated")
+                        .data(mapOf("roomId" to event.roomId))
+                )
+            } catch (e: Exception) {
+                emitters.remove(event.userId)
             }
         }
     }

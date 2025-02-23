@@ -13,15 +13,14 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "메시지", description = "메시지 관련 API")
 @RequestMapping("/api/v1/messages")
 @RestController
-class MessageSseController(
+class MessageReadSseController(
     private val sseEmitterUseCase: SseEmitterUseCase,
     private val messageReadUseCase: MessageReadUseCase
 ) {
 
-    @Deprecated("사용하지 않지만 추후 수동으로 읽음 처리할 때 사용할 수 있습니다.")
     @Operation(
-        summary = "메시지 읽음 처리",
-        description = "해당 채팅방의 메시지를 읽음 처리하여 unreadCount를 초기화합니다."
+        summary = "메시지 읽음 처리 (SSE)",
+        description = "해당 채팅방의 메시지를 읽음 처리하고 SSE로 채팅방 목록을 업데이트"
     )
     @PostMapping("/mark-read")
     fun markMessageRead(

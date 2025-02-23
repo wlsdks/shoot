@@ -34,7 +34,7 @@ class ManageFriendService(
                 ?: throw ResourceNotFoundException("Friend not found: $friendId")
 
             // 친구 정보를 DTO로 변환
-            FriendResponse(id = friendId.toString(), name = friend.username)
+            FriendResponse(id = friendId.toString(), username = friend.username)
         }
     }
 
@@ -54,7 +54,7 @@ class ManageFriendService(
                 ?: throw ResourceNotFoundException("Requester not found: $requesterId")
 
             // 친구 정보를 DTO로 변환
-            FriendResponse(id = requesterId.toString(), name = requester.username)
+            FriendResponse(id = requesterId.toString(), username = requester.username)
         }
     }
 
@@ -74,7 +74,7 @@ class ManageFriendService(
                 ?: throw ResourceNotFoundException("Target not found: $targetId")
 
             // 친구 정보를 DTO로 변환
-            FriendResponse(id = target.id.toString(), name = target.username)
+            FriendResponse(id = target.id.toString(), username = target.username)
         }
     }
 
@@ -185,7 +185,7 @@ class ManageFriendService(
                         query,
                         ignoreCase = true
                     ))
-        }.map { FriendResponse(id = it.id.toString(), name = it.username) }
+        }.map { FriendResponse(id = it.id.toString(), username = it.username) }
     }
 
 }

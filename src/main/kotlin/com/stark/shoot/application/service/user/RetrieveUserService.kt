@@ -61,7 +61,7 @@ class RetrieveUserService(
     ): List<FriendResponse> {
         // maxDepth는 필요에 따라 조정 (여기서는 2단계까지)
         return retrieveUserPort.findBFSRecommendedUsers(userId, maxDepth, limit).map {
-            FriendResponse(id = it.id.toString(), name = it.username)
+            FriendResponse(id = it.id.toString(), username = it.username)
         }
     }
 

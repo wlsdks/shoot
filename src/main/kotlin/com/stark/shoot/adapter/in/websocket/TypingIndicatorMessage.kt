@@ -10,5 +10,6 @@ package com.stark.shoot.adapter.`in`.websocket
 data class TypingIndicatorMessage(
     val roomId: String,
     val userId: String,
+    val username: String,
     val isTyping: Boolean
 )

@@ -37,7 +37,7 @@ class ChatMessageStompHandler(
 
     @MessageMapping("/typing")
     fun handleTypingIndicator(message: TypingIndicatorMessage) {
-        logger.info { "Typing status broadcasted: roomId=${message.roomId}, userId=${message.userId}, isTyping=${message.isTyping}" }
+        logger.info { "Typing status broadcasted: roomId=${message.roomId}, userId=${message.userId}, username=${message.username}, isTyping=${message.isTyping}" }
         // 타이핑 인디케이터 메시지를 해당 채팅방의 모든 사용자에게 전파
         messagingTemplate.convertAndSend("/topic/typing/${message.roomId}", message)
     }

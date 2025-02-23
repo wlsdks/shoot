@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.event.listener
+package com.stark.shoot.adapter.`in`.event.listener.sse
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent

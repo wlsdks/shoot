@@ -3,8 +3,10 @@ package com.stark.shoot.application.service.chatroom
 import com.stark.shoot.adapter.out.persistence.mongodb.document.room.embedded.type.ChatRoomType
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
+import com.stark.shoot.application.port.out.EventPublisher
 import com.stark.shoot.application.port.out.LoadChatRoomPort
 import com.stark.shoot.application.port.out.SaveChatRoomPort
+import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomMetadata
 import com.stark.shoot.domain.chat.room.ChatRoomSettings
@@ -16,7 +18,8 @@ import org.springframework.stereotype.Service
 @Service
 class ChatRoomService(
     private val loadChatRoomPort: LoadChatRoomPort,
-    private val saveChatRoomPort: SaveChatRoomPort
+    private val saveChatRoomPort: SaveChatRoomPort,
+    private val eventPublisher: EventPublisher
 ) : CreateChatRoomUseCase, ManageChatRoomUseCase {
 
     /**
@@ -85,7 +88,20 @@ class ChatRoomService(
             // lastMessageId, etc.는 기본값이면 생략 가능
         )
 
-        return saveChatRoomPort.save(chatRoom)
+        // 채팅방 저장
+        val savedRoom = saveChatRoomPort.save(chatRoom)
+
+        // SSE 이벤트 발행
+        participants.forEach { participantId ->
+            eventPublisher.publish(
+                ChatRoomCreatedEvent(
+                    roomId = savedRoom.id.toString(),
+                    userId = participantId.toString()
+                )
+            )
+        }
+
+        return savedRoom
     }
 
     /**

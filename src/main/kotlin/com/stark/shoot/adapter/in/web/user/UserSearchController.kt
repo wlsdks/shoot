@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.user
 
+import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.ManageFriendUseCase
 import com.stark.shoot.infrastructure.common.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
@@ -22,10 +23,10 @@ class UserSearchController(
     fun searchFriends(
         @RequestParam userId: String,
         @RequestParam query: String
-    ): ResponseEntity<List<String>> {
+    ): ResponseEntity<List<FriendResponse>> {
         // 예시: friendUseCase 내에 검색 기능을 구현했다고 가정
         val friends = manageFriendUseCase.searchPotentialFriends(userId.toObjectId(), query)
-        return ResponseEntity.ok(friends.map { it.toString() })
+        return ResponseEntity.ok(friends)
     }
 
 }

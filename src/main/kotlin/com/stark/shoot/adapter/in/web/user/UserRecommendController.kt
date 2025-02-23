@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.user
 
+import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.RecommendedUserResponse
 import com.stark.shoot.application.port.`in`.user.RetrieveUserUseCase
 import com.stark.shoot.infrastructure.common.util.toObjectId
@@ -45,19 +46,9 @@ class UserRecommendController(
         @RequestParam userId: String,
         @RequestParam(defaultValue = "3") limit: Int,
         @RequestParam(defaultValue = "2") maxDepth: Int
-    ): List<RecommendedUserResponse> {
+    ): List<FriendResponse> {
         // BFS 탐색을 통해 추천 친구 목록을 반환
-        val recommendedUsers =
-            retrieveUserUseCase.findBFSRecommendedUsers(userId.toObjectId(), maxDepth, limit)
-
-        // RecommendedUserResponse로 변환하여 반환
-        return recommendedUsers.map { user ->
-            RecommendedUserResponse(
-                id = user.id.toString(),
-                username = user.username,
-                nickname = user.nickname
-            )
-        }
+        return retrieveUserUseCase.findBFSRecommendedUsers(userId.toObjectId(), maxDepth, limit)
     }
 
 }

@@ -2,6 +2,7 @@ package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
 import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
+import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import org.springframework.stereotype.Service
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.concurrent.ConcurrentHashMap
@@ -51,6 +52,23 @@ class SseEmitterService : SseEmitterUseCase {
                     SseEmitter.event()
                         .name("chatRoomCreated")
                         .data(mapOf("roomId" to event.roomId))
+                )
+            } catch (e: Exception) {
+                emitters.remove(event.userId)
+            }
+        }
+    }
+
+    override fun sendFriendAddedEvent(
+        event: FriendAddedEvent
+    ) {
+        emitters[event.userId]?.let {
+            try {
+                // 친구 추가 이벤트 전송
+                it.send(
+                    SseEmitter.event()
+                        .name("friendAdded")
+                        .data(mapOf("friendId" to event.friendId))
                 )
             } catch (e: Exception) {
                 emitters.remove(event.userId)

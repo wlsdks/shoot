@@ -2,8 +2,10 @@ package com.stark.shoot.application.service.user
 
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.ManageFriendUseCase
+import com.stark.shoot.application.port.out.EventPublisher
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
 import com.stark.shoot.application.port.out.user.UpdateUserFriendPort
+import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import com.stark.shoot.infrastructure.common.exception.InvalidInputException
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
 import org.bson.types.ObjectId
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service
 class ManageFriendService(
     private val retrieveUserPort: RetrieveUserPort,
     private val updateUserFriendPort: UpdateUserFriendPort,
+    private val eventPublisher: EventPublisher
 ) : ManageFriendUseCase {
 
     /**
@@ -128,6 +131,10 @@ class ManageFriendService(
         // 서로 friends에 추가
         updateUserFriendPort.addFriendRelation(currentUserId, requesterId)
         updateUserFriendPort.addFriendRelation(requesterId, currentUserId)
+
+        // SSE 이벤트 발행
+        eventPublisher.publish(FriendAddedEvent(userId = currentUserId.toString(), friendId = requesterId.toString()))
+        eventPublisher.publish(FriendAddedEvent(userId = requesterId.toString(), friendId = currentUserId.toString()))
     }
 
     /**
@@ -174,7 +181,10 @@ class ManageFriendService(
         return allUsers.filter { user ->
             user.id != null &&
                     !excludedIds.contains(user.id) &&
-                    (user.username.contains(query, ignoreCase = true) || user.nickname.contains(query, ignoreCase = true))
+                    (user.username.contains(query, ignoreCase = true) || user.nickname.contains(
+                        query,
+                        ignoreCase = true
+                    ))
         }.map { FriendResponse(id = it.id.toString(), name = it.username) }
     }
 

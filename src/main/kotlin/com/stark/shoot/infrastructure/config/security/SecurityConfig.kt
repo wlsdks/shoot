@@ -83,8 +83,8 @@ class SecurityConfig(
             .authorizeHttpRequests {
                 // 인증이 필요하지 않은 경로
                 // 로그인, 회원가입 등은 permitAll
-                it.requestMatchers("/api/v1/auth/login", "/api/v1/users").permitAll()
-                it.requestMatchers("/ws/**").permitAll() // 웹소켓 핸드셰이크
+                it.requestMatchers("/api/v1/auth/login", "/api/v1/users", "/api/v1/chatrooms/updates/**").permitAll()
+                it.requestMatchers("/ws/**").permitAll()
                 // 그 외 모든 요청은 인증 필요
                 it.anyRequest().authenticated()
             }

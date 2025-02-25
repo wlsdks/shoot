@@ -29,11 +29,6 @@ class StompChannelInterceptor(
 
     private val logger = KotlinLogging.logger {}
 
-    companion object {
-        private const val TOPIC_PREFIX = "/topic/messages/"
-        private const val QUEUE_PREFIX = "/queue/messages/"
-    }
-
     /**
      * STOMP 프레임이 인바운드 채널을 통과하기 전에 호출됩니다.
      * 메시지의 STOMP 명령어와 헤더를 확인하여 특정 경로의 접근 권한을 검사할 수 있습니다.
@@ -41,42 +36,77 @@ class StompChannelInterceptor(
      * 그 결과, 컨트롤러의 STOMP 핸들러 메서드(@MessageMapping)에서 principal 파라미터를 받을 수 있게 됩니다.
      */
     override fun preSend(message: Message<*>, channel: MessageChannel): Message<*> {
-        // todo: 여기서 계속 인증오류남
         val accessor = StompHeaderAccessor.wrap(message)
         val command = accessor.command ?: return message
+        val destination = accessor.destination
 
-        // 먼저 fallback 요청인지 확인 (URL에 '/xhr_send' 혹은 '/xhr_streaming'이 포함되어 있다면)
+        // SockJS fallback 경로는 인증 생략
         val path = accessor.sessionAttributes?.get("sockJsPath") as? String ?: ""
         if (path.contains("/xhr_send") || path.contains("/xhr_streaming") || path.endsWith("/info")) {
-            // fallback 전송 요청은 인증 없이 그대로 반환
             return message
         }
 
-        // 세션 어트리뷰트에서 HandshakeInterceptor에서 넣어둔 인증 객체를 가져옴
-        val sessionAttributes = accessor.sessionAttributes
-        val authentication = sessionAttributes?.get("authentication") as? Authentication
-
-        // 만약 인증 정보가 없다면, fallback 요청이 아닌 경우라면 로그를 남기하고 반환
-        if (authentication == null) {
-            logger.error { "인증 정보가 없습니다" }
-            return message  // fallback이 아닌 일반 요청이라면 여기서 메시지를 차단할 수도 있지만,
-            // fallback 요청에서는 이미 인증이 생략되어야 하므로 그냥 반환합니다.
+        // 인증 정보 확인 및 복구
+        if (accessor.user == null) {
+            val auth = accessor.sessionAttributes?.get("authentication") as? Authentication
+            if (auth != null) {
+                accessor.user = StompPrincipal(auth.name)
+                logger.info { "Restored authentication for user: ${auth.name}" }
+            } else {
+                logger.error { "No authentication found for message: $destination" }
+                throw WebSocketException("Authentication required")
+            }
         }
 
-        // 이미 인증이 있는 경우, 커스텀 Principal을 설정
-        val userId = authentication.name
-        val stompPrincipal = StompPrincipal(userId)
-        accessor.user = stompPrincipal
-
-        // 만약 명령어가 SEND라면, 메시지 파싱 시도
+        // SEND 명령어 처리
         if (command == StompCommand.SEND) {
-            // 만약 payload가 비어 있으면, 추가 검증 없이 그대로 반환
-            val parsedMessage = getMessage(message) ?: return message
-            // 여기에 필요하다면 추가 유효성 검사를 수행할 수 있습니다.
-            validateMessage(parsedMessage)
+            when (destination) {
+                "/app/chat" -> {
+                    val parsedMessage = getChatMessage(message) ?: return message
+                    validateMessage(parsedMessage)
+                }
+
+                "/app/active" -> {
+                    // active 메시지는 파싱만 확인 (필요 시 별도 모델로 파싱)
+                    getRawPayload(message)
+                }
+
+                "/app/typing" -> {
+                    // typing 메시지는 파싱만 확인 (필요 시 별도 모델로 파싱)
+                    getRawPayload(message)
+                }
+
+                else -> {
+                    logger.warn { "Unknown destination: $destination" }
+                }
+            }
         }
         return message
     }
+
+    private fun getChatMessage(message: Message<*>): ChatMessageRequest? {
+        val payload = getRawPayload(message) ?: return null
+        return try {
+            objectMapper.readValue(payload, ChatMessageRequest::class.java)
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to parse chat message" }
+            throw WebSocketException("Failed to parse chat message")
+        }
+    }
+
+
+    private fun getRawPayload(message: Message<*>): String? {
+        val payload = message.payload
+        if (payload == null || (payload is String && payload.trim().isEmpty())) {
+            return null
+        }
+        return when (payload) {
+            is String -> payload
+            is ByteArray -> String(payload)
+            else -> throw WebSocketException("Unsupported message payload type")
+        }
+    }
+
 
     /**
      * ChatMessageRequest 유효성 검사
@@ -87,36 +117,6 @@ class StompChannelInterceptor(
         }
         if (message.content.text.length > 1000) {  // 예시: 1000자 제한
             throw WebSocketException("Message content too long")
-        }
-    }
-
-    /**
-     * 이 메서드는 STOMP 메시지의 페이로드를 ChatMessageRequest 객체로 변환하는 역할을 합니다.
-     */
-    private fun getMessage(message: Message<*>): ChatMessageRequest? {
-        val payload = message.payload
-        // payload가 null이거나 빈 문자열이면 파싱하지 않고 null 반환
-        if (payload == null || (payload is String && payload.trim().isEmpty())) {
-            return null
-        }
-
-        return try {
-            val payload = message.payload
-            when (payload) {
-                // JSON 문자열을 ChatMessageRequest로 변환
-                is String -> objectMapper.readValue(payload, ChatMessageRequest::class.java)
-
-                // 바이트 배열을 ChatMessageRequest로 변환
-                is ByteArray -> objectMapper.readValue(payload, ChatMessageRequest::class.java)
-
-                // 이미 ChatMessageRequest면 그대로 사용
-                is ChatMessageRequest -> payload
-
-                // 다른 형식이면 에러
-                else -> throw WebSocketException("지원하지 않는 메시지 형식")
-            }
-        } catch (e: Exception) {
-            throw WebSocketException("Failed to parse message")
         }
     }
 

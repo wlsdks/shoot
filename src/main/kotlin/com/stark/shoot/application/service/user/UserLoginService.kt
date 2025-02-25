@@ -32,7 +32,7 @@ class UserLoginService(
 //        }
 
         // JWT 생성
-        val generatedAccessToken = jwtProvider.generateToken(subject = user.nickname)
+        val generatedAccessToken = jwtProvider.generateToken(subject = user.username)
 
         // 사용자 ID와 생성된 토큰 반환 (ObjectId를 String으로 변환해서 반환)
         return LoginResponse(

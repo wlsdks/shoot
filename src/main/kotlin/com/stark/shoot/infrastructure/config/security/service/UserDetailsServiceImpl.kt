@@ -16,6 +16,7 @@ class UserDetailsServiceImpl(
     override fun loadUserByUsername(username: String?): UserDetails {
         val findByUsername = username?.let { retrieveUserPort.findByUsername(it) }
             ?: throw IllegalArgumentException("User not found")
+
         return User(findByUsername.username) // 권한 or 패스워드 등 필요 시 추가
     }
 

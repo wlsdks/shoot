@@ -85,7 +85,7 @@ class SecurityConfig(
                 // 로그인, 회원가입 등은 permitAll
                 it.requestMatchers("/api/v1/auth/login", "/api/v1/users", "/api/v1/chatrooms/updates/**").permitAll()
                 it.requestMatchers("/ws/**").permitAll()
-                // 그 외 모든 요청은 인증 필요
+                it.requestMatchers("/api/v1/messages/mark-read").authenticated() // 명시적 인증 필요
                 it.anyRequest().authenticated()
             }
             // JwtAuthFilter를 UsernamePasswordAuthenticationFilter보다 앞단에 추가

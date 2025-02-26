@@ -24,8 +24,8 @@ class UserActiveService(
             val activity = objectMapper.readValue(message, ChatActivity::class.java)
             val key = "active:${activity.userId}:${activity.roomId}"
             // Redis에 사용자 활동 상태 저장
-            // 사용자가 채팅방에 머물면 30초마다 "true" 갱신 → TTL(1분)이 만료 안 돼 창이 꺼지면 Heartbeat 멈추고 1분 후 키 삭제 → unreadCount 올라감
-            redisTemplate.opsForValue().set(key, activity.active.toString(), 1, TimeUnit.MINUTES) // 1분 TTL
+            // 사용자가 채팅방에 머물면 30초마다 "true" 갱신 → TTL(1분)이 만료 안 돼 창이 꺼지면 Heartbeat 멈추고 45초 후 "false"로 변경
+            redisTemplate.opsForValue().set(key, activity.active.toString(), 45, TimeUnit.SECONDS)
             logger.info { "User activity updated: $key -> ${activity.active}" }
         } catch (e: Exception) {
             logger.error(e) { "Failed to process chat activity: $message" }

@@ -12,12 +12,12 @@ interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, Obje
     @Query("{ 'roomId': ?0 }")
     fun findByRoomId(roomId: ObjectId, pageable: Pageable = Pageable.unpaged()): List<ChatMessageDocument>
 
-    fun findByRoomIdAndCreatedAtBefore(
+    @Query("{ 'roomId': ?0, '_id': { \$lt: ?1 } }") // 마지막 ID보다 작은 데이터 가져오기
+    fun findByRoomIdAndIdBefore(
         roomId: ObjectId,
-        createdAt: Instant,
+        lastId: ObjectId,
         pageable: Pageable
     ): List<ChatMessageDocument>
-
 
     fun findByRoomIdAndReadByNotContaining(roomId: ObjectId, userId: ObjectId): List<ChatMessageDocument>
 

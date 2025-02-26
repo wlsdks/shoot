@@ -9,7 +9,6 @@ import org.bson.types.ObjectId
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Component
-import java.time.Instant
 
 @Component
 class ChatMessagePersistenceAdapter(
@@ -25,15 +24,32 @@ class ChatMessagePersistenceAdapter(
             .orElse(null)
     }
 
-    override fun findByRoomId(roomId: ObjectId): List<ChatMessage> {
-        val pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"))
+    override fun findByRoomId(
+        roomId: ObjectId,
+        limit: Int
+    ): List<ChatMessage> {
+        val pageable = PageRequest.of(
+            0,
+            limit,
+            Sort.by(Sort.Direction.DESC, "_id") // 최신순 정렬
+        )
+
         return chatMessageRepository.findByRoomId(roomId, pageable)
             .map(chatMessageMapper::toDomain)
     }
 
-    override fun findByRoomIdAndBeforeCreatedAt(roomId: ObjectId, createdAt: Instant): List<ChatMessage> {
-        val pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"))
-        return chatMessageRepository.findByRoomIdAndCreatedAtBefore(roomId, createdAt, pageable)
+    override fun findByRoomIdAndBeforeId(
+        roomId: ObjectId,
+        lastId: ObjectId,
+        limit: Int
+    ): List<ChatMessage> {
+        val pageable = PageRequest.of(
+            0,
+            limit,
+            Sort.by(Sort.Direction.DESC, "_id") // 최신순 정렬
+        )
+
+        return chatMessageRepository.findByRoomIdAndIdBefore(roomId, lastId, pageable)
             .map(chatMessageMapper::toDomain)
     }
 

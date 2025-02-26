@@ -5,7 +5,6 @@ import org.bson.types.ObjectId
 import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.data.mongodb.repository.Query
-import java.time.Instant
 
 interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, ObjectId> {
 
@@ -19,9 +18,7 @@ interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, Obje
         pageable: Pageable
     ): List<ChatMessageDocument>
 
-    fun findByRoomIdAndReadByNotContaining(roomId: ObjectId, userId: ObjectId): List<ChatMessageDocument>
+    @Query("{ 'roomId': ?0, 'readBy.?#{[1]}' : { \$ne: true } }")
+    fun findUnreadMessages(roomId: ObjectId, userId: String): List<ChatMessageDocument>
 
-    fun countByRoomId(roomId: ObjectId): Int
-
-    fun countByRoomIdAndCreatedAtAfter(roomId: ObjectId, createdAt: Instant): Int
 }

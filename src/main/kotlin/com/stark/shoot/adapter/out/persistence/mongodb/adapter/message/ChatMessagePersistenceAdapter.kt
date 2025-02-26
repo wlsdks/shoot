@@ -57,7 +57,7 @@ class ChatMessagePersistenceAdapter(
         roomId: ObjectId,
         userId: ObjectId
     ): List<ChatMessage> {
-        val notReadMessage = chatMessageRepository.findByRoomIdAndReadByNotContaining(roomId, userId)
+        val notReadMessage = chatMessageRepository.findUnreadMessages(roomId, userId.toString())
         return notReadMessage.map(chatMessageMapper::toDomain)
     }
 

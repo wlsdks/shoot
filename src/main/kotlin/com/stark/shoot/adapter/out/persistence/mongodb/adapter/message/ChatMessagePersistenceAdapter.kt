@@ -53,25 +53,6 @@ class ChatMessagePersistenceAdapter(
             .map(chatMessageMapper::toDomain)
     }
 
-    override fun countUnreadMessages(
-        roomId: String,
-        lastReadMessageId: String?
-    ): Int {
-        val roomObjectId = ObjectId(roomId)
-        val lastReadMessage = lastReadMessageId?.let { ObjectId(it) }
-
-        // 마지막 읽은 메시지가 있는 경우
-        return if (lastReadMessage != null) {
-            val lastReadMessageCreatedAt = chatMessageRepository.findById(lastReadMessage)
-                .map { it.createdAt }
-                .orElseThrow { IllegalArgumentException("Invalid lastReadMessageId: $lastReadMessageId") }
-            chatMessageRepository.countByRoomIdAndCreatedAtAfter(roomObjectId, lastReadMessageCreatedAt)
-        } else {
-            // 마지막 읽은 메시지가 없는 경우
-            chatMessageRepository.countByRoomId(roomObjectId)
-        }
-    }
-
     override fun findUnreadByRoomId(
         roomId: ObjectId,
         userId: ObjectId

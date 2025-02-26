@@ -10,6 +10,7 @@ import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 import org.springframework.stereotype.Service
+import java.time.Instant
 import java.util.concurrent.CompletableFuture
 
 @Service
@@ -28,7 +29,8 @@ class SendMessageService(
                 text = message.content.text,
                 type = MessageType.TEXT
             ),
-            status = MessageStatus.SENT
+            status = MessageStatus.SENT,
+            createdAt = Instant.now()  // 여기서 생성 시각을 명시적으로 기록 (그래야 컨슈머에서 받아서 처리할때 시간 덮어쓰기가 안 일어남)
         )
 
         // ChatEvent 생성

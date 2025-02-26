@@ -41,7 +41,7 @@ class ChatRoomMapper {
             lastMessageId = document.lastMessageId?.toString(),
             metadata = toMetadata(document.metadata),
             lastActiveAt = document.lastActiveAt,
-            createdAt = document.createdAt,
+            createdAt = document.createdAt!!,
             updatedAt = document.updatedAt
         )
     }

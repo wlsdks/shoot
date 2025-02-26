@@ -23,7 +23,9 @@ class ChatMessageMapper {
             reactions = domain.reactions.mapValues { (_, userIds) ->
                 userIds.map { ObjectId(it) }.toSet()
             },
-            mentions = domain.mentions.map { ObjectId(it) }.toSet()
+            mentions = domain.mentions.map { ObjectId(it) }.toSet(),
+            isDeleted = domain.isDeleted,
+            readBy = domain.readBy.toMutableMap()
         ).apply {
             // BaseMongoDocument의 id를 나중에 설정
             id = domain.id?.let { ObjectId(it) }
@@ -43,7 +45,8 @@ class ChatMessageMapper {
             },
             mentions = document.mentions.map { it.toString() }.toSet(),
             createdAt = document.createdAt,
-            updatedAt = document.updatedAt
+            updatedAt = document.updatedAt,
+            readBy = document.readBy.toMutableMap()
         )
     }
 

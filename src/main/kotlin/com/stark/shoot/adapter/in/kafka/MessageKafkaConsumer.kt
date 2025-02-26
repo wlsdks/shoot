@@ -29,6 +29,7 @@ class MessageKafkaConsumer(
 
             // 메시지를 WebSocket으로 전송
             CompletableFuture.runAsync {
+                logger.debug { "Broadcasting message: $savedMessage" }
                 messagingTemplate.convertAndSend("/topic/messages/${savedMessage.roomId}", savedMessage)
                 logger.info { "Message pushed to /topic/messages/${savedMessage.roomId}: ${savedMessage.content.text}" }
             }

@@ -34,12 +34,16 @@ class MessageProcessingService(
         val chatRoom = loadChatRoomPort.findById(roomObjectId)
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
 
+        logger.debug { "Participants: ${chatRoom.metadata.participantsMetadata.keys}" }
+
         // readBy 초기화 (메시지에 readBy 추가 → 발신자는 읽음(true), 나머지는 안 읽음(false).)
         val initializedMessage = message.copy(
             readBy = chatRoom.metadata.participantsMetadata.keys.associate {
                 it.toString() to (it == ObjectId(message.senderId))
             }.toMutableMap()
         )
+
+        logger.debug { "Initialized readBy: ${initializedMessage.readBy}" }
 
         // 초기화된 메시지를 DB에 저장
         val savedMessage = saveChatMessagePort.save(initializedMessage)

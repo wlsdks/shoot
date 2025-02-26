@@ -22,5 +22,5 @@ data class ChatMessageDocument(
     val reactions: Map<String, Set<ObjectId>> = emptyMap(), // 이모티콘 ID to 사용자 ID 목록
     val mentions: Set<ObjectId> = emptySet(),       // 멘션된 사용자 ID 목록
     val isDeleted: Boolean = false,                 // 삭제 여부
-    val readBy: MutableMap<ObjectId, Boolean> = mutableMapOf() // 읽음 상태 추가
+    val readBy: MutableMap<String, Boolean> = mutableMapOf() // 읽음 상태 추가
 ) : BaseMongoDocument()

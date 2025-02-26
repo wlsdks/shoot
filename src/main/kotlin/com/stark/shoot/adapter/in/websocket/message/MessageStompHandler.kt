@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.websocket
+package com.stark.shoot.adapter.`in`.websocket.message
 
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
@@ -9,7 +9,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
 
 @Controller
-class ChatMessageStompHandler(
+class MessageStompHandler(
     private val sendMessageUseCase: SendMessageUseCase,
     private val messagingTemplate: SimpMessagingTemplate
 ) {
@@ -33,13 +33,6 @@ class ChatMessageStompHandler(
                     logger.debug { "Message successfully published to Kafka: ${message.content.text}" }
                 }
             }
-    }
-
-    @MessageMapping("/typing")
-    fun handleTypingIndicator(message: TypingIndicatorMessage) {
-        logger.info { "Typing status broadcasted: roomId=${message.roomId}, userId=${message.userId}, username=${message.username}, isTyping=${message.isTyping}" }
-        // 타이핑 인디케이터 메시지를 해당 채팅방의 모든 사용자에게 전파
-        messagingTemplate.convertAndSend("/topic/typing/${message.roomId}", message)
     }
 
 }

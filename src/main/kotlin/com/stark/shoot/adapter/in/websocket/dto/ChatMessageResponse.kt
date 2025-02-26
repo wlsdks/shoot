@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.websocket
+package com.stark.shoot.adapter.`in`.websocket.dto
 
 data class ChatMessageResponse(
     val status: String,

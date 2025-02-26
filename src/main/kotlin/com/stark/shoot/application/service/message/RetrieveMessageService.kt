@@ -12,21 +12,12 @@ class RetrieveMessageService(
     private val loadChatMessagePort: LoadChatMessagePort
 ) : RetrieveMessageUseCase {
 
-    override fun getMessages(
-        roomId: String,
-        before: Instant?,
-        limit: Int
-    ): List<ChatMessage> {
-        val message = if (before != null) {
-            // 이전 메시지 조회
+    override fun getMessages(roomId: String, before: Instant?, limit: Int): List<ChatMessage> {
+        return if (before != null) {
             loadChatMessagePort.findByRoomIdAndBeforeCreatedAt(roomId.toObjectId(), before)
         } else {
-            // 최신 메시지 조회
             loadChatMessagePort.findByRoomId(roomId.toObjectId())
         }
-
-        // 메시지가 limit보다 많을 경우 limit만큼만 반환
-        return message.take(limit)
     }
 
 }

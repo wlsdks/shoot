@@ -6,6 +6,8 @@ import com.stark.shoot.application.port.out.LoadChatMessagePort
 import com.stark.shoot.application.port.out.SaveChatMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import org.bson.types.ObjectId
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Component
 import java.time.Instant
 
@@ -15,23 +17,30 @@ class ChatMessagePersistenceAdapter(
     private val chatMessageMapper: ChatMessageMapper
 ) : SaveChatMessagePort, LoadChatMessagePort {
 
-    override fun findById(id: ObjectId): ChatMessage? {
+    override fun findById(
+        id: ObjectId
+    ): ChatMessage? {
         return chatMessageRepository.findById(id)
             .map(chatMessageMapper::toDomain)
             .orElse(null)
     }
 
     override fun findByRoomId(roomId: ObjectId): List<ChatMessage> {
-        return chatMessageRepository.findByRoomId(roomId)
+        val pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"))
+        return chatMessageRepository.findByRoomId(roomId, pageable)
             .map(chatMessageMapper::toDomain)
     }
 
     override fun findByRoomIdAndBeforeCreatedAt(roomId: ObjectId, createdAt: Instant): List<ChatMessage> {
-        return chatMessageRepository.findByRoomIdAndCreatedAtBeforeOrderByCreatedAtDesc(roomId, createdAt)
+        val pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"))
+        return chatMessageRepository.findByRoomIdAndCreatedAtBefore(roomId, createdAt, pageable)
             .map(chatMessageMapper::toDomain)
     }
 
-    override fun countUnreadMessages(roomId: String, lastReadMessageId: String?): Int {
+    override fun countUnreadMessages(
+        roomId: String,
+        lastReadMessageId: String?
+    ): Int {
         val roomObjectId = ObjectId(roomId)
         val lastReadMessage = lastReadMessageId?.let { ObjectId(it) }
 
@@ -47,18 +56,25 @@ class ChatMessagePersistenceAdapter(
         }
     }
 
-    override fun findUnreadByRoomId(roomId: ObjectId, userId: ObjectId): List<ChatMessage> {
+    override fun findUnreadByRoomId(
+        roomId: ObjectId,
+        userId: ObjectId
+    ): List<ChatMessage> {
         val notReadMessage = chatMessageRepository.findByRoomIdAndReadByNotContaining(roomId, userId)
         return notReadMessage.map(chatMessageMapper::toDomain)
     }
 
-    override fun save(message: ChatMessage): ChatMessage {
+    override fun save(
+        message: ChatMessage
+    ): ChatMessage {
         val document = chatMessageMapper.toDocument(message)
         return chatMessageRepository.save(document)
             .let(chatMessageMapper::toDomain)
     }
 
-    override fun saveAll(messages: List<ChatMessage>): List<ChatMessage> {
+    override fun saveAll(
+        messages: List<ChatMessage>
+    ): List<ChatMessage> {
         val documents = messages.map(chatMessageMapper::toDocument)
         return chatMessageRepository.saveAll(documents)
             .map(chatMessageMapper::toDomain)

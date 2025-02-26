@@ -10,6 +10,6 @@ package com.stark.shoot.adapter.`in`.websocket.dto
 data class TypingIndicatorMessage(
     val roomId: String,
     val userId: String,
-    val username: String,
+    val username: String? = null, // nullable로 변경
     val isTyping: Boolean
 )

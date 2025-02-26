@@ -2,6 +2,7 @@ package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import com.stark.shoot.application.port.out.*
+import com.stark.shoot.domain.chat.event.ChatBulkReadEvent
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
@@ -9,6 +10,7 @@ import com.stark.shoot.infrastructure.common.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bson.types.ObjectId
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -19,7 +21,8 @@ class MessageProcessingService(
     private val saveChatRoomPort: SaveChatRoomPort,
     private val eventPublisher: EventPublisher,
     private val redisTemplate: StringRedisTemplate,
-    private val loadChatMessagePort: LoadChatMessagePort
+    private val loadChatMessagePort: LoadChatMessagePort,
+    private val simpMessagingTemplate: SimpMessagingTemplate
 ) : ProcessMessageUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -150,9 +153,11 @@ class MessageProcessingService(
 
         // 모든 안 읽은 메시지 읽음 처리
         val unreadMessages = loadChatMessagePort.findUnreadByRoomId(roomObjectId, participantId)
+        val updatedMessageIds = mutableListOf<String>()
         unreadMessages.forEach { message ->
             message.readBy[userId] = true
-            saveChatMessagePort.save(message)
+            val updated = saveChatMessagePort.save(message)
+            updatedMessageIds.add(updated.id!!)
         }
 
         // 참여자 unreadCount 초기화
@@ -166,6 +171,14 @@ class MessageProcessingService(
         redisTemplate.opsForHash<String, String>().put("unread:$userId", roomId, "0")
         val unreadCounts = updatedParticipants.mapKeys { it.key.toString() }.mapValues { it.value.unreadCount }
         eventPublisher.publish(ChatUnreadCountUpdatedEvent(roomId = roomId, unreadCounts = unreadCounts))
+
+        // 여기서 Bulk Read 이벤트 발행
+        if (updatedMessageIds.isNotEmpty()) {
+            simpMessagingTemplate.convertAndSend(
+                "/topic/read-bulk/$roomId",
+                ChatBulkReadEvent(roomId, updatedMessageIds, userId)
+            )
+        }
 
         logger.info { "Marked all messages as read: roomId=$roomId, userId=$userId" }
     }

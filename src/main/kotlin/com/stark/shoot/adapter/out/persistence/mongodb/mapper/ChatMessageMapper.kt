@@ -25,10 +25,11 @@ class ChatMessageMapper {
             },
             mentions = domain.mentions.map { ObjectId(it) }.toSet(),
             isDeleted = domain.isDeleted,
-            readBy = domain.readBy.toMutableMap()
+            readBy = domain.readBy.toMutableMap(),
         ).apply {
             // BaseMongoDocument의 id를 나중에 설정
             id = domain.id?.let { ObjectId(it) }
+            createdAt = domain.createdAt
         }
     }
 

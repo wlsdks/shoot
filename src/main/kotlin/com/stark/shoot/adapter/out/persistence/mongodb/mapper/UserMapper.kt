@@ -47,7 +47,7 @@ class UserMapper {
             status = UserStatus.valueOf(document.status),
             profileImageUrl = document.profileImageUrl,
             lastSeenAt = document.lastSeenAt,
-            createdAt = document.createdAt,
+            createdAt = document.createdAt!!,
             updatedAt = document.updatedAt,
 
             // 친구 관련 필드 매핑

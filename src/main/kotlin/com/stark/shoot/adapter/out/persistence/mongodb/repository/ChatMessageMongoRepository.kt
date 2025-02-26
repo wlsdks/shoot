@@ -12,12 +12,12 @@ interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, Obje
     @Query("{ 'roomId': ?0 }")
     fun findByRoomId(roomId: ObjectId, pageable: Pageable = Pageable.unpaged()): List<ChatMessageDocument>
 
-    @Query("{ 'roomId': ?0, 'createdAt': { '\$lt': ?1 } }")
     fun findByRoomIdAndCreatedAtBefore(
         roomId: ObjectId,
         createdAt: Instant,
         pageable: Pageable
     ): List<ChatMessageDocument>
+
 
     fun findByRoomIdAndReadByNotContaining(roomId: ObjectId, userId: ObjectId): List<ChatMessageDocument>
 

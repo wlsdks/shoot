@@ -1,7 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.message
 
-import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
-import com.stark.shoot.application.port.`in`.message.MessageReadUseCase
+import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
@@ -14,8 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/messages")
 @RestController
 class MessageReadSseController(
-    private val sseEmitterUseCase: SseEmitterUseCase,
-    private val messageReadUseCase: MessageReadUseCase
+    private val processMessageUseCase: ProcessMessageUseCase
 ) {
 
     @Operation(
@@ -27,9 +25,7 @@ class MessageReadSseController(
         @RequestParam roomId: String,
         @RequestParam userId: String
     ): ResponseEntity<Unit> {
-        messageReadUseCase.markRead(roomId, userId)
-        // SSE로 unreadCount 0 전송
-        sseEmitterUseCase.sendUpdate(userId, roomId, 0, null)
+        processMessageUseCase.markAllMessagesAsRead(roomId, userId)
         return ResponseEntity.noContent().build()
     }
 

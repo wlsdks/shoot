@@ -1,6 +1,7 @@
 package com.stark.shoot.infrastructure.config.socket.interceptor
 
 import com.stark.shoot.infrastructure.config.security.JwtAuthenticationService
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
 import org.springframework.web.socket.WebSocketHandler
@@ -9,6 +10,8 @@ import org.springframework.web.socket.server.HandshakeInterceptor
 class AuthHandshakeInterceptor(
     private val jwtAuthenticationService: JwtAuthenticationService
 ) : HandshakeInterceptor {
+
+    private val logger = KotlinLogging.logger {}
 
     /**
      * WebSocket handshake 전에 호출되는 메서드 (인증 안된 사용자에게는 handshake 중단)
@@ -29,19 +32,21 @@ class AuthHandshakeInterceptor(
             return true
         }
 
-        val token = extractToken(request) ?: return false
-
-        return try {
-            // JWT 토큰 검증 및 사용자 로딩
+        val token = extractToken(request)
+        if (token == null) {
+            logger.error { "No token provided in request: ${request.uri}" }
+            return false
+        }
+        try {
             val authentication = jwtAuthenticationService.authenticateToken(token)
-            // 인증 객체와 사용자 ID를 attributes에 저장
             attributes["authentication"] = authentication
             attributes["userId"] = authentication.name
-            // Principal 설정 (Spring이 Principal로 인식하도록 (SessionDisconnectEvent에서 event.user?.name으로 가져올 수 있음))
             request.headers["user"] = listOf(authentication.name)
-            true
+            logger.info { "Handshake successful for user: ${authentication.name}" }
+            return true
         } catch (e: Exception) {
-            false
+            logger.error(e) { "Handshake failed for token: $token" }
+            return false
         }
     }
 

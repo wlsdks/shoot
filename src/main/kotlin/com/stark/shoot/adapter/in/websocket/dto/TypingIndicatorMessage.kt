@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.websocket
+package com.stark.shoot.adapter.`in`.websocket.dto
 
 /**
  * 클라이언트가 타이핑 상태를 전송할 때 사용하는 메시지 모델.
@@ -10,6 +10,6 @@ package com.stark.shoot.adapter.`in`.websocket
 data class TypingIndicatorMessage(
     val roomId: String,
     val userId: String,
-    val username: String,
+    val username: String? = null, // nullable로 변경
     val isTyping: Boolean
 )

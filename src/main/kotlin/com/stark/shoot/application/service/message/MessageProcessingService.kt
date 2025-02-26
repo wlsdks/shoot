@@ -1,17 +1,16 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
-import com.stark.shoot.application.port.out.EventPublisher
-import com.stark.shoot.application.port.out.LoadChatRoomPort
-import com.stark.shoot.application.port.out.SaveChatMessagePort
-import com.stark.shoot.application.port.out.SaveChatRoomPort
+import com.stark.shoot.application.port.out.*
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
 import com.stark.shoot.infrastructure.common.util.toObjectId
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bson.types.ObjectId
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
+import java.time.Instant
 
 @Service
 class MessageProcessingService(
@@ -19,8 +18,11 @@ class MessageProcessingService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
     private val eventPublisher: EventPublisher,
-    private val redisTemplate: StringRedisTemplate
+    private val redisTemplate: StringRedisTemplate,
+    private val loadChatMessagePort: LoadChatMessagePort
 ) : ProcessMessageUseCase {
+
+    private val logger = KotlinLogging.logger {}
 
     /**
      * 메시지 저장 및 채팅방 메타데이터 업데이트 담당
@@ -32,12 +34,16 @@ class MessageProcessingService(
         val chatRoom = loadChatRoomPort.findById(roomObjectId)
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
 
+        logger.debug { "Participants: ${chatRoom.metadata.participantsMetadata.keys}" }
+
         // readBy 초기화 (메시지에 readBy 추가 → 발신자는 읽음(true), 나머지는 안 읽음(false).)
         val initializedMessage = message.copy(
             readBy = chatRoom.metadata.participantsMetadata.keys.associate {
                 it.toString() to (it == ObjectId(message.senderId))
             }.toMutableMap()
         )
+
+        logger.debug { "Initialized readBy: ${initializedMessage.readBy}" }
 
         // 초기화된 메시지를 DB에 저장
         val savedMessage = saveChatMessagePort.save(initializedMessage)
@@ -88,6 +94,80 @@ class MessageProcessingService(
         )
 
         return savedMessage
+    }
+
+    override fun markMessageAsRead(messageId: String, userId: String): ChatMessage {
+        val chatMessage = loadChatMessagePort.findById(messageId.toObjectId())
+            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$messageId")
+
+        // 업데이트 전 안 읽은 메시지 가져오기
+        val roomId = chatMessage.roomId.toObjectId()
+        val userObjectId = ObjectId(userId)
+        val unreadMessagesBefore = loadChatMessagePort.findUnreadByRoomId(roomId, userObjectId)
+        logger.debug { "Unread messages before marking as read: $unreadMessagesBefore" }
+
+        // 읽음 상태 업데이트
+        chatMessage.readBy[userId] = true
+        val updatedMessage = saveChatMessagePort.save(chatMessage)
+
+        // unreadCount 계산
+        val unreadCountBefore = unreadMessagesBefore.size ?: 0
+        val wasUnread = unreadMessagesBefore.any { it.id == messageId }
+        val newUnreadCount = if (wasUnread) unreadCountBefore - 1 else unreadCountBefore
+        val finalUnreadCount = newUnreadCount.coerceAtLeast(0)
+
+        // 채팅방 정보 업데이트
+        val room = loadChatRoomPort.findById(roomId)!!
+        val participant = room.metadata.participantsMetadata[userObjectId]!!
+        val updatedParticipant = participant.copy(unreadCount = finalUnreadCount, lastReadAt = Instant.now())
+        val updatedParticipants =
+            room.metadata.participantsMetadata.toMutableMap().apply { put(userObjectId, updatedParticipant) }
+        val updatedRoom = room.copy(metadata = room.metadata.copy(participantsMetadata = updatedParticipants))
+        saveChatRoomPort.save(updatedRoom)
+
+        // Redis와 이벤트 업데이트
+        redisTemplate.opsForHash<String, String>().put("unread:$userId", roomId.toString(), finalUnreadCount.toString())
+        val unreadCounts = updatedParticipants.mapKeys { it.key.toString() }.mapValues { it.value.unreadCount }
+        eventPublisher.publish(
+            ChatUnreadCountUpdatedEvent(
+                roomId = roomId.toString(),
+                unreadCounts = unreadCounts,
+                lastMessage = updatedMessage.content.text
+            )
+        )
+
+        logger.info { "Marked message as read: messageId=$messageId, userId=$userId, newUnreadCount=$finalUnreadCount" }
+        return updatedMessage
+    }
+
+    override fun markAllMessagesAsRead(roomId: String, userId: String) {
+        val roomObjectId = roomId.toObjectId()
+        val chatRoom = loadChatRoomPort.findById(roomObjectId)
+            ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=$roomId")
+        val participantId = ObjectId(userId)
+        val participantMeta = chatRoom.metadata.participantsMetadata[participantId]
+            ?: throw IllegalArgumentException("참여자가 없습니다. userId=$userId")
+
+        // 모든 안 읽은 메시지 읽음 처리
+        val unreadMessages = loadChatMessagePort.findUnreadByRoomId(roomObjectId, participantId)
+        unreadMessages.forEach { message ->
+            message.readBy[userId] = true
+            saveChatMessagePort.save(message)
+        }
+
+        // 참여자 unreadCount 초기화
+        val updatedParticipant = participantMeta.copy(unreadCount = 0, lastReadAt = Instant.now())
+        val updatedParticipants = chatRoom.metadata.participantsMetadata.toMutableMap()
+            .apply { put(participantId, updatedParticipant) }
+        val updatedRoom = chatRoom.copy(metadata = chatRoom.metadata.copy(participantsMetadata = updatedParticipants))
+        saveChatRoomPort.save(updatedRoom)
+
+        // Redis와 이벤트 업데이트
+        redisTemplate.opsForHash<String, String>().put("unread:$userId", roomId, "0")
+        val unreadCounts = updatedParticipants.mapKeys { it.key.toString() }.mapValues { it.value.unreadCount }
+        eventPublisher.publish(ChatUnreadCountUpdatedEvent(roomId = roomId, unreadCounts = unreadCounts))
+
+        logger.info { "Marked all messages as read: roomId=$roomId, userId=$userId" }
     }
 
 }

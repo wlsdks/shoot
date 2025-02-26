@@ -9,7 +9,6 @@ import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.Participant
 import com.stark.shoot.infrastructure.common.util.toObjectId
 import org.bson.types.ObjectId
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -18,8 +17,7 @@ class MessageReadService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
     private val saveChatMessagePort: SaveChatMessagePort,
-    private val loadChatMessagePort: LoadChatMessagePort,
-    private val messagingTemplate: SimpMessagingTemplate
+    private val loadChatMessagePort: LoadChatMessagePort
 ) : MessageReadUseCase {
 
     override fun markRead(roomId: String, userId: String) {
@@ -80,9 +78,6 @@ class MessageReadService(
 
             // 메시지 저장
             saveChatMessagePort.save(updatedMessage)
-
-            // webSocket으로 메시지 전송
-            messagingTemplate.convertAndSend("/topic/messages/$roomId", updatedMessage)
         }
     }
 

@@ -3,6 +3,7 @@ package com.stark.shoot.application.port.`in`.message
 import com.stark.shoot.domain.chat.message.ChatMessage
 
 interface ProcessMessageUseCase {
-    // 메시지 저장 및 채팅방 메타데이터 업데이트 담당
     fun processMessage(message: ChatMessage): ChatMessage
+    fun markMessageAsRead(messageId: String, userId: String): ChatMessage // 메시지 단위 읽음
+    fun markAllMessagesAsRead(roomId: String, userId: String) // 방 전체 읽음 (원래 MessageReadUseCase에서 옮김)
 }

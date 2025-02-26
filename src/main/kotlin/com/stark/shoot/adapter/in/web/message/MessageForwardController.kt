@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.message
 
-import com.stark.shoot.adapter.`in`.websocket.ChatMessageResponse
+import com.stark.shoot.adapter.`in`.websocket.dto.ChatMessageResponse
 import com.stark.shoot.application.port.`in`.message.ForwardMessageUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag

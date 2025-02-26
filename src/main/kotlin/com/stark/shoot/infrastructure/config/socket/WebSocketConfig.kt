@@ -5,6 +5,7 @@ import com.stark.shoot.application.port.out.LoadChatRoomPort
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
 import com.stark.shoot.infrastructure.config.security.JwtAuthenticationService
 import com.stark.shoot.infrastructure.config.socket.interceptor.AuthHandshakeInterceptor
+import com.stark.shoot.infrastructure.config.socket.interceptor.CustomHandshakeHandler
 import com.stark.shoot.infrastructure.config.socket.interceptor.RateLimitInterceptor
 import com.stark.shoot.infrastructure.config.socket.interceptor.StompChannelInterceptor
 import org.springframework.context.annotation.Bean
@@ -36,6 +37,7 @@ class WebSocketConfig(
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
         registry.addEndpoint("/ws/chat") // WebSocket 엔드포인트
             .addInterceptors(AuthHandshakeInterceptor(jwtAuthenticationService)) // 인증 인터셉터 추가
+            .setHandshakeHandler(CustomHandshakeHandler())
             .setAllowedOriginPatterns("*") // CORS 문제 방지
             .withSockJS() // SockJS fallback 엔드포인트 활성화
     }
@@ -75,10 +77,11 @@ class WebSocketConfig(
             StompChannelInterceptor(loadChatRoomPort, retrieveUserPort, objectMapper),
             rateLimitInterceptor
         )
+
         registration.taskExecutor()
-            .corePoolSize(4)
-            .maxPoolSize(10)
-            .queueCapacity(50)
+            .corePoolSize(8)    // 기본 스레드 증가
+            .maxPoolSize(20)    // 최대 스레드 증가
+            .queueCapacity(100) // 큐 크기 증가
     }
 
     /**

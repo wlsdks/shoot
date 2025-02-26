@@ -27,9 +27,10 @@ class RateLimitInterceptor(
         val count = redisTemplate.opsForValue().increment(key, 1)
         redisTemplate.expire(key, java.time.Duration.ofMinutes(1))
 
-        if (count!! > 100) { // 제한 완화
+        if (count!! > 300) { // 제한 완화
             throw MessageDeliveryException("Rate limit exceeded")
         }
+
         return message
     }
 

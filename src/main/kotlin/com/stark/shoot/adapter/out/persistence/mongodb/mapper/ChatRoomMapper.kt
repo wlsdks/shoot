@@ -71,7 +71,7 @@ class ChatRoomMapper {
         return ParticipantDocument(
             lastReadMessageId = participant.lastReadMessageId?.let { ObjectId(it) },
             lastReadAt = participant.lastReadAt,
-            unreadCount = 0, // 여기서는 읽지 않은 메시지 수는 별도로 업데이트됨
+            unreadCount = participant.unreadCount,  // 수정: 0이 아니라 실제 unreadCount 사용
             joinedAt = participant.joinedAt,
             role = participant.role,
             nickname = participant.nickname,
@@ -90,7 +90,8 @@ class ChatRoomMapper {
             nickname = document.nickname,
             isActive = document.isActive,
             isPinned = document.isPinned,
-            pinTimestamp = document.pinTimestamp
+            pinTimestamp = document.pinTimestamp,
+            unreadCount = document.unreadCount  // 추가: 문서의 unreadCount를 도메인 객체에 포함
         )
     }
 
@@ -111,5 +112,5 @@ class ChatRoomMapper {
             customSettings = document.customSettings
         )
     }
-    
+
 }

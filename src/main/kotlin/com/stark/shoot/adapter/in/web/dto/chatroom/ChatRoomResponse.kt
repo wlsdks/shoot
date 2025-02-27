@@ -26,7 +26,7 @@ data class ChatRoomResponse(
                 roomId = chatRoom.id ?: "",
                 title = chatRoom.metadata.title ?: "채팅방",
                 // lastMessage가 null이면 기본 텍스트를 넣습니다.
-                lastMessage = chatRoom.lastMessageId ?: "최근 메시지가 없습니다.",
+                lastMessage = chatRoom.lastMessageText ?: "최근 메시지가 없습니다.",
                 unreadMessages = participant?.unreadCount ?: 0,
                 isPinned = participant?.isPinned ?: false,
                 // Instant를 ZonedDateTime으로 변환한 후 포맷 (시스템 기본 타임존 사용)
@@ -34,5 +34,4 @@ data class ChatRoomResponse(
             )
         }
     }
-
 }

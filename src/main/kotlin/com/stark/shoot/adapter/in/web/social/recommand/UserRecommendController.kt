@@ -24,11 +24,12 @@ class UserRecommendController(
     @GetMapping("/recommend/bfs")
     fun recommendFriendsBFS(
         @RequestParam userId: String,
-        @RequestParam(defaultValue = "3") limit: Int,
-        @RequestParam(defaultValue = "2") maxDepth: Int
+        @RequestParam(defaultValue = "10") limit: Int,
+        @RequestParam(defaultValue = "2") maxDepth: Int,
+        @RequestParam(defaultValue = "0") skip: Int
     ): List<FriendResponse> {
-        // BFS 탐색을 통해 추천 친구 목록을 반환
-        return recommendFriendsUseCase.findBFSRecommendedUsers(userId.toObjectId(), maxDepth, limit)
+        // 입력받은 userId를 ObjectId로 변환하여 BFS 탐색 후 추천 친구 목록을 반환
+        return recommendFriendsUseCase.findBFSRecommendedUsers(userId.toObjectId(), maxDepth, skip, limit)
     }
-
+    
 }

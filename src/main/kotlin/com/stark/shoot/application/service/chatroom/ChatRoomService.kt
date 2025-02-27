@@ -6,6 +6,7 @@ import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
 import com.stark.shoot.application.port.out.EventPublisher
 import com.stark.shoot.application.port.out.LoadChatRoomPort
 import com.stark.shoot.application.port.out.SaveChatRoomPort
+import com.stark.shoot.application.port.out.user.RetrieveUserPort
 import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomMetadata
@@ -19,36 +20,9 @@ import org.springframework.stereotype.Service
 class ChatRoomService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
+    private val retrieveUserPort: RetrieveUserPort,
     private val eventPublisher: EventPublisher
 ) : CreateChatRoomUseCase, ManageChatRoomUseCase {
-
-    /**
-     * @param title 채팅방 제목
-     * @param participants 참여자 목록
-     * @return ChatRoom 채팅방
-     * @apiNote 채팅방 생성
-     */
-    override fun create(
-        title: String?,
-        participants: Set<ObjectId>
-    ): ChatRoom {
-        require(participants.size == 2) { "채팅방은 최소 2명 이상의 참여자가 필요합니다." }
-
-        // todo: 근데 메타데이터의 Participant()로 만드는 데이터가 애매한데.. 그냥 깡통 데이터를 만들어서 넣는건가? 그럴 필요가 있을까
-        val metadata = ChatRoomMetadata(
-            title = title,
-            type = if (participants.size == 2) ChatRoomType.INDIVIDUAL else ChatRoomType.GROUP,
-            participantsMetadata = participants.associateWith { Participant() },
-            settings = ChatRoomSettings()
-        )
-
-        val chatRoom = ChatRoom(
-            participants = participants.toMutableSet(),
-            metadata = metadata
-        )
-
-        return saveChatRoomPort.save(chatRoom)
-    }
 
     /**
      * @param userId 사용자 ID
@@ -60,38 +34,46 @@ class ChatRoomService(
         userId: ObjectId,
         friendId: ObjectId
     ): ChatRoom {
-        // 1) 먼저 "이미 존재하는 1:1 채팅방" 있는지 찾는다
+        // 1) 이미 존재하는 1:1 채팅방이 있는지 확인
         val existingRooms = loadChatRoomPort.findByParticipantId(userId)
             .filter { it.participants.size == 2 && it.participants.contains(friendId) }
-        // 만약 ChatRoomType.INDIVIDUAL 필드가 있다면 여기서도 체크
 
+        // 이미 존재하는 채팅방이 있으면 반환
         if (existingRooms.isNotEmpty()) {
-            // 이미 둘만의 방이 하나라도 있으면 그걸 재활용
             return existingRooms.first()
         }
 
-        // 2) 없으면 새로 만듦
+        // 2) 새 채팅방 생성을 위해 참여자 집합 구성
         val participants = setOf(userId, friendId)
 
-        // [중요] metadata 파라미터를 포함해서 생성
+        // 3) 각 참여자의 닉네임을 조회 (여기서는 userService를 통해 가져온다고 가정)
+        val currentUserNickname = retrieveUserPort.findById(userId)?.nickname  // "내이름" 같은 값 반환
+        val friendNickname = retrieveUserPort.findById(friendId)?.nickname     // "친구이름" 같은 값 반환
+
+        // 4) metadata를 생성할 때, participantsMetadata에 각 참여자의 Participant 객체에 닉네임을 포함시킵니다.
         val metadata = ChatRoomMetadata(
-            title = null,  // 1:1 채팅방 제목을 "개인채팅" or "둘 닉네임 조합" etc.
+            title = null,  // 1:1 채팅방은 제목 없이 상대방 닉네임을 사용
             type = ChatRoomType.INDIVIDUAL,
-            participantsMetadata = participants.associateWith { Participant() },
+            participantsMetadata = participants.associateWith { id ->
+                when (id) {
+                    userId -> Participant(nickname = currentUserNickname)
+                    friendId -> Participant(nickname = friendNickname)
+                    else -> Participant()
+                }
+            },
             settings = ChatRoomSettings()
-            // announcement, etc. 필요 시 여기에
         )
 
+        // 5) 채팅방 도메인 객체 생성 (lastMessageId 등은 기본값 사용)
         val chatRoom = ChatRoom(
             participants = participants.toMutableSet(),
             metadata = metadata
-            // lastMessageId, etc.는 기본값이면 생략 가능
         )
 
-        // 채팅방 저장
+        // 6) 채팅방 저장
         val savedRoom = saveChatRoomPort.save(chatRoom)
 
-        // SSE 이벤트 발행
+        // 7) SSE 이벤트 발행 (각 참여자에게 채팅방 생성 이벤트 발행)
         participants.forEach { participantId ->
             eventPublisher.publish(
                 ChatRoomCreatedEvent(

@@ -39,6 +39,16 @@ class RetrieveChatroomService(
 
         return sortedRooms.map { room ->
             val participant = room.metadata.participantsMetadata[userId]
+            // 1:1 채팅일 경우, 현재 사용자를 제외한 상대방의 닉네임을 title로 사용
+            val roomTitle = if (room.metadata.type.name == "INDIVIDUAL") {
+                // 참여자 집합에서 현재 사용자를 제외한 다른 참여자의 ID를 찾습니다.
+                val otherParticipantId = room.participants.firstOrNull { it != userId }
+                // 해당 참여자의 metadata에서 nickname을 가져옵니다.
+                otherParticipantId?.let { room.metadata.participantsMetadata[it]?.nickname } ?: "채팅방"
+            } else {
+                room.metadata.title ?: "채팅방"
+            }
+
             // 만약 lastMessageId가 있다면 메시지 내용을 조회 (없으면 기본 텍스트)
             val lastMessageText = if (room.lastMessageId != null) {
                 val message = loadChatMessagePort.findById(ObjectId(room.lastMessageId))
@@ -48,7 +58,7 @@ class RetrieveChatroomService(
             }
             ChatRoomResponse(
                 roomId = room.id ?: "",
-                title = room.metadata.title ?: "채팅방",
+                title = roomTitle,
                 lastMessage = lastMessageText,
                 unreadMessages = participant?.unreadCount ?: 0,
                 isPinned = participant?.isPinned ?: false,

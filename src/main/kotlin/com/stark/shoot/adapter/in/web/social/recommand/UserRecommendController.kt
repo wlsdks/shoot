@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.web.user
+package com.stark.shoot.adapter.`in`.web.social.recommand
 
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.RecommendedUserResponse

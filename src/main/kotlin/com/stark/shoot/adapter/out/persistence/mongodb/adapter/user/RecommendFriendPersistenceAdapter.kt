@@ -23,11 +23,25 @@ class RecommendFriendPersistenceAdapter(
 
     /**
      * BFS 기반 친구 추천 Aggregation 파이프라인 실행 메서드.
+     *
+     * 단계별 설명:
+     * 1. 시작 사용자 선택: 입력받은 userId와 일치하는 사용자(A)를 조회한다.
+     * 2. 친구 네트워크 탐색: A의 friends 배열을 시작점으로 하여 $graphLookup를 통해 최대 maxDepth 단계까지의 친구들을 조회한다.
+     * 3. 추천 제외 대상 계산: A의 friends, incomingFriendRequests, outgoingFriendRequests, 그리고 A 자신을 exclusions 배열로 만든다.
+     * 4. 후보 분리: 조회된 네트워크 배열을 unwind하여 각 후보 문서를 개별적으로 처리할 수 있게 한다.
+     * 5. 문서 재구조화: 각 후보 문서에 candidate(후보 사용자 정보), exclusions, startUserFriends(시작 사용자의 친구 목록)을 포함시킨다.
+     * 6. 후보 필터링: candidate의 _id가 exclusions 배열에 포함되어 있으면(즉, 이미 친구이거나 본인일 경우) 후보에서 제외한다.
+     * 7. 상호 친구 수 계산: 각 후보와 A의 친구 목록의 교집합 크기를 계산해 mutualCount 필드를 추가한다.
+     * 8. 정렬 및 페이지네이션: mutualCount 기준 내림차순 정렬 후, skip과 limit을 적용한다.
+     * 9. 최종 문서 구성: 최종 결과 문서를 candidate 필드의 값으로 대체한다.
+     *
+     * 만약 Aggregation 결과가 비어 있다면, fallback으로 랜덤 유저(limit 수 만큼)를 반환한다.
+     *
      * @param userId 추천 대상 사용자의 ObjectId
      * @param maxDepth 친구 네트워크 탐색 최대 깊이 (예: 2)
      * @param skip 이미 반환한 결과 수 (페이지네이션)
      * @param limit 반환할 최대 추천 사용자 수
-     * @return 추천된 사용자 목록
+     * @return 추천된 사용자 목록 (추천 결과가 없으면 랜덤 유저 목록)
      */
     override fun findBFSRecommendedUsers(
         userId: ObjectId,
@@ -121,8 +135,21 @@ class RecommendFriendPersistenceAdapter(
             finalReplaceWithStage
         )
 
+        // BFS 추천 결과 실행
         val results = mongoTemplate.aggregate(aggregation, "users", UserDocument::class.java)
-        return results.mappedResults.map { userMapper.toDomain(it) }
+        val recommendedUsers = results.mappedResults.map { userMapper.toDomain(it) }
+
+        // 추천 결과가 없을 경우, fallback으로 랜덤 유저 반환 (자기 자신 제외)
+        if (recommendedUsers.isEmpty()) {
+            val fallbackCriteria = Criteria.where("_id").ne(userId)
+            val fallbackAggregation = Aggregation.newAggregation(
+                Aggregation.match(fallbackCriteria),
+                Aggregation.sample(limit.toLong())
+            )
+            val fallbackResults = mongoTemplate.aggregate(fallbackAggregation, "users", UserDocument::class.java)
+            return fallbackResults.mappedResults.map { userMapper.toDomain(it) }
+        }
+        return recommendedUsers
     }
 
 }

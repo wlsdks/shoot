@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.mapper
 
-
 import com.stark.shoot.adapter.out.persistence.mongodb.document.room.ChatRoomDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.room.embedded.ChatRoomMetadataDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.room.embedded.ChatRoomSettingsDocument
@@ -15,14 +14,10 @@ import org.springframework.stereotype.Component
 @Component
 class ChatRoomMapper {
 
-    // ChatRoom -> ChatRoomDocument 변환
+    // 도메인 ChatRoom을 ChatRoomDocument로 변환
     fun toDocument(domain: ChatRoom): ChatRoomDocument {
-        // 참여자 ID 변환 (String -> ObjectId)
         val participantIds = domain.participants.toMutableSet()
-
-        // 마지막 메시지 ID 변환
         val lastMsgId = domain.lastMessageId?.let { ObjectId(it) }
-
         return ChatRoomDocument(
             participants = participantIds,
             lastMessageId = lastMsgId,
@@ -33,7 +28,7 @@ class ChatRoomMapper {
         }
     }
 
-    // ChatRoomDocument -> ChatRoom 변환
+    // ChatRoomDocument를 도메인 ChatRoom으로 변환
     fun toDomain(document: ChatRoomDocument): ChatRoom {
         return ChatRoom(
             id = document.id?.toString(),
@@ -51,7 +46,6 @@ class ChatRoomMapper {
         return ChatRoomMetadataDocument(
             title = metadata.title,
             type = metadata.type,
-            // metaData document를 entries로 변환
             participantsMetadata = metadata.participantsMetadata.entries.associate { (key, value) ->
                 key to toParticipantDocument(value)
             },
@@ -73,11 +67,11 @@ class ChatRoomMapper {
         )
     }
 
-    // Participant -> ParticipantDocument 변환
     private fun toParticipantDocument(participant: Participant): ParticipantDocument {
         return ParticipantDocument(
             lastReadMessageId = participant.lastReadMessageId?.let { ObjectId(it) },
             lastReadAt = participant.lastReadAt,
+            unreadCount = 0, // 여기서는 읽지 않은 메시지 수는 별도로 업데이트됨
             joinedAt = participant.joinedAt,
             role = participant.role,
             nickname = participant.nickname,
@@ -87,7 +81,6 @@ class ChatRoomMapper {
         )
     }
 
-    // ParticipantDocument -> Participant 변환
     private fun toParticipant(document: ParticipantDocument): Participant {
         return Participant(
             lastReadMessageId = document.lastReadMessageId?.toString(),
@@ -101,7 +94,6 @@ class ChatRoomMapper {
         )
     }
 
-    // ChatRoomSettings -> ChatRoomSettingsDocument 변환
     private fun toSettingsDocument(settings: ChatRoomSettings): ChatRoomSettingsDocument {
         return ChatRoomSettingsDocument(
             isNotificationEnabled = settings.isNotificationEnabled,
@@ -111,7 +103,6 @@ class ChatRoomMapper {
         )
     }
 
-    // ChatRoomSettingsDocument -> ChatRoomSettings 변환
     private fun toSettings(document: ChatRoomSettingsDocument): ChatRoomSettings {
         return ChatRoomSettings(
             isNotificationEnabled = document.isNotificationEnabled,
@@ -120,5 +111,5 @@ class ChatRoomMapper {
             customSettings = document.customSettings
         )
     }
-
+    
 }

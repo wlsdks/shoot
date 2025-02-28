@@ -23,9 +23,10 @@ class MessageReadSseController(
     @PostMapping("/mark-read")
     fun markMessageRead(
         @RequestParam roomId: String,
-        @RequestParam userId: String
+        @RequestParam userId: String,
+        @RequestParam(required = false) requestId: String? // 세션 대신 요청 식별자 사용
     ): ResponseEntity<Unit> {
-        processMessageUseCase.markAllMessagesAsRead(roomId, userId)
+        processMessageUseCase.markAllMessagesAsRead(roomId, userId, requestId)
         return ResponseEntity.noContent().build()
     }
 

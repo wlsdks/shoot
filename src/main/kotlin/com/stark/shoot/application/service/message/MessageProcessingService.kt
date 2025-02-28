@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 @Service
 class MessageProcessingService(
@@ -132,7 +133,8 @@ class MessageProcessingService(
         return updatedMessage
     }
 
-    override fun markAllMessagesAsRead(roomId: String, userId: String) {
+    // MessageProcessingService.kt 수정
+    override fun markAllMessagesAsRead(roomId: String, userId: String, requestId: String?) {
         val roomObjectId = roomId.toObjectId()
         val chatRoom = loadChatRoomPort.findById(roomObjectId)
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=$roomId")
@@ -140,8 +142,27 @@ class MessageProcessingService(
         val participantMeta = chatRoom.metadata.participantsMetadata[participantId]
             ?: throw IllegalArgumentException("참여자가 없습니다. userId=$userId")
 
+        // 중복 요청 체크 (Redis 캐시 활용)
+        if (!requestId.isNullOrEmpty()) {
+            val key = "read_operation:$roomId:$userId:$requestId"
+            val exists = redisTemplate.opsForValue().get(key)
+            if (exists != null) {
+                logger.info { "중복 읽음 처리 요청 감지 (requestId=$requestId)" }
+                return
+            }
+            // 요청 정보 캐싱 (5초 만료)
+            redisTemplate.opsForValue().set(key, "1", 5, TimeUnit.SECONDS)
+        }
+
         // 모든 안 읽은 메시지 읽음 처리
         val unreadMessages = loadChatMessagePort.findUnreadByRoomId(roomObjectId, participantId)
+
+        // 안 읽은 메시지가 없으면 불필요한 처리와 이벤트 발행 방지
+        if (unreadMessages.isEmpty()) {
+            logger.info { "읽지 않은 메시지가 없습니다. roomId=$roomId, userId=$userId" }
+            return
+        }
+
         val updatedMessageIds = mutableListOf<String>()
         unreadMessages.forEach { message ->
             message.readBy[userId] = true
@@ -156,10 +177,21 @@ class MessageProcessingService(
         val updatedRoom = chatRoom.copy(metadata = chatRoom.metadata.copy(participantsMetadata = updatedParticipants))
         saveChatRoomPort.save(updatedRoom)
 
-        // Redis와 이벤트 업데이트
+        // Redis와 이벤트 업데이트 (lastMessage 필드 추가 - null 방지)
         redisTemplate.opsForHash<String, String>().put("unread:$userId", roomId, "0")
         val unreadCounts = updatedParticipants.mapKeys { it.key.toString() }.mapValues { it.value.unreadCount }
-        eventPublisher.publish(ChatUnreadCountUpdatedEvent(roomId = roomId, unreadCounts = unreadCounts))
+
+        // 마지막 메시지 찾기 (null 방지)
+        val lastMessage = chatRoom.lastMessageText ?: "최근 메시지가 없습니다."
+
+        // 이벤트 발행 시 lastMessage 필드에 의미 있는 값 전달
+        eventPublisher.publish(
+            ChatUnreadCountUpdatedEvent(
+                roomId = roomId,
+                unreadCounts = unreadCounts,
+                lastMessage = lastMessage
+            )
+        )
 
         // 여기서 Bulk Read 이벤트 발행
         if (updatedMessageIds.isNotEmpty()) {

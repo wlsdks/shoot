@@ -11,6 +11,4 @@ interface RetrieveUserPort {
     fun findByUserCode(userCode: String): User?
     fun findRandomUsers(excludeUserId: ObjectId, limit: Int): List<User>
     fun findByCode(newCode: String): User?
-
-    fun findBFSRecommendedUsers(userId: ObjectId, maxDepth: Int, limit: Int): List<User>
 }

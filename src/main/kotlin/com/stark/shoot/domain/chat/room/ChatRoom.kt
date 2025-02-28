@@ -8,6 +8,7 @@ data class ChatRoom(
     val id: String? = null,
     val participants: MutableSet<ObjectId>,
     val lastMessageId: String? = null,
+    val lastMessageText: String? = null, // 마지막 메시지 텍스트
     val metadata: ChatRoomMetadata,
     val lastActiveAt: Instant = Instant.now(),
     val createdAt: Instant = Instant.now(),

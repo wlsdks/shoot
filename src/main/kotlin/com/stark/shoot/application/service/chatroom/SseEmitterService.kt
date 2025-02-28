@@ -6,6 +6,8 @@ import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import org.springframework.stereotype.Service
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @Service
 class SseEmitterService : SseEmitterUseCase {
@@ -15,22 +17,22 @@ class SseEmitterService : SseEmitterUseCase {
     override fun createEmitter(
         userId: String
     ): SseEmitter {
-        val emitter = SseEmitter(0L)              // 타임아웃 무제한
+        // 타임아웃 0은 무제한. 하지만 장기 연결 시 주기적인 heartbeat 전송으로 연결 상태를 유지합니다.
+        val emitter = SseEmitter(0L)
         emitters[userId] = emitter                        // 연결 저장
         emitter.onCompletion { emitters.remove(userId) }  // 연결 종료시 제거
         emitter.onTimeout { emitters.remove(userId) }     // 타임아웃시 제거
-        // Heartbeat 추가 → 연결 유지
-        Thread {
-            while (true) {
-                try {
-                    emitter.send(SseEmitter.event().name("heartbeat").data("ping"));
-                    Thread.sleep(15000); // 15초마다 Heartbeat
-                } catch (e: Exception) {
-                    emitters.remove(userId)
-                    break
-                }
+        emitter.onError { emitters.remove(userId) }
+        // Heartbeat 전송 (스레드 풀 사용)
+        val scheduler = Executors.newSingleThreadScheduledExecutor()
+        scheduler.scheduleAtFixedRate({
+            try {
+                emitter.send(SseEmitter.event().name("heartbeat").data("ping"))
+            } catch (e: Exception) {
+                emitters.remove(userId)
+                scheduler.shutdown()
             }
-        }.start();
+        }, 15, 15, TimeUnit.SECONDS)
 
         return emitter
     }
@@ -41,15 +43,14 @@ class SseEmitterService : SseEmitterUseCase {
         unreadCount: Int,
         lastMessage: String?
     ) {
-        emitters[userId]?.let {
+        emitters[userId]?.let { emitter ->
             try {
-                // 클라이언트에 데이터 전송
-                it.send(
+                // 에러 발생 시 간단한 문자열 메시지로 전송
+                emitter.send(
                     SseEmitter.event()
                         .data("""{"roomId": "$roomId", "unreadCount": $unreadCount, "lastMessage": "$lastMessage"}""")
                 )
             } catch (e: Exception) {
-                // 에러 발생시 연결 제거
                 emitters.remove(userId)
             }
         }
@@ -58,14 +59,9 @@ class SseEmitterService : SseEmitterUseCase {
     override fun sendChatRoomCreatedEvent(
         event: ChatRoomCreatedEvent
     ) {
-        emitters[event.userId]?.let {
+        emitters[event.userId]?.let { emitter ->
             try {
-                // 채팅방 생성 이벤트 전송
-                it.send(
-                    SseEmitter.event()
-                        .name("chatRoomCreated")
-                        .data(mapOf("roomId" to event.roomId))
-                )
+                emitter.send(SseEmitter.event().name("chatRoomCreated").data(mapOf("roomId" to event.roomId)))
             } catch (e: Exception) {
                 emitters.remove(event.userId)
             }
@@ -75,14 +71,9 @@ class SseEmitterService : SseEmitterUseCase {
     override fun sendFriendAddedEvent(
         event: FriendAddedEvent
     ) {
-        emitters[event.userId]?.let {
+        emitters[event.userId]?.let { emitter ->
             try {
-                // 친구 추가 이벤트 전송
-                it.send(
-                    SseEmitter.event()
-                        .name("friendAdded")
-                        .data(mapOf("friendId" to event.friendId))
-                )
+                emitter.send(SseEmitter.event().name("friendAdded").data(mapOf("friendId" to event.friendId)))
             } catch (e: Exception) {
                 emitters.remove(event.userId)
             }

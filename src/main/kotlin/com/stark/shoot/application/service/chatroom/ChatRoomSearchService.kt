@@ -5,6 +5,8 @@ import com.stark.shoot.application.port.`in`.chatroom.ChatRoomSearchUseCase
 import com.stark.shoot.application.port.out.LoadChatRoomPort
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Service
 class ChatRoomSearchService(
@@ -24,14 +26,18 @@ class ChatRoomSearchService(
                     (unreadOnly != true || (room.metadata.participantsMetadata[userId]?.unreadCount ?: 0) > 0)
         }
 
-        // 응답 데이터로 변환
+        // Instant를 ZonedDateTime으로 변환하여 포맷 (예: "오후 3:15")
+        val formatter = DateTimeFormatter.ofPattern("a h:mm")
+        val zoneId = ZoneId.systemDefault()
+
         return filteredRooms.map { room ->
             ChatRoomResponse(
                 roomId = room.id!!,
                 title = room.metadata.title ?: "Untitled Room",
                 lastMessage = room.lastMessageId,
                 unreadMessages = room.metadata.participantsMetadata[userId]?.unreadCount ?: 0,
-                isPinned = room.metadata.participantsMetadata[userId]?.isPinned ?: false
+                isPinned = room.metadata.participantsMetadata[userId]?.isPinned ?: false,
+                timestamp = formatter.format(room.lastActiveAt.atZone(zoneId))
             )
         }
     }

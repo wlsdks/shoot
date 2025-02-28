@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.chatroom
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType
@@ -17,13 +18,28 @@ class ChatRoomListSseController(
     private val sseEmitterUseCase: SseEmitterUseCase
 ) {
 
+    private val logger = KotlinLogging.logger {}
+
     @Operation(
         summary = "사용자의 채팅방 unreadCount 실시간 업데이트",
         description = "SSE로 사용자의 채팅방 unreadCount를 실시간으로 전송합니다."
     )
     @GetMapping(value = ["/updates/{userId}"], produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun streamUpdates(@PathVariable userId: String): SseEmitter {
-        return sseEmitterUseCase.createEmitter(userId)
+        try {
+            return sseEmitterUseCase.createEmitter(userId)
+        } catch (e: Exception) {
+            // SSE 연결 도중 예외 발생 시 로깅 후 새로운 에러 전용 SSE 이미터 반환
+            logger.error(e) { "Error creating SSE emitter for user: $userId" }
+            val errorEmitter = SseEmitter(3000L) // 짧은 타임아웃
+            errorEmitter.send(
+                SseEmitter.event()
+                    .name("error")
+                    .data("{\"type\":\"connection_error\",\"message\":\"연결 오류가 발생했습니다, 다시 연결하세요.\"}")
+            )
+            errorEmitter.complete()
+            return errorEmitter
+        }
     }
 
 }

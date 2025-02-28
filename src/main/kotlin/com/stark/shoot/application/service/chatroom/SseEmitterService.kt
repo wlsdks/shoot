@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.chatroom
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
 import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.concurrent.ConcurrentHashMap
@@ -13,22 +14,36 @@ import java.util.concurrent.TimeUnit
 class SseEmitterService : SseEmitterUseCase {
 
     private val emitters = ConcurrentHashMap<String, SseEmitter>()
+    private val logger = KotlinLogging.logger {}
 
     override fun createEmitter(
         userId: String
     ): SseEmitter {
-        // 타임아웃 0은 무제한. 하지만 장기 연결 시 주기적인 heartbeat 전송으로 연결 상태를 유지합니다.
         val emitter = SseEmitter(0L)
-        emitters[userId] = emitter                        // 연결 저장
-        emitter.onCompletion { emitters.remove(userId) }  // 연결 종료시 제거
-        emitter.onTimeout { emitters.remove(userId) }     // 타임아웃시 제거
-        emitter.onError { emitters.remove(userId) }
-        // Heartbeat 전송 (스레드 풀 사용)
+        logger.info { "Creating new SSE emitter for user: $userId" }
+        emitters[userId] = emitter
+
+        emitter.onCompletion {
+            logger.info { "SSE connection completed for user: $userId" }
+            emitters.remove(userId)
+        }
+        emitter.onTimeout {
+            logger.info { "SSE connection timeout for user: $userId" }
+            emitters.remove(userId)
+        }
+        emitter.onError {
+            logger.error { "SSE connection error for user: $userId, error: ${it.message}" }
+            emitters.remove(userId)
+        }
+
+        // Heartbeat 전송
         val scheduler = Executors.newSingleThreadScheduledExecutor()
         scheduler.scheduleAtFixedRate({
             try {
                 emitter.send(SseEmitter.event().name("heartbeat").data("ping"))
+                logger.debug { "Heartbeat sent to user: $userId" }
             } catch (e: Exception) {
+                logger.error { "Failed to send heartbeat to user: $userId, error: ${e.message}" }
                 emitters.remove(userId)
                 scheduler.shutdown()
             }
@@ -45,15 +60,21 @@ class SseEmitterService : SseEmitterUseCase {
     ) {
         emitters[userId]?.let { emitter ->
             try {
-                // 에러 발생 시 간단한 문자열 메시지로 전송
-                emitter.send(
-                    SseEmitter.event()
-                        .data("""{"roomId": "$roomId", "unreadCount": $unreadCount, "lastMessage": "$lastMessage"}""")
+                logger.info { "Sending update to user: $userId, roomId: $roomId, unreadCount: $unreadCount, message: $lastMessage" }
+
+                // 데이터 구조를 명확하게 하여 JSON 형식으로 보냄
+                val data = mapOf(
+                    "roomId" to roomId,
+                    "unreadCount" to unreadCount,
+                    "lastMessage" to (lastMessage ?: "")
                 )
+
+                emitter.send(SseEmitter.event().data(data))
             } catch (e: Exception) {
+                logger.error { "Failed to send update to user: $userId, error: ${e.message}" }
                 emitters.remove(userId)
             }
-        }
+        } ?: logger.warn { "No SSE emitter found for user: $userId" }
     }
 
     override fun sendChatRoomCreatedEvent(

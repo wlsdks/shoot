@@ -46,8 +46,6 @@ class MessageProcessingService(
             }.toMutableMap()
         )
 
-        logger.debug { "Initialized readBy: ${initializedMessage.readBy}" }
-
         // 초기화된 메시지를 DB에 저장
         val savedMessage = saveChatMessagePort.save(initializedMessage)
 
@@ -66,28 +64,19 @@ class MessageProcessingService(
             }
         }
 
-        // 채팅방 업데이트 (unreadCount 갱신과 마지막 메시지 ID 저장.)
+        // 채팅방 업데이트
         val updatedRoom = chatRoom.copy(
             metadata = chatRoom.metadata.copy(participantsMetadata = updatedParticipants),
-            lastMessageId = savedMessage.id
+            lastMessageId = savedMessage.id,
+            lastMessageText = savedMessage.content.text // 이 필드를 추가해서 lastMessage 내용 저장
         )
         saveChatRoomPort.save(updatedRoom)
-
-        // Redis에 unreadCount 캐싱 (사용자별 Hash : unread:<userId> 키에 roomId와 unreadCount를 Hash로 저장.)
-        // 역할: 사용자가 자신의 모든 채팅방에 대한 unreadCount를 빠르게 조회 가능. MongoDB 대신 Redis에서 읽어 부하 감소.
-        updatedParticipants.forEach { (userId, participant) ->
-            redisTemplate.opsForHash<String, String>().put(
-                "unread:$userId",
-                message.roomId,
-                participant.unreadCount.toString()
-            )
-        }
 
         // unreadCount 정보 추출
         val unreadCounts: Map<String, Int> = updatedParticipants.mapKeys { it.key.toString() }
             .mapValues { it.value.unreadCount }
 
-        // unreadCount와 마지막 메시지 정보 발행 → SSE로 ChatRoomList에 반영.
+        // unreadCount와 마지막 메시지 정보 이벤트 발행 (채팅방 목록 업데이트용)
         eventPublisher.publish(
             ChatUnreadCountUpdatedEvent(
                 roomId = roomObjectId.toString(),

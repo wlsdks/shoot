@@ -26,7 +26,9 @@ class UserMapper {
             friends = domain.friends,
             incomingFriendRequests = domain.incomingFriendRequests,
             outgoingFriendRequests = domain.outgoingFriendRequests,
-            userCode = domain.userCode ?: ""
+            userCode = domain.userCode ?: "",
+            refreshToken = domain.refreshToken ?: "",
+            refreshTokenExpiration = domain.refreshTokenExpiration,
         ).apply {
             id = domain.id
         }
@@ -54,7 +56,9 @@ class UserMapper {
             friends = document.friends,
             incomingFriendRequests = document.incomingFriendRequests,
             outgoingFriendRequests = document.outgoingFriendRequests,
-            userCode = document.userCode
+            userCode = document.userCode,
+            refreshToken = document.refreshToken!!,
+            refreshTokenExpiration = document.refreshTokenExpiration,
         )
     }
 

@@ -20,5 +20,9 @@ data class User(
     val outgoingFriendRequests: Set<ObjectId> = emptySet(),    // 내가 보냈지만 아직 상대방이 수락/거절 안 한 사용자 IDs
 
     // 유저 찾기 코드 (예: "ABCD1234")
-    val userCode: String? = null
+    val userCode: String? = null,
+
+    // ============== 인증 ===============
+    val refreshToken: String? = null,
+    val refreshTokenExpiration: Instant? = null // 만료 시간 추가
 )

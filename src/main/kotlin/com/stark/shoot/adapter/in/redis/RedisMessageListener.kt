@@ -6,16 +6,20 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
 
+/**
+ * Redis Pub/Sub 메시지를 수신하여 WebSocket으로 브로드캐스트하는 리스너
+ */
 @Component
 class RedisMessageListener(
     private val simpMessagingTemplate: SimpMessagingTemplate,
     private val objectMapper: ObjectMapper
 ) {
-
     private val logger = KotlinLogging.logger {}
 
-    // Redis 메시지 수신 시 호출되는 메서드
-    // Redis 서버에서 "chat:room:*" 패턴과 일치하는 채널에 메시지가 발행되면, Spring Data Redis가 자동으로 이 리스너의 onMessage 메서드를 호출합니다.
+    /**
+     * Redis 메시지 수신 시 호출되는 메서드
+     * "chat:room:{roomId}" 채널에서 수신한 메시지를 WebSocket을 통해 클라이언트에 전달합니다.
+     */
     fun onMessage(message: String, pattern: String?) {
         try {
             // 채널 이름에서 roomId 추출 (chat:room:123 -> 123)

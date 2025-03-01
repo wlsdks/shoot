@@ -45,4 +45,18 @@ class RedisConfig {
         return template
     }
 
+    // RedisConfig 클래스에 추가
+    @Bean
+    fun redisPublisherTemplate(
+        connectionFactory: RedisConnectionFactory,
+        objectMapper: ObjectMapper
+    ): RedisTemplate<String, Any> {
+        val template = RedisTemplate<String, Any>()
+        template.connectionFactory = connectionFactory
+        template.keySerializer = StringRedisSerializer()
+        template.valueSerializer = Jackson2JsonRedisSerializer(objectMapper, Any::class.java)
+        template.afterPropertiesSet()
+        return template
+    }
+
 }

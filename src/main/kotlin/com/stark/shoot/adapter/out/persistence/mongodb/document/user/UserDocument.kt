@@ -24,4 +24,8 @@ data class UserDocument(
     @Indexed(unique = true)
     val userCode: String,
 
+    // ============== 인증 ===============
+    val refreshToken: String? = null,
+    val refreshTokenExpiration: Instant? = null // 만료 시간 추가
+
 ) : BaseMongoDocument()

@@ -14,11 +14,11 @@ class JwtProvider(
 
     private val key = Keys.hmacShaKeyFor(secretKey.toByteArray())
 
-    /**
-     * subject(예: userId 또는 username)를 기반으로 JWT를 생성합니다.
-     * 만료 시간(expiresInMillis)은 예시로 1시간(3600_000) 등 원하는 대로 설정하세요.
-     */
-    fun generateToken(subject: String, expiresInMillis: Long = 3600_000): String {
+    // 토큰 생성
+    fun generateToken(
+        subject: String,
+        expiresInMillis: Long = 3600_000 // 1시간 기본값
+    ): String {
         val now = Date()
         val expiryDate = Date(now.time + expiresInMillis)
 
@@ -27,6 +27,21 @@ class JwtProvider(
             .issuedAt(now)
             .expiration(expiryDate)
             .signWith(key) // todo: 여기에 알고리즘 설정 추가해야하는거 아닌지 확인이 필요합니다.
+            .compact()
+    }
+
+    // 리프레시 토큰 생성 (access 토큰보다 유효기간이 길어야 함)
+    fun generateRefreshToken(
+        subject: String?,
+        expiresInMinutes: Long
+    ): String {
+        val now = Date()
+        val expiryDate = Date(now.time + (expiresInMinutes * 60 * 1000)) // 한달 기본값
+        return Jwts.builder()
+            .subject(subject)
+            .issuedAt(now)
+            .expiration(expiryDate)
+            .signWith(key)
             .compact()
     }
 

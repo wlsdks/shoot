@@ -85,6 +85,7 @@ class SecurityConfig(
                 // 로그인, 회원가입 등은 permitAll
                 it.requestMatchers("/api/v1/auth/login", "/api/v1/users", "/api/v1/chatrooms/updates/**").permitAll()
                 it.requestMatchers("/ws/**").permitAll()
+                it.requestMatchers("/api/v1/auth/refresh-token").permitAll()
                 it.requestMatchers("/api/v1/messages/mark-read").authenticated() // 명시적 인증 필요
                 it.anyRequest().authenticated()
             }

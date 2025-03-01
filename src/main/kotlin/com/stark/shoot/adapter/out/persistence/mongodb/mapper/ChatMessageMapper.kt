@@ -26,6 +26,7 @@ class ChatMessageMapper {
             mentions = domain.mentions.map { ObjectId(it) }.toSet(),
             isDeleted = domain.isDeleted,
             readBy = domain.readBy.toMutableMap(),
+            metadata = domain.metadata.toMutableMap() // 메타데이터 필드 추가
         ).apply {
             // BaseMongoDocument의 id를 나중에 설정
             id = domain.id?.let { ObjectId(it) }
@@ -47,7 +48,8 @@ class ChatMessageMapper {
             mentions = document.mentions.map { it.toString() }.toSet(),
             createdAt = document.createdAt,
             updatedAt = document.updatedAt,
-            readBy = document.readBy.toMutableMap()
+            readBy = document.readBy.toMutableMap(),
+            metadata = document.metadata?.toMutableMap() ?: mutableMapOf() // 메타데이터 필드 추가
         )
     }
 

@@ -256,3 +256,6 @@ application-dev.yml
 .idea/material_theme_project_new.xml
 
 gradle.properties
+
+dump.rdb
+redis/data/dump.rdb

@@ -1,11 +1,11 @@
-package com.stark.shoot.adapter.`in`.web.active
+package com.stark.shoot.adapter.`in`.websocket.active
 
 import com.stark.shoot.application.port.`in`.active.UserActiveUseCase
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
 
 @Controller
-class ChatActivityController(
+class UserActivityStompHandler(
     private val userActiveUseCase: UserActiveUseCase
 ) {
 

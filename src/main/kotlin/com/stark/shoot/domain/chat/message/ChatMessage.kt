@@ -15,5 +15,6 @@ data class ChatMessage(
     val createdAt: Instant? = Instant.now(),
     val updatedAt: Instant? = null,
     val isDeleted: Boolean = false,
-    val readBy: MutableMap<String, Boolean> = mutableMapOf() // 읽음 상태 추가
+    val readBy: MutableMap<String, Boolean> = mutableMapOf(),
+    var metadata: MutableMap<String, Any> = mutableMapOf() // 메타데이터 추가
 )

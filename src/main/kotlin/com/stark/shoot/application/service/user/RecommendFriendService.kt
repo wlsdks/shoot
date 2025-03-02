@@ -6,7 +6,7 @@ import com.stark.shoot.application.port.out.user.RecommendFriendPort
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 
-@Service
+//@Service
 class RecommendFriendService(
     private val recommendFriendPort: RecommendFriendPort
 ) : RecommendFriendsUseCase {

@@ -14,7 +14,12 @@ class RedisMessageListener(
     private val simpMessagingTemplate: SimpMessagingTemplate,
     private val objectMapper: ObjectMapper
 ) {
+
     private val logger = KotlinLogging.logger {}
+
+    companion object {
+        private val ROOM_ID_PATTERN = Regex("chat:room:([^:]+)")
+    }
 
     /**
      * Redis 메시지 수신 시 호출되는 메서드
@@ -22,20 +27,16 @@ class RedisMessageListener(
      */
     fun onMessage(message: String, pattern: String?) {
         try {
-            // 채널 이름에서 roomId 추출 (chat:room:123 -> 123)
-            val channelParts = pattern?.split(":")
-            val roomId = channelParts?.getOrNull(2)
+            // 채널에서 roomId 직접 추출 (패턴 파싱 대신 정규식 사용)
+            val roomIdMatch = ROOM_ID_PATTERN.find(pattern ?: "")
+            val roomId = roomIdMatch?.groupValues?.getOrNull(1)
 
             if (roomId != null) {
-                // 메시지 파싱
                 val chatMessage = objectMapper.readValue(message, ChatMessageRequest::class.java)
-
-                // WebSocket으로 메시지 즉시 브로드캐스트
                 simpMessagingTemplate.convertAndSend("/topic/messages/$roomId", chatMessage)
-                logger.debug { "Redis message broadcast to WebSocket: /topic/messages/$roomId" }
             }
         } catch (e: Exception) {
-            logger.error(e) { "Error processing Redis message: $message" }
+            logger.error(e) { "Redis 메시지 처리 오류: $message" }
         }
     }
 

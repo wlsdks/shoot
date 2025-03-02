@@ -20,7 +20,10 @@ class SendMessageService(
 
     override fun handleMessage(
         message: ChatMessageRequest
-    ): CompletableFuture<Void> {
+    ): CompletableFuture<String?> {
+        // 임시 ID 복사
+        val tempId = message.tempId
+
         // ChatMessage 생성
         val chatMessage = ChatMessage(
             roomId = message.roomId,
@@ -29,9 +32,14 @@ class SendMessageService(
                 text = message.content.text,
                 type = MessageType.TEXT
             ),
-            status = MessageStatus.SENT,
-            createdAt = Instant.now()  // 여기서 생성 시각을 명시적으로 기록 (그래야 컨슈머에서 받아서 처리할때 시간 덮어쓰기가 안 일어남)
+            status = MessageStatus.SAVED,
+            createdAt = Instant.now()
         )
+
+        // 메타데이터 복사 (tempId와 status 포함)
+        if (message.metadata.isNotEmpty()) {
+            chatMessage.metadata = message.metadata
+        }
 
         // ChatEvent 생성
         val chatEvent = ChatEvent(
@@ -39,12 +47,17 @@ class SendMessageService(
             data = chatMessage
         )
 
-        // kafka로 이벤트 발행하고 CompletableFuture 반환
-        return kafkaMessagePublishPort.publishChatEvent(
+        // Kafka로 이벤트 발행
+        val future = kafkaMessagePublishPort.publishChatEvent(
             topic = "chat-messages",
             key = message.roomId,
             event = chatEvent
         )
+
+        // Kafka 발행 성공 후 tempId 반환 (실제 저장 ID는 Kafka Consumer에서 생성됨)
+        return future.thenApply {
+            tempId
+        }
     }
 
 }

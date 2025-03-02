@@ -8,12 +8,16 @@ import java.time.Instant
 
 @Document(collection = "users")
 data class UserDocument(
+
     @Indexed(unique = true)
-    val username: String,
-    val nickname: String,
-    val status: String, // OFFLINE, ONLINE, BUSY, AWAY
-    val profileImageUrl: String? = null,
-    val lastSeenAt: Instant? = null,
+    val username: String,  // 로그인용 고유 사용자명
+    val nickname: String,  // 표시 이름
+    val status: String,    // OFFLINE, ONLINE, BUSY, AWAY
+    val profileImageUrl: String? = null,  // 프로필 이미지 URL
+    val lastSeenAt: Instant? = null,      // 마지막 접속 시간
+    val bio: String? = null,              // 한줄 소개 (상태 메시지)
+    val passwordHash: String? = null,     // 비밀번호 해시 (로그인 시 필요)
+    val isDeleted: Boolean = false,       // 계정 삭제 여부 (소프트 딜리트)
 
     // ============== 친구 ===============
     val friends: Set<ObjectId> = emptySet(),                // 친구 목록 (이미 친구인 사람 ID)

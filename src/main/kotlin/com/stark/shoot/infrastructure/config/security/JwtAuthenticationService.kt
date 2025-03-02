@@ -2,6 +2,7 @@ package com.stark.shoot.infrastructure.config.security
 
 import com.stark.shoot.infrastructure.common.exception.JwtAuthenticationException
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
+import com.stark.shoot.infrastructure.config.security.service.CustomUserDetails
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -25,20 +26,19 @@ class JwtAuthenticationService(
                 throw JwtAuthenticationException("Invalid JWT token")
             }
 
-            // 2) 토큰에서 사용자 이름 추출
-            val username = jwtProvider.extractUsername(token)
+            val userId = jwtProvider.extractId(token) // id 추출
+            val username = jwtProvider.extractUsername(token) // username 추출
+            val userDetails = userDetailsService.loadUserByUsername(username) as CustomUserDetails
 
-            // 3) DB/저장소에서 사용자 정보 로드 (UserDetailsService)
-            val userDetails = userDetailsService.loadUserByUsername(username)
-
-            // 4) 인증 객체 생성 (Principal=userDetails, Credentials=token, Authorities=userDetails.authorities)
+            // authentication.name에 id 설정
             return UsernamePasswordAuthenticationToken(
-                userDetails,
+                userId, // principal = id
                 token,
                 userDetails.authorities
-            )
+            ).apply {
+                details = userDetails // username 등 추가 정보
+            }
         } catch (e: Exception) {
-            // 구체적인 예외 처리
             throw if (e is JwtAuthenticationException) e
             else JwtAuthenticationException("JWT authentication failed")
         }

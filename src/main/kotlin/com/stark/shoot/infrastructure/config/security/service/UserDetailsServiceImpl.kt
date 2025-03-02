@@ -10,14 +10,15 @@ class UserDetailsServiceImpl(
     private val retrieveUserPort: RetrieveUserPort
 ) : UserDetailsService {
 
-    /**
-     * 로그인 시 사용자 정보를 조회하는 메서드
-     */
-    override fun loadUserByUsername(username: String?): UserDetails {
-        val findByUsername = username?.let { retrieveUserPort.findByUsername(it) }
+    override fun loadUserByUsername(
+        username: String?
+    ): UserDetails {
+        // 사용자 조회
+        val user = username?.let { retrieveUserPort.findByUsername(it) }
             ?: throw IllegalArgumentException("User not found")
 
-        return User(findByUsername.username) // 권한 or 패스워드 등 필요 시 추가
+        // UserDetails로 변환
+        return CustomUserDetails(user.id.toString(), user.username)
     }
 
 }

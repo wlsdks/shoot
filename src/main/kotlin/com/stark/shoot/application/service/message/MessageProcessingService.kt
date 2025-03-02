@@ -156,6 +156,7 @@ class MessageProcessingService(
 
         // 모든 안 읽은 메시지 읽음 처리
         val unreadMessages = loadChatMessagePort.findUnreadByRoomId(roomObjectId, participantId)
+            .filter { it.senderId != userId }  // 내가 보낸 메시지는 제외
 
         // 안 읽은 메시지가 없으면 불필요한 처리와 이벤트 발행 방지
         if (unreadMessages.isEmpty()) {

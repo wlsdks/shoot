@@ -1,4 +1,4 @@
-package com.stark.shoot.application.port.out
+package com.stark.shoot.application.port.out.message
 
 import com.stark.shoot.domain.chat.message.ChatMessage
 

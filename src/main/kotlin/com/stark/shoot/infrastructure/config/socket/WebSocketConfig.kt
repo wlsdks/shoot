@@ -1,7 +1,7 @@
 package com.stark.shoot.infrastructure.config.socket
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.application.port.out.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
 import com.stark.shoot.infrastructure.config.security.JwtAuthenticationService
 import com.stark.shoot.infrastructure.config.socket.interceptor.AuthHandshakeInterceptor

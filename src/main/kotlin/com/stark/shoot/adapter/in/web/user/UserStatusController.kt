@@ -4,6 +4,8 @@ import com.stark.shoot.adapter.`in`.web.dto.user.UpdateStatusRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.UserStatusUseCase
+import com.stark.shoot.infrastructure.common.util.toObjectId
+import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.bson.types.ObjectId
@@ -18,7 +20,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/users")
 @RestController
 class UserStatusController(
-    private val userStatusUseCase: UserStatusUseCase
+    private val userStatusUseCase: UserStatusUseCase,
+    private val jwtProvider: JwtProvider
 ) {
 
     @Operation(
@@ -33,8 +36,9 @@ class UserStatusController(
         authentication: Authentication, // 인증은 여전히 필요하지만 ID는 요청 본문에서 가져옴
         @RequestBody request: UpdateStatusRequest
     ): ResponseEntity<UserResponse> {
-        val jwtUsername = authentication.name // JWT에서 가져온 username
-        val userId = ObjectId(request.userId)
+        val token = authentication.credentials.toString()
+        val jwtUsername = jwtProvider.extractUsername(token) // username 추출
+        val userId = jwtProvider.extractId(token).toObjectId()
         val user = userStatusUseCase.updateStatus(userId, request.status)
 
         // username과 userId가 일치하는지 검증 (선택 사항)

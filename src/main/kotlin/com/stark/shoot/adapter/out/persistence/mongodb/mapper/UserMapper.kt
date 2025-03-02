@@ -21,18 +21,18 @@ class UserMapper {
             status = domain.status.name,
             profileImageUrl = domain.profileImageUrl,
             lastSeenAt = domain.lastSeenAt,
-
             // 친구 관련 필드 매핑
             friends = domain.friends,
             incomingFriendRequests = domain.incomingFriendRequests,
             outgoingFriendRequests = domain.outgoingFriendRequests,
-            userCode = domain.userCode ?: "",
+            userCode = domain.userCode,  // 빈 문자열 대신 그대로 null 또는 값이 들어가게 함.
             refreshToken = domain.refreshToken ?: "",
             refreshTokenExpiration = domain.refreshTokenExpiration,
         ).apply {
             id = domain.id
         }
     }
+
 
 
     /**

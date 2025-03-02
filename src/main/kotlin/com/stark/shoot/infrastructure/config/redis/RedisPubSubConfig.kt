@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.redis.RedisMessageListener
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.RedisConnectionFactory
-import org.springframework.data.redis.listener.ChannelTopic
+import org.springframework.data.redis.listener.PatternTopic
 import org.springframework.data.redis.listener.RedisMessageListenerContainer
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter
 
@@ -21,10 +21,14 @@ class RedisPubSubConfig(
         val container = RedisMessageListenerContainer()
         container.setConnectionFactory(redisConnectionFactory)
 
+        // MessageListenerAdapter를 생성하고 초기화
+        val adapter = MessageListenerAdapter(redisMessageListener, "onMessage")
+        adapter.afterPropertiesSet()  // 반드시 호출하여 초기화
+
         // chat:room:* 패턴으로 모든 채팅방 채널 구독
         container.addMessageListener(
-            MessageListenerAdapter(redisMessageListener, "onMessage"),
-            ChannelTopic("chat:room:*")
+            adapter,
+            PatternTopic("chat:room:*")
         )
 
         return container

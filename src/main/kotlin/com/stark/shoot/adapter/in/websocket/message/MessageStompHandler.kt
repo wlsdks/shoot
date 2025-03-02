@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.`in`.websocket.message
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
@@ -17,8 +16,7 @@ import java.util.concurrent.CompletableFuture
 class MessageStompHandler(
     private val sendMessageUseCase: SendMessageUseCase,
     private val messagingTemplate: SimpMessagingTemplate,
-    private val redisTemplate: RedisTemplate<String, Any>,
-    private val objectMapper: ObjectMapper
+    private val redisPublisherTemplate: RedisTemplate<String, Any>
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -64,11 +62,12 @@ class MessageStompHandler(
     ) {
         val channel = "chat:room:${message.roomId}"
         try {
-            redisTemplate.convertAndSend(channel, objectMapper.writeValueAsString(message))
+            // 메시지 객체를 그대로 발행
+            redisPublisherTemplate.convertAndSend(channel, message)
             logger.debug { "Redis 채널에 메시지 발행: $channel, tempId: ${message.tempId}" }
         } catch (e: Exception) {
             logger.error(e) { "Redis 발행 실패: ${e.message}" }
-            throw e // 호출자가 처리할 수 있도록 예외 전파
+            throw e
         }
     }
 

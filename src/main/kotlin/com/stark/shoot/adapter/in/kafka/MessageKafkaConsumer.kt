@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.kafka
 
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
+import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
@@ -26,20 +27,16 @@ class MessageKafkaConsumer(
                 val roomId = event.data.roomId
 
                 // MongoDB 저장 전 처리 중 상태 업데이트
-                sendStatusUpdate(roomId, tempId, "processing", null)
+                sendStatusUpdate(roomId, tempId, MessageStatus.PROCESSING.name, null)
 
                 // 메시지 저장
                 val savedMessage = processMessageUseCase.processMessage(event.data)
 
                 // 저장 성공 상태 업데이트
-                sendStatusUpdate(roomId, tempId, "saved", savedMessage.id)
+                sendStatusUpdate(roomId, tempId, MessageStatus.SAVED.name, savedMessage.id)
 
             } catch (e: Exception) {
-                val tempId = event.data.metadata["tempId"] as? String
-                if (tempId != null) {
-                    sendStatusUpdate(event.data.roomId, tempId, "failed", null, e.message)
-                }
-                logger.error(e) { "메시지 처리 오류: ${e.message}" }
+                sendErrorResponse(event, e)
             }
         }
     }
@@ -62,6 +59,31 @@ class MessageKafkaConsumer(
     ) {
         val statusUpdate = MessageStatusResponse(tempId, status, persistedId, errorMessage)
         messagingTemplate.convertAndSend("/topic/message/status/$roomId", statusUpdate)
+    }
+
+    /**
+     * 메시지 처리 중 오류 발생 시 클라이언트에 에러 메시지를 전송합니다.
+     *
+     * @param event ChatEvent 객체
+     * @param e Exception 객체
+     */
+    private fun sendErrorResponse(
+        event: ChatEvent,
+        e: Exception
+    ) {
+        val tempId = event.data.metadata["tempId"] as? String
+
+        if (tempId != null) {
+            sendStatusUpdate(
+                event.data.roomId,
+                tempId,
+                MessageStatus.FAILED.name,
+                null,
+                e.message
+            )
+        }
+
+        logger.error(e) { "메시지 처리 오류: ${e.message}" }
     }
 
 }

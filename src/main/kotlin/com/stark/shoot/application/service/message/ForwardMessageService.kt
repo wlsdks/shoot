@@ -42,7 +42,7 @@ class ForwardMessageService(
             roomId = targetRoomId,
             senderId = forwardingUserId,
             content = forwardedContent,
-            status = MessageStatus.SENT,
+            status = MessageStatus.SAVED,
             replyToMessageId = null,
             reactions = emptyMap(),
             mentions = emptySet(),

@@ -32,7 +32,7 @@ class SendMessageService(
                 text = message.content.text,
                 type = MessageType.TEXT
             ),
-            status = MessageStatus.SENT,
+            status = MessageStatus.SAVED,
             createdAt = Instant.now()
         )
 

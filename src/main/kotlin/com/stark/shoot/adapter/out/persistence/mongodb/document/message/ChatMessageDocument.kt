@@ -17,7 +17,7 @@ data class ChatMessageDocument(
     val roomId: ObjectId,                           // 메시지가 속한 채팅방 ID
     val senderId: ObjectId,                         // 메시지 보낸 사용자 ID
     val content: MessageContentDocument,            // 메시지 내용
-    val status: MessageStatus = MessageStatus.SENT, // 메시지 상태 (e.g., SENT, READ 등)
+    val status: MessageStatus = MessageStatus.SAVED, // 메시지 상태 (e.g., SENT, READ 등)
     val replyToMessageId: ObjectId? = null,         // 답장할 메시지 ID
     val reactions: Map<String, Set<ObjectId>> = emptyMap(), // 이모티콘 ID to 사용자 ID 목록
     val mentions: Set<ObjectId> = emptySet(),       // 멘션된 사용자 ID 목록

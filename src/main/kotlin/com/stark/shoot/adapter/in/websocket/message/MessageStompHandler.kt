@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.websocket.message
 
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
+import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.infrastructure.common.exception.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -36,7 +37,7 @@ class MessageStompHandler(
             val tempId = UUID.randomUUID().toString()
             message.apply {
                 this.tempId = tempId
-                this.status = "sending"
+                this.status = MessageStatus.SENDING.name
                 this.metadata["tempId"] = tempId
             }
 
@@ -84,7 +85,7 @@ class MessageStompHandler(
                 // Kafka 발행 성공 시 상태 업데이트
                 val statusUpdate = MessageStatusResponse(
                     tempId = tempId,
-                    status = "sent_to_kafka", // Kafka로 전송됨 (아직 DB에 저장되지 않음)
+                    status = MessageStatus.SENT_TO_KAFKA.name, // Kafka로 전송됨 (아직 DB에 저장되지 않음)
                     persistedId = null,
                     errorMessage = null
                 )
@@ -118,7 +119,7 @@ class MessageStompHandler(
         // 2. 메시지 상태 업데이트 전송
         val statusUpdate = MessageStatusResponse(
             tempId = tempId,
-            status = "failed",
+            status = MessageStatus.FAILED.name,
             persistedId = null,
             errorMessage = throwable.message
         )

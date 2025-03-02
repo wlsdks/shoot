@@ -2,8 +2,8 @@ package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.RetrieveChatRoomUseCase
-import com.stark.shoot.application.port.out.LoadChatMessagePort
-import com.stark.shoot.application.port.out.LoadChatRoomPort
+import com.stark.shoot.application.port.out.message.LoadChatMessagePort
+import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service

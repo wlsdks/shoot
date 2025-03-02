@@ -2,10 +2,10 @@ package com.stark.shoot.application.service.message
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.application.port.`in`.message.ForwardMessageUseCase
-import com.stark.shoot.application.port.out.LoadChatMessagePort
-import com.stark.shoot.application.port.out.LoadChatRoomPort
-import com.stark.shoot.application.port.out.SaveChatMessagePort
-import com.stark.shoot.application.port.out.SaveChatRoomPort
+import com.stark.shoot.application.port.out.message.LoadChatMessagePort
+import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.message.SaveChatMessagePort
+import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
 import com.stark.shoot.infrastructure.common.util.toObjectId

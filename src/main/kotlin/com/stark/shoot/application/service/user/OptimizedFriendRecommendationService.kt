@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.user
 
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
-import com.stark.shoot.application.port.`in`.user.RecommendFriendsUseCase
+import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
 import com.stark.shoot.application.port.out.user.RecommendFriendPort
 import com.stark.shoot.domain.chat.user.User
 import io.github.oshai.kotlinlogging.KotlinLogging

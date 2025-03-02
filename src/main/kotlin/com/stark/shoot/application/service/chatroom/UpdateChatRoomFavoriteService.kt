@@ -1,8 +1,8 @@
 package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.application.port.`in`.chatroom.UpdateChatRoomFavoriteUseCase
-import com.stark.shoot.application.port.out.LoadChatRoomPort
-import com.stark.shoot.application.port.out.SaveChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.LoadUserPinnedRoomsPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException

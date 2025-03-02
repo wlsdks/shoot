@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.user
 
-import com.stark.shoot.application.port.`in`.user.ManageUserCodeUseCase
+import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
 import com.stark.shoot.application.port.out.user.UpdateUserProfilePort
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException

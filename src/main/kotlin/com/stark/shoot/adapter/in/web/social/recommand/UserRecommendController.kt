@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.social.recommand
 
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
-import com.stark.shoot.application.port.`in`.user.RecommendFriendsUseCase
+import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
 import com.stark.shoot.infrastructure.common.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag

@@ -2,7 +2,7 @@ package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.ChatRoomSearchUseCase
-import com.stark.shoot.application.port.out.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 import java.time.ZoneId

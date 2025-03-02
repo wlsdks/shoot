@@ -2,6 +2,10 @@ package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import com.stark.shoot.application.port.out.*
+import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
+import com.stark.shoot.application.port.out.message.LoadChatMessagePort
+import com.stark.shoot.application.port.out.message.SaveChatMessagePort
 import com.stark.shoot.domain.chat.event.ChatBulkReadEvent
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage

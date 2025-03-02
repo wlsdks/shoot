@@ -1,6 +1,7 @@
 package com.stark.shoot.application.service.user
 
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
+import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.UserAuthUseCase
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
 import com.stark.shoot.domain.chat.user.User
@@ -32,13 +33,7 @@ class UserAuthService(
 
         // 4) (기존) UserResponse 로 변환하여 반환
         //    만약 UserResponse(id, username, nickname, ...) 구조가 있다면 맞춰서 매핑
-        val response = UserResponse(
-            id = user.id.toString(),       // user.id가 ObjectId? -> toString() 또는 toHexString()
-            username = user.username,
-            nickname = user.nickname
-            // 필요시 profileImageUrl, lastSeenAt 등 추가
-        )
-
+        val response = user.toResponse()
         return response
     }
 

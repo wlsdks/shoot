@@ -29,7 +29,7 @@ class UserController(
     fun createUser(
         @ModelAttribute request: CreateUserRequest
     ): ResponseEntity<UserResponse> {
-        val user = userCreateUseCase.createUser(request.username, request.nickname, request.password)
+        val user = userCreateUseCase.createUser(request)
         return ResponseEntity.ok(user.toResponse())
     }
 

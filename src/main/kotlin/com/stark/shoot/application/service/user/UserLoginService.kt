@@ -39,10 +39,10 @@ class UserLoginService(
         }
 
         // JWT 토큰 생성
-        val accessToken = jwtProvider.generateToken(user.username, 60 * 1000) // 1분
-        val refreshToken = jwtProvider.generateRefreshToken(user.username, 30 * 24 * 60) // 30일
+        val accessToken = jwtProvider.generateToken(user.id.toString(), user.username)
+        val refreshToken = jwtProvider.generateRefreshToken(user.id.toString(), user.username, 43200) // 30일
 
-        // MongoDB에 리프레시 토큰 저장
+        // MongoDB에 리프레시 토큰 저장 (todo: 로그인 할때마다 하는게 맞나? 확인 필요)
         refreshTokenStorePort.storeRefreshToken(user.id!!, refreshToken)
         return LoginResponse(user.id.toString(), accessToken, refreshToken)
     }

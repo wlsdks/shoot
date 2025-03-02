@@ -33,15 +33,13 @@ class AuthController(
     }
 
     @Operation(
-        summary = "인증된 사용자 정보 조회",
-        description = "JWT 인증 후 현재 로그인 사용자 정보를 반환"
+        summary = "현재 사용자 정보 조회",
+        description = "현재 로그인된 사용자의 전체 정보를 반환합니다."
     )
     @GetMapping("/me")
-    fun me(
-        authentication: Authentication?
-    ): ResponseEntity<UserResponse> {
-        val response = userAuthUseCase.retrieveAuthUserInformation(authentication)
-        return ResponseEntity.ok(response)
+    fun getCurrentUser(authentication: Authentication): ResponseEntity<UserResponse> {
+        val user = userAuthUseCase.retrieveAuthUserInformation(authentication)
+        return ResponseEntity.ok(user)
     }
 
 }

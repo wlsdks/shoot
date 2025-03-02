@@ -1,5 +1,6 @@
 package com.stark.shoot.application.port.out.user
 
+import com.stark.shoot.domain.chat.user.User
 import org.bson.types.ObjectId
 
 interface UpdateUserFriendPort {
@@ -10,5 +11,6 @@ interface UpdateUserFriendPort {
 
     fun addFriendRelation(userId: ObjectId, friendId: ObjectId)
 
-    // 필요 시 “removeFriendRelation” 등 추가
+    fun updateFriendRequest(user: User): User
+    fun updateFriends(user: User): User
 }

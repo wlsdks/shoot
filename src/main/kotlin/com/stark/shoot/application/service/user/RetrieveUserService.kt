@@ -48,4 +48,13 @@ class RetrieveUserService(
         return retrieveUserPort.findRandomUsers(excludeId, limit)
     }
 
+    /**
+     * 사용자명 또는 사용자 코드로 사용자 조회
+     */
+    override fun findUserByUsernameOrUserCode(
+        query: String
+    ): List<User> {
+        return retrieveUserPort.findByUsernameOrUserCode(query)
+    }
+
 }

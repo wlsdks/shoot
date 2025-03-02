@@ -1,8 +1,10 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocument
+import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.UserMongoRepository
 import com.stark.shoot.application.port.out.user.UpdateUserFriendPort
+import com.stark.shoot.domain.chat.user.User
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
@@ -13,7 +15,8 @@ import org.springframework.stereotype.Component
 @Component
 class UserFriendPersistenceAdapter(
     private val userMongoRepository: UserMongoRepository,
-    private val mongoTemplate: MongoTemplate
+    private val mongoTemplate: MongoTemplate,
+    private val userMapper: UserMapper
 ) : UpdateUserFriendPort {
 
     /**
@@ -84,6 +87,20 @@ class UserFriendPersistenceAdapter(
             Update().addToSet("friends", friendId),
             UserDocument::class.java
         )
+    }
+
+    override fun updateFriendRequest(user: User): User {
+        return updateUser(user)
+    }
+
+    override fun updateFriends(user: User): User {
+        return updateUser(user)
+    }
+
+    fun updateUser(user: User): User {
+        val userDocument = userMapper.toDocument(user)
+        val updatedUser = userMongoRepository.save(userDocument)
+        return userMapper.toDomain(updatedUser)
     }
 
 }

@@ -87,4 +87,12 @@ class RetrieveUserPersistenceAdapter(
         return userMapper.toDomain(doc)
     }
 
+    /**
+     * 사용자명 또는 사용자 코드로 사용자 조회
+     */
+    override fun findByUsernameOrUserCode(query: String): List<User> {
+        val users = userMongoRepository.findByUsernameOrUserCode(query, query)
+        return users.map { userMapper.toDomain(it) }
+    }
+
 }

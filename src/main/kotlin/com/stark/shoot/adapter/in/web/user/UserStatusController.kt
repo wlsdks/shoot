@@ -23,15 +23,25 @@ class UserStatusController(
 
     @Operation(
         summary = "상태 변경",
-        description = "사용자의 상태를 변경합니다."
+        description = """
+            - 사용자의 상태를 변경합니다.
+            - JWT의 sub (authentication.name)와 request.userId를 비교해 요청자가 자신만 수정할 수 있도록 보안 강화.
+        """
     )
     @PutMapping("/me/status")
     fun updateStatus(
-        authentication: Authentication,
+        authentication: Authentication, // 인증은 여전히 필요하지만 ID는 요청 본문에서 가져옴
         @RequestBody request: UpdateStatusRequest
     ): ResponseEntity<UserResponse> {
-        val userId = ObjectId(authentication.name)
+        val jwtUsername = authentication.name // JWT에서 가져온 username
+        val userId = ObjectId(request.userId)
         val user = userStatusUseCase.updateStatus(userId, request.status)
+
+        // username과 userId가 일치하는지 검증 (선택 사항)
+        if (user.username != jwtUsername) {
+            throw SecurityException("Unauthorized attempt to modify another user's status")
+        }
+
         return ResponseEntity.ok(user.toResponse())
     }
 

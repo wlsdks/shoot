@@ -21,9 +21,18 @@ data class LoginRequest(val username: String, val password: String)
 data class UpdateProfileRequest(val nickname: String?, val profileImageUrl: String?, val bio: String?)
 data class FindUserRequest(val query: String) // username 또는 userCode로 검색
 data class FriendRequest(val targetUserId: String)
-data class UpdateStatusRequest(val status: UserStatus)
 
-data class LoginResponse(val userId: String, val accessToken: String, val refreshToken: String)
+data class UpdateStatusRequest(
+    val userId: String, // 추가
+    val status: UserStatus
+)
+
+data class LoginResponse(
+    val userId: String,
+    val accessToken: String,
+    val refreshToken: String
+)
+
 data class UserResponse(
     val id: String,
     val username: String,

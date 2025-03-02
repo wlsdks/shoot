@@ -35,7 +35,11 @@ class UserController(
 
     @Operation(
         summary = "회원 탈퇴",
-        description = "현재 사용자를 탈퇴 처리합니다."
+        description = """
+           - 현재 사용자를 탈퇴 처리합니다.
+             - Authentication 객체를 매개변수로 받는 이유는, 이 API가 현재 로그인한 사용자의 정보를 기반으로 동작해야 하기 때문입니다. 
+             - 여기서 Authentication은 Spring Security가 제공하는 인터페이스로, 인증된 사용자의 세부 정보(예: 사용자 ID, 권한 등)를 담고 있습니다.
+        """
     )
     @DeleteMapping("/me")
     fun deleteUser(authentication: Authentication): ResponseEntity<Void> {

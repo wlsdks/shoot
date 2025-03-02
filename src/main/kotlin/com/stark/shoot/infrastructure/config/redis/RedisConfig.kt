@@ -2,6 +2,7 @@ package com.stark.shoot.infrastructure.config.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.chat.user.User
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.RedisConnectionFactory
@@ -55,6 +56,30 @@ class RedisConfig {
         template.connectionFactory = connectionFactory
         template.keySerializer = StringRedisSerializer()
         template.valueSerializer = Jackson2JsonRedisSerializer(objectMapper, Any::class.java)
+        template.afterPropertiesSet()
+        return template
+    }
+
+    // User 목록을 위한 RedisTemplate 빈 생성
+    @Bean
+    fun userListRedisTemplate(
+        connectionFactory: RedisConnectionFactory,
+        objectMapper: ObjectMapper
+    ): RedisTemplate<String, List<User>> {
+        val template = RedisTemplate<String, List<User>>()
+        template.connectionFactory = connectionFactory
+
+        // 키는 String, 값은 List<User>를 JSON으로 직렬화
+        template.keySerializer = StringRedisSerializer()
+
+        // Java 타입 정보를 포함한 직렬화 설정
+        val listType = objectMapper.typeFactory.constructCollectionType(List::class.java, User::class.java)
+        val serializer = Jackson2JsonRedisSerializer(objectMapper, listType::class.java)
+
+        template.valueSerializer = serializer
+        template.hashKeySerializer = StringRedisSerializer()
+        template.hashValueSerializer = serializer
+
         template.afterPropertiesSet()
         return template
     }

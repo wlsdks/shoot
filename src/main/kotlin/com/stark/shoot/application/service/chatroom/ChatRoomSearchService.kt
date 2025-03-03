@@ -13,13 +13,25 @@ class ChatRoomSearchService(
     private val loadChatRoomPort: LoadChatRoomPort,
 ) : ChatRoomSearchUseCase {
 
+    /**
+     * 채팅방 검색
+     *
+     * @param userId 사용자 ID
+     * @param query 검색어
+     * @param type 채팅방 타입
+     * @param unreadOnly 읽지 않은 메시지만
+     * @return ChatRoomResponse 채팅방 목록
+     */
     override fun searchChatRooms(
         userId: ObjectId,
         query: String?,
         type: String?,
         unreadOnly: Boolean?
     ): List<ChatRoomResponse> {
+        // 사용자가 참여한 채팅방 목록을 조회
         val chatRooms = loadChatRoomPort.findByParticipantId(userId)
+
+        // 필터링된 채팅방 목록을 반환
         val filteredRooms = chatRooms.filter { room ->
             (query.isNullOrBlank() || (room.metadata.title?.contains(query, ignoreCase = true) ?: false)) &&
                     (type.isNullOrBlank() || room.metadata.type.name.equals(type, ignoreCase = true)) &&
@@ -30,6 +42,7 @@ class ChatRoomSearchService(
         val formatter = DateTimeFormatter.ofPattern("a h:mm")
         val zoneId = ZoneId.systemDefault()
 
+        // ChatRoomResponse로 변환하여 반환
         return filteredRooms.map { room ->
             ChatRoomResponse(
                 roomId = room.id!!,

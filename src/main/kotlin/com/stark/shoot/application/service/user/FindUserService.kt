@@ -1,15 +1,15 @@
 package com.stark.shoot.application.service.user
 
-import com.stark.shoot.application.port.`in`.user.RetrieveUserUseCase
-import com.stark.shoot.application.port.out.user.RetrieveUserPort
+import com.stark.shoot.application.port.`in`.user.FindUserUseCase
+import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.user.User
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 
 @Service
-class RetrieveUserService(
-    private val retrieveUserPort: RetrieveUserPort
-) : RetrieveUserUseCase {
+class FindUserService(
+    private val findUserPort: FindUserPort
+) : FindUserUseCase {
 
     /**
      * 유저 조회
@@ -17,7 +17,7 @@ class RetrieveUserService(
     override fun findById(
         id: ObjectId
     ): User? {
-        return retrieveUserPort.findById(id)
+        return findUserPort.findUserById(id)
     }
 
     /**
@@ -26,7 +26,7 @@ class RetrieveUserService(
     override fun findByUsername(
         username: String
     ): User? {
-        return retrieveUserPort.findByUsername(username)
+        return findUserPort.findByUsername(username)
     }
 
     /**
@@ -35,7 +35,7 @@ class RetrieveUserService(
     override fun findByUserCode(
         userCode: String
     ): User? {
-        return retrieveUserPort.findByUserCode(userCode)
+        return findUserPort.findByUserCode(userCode)
     }
 
     /**
@@ -45,7 +45,7 @@ class RetrieveUserService(
         excludeId: ObjectId,
         limit: Int
     ): List<User> {
-        return retrieveUserPort.findRandomUsers(excludeId, limit)
+        return findUserPort.findRandomUsers(excludeId, limit)
     }
 
     /**
@@ -54,7 +54,7 @@ class RetrieveUserService(
     override fun findUserByUsernameOrUserCode(
         query: String
     ): List<User> {
-        return retrieveUserPort.findByUsernameOrUserCode(query)
+        return findUserPort.findByUsernameOrUserCode(query)
     }
 
 }

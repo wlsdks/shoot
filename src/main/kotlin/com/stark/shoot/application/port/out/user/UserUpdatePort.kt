@@ -5,5 +5,4 @@ import org.bson.types.ObjectId
 
 interface UserUpdatePort {
     fun updateUser(user: User): User
-    fun findUserById(userId: ObjectId): User?
 }

@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user
 import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.UserMongoRepository
-import com.stark.shoot.application.port.out.user.RetrieveUserPort
+import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.user.User
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.MongoTemplate
@@ -12,11 +12,11 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.stereotype.Component
 
 @Component
-class RetrieveUserPersistenceAdapter(
+class FindUserPersistenceAdapter(
     private val userMongoRepository: UserMongoRepository,
     private val userMapper: UserMapper,
     private val mongoTemplate: MongoTemplate
-) : RetrieveUserPort {
+) : FindUserPort {
 
     /**
      * 사용자명으로 사용자 조회
@@ -31,7 +31,7 @@ class RetrieveUserPersistenceAdapter(
     /**
      * ID로 사용자 조회
      */
-    override fun findById(
+    override fun findUserById(
         id: ObjectId
     ): User? {
         val userDocument = userMongoRepository.findById(id)
@@ -90,7 +90,9 @@ class RetrieveUserPersistenceAdapter(
     /**
      * 사용자명 또는 사용자 코드로 사용자 조회
      */
-    override fun findByUsernameOrUserCode(query: String): List<User> {
+    override fun findByUsernameOrUserCode(
+        query: String
+    ): List<User> {
         val users = userMongoRepository.findByUsernameOrUserCode(query, query)
         return users.map { userMapper.toDomain(it) }
     }

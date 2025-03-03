@@ -1,4 +1,4 @@
-package com.stark.shoot.application.port.out.user
+package com.stark.shoot.application.port.out.user.friend
 
 import com.stark.shoot.domain.chat.user.User
 import org.bson.types.ObjectId

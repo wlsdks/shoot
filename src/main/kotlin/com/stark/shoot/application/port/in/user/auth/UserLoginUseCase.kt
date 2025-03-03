@@ -1,4 +1,4 @@
-package com.stark.shoot.application.port.`in`.user
+package com.stark.shoot.application.port.`in`.user.auth
 
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse

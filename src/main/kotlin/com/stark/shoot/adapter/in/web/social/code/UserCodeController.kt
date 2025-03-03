@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.`in`.web.social.code
 
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
-import com.stark.shoot.application.port.`in`.user.RetrieveUserUseCase
+import com.stark.shoot.application.port.`in`.user.FindUserUseCase
 import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
 import com.stark.shoot.application.port.`in`.user.friend.UserFriendUseCase
 import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/v1/users")
 class UserCodeController(
-    private val retrieveUserUseCase: RetrieveUserUseCase,
+    private val findUserUseCase: FindUserUseCase,
     private val manageUserCodeUseCase: ManageUserCodeUseCase,
     private val userFriendUseCase: UserFriendUseCase
 ) {
@@ -35,7 +35,7 @@ class UserCodeController(
     fun findUserByCode(
         @RequestParam code: String
     ): ResponseEntity<UserResponse?> {
-        val user = retrieveUserUseCase.findByUserCode(code) ?: return ResponseEntity.ok(null)
+        val user = findUserUseCase.findByUserCode(code) ?: return ResponseEntity.ok(null)
         return ResponseEntity.ok(user.toResponse()) // 확장 함수 사용
     }
 
@@ -54,7 +54,7 @@ class UserCodeController(
         @RequestParam targetCode: String // 상대방 userCode
     ) {
         // 조회는 클라이언트에서 미리 수행하는 것을 권장하지만, 여기서도 한 번 더 확인
-        val targetUser = retrieveUserUseCase.findByUserCode(targetCode)
+        val targetUser = findUserUseCase.findByUserCode(targetCode)
             ?: throw ResourceNotFoundException("해당 코드($targetCode)를 가진 유저가 없습니다.")
 
         userFriendUseCase.sendFriendRequest(userId.toObjectId(), targetUser.id!!)

@@ -3,9 +3,9 @@ package com.stark.shoot.application.port.out.user
 import com.stark.shoot.domain.chat.user.User
 import org.bson.types.ObjectId
 
-interface RetrieveUserPort {
+interface FindUserPort {
     fun findByUsername(username: String): User?
-    fun findById(id: ObjectId): User?
+    fun findUserById(id: ObjectId): User?
     fun findAll(): List<User>
 
     fun findByUserCode(userCode: String): User?

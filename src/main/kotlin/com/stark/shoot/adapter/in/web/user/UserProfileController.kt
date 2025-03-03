@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.`in`.web.user
 import com.stark.shoot.adapter.`in`.web.dto.user.UpdateProfileRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
-import com.stark.shoot.application.port.`in`.user.UserUpdateProfileUseCase
+import com.stark.shoot.application.port.`in`.user.profile.UserUpdateProfileUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.bson.types.ObjectId

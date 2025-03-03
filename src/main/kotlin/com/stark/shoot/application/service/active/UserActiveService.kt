@@ -15,9 +15,11 @@ class UserActiveService(
 ) : UserActiveUseCase {
 
     private val logger = KotlinLogging.logger {}
-
+    
     /**
+     * 사용자 활동 상태 업데이트
      * /app/active로 받은 메시지를 JSON으로 파싱해서 Redis에 active:<userId>:<roomId>로 저장. active 값은 "true" 또는 "false".
+     * @param message 메시지
      */
     override fun updateUserActive(message: String) {
         try {

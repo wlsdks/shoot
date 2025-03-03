@@ -16,6 +16,12 @@ class SseEmitterService : SseEmitterUseCase {
     private val emitters = ConcurrentHashMap<String, SseEmitter>()
     private val logger = KotlinLogging.logger {}
 
+    /**
+     * 새로운 SSE emitter를 생성합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 생성된 SSE emitter
+     */
     override fun createEmitter(
         userId: String
     ): SseEmitter {
@@ -37,21 +43,18 @@ class SseEmitterService : SseEmitterUseCase {
         }
 
         // Heartbeat 전송
-        val scheduler = Executors.newSingleThreadScheduledExecutor()
-        scheduler.scheduleAtFixedRate({
-            try {
-                emitter.send(SseEmitter.event().name("heartbeat").data("ping"))
-                logger.debug { "Heartbeat sent to user: $userId" }
-            } catch (e: Exception) {
-                logger.error { "Failed to send heartbeat to user: $userId, error: ${e.message}" }
-                emitters.remove(userId)
-                scheduler.shutdown()
-            }
-        }, 15, 15, TimeUnit.SECONDS)
-
+        sendSseHeartBeat(emitter, userId)
         return emitter
     }
 
+    /**
+     * 사용자에게 업데이트를 전송합니다.
+     *
+     * @param userId 사용자 ID
+     * @param roomId 채팅방 ID
+     * @param unreadCount 읽지 않은 메시지 수
+     * @param lastMessage 마지막 메시지
+     */
     override fun sendUpdate(
         userId: String,
         roomId: String,
@@ -77,6 +80,11 @@ class SseEmitterService : SseEmitterUseCase {
         } ?: logger.warn { "No SSE emitter found for user: $userId" }
     }
 
+    /**
+     * 사용자에게 채팅방 생성 이벤트를 전송합니다.
+     *
+     * @param event 이벤트
+     */
     override fun sendChatRoomCreatedEvent(
         event: ChatRoomCreatedEvent
     ) {
@@ -89,6 +97,11 @@ class SseEmitterService : SseEmitterUseCase {
         }
     }
 
+    /**
+     * 사용자에게 친구 추가 이벤트를 전송합니다.
+     *
+     * @param event 이벤트
+     */
     override fun sendFriendAddedEvent(
         event: FriendAddedEvent
     ) {
@@ -99,6 +112,32 @@ class SseEmitterService : SseEmitterUseCase {
                 emitters.remove(event.userId)
             }
         }
+    }
+
+    /**
+     * SSE emitter에 Heartbeat를 주기적으로 전송합니다.
+     *
+     * @param emitter SSE emitter
+     * @param userId 사용자 ID
+     */
+    private fun sendSseHeartBeat(
+        emitter: SseEmitter,
+        userId: String
+    ) {
+        // Heartbeat 전송 스케줄러 생성
+        val scheduler = Executors.newSingleThreadScheduledExecutor()
+
+        // 15초마다 Heartbeat 전송
+        scheduler.scheduleAtFixedRate({
+            try {
+                emitter.send(SseEmitter.event().name("heartbeat").data("ping"))
+                logger.debug { "Heartbeat sent to user: $userId" }
+            } catch (e: Exception) {
+                logger.error { "Failed to send heartbeat to user: $userId, error: ${e.message}" }
+                emitters.remove(userId)
+                scheduler.shutdown()
+            }
+        }, 15, 15, TimeUnit.SECONDS)
     }
 
 }

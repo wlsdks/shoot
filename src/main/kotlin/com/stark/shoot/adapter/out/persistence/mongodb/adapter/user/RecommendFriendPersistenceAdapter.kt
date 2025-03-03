@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UserMapper
-import com.stark.shoot.application.port.out.user.RecommendFriendPort
+import com.stark.shoot.application.port.out.user.friend.RecommendFriendPort
 import com.stark.shoot.domain.chat.user.User
 import org.bson.Document
 import org.bson.types.ObjectId

@@ -6,7 +6,7 @@ import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
 import com.stark.shoot.application.port.out.EventPublisher
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
-import com.stark.shoot.application.port.out.user.RetrieveUserPort
+import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomMetadata
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service
 class ChatRoomService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
-    private val retrieveUserPort: RetrieveUserPort,
+    private val findUserPort: FindUserPort,
     private val eventPublisher: EventPublisher
 ) : CreateChatRoomUseCase, ManageChatRoomUseCase {
 
@@ -47,8 +47,8 @@ class ChatRoomService(
         val participants = setOf(userId, friendId)
 
         // 3) 각 참여자의 닉네임을 조회 (여기서는 userService를 통해 가져온다고 가정)
-        val currentUserNickname = retrieveUserPort.findById(userId)?.nickname  // "내이름" 같은 값 반환
-        val friendNickname = retrieveUserPort.findById(friendId)?.nickname     // "친구이름" 같은 값 반환
+        val currentUserNickname = findUserPort.findUserById(userId)?.nickname  // "내이름" 같은 값 반환
+        val friendNickname = findUserPort.findUserById(friendId)?.nickname     // "친구이름" 같은 값 반환
 
         // 4) metadata를 생성할 때, participantsMetadata에 각 참여자의 Participant 객체에 닉네임을 포함시킵니다.
         val metadata = ChatRoomMetadata(

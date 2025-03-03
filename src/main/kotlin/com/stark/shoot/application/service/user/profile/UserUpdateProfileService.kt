@@ -1,7 +1,8 @@
 package com.stark.shoot.application.service.user.profile
 
 import com.stark.shoot.adapter.`in`.web.dto.user.UpdateProfileRequest
-import com.stark.shoot.application.port.`in`.user.UserUpdateProfileUseCase
+import com.stark.shoot.application.port.`in`.user.profile.UserUpdateProfileUseCase
+import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.domain.chat.user.User
 import org.bson.types.ObjectId
@@ -10,6 +11,7 @@ import java.time.Instant
 
 @Service
 class UserUpdateProfileService(
+    private val findUserPort: FindUserPort,
     private val userUpdatePort: UserUpdatePort
 ) : UserUpdateProfileUseCase {
 
@@ -24,7 +26,8 @@ class UserUpdateProfileService(
         userId: ObjectId,
         request: UpdateProfileRequest
     ): User {
-        val user = userUpdatePort.findUserById(userId)
+        val user = findUserPort.findUserById(userId)
+            ?: throw IllegalArgumentException("User not found")
 
         val updatedUser = user.copy(
             nickname = request.nickname ?: user.nickname,

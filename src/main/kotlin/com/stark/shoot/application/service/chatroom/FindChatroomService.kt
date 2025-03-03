@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
-import com.stark.shoot.application.port.`in`.chatroom.RetrieveChatRoomUseCase
+import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
 import com.stark.shoot.application.port.out.message.LoadChatMessagePort
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
@@ -12,10 +12,10 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Service
-class RetrieveChatroomService(
+class FindChatroomService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val loadChatMessagePort: LoadChatMessagePort  // 주입받음
-) : RetrieveChatRoomUseCase {
+) : FindChatRoomUseCase {
 
     // 타임스탬프 포맷터 (예: "오후 3:15")
     private val formatter = DateTimeFormatter.ofPattern("a h:mm")
@@ -26,6 +26,7 @@ class RetrieveChatroomService(
     override fun getChatRoomsForUser(userId: ObjectId): List<ChatRoomResponse> {
         val chatRooms: List<ChatRoom> = loadChatRoomPort.findByParticipantId(userId)
 
+        // 채팅방을 정렬합니다.
         val sortedRooms = chatRooms.sortedWith(
             compareByDescending<ChatRoom> {
                 val p = it.metadata.participantsMetadata[userId]
@@ -37,6 +38,7 @@ class RetrieveChatroomService(
             }
         )
 
+        // 정렬된 채팅방 목록을 ChatRoomResponse로 변환합니다.
         return sortedRooms.map { room ->
             val participant = room.metadata.participantsMetadata[userId]
             // 1:1 채팅일 경우, 현재 사용자를 제외한 상대방의 닉네임을 title로 사용

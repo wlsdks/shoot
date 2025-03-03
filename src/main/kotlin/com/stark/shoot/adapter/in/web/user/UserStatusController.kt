@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.`in`.web.user
 import com.stark.shoot.adapter.`in`.web.dto.user.UpdateStatusRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
-import com.stark.shoot.application.port.`in`.user.UserStatusUseCase
+import com.stark.shoot.application.port.`in`.user.profile.UserStatusUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity

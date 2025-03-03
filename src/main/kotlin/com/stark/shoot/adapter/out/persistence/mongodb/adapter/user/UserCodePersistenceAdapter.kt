@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocument
-import com.stark.shoot.application.port.out.user.UpdateUserProfilePort
+import com.stark.shoot.application.port.out.user.code.UpdateUserCodePort
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
@@ -10,9 +10,9 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Component
 
 @Component
-class UserProfileUpdatePersistenceAdapter(
+class UserCodePersistenceAdapter(
     private val mongoTemplate: MongoTemplate
-) : UpdateUserProfilePort {
+) : UpdateUserCodePort {
 
     /**
      * 사용자 코드 설정

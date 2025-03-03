@@ -3,8 +3,8 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.UserFriendUseCase
 import com.stark.shoot.application.port.out.EventPublisher
-import com.stark.shoot.application.port.out.user.RetrieveUserPort
-import com.stark.shoot.application.port.out.user.UpdateUserFriendPort
+import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.common.exception.InvalidInputException
@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class UserFriendService(
-    private val retrieveUserPort: RetrieveUserPort,
-    private val updateUserFriendPort: UpdateUserFriendPort,
+    private val findUserPort: FindUserPort,
+    private val updateFriendPort: UpdateFriendPort,
     private val eventPublisher: EventPublisher
 ) : UserFriendUseCase {
 
@@ -30,10 +30,10 @@ class UserFriendService(
             throw InvalidInputException("자기 자신에게 친구 요청 불가")
         }
         // 요청 보낸 유저, 받는 유저 둘 다 DB에 있는지 검사
-        val currentUser = retrieveUserPort.findById(currentUserId)
+        val currentUser = findUserPort.findUserById(currentUserId)
             ?: throw ResourceNotFoundException("User not found: $currentUserId")
 
-        val targetUser = retrieveUserPort.findById(targetUserId)
+        val targetUser = findUserPort.findUserById(targetUserId)
             ?: throw ResourceNotFoundException("User not found: $targetUserId")
 
         // 이미 친구? 이미 보냈거나 받은 요청? 등 체크
@@ -48,8 +48,8 @@ class UserFriendService(
         }
 
         // 양쪽에 pending 상태로 저장
-        updateUserFriendPort.addOutgoingFriendRequest(currentUserId, targetUserId)
-        updateUserFriendPort.addIncomingFriendRequest(targetUserId, currentUserId)
+        updateFriendPort.addOutgoingFriendRequest(currentUserId, targetUserId)
+        updateFriendPort.addIncomingFriendRequest(targetUserId, currentUserId)
     }
 
     /**
@@ -60,19 +60,19 @@ class UserFriendService(
         requesterId: ObjectId
     ) {
         // currentUserId = 수락하는 사람, requesterId = 요청 보낸 사람
-        val currentUser = retrieveUserPort.findById(currentUserId)
+        val currentUser = findUserPort.findUserById(currentUserId)
             ?: throw ResourceNotFoundException("User not found: $currentUserId")
         if (!currentUser.incomingFriendRequests.contains(requesterId)) {
             throw InvalidInputException("해당 요청이 없습니다.")
         }
 
         // 요청 보낸 쪽에서 outgoing에서 제거 + 친구 추가
-        updateUserFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
-        updateUserFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
+        updateFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
+        updateFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
 
         // 서로 friends에 추가
-        updateUserFriendPort.addFriendRelation(currentUserId, requesterId)
-        updateUserFriendPort.addFriendRelation(requesterId, currentUserId)
+        updateFriendPort.addFriendRelation(currentUserId, requesterId)
+        updateFriendPort.addFriendRelation(requesterId, currentUserId)
 
         // SSE 이벤트 발행
         eventPublisher.publish(FriendAddedEvent(userId = currentUserId.toString(), friendId = requesterId.toString()))
@@ -86,15 +86,15 @@ class UserFriendService(
         currentUserId: ObjectId,
         requesterId: ObjectId
     ) {
-        val currentUser = retrieveUserPort.findById(currentUserId)
+        val currentUser = findUserPort.findUserById(currentUserId)
             ?: throw ResourceNotFoundException("User not found: $currentUserId")
         if (!currentUser.incomingFriendRequests.contains(requesterId)) {
             throw InvalidInputException("해당 요청이 없습니다.")
         }
 
         // 요청 보낸 쪽에서 outgoing에서 제거
-        updateUserFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
-        updateUserFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
+        updateFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
+        updateFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
     }
 
     /**
@@ -108,10 +108,10 @@ class UserFriendService(
         userId: ObjectId,
         friendId: ObjectId
     ): User {
-        val user = retrieveUserPort.findById(userId)
+        val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("User not found: $userId")
 
-        val friend = retrieveUserPort.findById(friendId)
+        val friend = findUserPort.findUserById(friendId)
             ?: throw ResourceNotFoundException("User not found: $friendId")
 
         // 친구 관계 삭제
@@ -119,8 +119,8 @@ class UserFriendService(
         val updatedFriend = friend.copy(friends = friend.friends - userId)
 
         // 친구 관계 업데이트
-        updateUserFriendPort.updateFriends(updatedFriend)
-        return updateUserFriendPort.updateFriends(updatedUser)
+        updateFriendPort.updateFriends(updatedFriend)
+        return updateFriendPort.updateFriends(updatedUser)
     }
 
     /**
@@ -131,7 +131,7 @@ class UserFriendService(
         query: String
     ): List<FriendResponse> {
         // 현재 사용자 조회
-        val currentUser = retrieveUserPort.findById(currentUserId)
+        val currentUser = findUserPort.findUserById(currentUserId)
             ?: throw ResourceNotFoundException("User not found: $currentUserId")
 
         // 제외할 사용자 목록: 본인, 이미 친구, 받은/보낸 친구 요청 대상
@@ -143,7 +143,7 @@ class UserFriendService(
         }
 
         // 모든 사용자 조회 (대규모 DB의 경우 효율적 쿼리로 대체 필요)
-        val allUsers = retrieveUserPort.findAll()
+        val allUsers = findUserPort.findAll()
 
         // username 또는 nickname에 검색어(query)가 포함된 사용자 필터링 (대소문자 무시)
         return allUsers.filter { user ->

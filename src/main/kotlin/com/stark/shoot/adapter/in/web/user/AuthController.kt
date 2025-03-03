@@ -3,8 +3,8 @@ package com.stark.shoot.adapter.`in`.web.user
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
-import com.stark.shoot.application.port.`in`.user.UserAuthUseCase
-import com.stark.shoot.application.port.`in`.user.UserLoginUseCase
+import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
+import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity

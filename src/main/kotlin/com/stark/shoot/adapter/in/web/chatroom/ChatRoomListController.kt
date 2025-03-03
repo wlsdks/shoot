@@ -29,4 +29,5 @@ class ChatRoomListController(
         val chatRooms = retrieveChatRoomUseCase.getChatRoomsForUser(userId.toObjectId())
         return ResponseEntity.ok(chatRooms)
     }
+
 }

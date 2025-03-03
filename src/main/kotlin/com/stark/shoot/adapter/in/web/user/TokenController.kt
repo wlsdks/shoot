@@ -2,20 +2,19 @@ package com.stark.shoot.adapter.`in`.web.user
 
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.token.RefreshTokenUseCase
-import com.stark.shoot.infrastructure.common.exception.InvalidRefreshTokenException
-import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "JWT 토큰(Access) 재발급", description = "JWT 토큰 재발급 관련 API")
 @RequestMapping("/api/v1/auth")
 @RestController
 class TokenController(
-    private val refreshTokenUseCase: RefreshTokenUseCase,
-    private val jwtProvider: JwtProvider
+    private val refreshTokenUseCase: RefreshTokenUseCase
 ) {
 
     @Operation(
@@ -26,18 +25,8 @@ class TokenController(
     fun refreshToken(
         @RequestHeader("Authorization") refreshTokenHeader: String
     ): ResponseEntity<LoginResponse> {
-        val refreshToken = refreshTokenHeader.replace("Bearer ", "")
-
-        if (!jwtProvider.isTokenValid(refreshToken) || !refreshTokenUseCase.isValidRefreshToken(refreshToken)) {
-            throw InvalidRefreshTokenException("유효하지 않은 리프레시 토큰입니다.")
-        }
-
-        val userId = jwtProvider.extractId(refreshToken) // sub에서 id 추출
-        val username = jwtProvider.extractUsername(refreshToken) // 클레임에서 username 추출
-        val newAccessToken = jwtProvider.generateToken(userId, username) // id와 username으로 새 토큰 생성
-        // userId는 이미 추출했으므로 refreshTokenUseCase에서 가져올 필요 없음
-
-        return ResponseEntity.ok(LoginResponse(userId, newAccessToken, refreshToken))
+        val loginResponse = refreshTokenUseCase.generateNewAccessToken(refreshTokenHeader)
+        return ResponseEntity.ok(loginResponse)
     }
 
 }

@@ -15,7 +15,7 @@ class UserAuthService(
     private val retrieveUserPort: RetrieveUserPort
 ) : UserAuthUseCase {
 
-    override fun retrieveAuthUserInformation(
+    override fun retrieveUserDetails(
         authentication: Authentication?
     ): UserResponse {
         if (authentication == null || !authentication.isAuthenticated) {

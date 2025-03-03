@@ -31,8 +31,7 @@ class UserProfileController(
         @RequestBody request: UpdateProfileRequest
     ): ResponseEntity<UserResponse> {
         val userId = ObjectId(authentication.name)
-        val user =
-            userUpdateProfileUseCase.updateProfile(userId, request.nickname, request.profileImageUrl, request.bio)
+        val user = userUpdateProfileUseCase.updateProfile(userId, request)
         return ResponseEntity.ok(user.toResponse())
     }
 

@@ -4,5 +4,5 @@ import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import org.springframework.security.core.Authentication
 
 interface UserAuthUseCase {
-    fun retrieveAuthUserInformation(authentication: Authentication?): UserResponse
+    fun retrieveUserDetails(authentication: Authentication?): UserResponse
 }

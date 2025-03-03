@@ -28,7 +28,7 @@ class AuthController(
     fun login(
         @RequestBody request: LoginRequest
     ): ResponseEntity<LoginResponse> {
-        val response = userLoginUseCase.login(request.username, request.password)
+        val response = userLoginUseCase.login(request)
         return ResponseEntity.ok(response)
     }
 
@@ -37,8 +37,10 @@ class AuthController(
         description = "현재 로그인된 사용자의 전체 정보를 반환합니다."
     )
     @GetMapping("/me")
-    fun getCurrentUser(authentication: Authentication): ResponseEntity<UserResponse> {
-        val user = userAuthUseCase.retrieveAuthUserInformation(authentication)
+    fun getCurrentUser(
+        authentication: Authentication
+    ): ResponseEntity<UserResponse> {
+        val user = userAuthUseCase.retrieveUserDetails(authentication)
         return ResponseEntity.ok(user)
     }
 

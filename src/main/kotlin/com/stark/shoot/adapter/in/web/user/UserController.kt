@@ -22,7 +22,7 @@ class UserController(
 ) {
 
     @Operation(
-        summary = "사용자 생성",
+        summary = "사용자 생성 (회원가입)",
         description = "새로운 사용자를 생성합니다."
     )
     @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])

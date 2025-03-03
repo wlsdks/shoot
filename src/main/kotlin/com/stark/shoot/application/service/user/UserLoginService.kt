@@ -1,5 +1,6 @@
 package com.stark.shoot.application.service.user
 
+import com.stark.shoot.adapter.`in`.web.dto.user.LoginRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.UserLoginUseCase
 import com.stark.shoot.application.port.out.user.RetrieveUserPort
@@ -19,22 +20,20 @@ class UserLoginService(
 ) : UserLoginUseCase {
 
     /**
-     * 로그인
+     * 사용자 로그인
      *
-     * @param username 사용자명
-     * @param password 비밀번호
+     * @param request 로그인 요청 (사용자 ID, 액세스 토큰, 리프레시 토큰)
      * @return 로그인 응답 (사용자 ID, 액세스 토큰, 리프레시 토큰)
      */
     override fun login(
-        username: String,
-        password: String
+        request: LoginRequest
     ): LoginResponse {
         // 사용자 조회
-        val user: User = retrieveUserPort.findByUsername(username)
+        val user: User = retrieveUserPort.findByUsername(request.username)
             ?: throw IllegalArgumentException("해당 username의 사용자를 찾을 수 없습니다.")
 
         // 비밀번호 검증
-        if (!passwordEncoder.matches(password, user.passwordHash)) {
+        if (!passwordEncoder.matches(request.password, user.passwordHash)) {
             throw IllegalArgumentException("Invalid password")
         }
 

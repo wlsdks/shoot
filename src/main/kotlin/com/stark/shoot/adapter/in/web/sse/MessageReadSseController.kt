@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.web.message
+package com.stark.shoot.adapter.`in`.web.sse
 
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import io.swagger.v3.oas.annotations.Operation

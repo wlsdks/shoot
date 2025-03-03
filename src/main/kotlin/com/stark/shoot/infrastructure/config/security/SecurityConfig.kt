@@ -9,6 +9,8 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
@@ -21,6 +23,11 @@ class SecurityConfig(
     private val jwtAuthFilter: JwtAuthFilter,
     private val jwtProvider: JwtProvider
 ) {
+
+    @Bean
+    fun passwordEncoder(): PasswordEncoder {
+        return BCryptPasswordEncoder() // BCrypt 알고리즘을 사용한 PasswordEncoder
+    }
 
     /**
      * principal이 String(= JWT 토큰) 형태라고 가정하고,
@@ -86,6 +93,7 @@ class SecurityConfig(
                 it.requestMatchers("/api/v1/auth/login", "/api/v1/users", "/api/v1/chatrooms/updates/**").permitAll()
                 it.requestMatchers("/ws/**").permitAll()
                 it.requestMatchers("/api/v1/auth/refresh-token").permitAll()
+                it.requestMatchers("/api/v1/users/me").authenticated()
                 it.requestMatchers("/api/v1/messages/mark-read").authenticated() // 명시적 인증 필요
                 it.anyRequest().authenticated()
             }

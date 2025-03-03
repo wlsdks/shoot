@@ -2,8 +2,8 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message
 
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMongoRepository
-import com.stark.shoot.application.port.out.LoadChatMessagePort
-import com.stark.shoot.application.port.out.SaveChatMessagePort
+import com.stark.shoot.application.port.out.message.LoadChatMessagePort
+import com.stark.shoot.application.port.out.message.SaveChatMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import org.bson.types.ObjectId
 import org.springframework.data.domain.PageRequest

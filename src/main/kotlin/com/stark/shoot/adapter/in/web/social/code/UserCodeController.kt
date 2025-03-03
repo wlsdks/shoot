@@ -1,11 +1,12 @@
 package com.stark.shoot.adapter.`in`.web.social.code
 
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
-import com.stark.shoot.application.port.`in`.user.ManageFriendUseCase
-import com.stark.shoot.application.port.`in`.user.ManageUserCodeUseCase
-import com.stark.shoot.application.port.`in`.user.RetrieveUserUseCase
-import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
-import com.stark.shoot.infrastructure.common.util.toObjectId
+import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
+import com.stark.shoot.application.port.`in`.user.FindUserUseCase
+import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
+import com.stark.shoot.application.port.`in`.user.friend.UserFriendUseCase
+import com.stark.shoot.infrastructure.common.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
@@ -15,9 +16,9 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/v1/users")
 class UserCodeController(
-    private val retrieveUserUseCase: RetrieveUserUseCase,
+    private val findUserUseCase: FindUserUseCase,
     private val manageUserCodeUseCase: ManageUserCodeUseCase,
-    private val manageFriendUseCase: ManageFriendUseCase
+    private val userFriendUseCase: UserFriendUseCase
 ) {
 
     @Operation(summary = "유저 코드 등록/수정", description = "유저가 본인의 userCode를 새로 설정 또는 수정합니다.")
@@ -34,16 +35,8 @@ class UserCodeController(
     fun findUserByCode(
         @RequestParam code: String
     ): ResponseEntity<UserResponse?> {
-        val user = retrieveUserUseCase.findByUserCode(code) ?: return ResponseEntity.ok(null)
-
-        // 검색 결과가 없으면 404 대신 200 OK와 null을 반환함
-        val response = UserResponse(
-            id = user.id.toString(),
-            username = user.username,
-            nickname = user.nickname,
-            userCode = user.userCode
-        )
-        return ResponseEntity.ok(response)
+        val user = findUserUseCase.findByUserCode(code) ?: return ResponseEntity.ok(null)
+        return ResponseEntity.ok(user.toResponse()) // 확장 함수 사용
     }
 
     @Operation(summary = "유저 코드 삭제", description = "유저가 본인의 userCode를 제거합니다.")
@@ -61,10 +54,10 @@ class UserCodeController(
         @RequestParam targetCode: String // 상대방 userCode
     ) {
         // 조회는 클라이언트에서 미리 수행하는 것을 권장하지만, 여기서도 한 번 더 확인
-        val targetUser = retrieveUserUseCase.findByUserCode(targetCode)
+        val targetUser = findUserUseCase.findByUserCode(targetCode)
             ?: throw ResourceNotFoundException("해당 코드($targetCode)를 가진 유저가 없습니다.")
 
-        manageFriendUseCase.sendFriendRequest(userId.toObjectId(), targetUser.id!!)
+        userFriendUseCase.sendFriendRequest(userId.toObjectId(), targetUser.id!!)
     }
 
 }

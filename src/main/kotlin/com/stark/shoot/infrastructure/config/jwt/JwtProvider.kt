@@ -14,39 +14,68 @@ class JwtProvider(
 
     private val key = Keys.hmacShaKeyFor(secretKey.toByteArray())
 
-    // 토큰 생성
+    /**
+     * 토큰 생성
+     *
+     * @param id     사용자 ID
+     * @param username 사용자명
+     * @param expiresInMillis 만료 시간 (밀리초)
+     * @return JWT 토큰
+     */
     fun generateToken(
-        subject: String,
+        id: String, // id를 sub로 사용
+        username: String, // username을 별도 클레임으로 추가
         expiresInMillis: Long = 3600_000 // 1시간 기본값
     ): String {
         val now = Date()
         val expiryDate = Date(now.time + expiresInMillis)
 
         return Jwts.builder()
-            .subject(subject)
+            .subject(id) // sub에 id 설정
+            .claim("username", username) // username 추가
             .issuedAt(now)
             .expiration(expiryDate)
-            .signWith(key) // todo: 여기에 알고리즘 설정 추가해야하는거 아닌지 확인이 필요합니다.
+            .signWith(key, Jwts.SIG.HS256) // 알고리즘 명시 (HS256)
             .compact()
     }
 
-    // 리프레시 토큰 생성 (access 토큰보다 유효기간이 길어야 함)
+    /**
+     * 리프레시 토큰 생성
+     *
+     * @param id          사용자 ID
+     * @param username   사용자명
+     * @param expiresInMinutes 만료 시간 (분)
+     * @return JWT 리프레시 토큰
+     */
     fun generateRefreshToken(
-        subject: String?,
+        id: String,
+        username: String,
         expiresInMinutes: Long
     ): String {
         val now = Date()
-        val expiryDate = Date(now.time + (expiresInMinutes * 60 * 1000)) // 한달 기본값
+        val expiryDate = Date(now.time + (expiresInMinutes * 60 * 1000)) // 분 단위 설정
+
         return Jwts.builder()
-            .subject(subject)
+            .subject(id) // sub에 id 설정
+            .claim("username", username) // username 추가
             .issuedAt(now)
             .expiration(expiryDate)
-            .signWith(key)
+            .signWith(key, Jwts.SIG.HS256) // 알고리즘 명시
             .compact()
     }
 
-    // 토큰에서 사용자 이름 추출
+    // 토큰에서 사용자 이름 추출 (username 클레임)
     fun extractUsername(token: String?): String {
+        return Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .payload
+            .get("username", String::class.java)
+    }
+
+    // 토큰에서 ID 추출 (sub)
+    fun extractId(token: String?): String {
         return Jwts.parser()
             .verifyWith(key)
             .build()

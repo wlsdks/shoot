@@ -3,8 +3,8 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.chatroom
 import com.stark.shoot.adapter.out.persistence.mongodb.document.room.ChatRoomDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatRoomMongoRepository
-import com.stark.shoot.application.port.out.LoadChatRoomPort
-import com.stark.shoot.application.port.out.SaveChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.MongoTemplate

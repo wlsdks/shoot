@@ -1,12 +1,12 @@
 package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.application.port.`in`.chatroom.UpdateChatRoomFavoriteUseCase
-import com.stark.shoot.application.port.out.LoadChatRoomPort
-import com.stark.shoot.application.port.out.SaveChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.LoadUserPinnedRoomsPort
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
-import com.stark.shoot.infrastructure.common.util.toObjectId
+import com.stark.shoot.infrastructure.common.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.util.toObjectId
 import org.springframework.stereotype.Service
 import java.time.Instant
 

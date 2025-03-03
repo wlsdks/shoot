@@ -1,8 +1,8 @@
 package com.stark.shoot.infrastructure.config.socket
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.application.port.out.LoadChatRoomPort
-import com.stark.shoot.application.port.out.user.RetrieveUserPort
+import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.infrastructure.config.security.JwtAuthenticationService
 import com.stark.shoot.infrastructure.config.socket.interceptor.AuthHandshakeInterceptor
 import com.stark.shoot.infrastructure.config.socket.interceptor.CustomHandshakeHandler
@@ -23,7 +23,7 @@ import org.springframework.web.socket.config.annotation.WebSocketTransportRegist
 @EnableWebSocketMessageBroker // STOMP 메시징을 활성화 이로 인해 서버는 STOMP 프로토콜 형식의 메시지를 기대합니다.
 class WebSocketConfig(
     private val loadChatRoomPort: LoadChatRoomPort,
-    private val retrieveUserPort: RetrieveUserPort,
+    private val findUserPort: FindUserPort,
     private val jwtAuthenticationService: JwtAuthenticationService,
     private val objectMapper: ObjectMapper,
     private val rateLimitInterceptor: RateLimitInterceptor
@@ -74,7 +74,7 @@ class WebSocketConfig(
      */
     override fun configureClientInboundChannel(registration: ChannelRegistration) {
         registration.interceptors(
-            StompChannelInterceptor(loadChatRoomPort, retrieveUserPort, objectMapper),
+            StompChannelInterceptor(loadChatRoomPort, findUserPort, objectMapper),
             rateLimitInterceptor
         )
 

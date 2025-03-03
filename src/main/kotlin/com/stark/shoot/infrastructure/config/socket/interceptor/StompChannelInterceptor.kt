@@ -2,9 +2,9 @@ package com.stark.shoot.infrastructure.config.socket.interceptor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
-import com.stark.shoot.application.port.out.LoadChatRoomPort
-import com.stark.shoot.application.port.out.user.RetrieveUserPort
-import com.stark.shoot.infrastructure.common.exception.WebSocketException
+import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.infrastructure.common.exception.web.WebSocketException
 import com.stark.shoot.infrastructure.config.socket.StompPrincipal
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.messaging.Message
@@ -23,7 +23,7 @@ import org.springframework.security.core.Authentication
  */
 class StompChannelInterceptor(
     private val loadChatRoomPort: LoadChatRoomPort,
-    private val retrieveUserPort: RetrieveUserPort,
+    private val findUserPort: FindUserPort,
     private val objectMapper: ObjectMapper
 ) : ChannelInterceptor {
 

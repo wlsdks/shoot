@@ -3,8 +3,8 @@ package com.stark.shoot.adapter.`in`.web.user
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
-import com.stark.shoot.application.port.`in`.user.UserAuthUseCase
-import com.stark.shoot.application.port.`in`.user.UserLoginUseCase
+import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
+import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
@@ -28,20 +28,20 @@ class AuthController(
     fun login(
         @RequestBody request: LoginRequest
     ): ResponseEntity<LoginResponse> {
-        val response = userLoginUseCase.login(request.username, request.password)
+        val response = userLoginUseCase.login(request)
         return ResponseEntity.ok(response)
     }
 
     @Operation(
-        summary = "인증된 사용자 정보 조회",
-        description = "JWT 인증 후 현재 로그인 사용자 정보를 반환"
+        summary = "현재 사용자 정보 조회",
+        description = "현재 로그인된 사용자의 전체 정보를 반환합니다."
     )
     @GetMapping("/me")
-    fun me(
-        authentication: Authentication?
+    fun getCurrentUser(
+        authentication: Authentication
     ): ResponseEntity<UserResponse> {
-        val response = userAuthUseCase.retrieveAuthUserInformation(authentication)
-        return ResponseEntity.ok(response)
+        val user = userAuthUseCase.retrieveUserDetails(authentication)
+        return ResponseEntity.ok(user)
     }
 
 }

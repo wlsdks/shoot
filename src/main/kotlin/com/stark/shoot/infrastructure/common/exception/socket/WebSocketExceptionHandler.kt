@@ -1,5 +1,6 @@
-package com.stark.shoot.infrastructure.common.exception
+package com.stark.shoot.infrastructure.common.exception.socket
 
+import com.stark.shoot.infrastructure.common.exception.web.UnauthorizedException
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler
 import org.springframework.stereotype.Component
 

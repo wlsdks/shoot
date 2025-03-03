@@ -4,7 +4,7 @@ import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
 import com.stark.shoot.application.port.out.message.LoadChatMessagePort
 import com.stark.shoot.application.port.out.message.SaveChatMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.infrastructure.common.util.toObjectId
+import com.stark.shoot.infrastructure.util.toObjectId
 import org.springframework.stereotype.Service
 import java.time.Instant
 

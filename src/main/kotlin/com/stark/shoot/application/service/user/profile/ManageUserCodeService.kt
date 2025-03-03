@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.user.profile
 import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.code.UpdateUserCodePort
-import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
+import com.stark.shoot.infrastructure.common.exception.web.ResourceNotFoundException
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 

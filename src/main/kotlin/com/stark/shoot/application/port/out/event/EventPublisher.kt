@@ -1,4 +1,4 @@
-package com.stark.shoot.application.port.out
+package com.stark.shoot.application.port.out.event
 
 import com.stark.shoot.domain.common.DomainEvent
 

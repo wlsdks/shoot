@@ -2,13 +2,13 @@ package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.UserFriendUseCase
-import com.stark.shoot.application.port.out.EventPublisher
+import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import com.stark.shoot.domain.chat.user.User
-import com.stark.shoot.infrastructure.common.exception.InvalidInputException
-import com.stark.shoot.infrastructure.common.exception.ResourceNotFoundException
+import com.stark.shoot.infrastructure.common.exception.web.InvalidInputException
+import com.stark.shoot.infrastructure.common.exception.web.ResourceNotFoundException
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 

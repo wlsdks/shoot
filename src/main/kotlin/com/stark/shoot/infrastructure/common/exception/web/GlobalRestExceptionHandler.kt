@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.common.exception
+package com.stark.shoot.infrastructure.common.exception.web
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

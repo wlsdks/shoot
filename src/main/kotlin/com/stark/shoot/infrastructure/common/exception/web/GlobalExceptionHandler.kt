@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.common.exception
+package com.stark.shoot.infrastructure.common.exception.web
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.HttpStatus

@@ -5,7 +5,7 @@ import com.stark.shoot.application.port.`in`.user.profile.UserStatusUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.domain.chat.user.User
-import com.stark.shoot.infrastructure.common.util.toObjectId
+import com.stark.shoot.infrastructure.util.toObjectId
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service

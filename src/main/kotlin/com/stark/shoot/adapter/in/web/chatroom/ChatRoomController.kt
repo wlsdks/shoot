@@ -5,7 +5,7 @@ import com.stark.shoot.adapter.`in`.web.dto.chatroom.InvitationRequest
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ManageParticipantRequest
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
-import com.stark.shoot.infrastructure.common.util.toObjectId
+import com.stark.shoot.infrastructure.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity

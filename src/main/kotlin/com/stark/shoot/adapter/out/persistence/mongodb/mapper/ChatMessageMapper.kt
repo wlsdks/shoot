@@ -6,7 +6,7 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageMetadataDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.UrlPreviewDocument
 import com.stark.shoot.domain.chat.message.*
-import com.stark.shoot.infrastructure.common.util.toObjectId
+import com.stark.shoot.infrastructure.util.toObjectId
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 

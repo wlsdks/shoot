@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
-import com.stark.shoot.application.port.`in`.user.friend.UserFriendUseCase
+import com.stark.shoot.application.port.`in`.user.friend.FriendUseCase
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/v1/friends")
 class FriendController(
     private val findFriendUseCase: FindFriendUseCase,
-    private val userFriendUseCase: UserFriendUseCase
+    private val friendUseCase: FriendUseCase
 ) {
 
     @Operation(summary = "내 친구 목록 가져오기", description = "로그인 사용자의 친구 목록을 조회")
@@ -51,7 +51,7 @@ class FriendController(
         @RequestParam userId: String,
         @RequestParam targetUserId: String
     ) {
-        userFriendUseCase.sendFriendRequest(userId.toObjectId(), targetUserId.toObjectId())
+        friendUseCase.sendFriendRequest(userId.toObjectId(), targetUserId.toObjectId())
     }
 
     @Operation(summary = "친구 요청 수락", description = "받은 친구 요청을 수락하여 서로 친구가 됨")
@@ -60,7 +60,7 @@ class FriendController(
         @RequestParam userId: String,
         @RequestParam requesterId: String
     ) {
-        userFriendUseCase.acceptFriendRequest(userId.toObjectId(), requesterId.toObjectId())
+        friendUseCase.acceptFriendRequest(userId.toObjectId(), requesterId.toObjectId())
     }
 
     @Operation(summary = "친구 요청 거절", description = "받은 친구 요청을 거절")
@@ -69,7 +69,7 @@ class FriendController(
         @RequestParam userId: String,
         @RequestParam requesterId: String
     ) {
-        userFriendUseCase.rejectFriendRequest(userId.toObjectId(), requesterId.toObjectId())
+        friendUseCase.rejectFriendRequest(userId.toObjectId(), requesterId.toObjectId())
     }
 
     @Operation(summary = "친구 삭제", description = "친구 목록에서 사용자를 삭제합니다.")
@@ -80,7 +80,7 @@ class FriendController(
     ): ResponseEntity<UserResponse> {
         val userId = ObjectId(authentication.name)
         val friendId = ObjectId(friendId)
-        val user = userFriendUseCase.removeFriend(userId, friendId)
+        val user = friendUseCase.removeFriend(userId, friendId)
         return ResponseEntity.ok(user.toResponse())
     }
 

@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.FindUserUseCase
 import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
-import com.stark.shoot.application.port.`in`.user.friend.UserFriendUseCase
+import com.stark.shoot.application.port.`in`.user.friend.FriendUseCase
 import com.stark.shoot.infrastructure.common.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*
 class UserCodeController(
     private val findUserUseCase: FindUserUseCase,
     private val manageUserCodeUseCase: ManageUserCodeUseCase,
-    private val userFriendUseCase: UserFriendUseCase
+    private val friendUseCase: FriendUseCase
 ) {
 
     @Operation(summary = "유저 코드 등록/수정", description = "유저가 본인의 userCode를 새로 설정 또는 수정합니다.")
@@ -57,7 +57,7 @@ class UserCodeController(
         val targetUser = findUserUseCase.findByUserCode(targetCode)
             ?: throw ResourceNotFoundException("해당 코드($targetCode)를 가진 유저가 없습니다.")
 
-        userFriendUseCase.sendFriendRequest(userId.toObjectId(), targetUser.id!!)
+        friendUseCase.sendFriendRequest(userId.toObjectId(), targetUser.id!!)
     }
 
 }

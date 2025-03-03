@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.domain.chat.user.User
 import org.bson.types.ObjectId
 
-interface UserFriendUseCase {
+interface FriendUseCase {
     fun sendFriendRequest(currentUserId: ObjectId, targetUserId: ObjectId)
     fun acceptFriendRequest(currentUserId: ObjectId, requesterId: ObjectId)
     fun rejectFriendRequest(currentUserId: ObjectId, requesterId: ObjectId)

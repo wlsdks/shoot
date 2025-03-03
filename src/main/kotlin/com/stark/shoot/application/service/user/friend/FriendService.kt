@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
-import com.stark.shoot.application.port.`in`.user.friend.UserFriendUseCase
+import com.stark.shoot.application.port.`in`.user.friend.FriendUseCase
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
@@ -10,14 +10,19 @@ import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.common.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.common.exception.web.ResourceNotFoundException
 import org.bson.types.ObjectId
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
 
 @Service
-class UserFriendService(
+class FriendService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
-    private val eventPublisher: EventPublisher
-) : UserFriendUseCase {
+    private val eventPublisher: EventPublisher,
+    private val redisStringTemplate: StringRedisTemplate
+) : FriendUseCase {
+
+    // 추천 시스템에서 사용하는 최대 깊이 (예: 2)
+    private val maxDepth = 2
 
     /**
      * 친구 요청 보내기
@@ -50,6 +55,10 @@ class UserFriendService(
         // 양쪽에 pending 상태로 저장
         updateFriendPort.addOutgoingFriendRequest(currentUserId, targetUserId)
         updateFriendPort.addIncomingFriendRequest(targetUserId, currentUserId)
+
+        // 친구 관계 변경으로 인해 추천 캐시 무효화 (양쪽 모두)
+        invalidateRecommendationCacheForUser(currentUserId)
+        invalidateRecommendationCacheForUser(targetUserId)
     }
 
     /**
@@ -77,6 +86,10 @@ class UserFriendService(
         // SSE 이벤트 발행
         eventPublisher.publish(FriendAddedEvent(userId = currentUserId.toString(), friendId = requesterId.toString()))
         eventPublisher.publish(FriendAddedEvent(userId = requesterId.toString(), friendId = currentUserId.toString()))
+
+        // 친구 관계 변경으로 인해 추천 캐시 무효화 (양쪽 모두)
+        invalidateRecommendationCacheForUser(currentUserId)
+        invalidateRecommendationCacheForUser(requesterId)
     }
 
     /**
@@ -95,6 +108,10 @@ class UserFriendService(
         // 요청 보낸 쪽에서 outgoing에서 제거
         updateFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
         updateFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
+
+        // 친구 관계 변경으로 인해 추천 캐시 무효화 (양쪽 모두)
+        invalidateRecommendationCacheForUser(currentUserId)
+        invalidateRecommendationCacheForUser(requesterId)
     }
 
     /**
@@ -120,11 +137,17 @@ class UserFriendService(
 
         // 친구 관계 업데이트
         updateFriendPort.updateFriends(updatedFriend)
-        return updateFriendPort.updateFriends(updatedUser)
+        val updateFriends = updateFriendPort.updateFriends(updatedUser)
+
+        // 친구 관계 변경으로 인해 추천 캐시 무효화 (양쪽 모두)
+        invalidateRecommendationCacheForUser(userId)
+        invalidateRecommendationCacheForUser(friendId)
+
+        return updateFriends
     }
 
     /**
-     * 친구 요청 거절
+     * 잠재적 친구 검색
      */
     override fun searchPotentialFriends(
         currentUserId: ObjectId,
@@ -154,6 +177,21 @@ class UserFriendService(
                         ignoreCase = true
                     ))
         }.map { FriendResponse(id = it.id.toString(), username = it.username) }
+    }
+
+    /**
+     * 친구 추천 캐시 무효화 로직.
+     * 캐시 키는 "friend_recommend:{userId}:{maxDepth}" 형식으로 구성됨.
+     */
+    private fun invalidateRecommendationCacheForUser(userId: ObjectId) {
+        val cacheKey = "friend_recommend:${userId}:$maxDepth"
+        try {
+            redisStringTemplate.delete(cacheKey)
+            // 로컬 캐시를 사용 중이라면 여기서도 제거
+        } catch (e: Exception) {
+            // 로그 기록 등 처리 (예: 로깅 라이브러리 사용)
+            println("캐시 삭제 실패: $cacheKey, error: ${e.message}")
+        }
     }
 
 }

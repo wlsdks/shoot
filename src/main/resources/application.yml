@@ -38,11 +38,11 @@ spring:
 logging:
   level:
     root: INFO
-    com.stark.shoot: DEBUG
-    org.springframework.data.mongodb: DEBUG
-    org.springframework.messaging: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.kafka: DEBUG
+    com.stark.shoot: INFO
+    org.springframework.data.mongodb: INFO
+    org.springframework.messaging: INFO
+    org.springframework.web: INFO
+    org.springframework.kafka: INFO
 
 jwt:
   secret: "your-256-bit-secret-key-base64-encoded"

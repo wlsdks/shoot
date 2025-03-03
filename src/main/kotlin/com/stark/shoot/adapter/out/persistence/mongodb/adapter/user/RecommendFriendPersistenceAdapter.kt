@@ -49,10 +49,10 @@ class RecommendFriendPersistenceAdapter(
         skip: Int,
         limit: Int
     ): List<User> {
-        // 1. 시작 사용자 매칭 (_id == userId)
+        // 1. 시작 사용자 매칭
         val matchStage = Aggregation.match(Criteria.where("_id").`is`(userId))
 
-        // 2. $graphLookup: 시작 사용자의 friends 배열을 시작점으로 최대 maxDepth까지 탐색
+        // 2. $graphLookup: 친구 네트워크 탐색
         val graphLookupStage = GraphLookupOperation.builder()
             .from("users")
             .startWith("\$friends")
@@ -62,7 +62,7 @@ class RecommendFriendPersistenceAdapter(
             .depthField("depth")
             .`as`("network")
 
-        // 3. exclusions 계산: 시작 사용자의 friends, incomingFriendRequests, outgoingFriendRequests, 자기 자신
+        // 3. exclusions 계산: 친구, 요청, 자기 자신
         val addExclusionsStage = AddFieldsOperation.builder()
             .addField("exclusions")
             .withValue(
@@ -79,13 +79,13 @@ class RecommendFriendPersistenceAdapter(
             .withValue("\$friends")
             .build()
 
-        // 4. 필요한 필드만 project (network, exclusions, startUserFriends)
+        // 4. 필요한 필드만 프로젝션
         val projectStage = Aggregation.project("network", "exclusions", "startUserFriends")
 
         // 5. network 배열을 unwind하여 각 친구 문서로 분리
         val unwindStage = Aggregation.unwind("network")
 
-        // 6. $replaceWith: network 필드를 candidate로 포함하고, exclusions와 startUserFriends도 함께 유지
+        // 6. candidate 필드 재구조화
         val replaceWithStage = ReplaceWithOperation.replaceWithValue(
             Document().apply {
                 put("candidate", "\$network")
@@ -94,14 +94,14 @@ class RecommendFriendPersistenceAdapter(
             }
         )
 
-        // 7. candidate의 _id가 exclusions 배열에 포함되지 않은 문서만 선택 ($expr 사용)
+        // 7. exclusions 기준 필터링 (이미 친구, 요청자, 자기 자신 제외)
         val matchExclusionsStage = Aggregation.match(
             Criteria.where("\$expr").`is`(
                 Document("\$not", Document("\$in", listOf("\$candidate._id", "\$exclusions")))
             )
         )
 
-        // 8. candidate와 시작 사용자의 friends의 교집합 크기를 계산하여 mutualCount 필드 추가
+        // 8. 상호 친구 수 계산
         val addMutualCountStage = AddFieldsOperation.builder()
             .addField("mutualCount")
             .withValue(
@@ -109,14 +109,19 @@ class RecommendFriendPersistenceAdapter(
             )
             .build()
 
-        // 9. mutualCount 내림차순 정렬
+        // 9. 그룹화 단계: candidate._id 기준 중복 제거
+        val groupStage = Aggregation.group("\$candidate._id")
+            .first("candidate").`as`("candidate")
+            .max("mutualCount").`as`("mutualCount")
+
+        // 10. mutualCount 내림차순 정렬
         val sortStage = Aggregation.sort(Sort.by(Sort.Direction.DESC, "mutualCount"))
 
-        // 10. skip 및 limit 적용 (페이지네이션)
+        // 11. 페이지네이션: skip, limit
         val skipStage = Aggregation.skip(skip.toLong())
         val limitStage = Aggregation.limit(limit.toLong())
 
-        // 11. 최종적으로 candidate 필드만으로 문서를 대체
+        // 12. 최종적으로 candidate 필드만 반환
         val finalReplaceWithStage = ReplaceWithOperation.replaceWithValue("\$candidate")
 
         // Aggregation 파이프라인 구성
@@ -129,6 +134,7 @@ class RecommendFriendPersistenceAdapter(
             replaceWithStage,
             matchExclusionsStage,
             addMutualCountStage,
+            groupStage, // 추가된 그룹 단계로 중복 제거
             sortStage,
             skipStage,
             limitStage,
@@ -139,7 +145,7 @@ class RecommendFriendPersistenceAdapter(
         val results = mongoTemplate.aggregate(aggregation, "users", UserDocument::class.java)
         val recommendedUsers = results.mappedResults.map { userMapper.toDomain(it) }
 
-        // 추천 결과가 없을 경우, fallback으로 랜덤 유저 반환 (자기 자신 제외)
+        // fallback: 추천 결과가 없을 경우 자기 자신 제외 후 랜덤 반환
         if (recommendedUsers.isEmpty()) {
             val fallbackCriteria = Criteria.where("_id").ne(userId)
             val fallbackAggregation = Aggregation.newAggregation(

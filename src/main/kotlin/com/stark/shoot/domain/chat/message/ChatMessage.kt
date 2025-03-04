@@ -16,5 +16,10 @@ data class ChatMessage(
     val updatedAt: Instant? = null,
     val isDeleted: Boolean = false,
     val readBy: MutableMap<String, Boolean> = mutableMapOf(),
-    var metadata: MutableMap<String, Any> = mutableMapOf() // 메타데이터 추가
+    var metadata: MutableMap<String, Any> = mutableMapOf(),
+
+    // 메시지 고정기능
+    val isPinned: Boolean = false,
+    val pinnedBy: String? = null,
+    val pinnedAt: Instant? = null
 )

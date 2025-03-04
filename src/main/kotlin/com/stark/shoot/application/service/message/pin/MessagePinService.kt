@@ -33,8 +33,8 @@ class MessagePinService(
         messageId: String,
         userId: String
     ): ChatMessage {
-        val message = loadChatMessagePort.findById(messageId.toObjectId())
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
+        val message = (loadChatMessagePort.findById(messageId.toObjectId())
+            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId"))
 
         // 이미 고정된 메시지인지 확인
         if (message.isPinned) {
@@ -42,7 +42,29 @@ class MessagePinService(
             return message
         }
 
-        // 메시지 업데이트
+        // 채팅방에 이미 고정된 메시지가 있는지 확인하고, 있다면 해제
+        val roomId = message.roomId
+        val currentPinnedMessage = loadChatMessagePort.findPinnedMessagesByRoomId(roomId.toObjectId(), 1).firstOrNull()
+
+        // 기존 고정 메시지가 있으면 해제
+        currentPinnedMessage?.let { pinnedMessage ->
+            // 이미 고정된 메시지 해제
+            val unpinnedMessage = pinnedMessage.copy(
+                isPinned = false,
+                pinnedBy = null,
+                pinnedAt = null,
+                updatedAt = Instant.now()
+            )
+            val savedUnpinnedMessage = saveChatMessagePort.save(unpinnedMessage)
+
+            // 고정 해제 이벤트 발행
+            sendPinStatusToClients(savedUnpinnedMessage, userId, false)
+            publishPinEvent(savedUnpinnedMessage, userId, false)
+
+            logger.info { "기존 고정 메시지 해제: messageId=${pinnedMessage.id}" }
+        }
+
+        // 새 메시지 고정
         val updatedMessage = message.copy(
             isPinned = true,
             pinnedBy = userId,
@@ -59,7 +81,7 @@ class MessagePinService(
         // 이벤트 발행
         publishPinEvent(savedMessage, userId, true)
 
-        logger.info { "메시지가 고정되었습니다: messageId=$messageId, userId=$userId" }
+        logger.info { "새 메시지가 고정되었습니다: messageId=$messageId, userId=$userId, roomId=$roomId" }
         return savedMessage
     }
 
@@ -105,18 +127,19 @@ class MessagePinService(
     }
 
     /**
-     * 채팅방에서 고정된 메시지 목록을 조회합니다.
+     * 채팅방에서 고정된 메시지를 조회합니다.
+     * 한 채팅방에는 최대 1개의 고정 메시지만 존재합니다.
      *
      * @param roomId 채팅방 ID
-     * @return 고정된 메시지 목록
+     * @return 고정된 메시지 목록 (최대 1개)
      */
     override fun getPinnedMessages(
         roomId: String
     ): List<ChatMessage> {
         logger.debug { "채팅방의 고정된 메시지 조회: roomId=$roomId" }
 
-        // 채팅방에서 고정된 메시지 조회 (최대 100개로 제한)
-        val pinnedMessages = loadChatMessagePort.findPinnedMessagesByRoomId(roomId.toObjectId(), 100)
+        // 채팅방에서 고정된 메시지 조회 (최대 1개)
+        val pinnedMessages = loadChatMessagePort.findPinnedMessagesByRoomId(roomId.toObjectId(), 1)
 
         logger.debug { "고정된 메시지 ${pinnedMessages.size}개 조회됨: roomId=$roomId" }
         return pinnedMessages

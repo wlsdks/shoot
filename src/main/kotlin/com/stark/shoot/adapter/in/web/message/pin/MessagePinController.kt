@@ -1,11 +1,12 @@
-package com.stark.shoot.adapter.`in`.web.dto.message.pin
+package com.stark.shoot.adapter.`in`.web.message.pin
 
-
+import com.stark.shoot.adapter.`in`.web.dto.message.pin.PinResponse
+import com.stark.shoot.adapter.`in`.web.dto.message.pin.PinnedMessagesResponse
 import com.stark.shoot.application.port.`in`.message.pin.MessagePinUseCase
-import com.stark.shoot.domain.chat.message.ChatMessage
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
 @Tag(name = "메시지 고정", description = "메시지 고정 관련 API")
@@ -22,10 +23,11 @@ class MessagePinController(
     @PostMapping("/{messageId}/pin")
     fun pinMessage(
         @PathVariable messageId: String,
-        @RequestParam userId: String
-    ): ResponseEntity<ChatMessage> {
+        authentication: Authentication
+    ): ResponseEntity<PinResponse> {
+        val userId = authentication.name
         val updatedMessage = messagePinUseCase.pinMessage(messageId, userId)
-        return ResponseEntity.ok(updatedMessage)
+        return ResponseEntity.ok(PinResponse.from(updatedMessage))
     }
 
     @Operation(
@@ -35,10 +37,11 @@ class MessagePinController(
     @DeleteMapping("/{messageId}/pin")
     fun unpinMessage(
         @PathVariable messageId: String,
-        @RequestParam userId: String
-    ): ResponseEntity<ChatMessage> {
+        authentication: Authentication
+    ): ResponseEntity<PinResponse> {
+        val userId = authentication.name
         val updatedMessage = messagePinUseCase.unpinMessage(messageId, userId)
-        return ResponseEntity.ok(updatedMessage)
+        return ResponseEntity.ok(PinResponse.from(updatedMessage))
     }
 
     @Operation(
@@ -48,9 +51,9 @@ class MessagePinController(
     @GetMapping("/pins")
     fun getPinnedMessages(
         @RequestParam roomId: String
-    ): ResponseEntity<List<ChatMessage>> {
+    ): ResponseEntity<PinnedMessagesResponse> {
         val pinnedMessages = messagePinUseCase.getPinnedMessages(roomId)
-        return ResponseEntity.ok(pinnedMessages)
+        return ResponseEntity.ok(PinnedMessagesResponse.from(roomId, pinnedMessages))
     }
 
 }

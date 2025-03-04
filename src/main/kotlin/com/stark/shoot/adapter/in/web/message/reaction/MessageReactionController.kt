@@ -1,11 +1,13 @@
 package com.stark.shoot.adapter.`in`.web.message.reaction
 
+import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionListResponse
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionRequest
+import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionResponse
 import com.stark.shoot.application.port.`in`.message.reaction.MessageReactionUseCase
-import com.stark.shoot.domain.chat.message.ChatMessage
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
 @Tag(name = "메시지 반응", description = "메시지 반응 관련 API")
@@ -22,12 +24,16 @@ class MessageReactionController(
     @PostMapping("/{messageId}/reactions")
     fun addReaction(
         @PathVariable messageId: String,
-        @RequestBody request: ReactionRequest
-    ): ResponseEntity<ChatMessage> {
+        @RequestBody request: ReactionRequest,
+        authentication: Authentication
+    ): ResponseEntity<ReactionResponse> {
+        val userId = authentication.name // JWT에서 추출된 userId
+
         val updatedMessage = messageReactionUseCase.addReaction(
-            messageId, request.userId, request.reactionType
+            messageId, userId, request.reactionType
         )
-        return ResponseEntity.ok(updatedMessage)
+
+        return ResponseEntity.ok(ReactionResponse.from(updatedMessage))
     }
 
     @Operation(
@@ -38,12 +44,15 @@ class MessageReactionController(
     fun removeReaction(
         @PathVariable messageId: String,
         @PathVariable reactionType: String,
-        @RequestParam userId: String
-    ): ResponseEntity<ChatMessage> {
+        authentication: Authentication
+    ): ResponseEntity<ReactionResponse> {
+        val userId = authentication.name
+
         val updatedMessage = messageReactionUseCase.removeReaction(
             messageId, userId, reactionType
         )
-        return ResponseEntity.ok(updatedMessage)
+
+        return ResponseEntity.ok(ReactionResponse.from(updatedMessage))
     }
 
     @Operation(
@@ -53,9 +62,9 @@ class MessageReactionController(
     @GetMapping("/{messageId}/reactions")
     fun getReactions(
         @PathVariable messageId: String
-    ): ResponseEntity<Map<String, Set<String>>> {
+    ): ResponseEntity<ReactionListResponse> {
         val reactions = messageReactionUseCase.getReactions(messageId)
-        return ResponseEntity.ok(reactions)
+        return ResponseEntity.ok(ReactionListResponse.from(messageId, reactions))
     }
 
 }

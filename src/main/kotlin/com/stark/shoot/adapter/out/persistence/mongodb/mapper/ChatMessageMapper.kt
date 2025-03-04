@@ -52,7 +52,7 @@ class ChatMessageMapper {
             createdAt = document.createdAt,
             updatedAt = document.updatedAt,
             readBy = document.readBy.toMutableMap(),
-            metadata = document.metadata?.toMutableMap() ?: mutableMapOf(), // 메타데이터 필드
+            metadata = document.metadata.toMutableMap() ?: mutableMapOf(), // 메타데이터 필드
             isPinned = document.isPinned,
             pinnedBy = document.pinnedBy?.toString(),
             pinnedAt = document.pinnedAt

@@ -44,7 +44,9 @@ class MessagePinService(
 
         // 채팅방에 이미 고정된 메시지가 있는지 확인하고, 있다면 해제
         val roomId = message.roomId
-        val currentPinnedMessage = loadChatMessagePort.findPinnedMessagesByRoomId(roomId.toObjectId(), 1).firstOrNull()
+        val currentPinnedMessage = loadChatMessagePort
+            .findPinnedMessagesByRoomId(roomId.toObjectId(), 1)
+            .firstOrNull()
 
         // 기존 고정 메시지가 있으면 해제
         currentPinnedMessage?.let { pinnedMessage ->

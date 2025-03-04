@@ -61,6 +61,21 @@ class ChatMessagePersistenceAdapter(
         return notReadMessage.map(chatMessageMapper::toDomain)
     }
 
+    override fun findPinnedMessagesByRoomId(
+        roomId: ObjectId,
+        limit: Int
+    ): List<ChatMessage> {
+        val pageable = PageRequest.of(
+            0,
+            limit,
+            Sort.by(Sort.Direction.DESC, "createdAt") // 최신순 정렬
+        )
+
+        // MongoDB 쿼리: {roomId: roomId, "metadata.isPinned": true}
+        return chatMessageRepository.findPinnedMessagesByRoomId(roomId, pageable)
+            .map(chatMessageMapper::toDomain)
+    }
+
     override fun save(
         message: ChatMessage
     ): ChatMessage {

@@ -21,4 +21,7 @@ interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, Obje
     @Query("{ 'roomId': ?0, 'readBy.?#{[1]}' : { \$ne: true } }")
     fun findUnreadMessages(roomId: ObjectId, userId: String): List<ChatMessageDocument>
 
+    @Query("{ 'roomId': ?0, 'isPinned': true }")
+    fun findPinnedMessagesByRoomId(roomId: ObjectId, pageable: Pageable = Pageable.unpaged()): List<ChatMessageDocument>
+
 }

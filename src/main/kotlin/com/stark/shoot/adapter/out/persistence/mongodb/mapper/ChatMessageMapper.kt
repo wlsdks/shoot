@@ -26,7 +26,10 @@ class ChatMessageMapper {
             mentions = domain.mentions.map { ObjectId(it) }.toSet(),
             isDeleted = domain.isDeleted,
             readBy = domain.readBy.toMutableMap(),
-            metadata = domain.metadata.toMutableMap() // 메타데이터 필드 추가
+            metadata = domain.metadata.toMutableMap(), // 메타데이터 필드
+            isPinned = domain.isPinned,
+            pinnedBy = domain.pinnedBy?.let { ObjectId(it) },
+            pinnedAt = domain.pinnedAt
         ).apply {
             // BaseMongoDocument의 id를 나중에 설정
             id = domain.id?.let { ObjectId(it) }
@@ -49,7 +52,10 @@ class ChatMessageMapper {
             createdAt = document.createdAt,
             updatedAt = document.updatedAt,
             readBy = document.readBy.toMutableMap(),
-            metadata = document.metadata?.toMutableMap() ?: mutableMapOf() // 메타데이터 필드 추가
+            metadata = document.metadata.toMutableMap() ?: mutableMapOf(), // 메타데이터 필드
+            isPinned = document.isPinned,
+            pinnedBy = document.pinnedBy?.toString(),
+            pinnedAt = document.pinnedAt
         )
     }
 
@@ -138,4 +144,5 @@ class ChatMessageMapper {
             fetchedAt = document.fetchedAt
         )
     }
+
 }

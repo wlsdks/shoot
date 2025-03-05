@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.common.exception.web
+package com.stark.shoot.infrastructure.exception.web
 
 data class ErrorResponse(
     val status: Int,

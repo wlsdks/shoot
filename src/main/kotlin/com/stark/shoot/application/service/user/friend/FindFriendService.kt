@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.infrastructure.common.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 

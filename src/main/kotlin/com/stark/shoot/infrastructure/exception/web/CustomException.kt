@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.common.exception.web
+package com.stark.shoot.infrastructure.exception.web
 
 class UnauthorizedException(message: String) : RuntimeException(message)
 class WebSocketException(message: String) : RuntimeException(message)

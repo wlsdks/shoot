@@ -1,5 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.user
 
+import com.stark.shoot.adapter.`in`.web.dto.ApiException
+import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
@@ -7,17 +9,16 @@ import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
 import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.http.ResponseEntity
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-
 
 @Tag(name = "인증", description = "사용자 인증 관련 API")
 @RequestMapping("/api/v1/auth")
 @RestController
 class AuthController(
     private val userLoginUseCase: UserLoginUseCase,
-    private val userAuthUseCase: UserAuthUseCase,
+    private val userAuthUseCase: UserAuthUseCase
 ) {
 
     @Operation(
@@ -27,9 +28,18 @@ class AuthController(
     @PostMapping("/login")
     fun login(
         @RequestBody request: LoginRequest
-    ): ResponseEntity<LoginResponse> {
-        val response = userLoginUseCase.login(request)
-        return ResponseEntity.ok(response)
+    ): ResponseDto<LoginResponse> {
+        return try {
+            val response = userLoginUseCase.login(request)
+            ResponseDto.success(response, "로그인에 성공했습니다.")
+        } catch (e: Exception) {
+            throw ApiException(
+                "로그인에 실패했습니다: ${e.message}",
+                ApiException.UNAUTHORIZED,
+                HttpStatus.UNAUTHORIZED,
+                e
+            )
+        }
     }
 
     @Operation(
@@ -39,9 +49,18 @@ class AuthController(
     @GetMapping("/me")
     fun getCurrentUser(
         authentication: Authentication
-    ): ResponseEntity<UserResponse> {
-        val user = userAuthUseCase.retrieveUserDetails(authentication)
-        return ResponseEntity.ok(user)
+    ): ResponseDto<UserResponse> {
+        return try {
+            val user = userAuthUseCase.retrieveUserDetails(authentication)
+            ResponseDto.success(user)
+        } catch (e: Exception) {
+            throw ApiException(
+                "사용자 정보 조회에 실패했습니다: ${e.message}",
+                ApiException.UNAUTHORIZED,
+                HttpStatus.UNAUTHORIZED,
+                e
+            )
+        }
     }
 
 }

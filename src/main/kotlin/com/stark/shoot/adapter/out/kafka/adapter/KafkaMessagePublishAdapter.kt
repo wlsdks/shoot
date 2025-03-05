@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.out.kafka.adapter
 
 import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
 import com.stark.shoot.domain.chat.event.ChatEvent
-import com.stark.shoot.infrastructure.common.exception.web.KafkaPublishException
+import com.stark.shoot.infrastructure.exception.web.KafkaPublishException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component

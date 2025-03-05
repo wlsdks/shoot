@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
-import com.stark.shoot.infrastructure.common.exception.web.ErrorResponse
+import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.data.redis.core.RedisTemplate

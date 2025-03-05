@@ -1,10 +1,13 @@
 package com.stark.shoot.adapter.`in`.web.social.recommand
 
+import com.stark.shoot.adapter.`in`.web.dto.ApiException
+import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -27,9 +30,20 @@ class UserRecommendController(
         @RequestParam(defaultValue = "10") limit: Int,
         @RequestParam(defaultValue = "2") maxDepth: Int,
         @RequestParam(defaultValue = "0") skip: Int
-    ): List<FriendResponse> {
-        // 입력받은 userId를 ObjectId로 변환하여 BFS 탐색 후 추천 친구 목록을 반환
-        return recommendFriendsUseCase.findBFSRecommendedUsers(userId.toObjectId(), maxDepth, skip, limit)
+    ): ResponseDto<List<FriendResponse>> {
+        return try {
+            val recommendations = recommendFriendsUseCase.findBFSRecommendedUsers(
+                userId.toObjectId(), maxDepth, skip, limit
+            )
+            ResponseDto.success(recommendations)
+        } catch (e: Exception) {
+            throw ApiException(
+                "친구 추천에 실패했습니다: ${e.message}",
+                ApiException.RESOURCE_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                e
+            )
+        }
     }
-    
+
 }

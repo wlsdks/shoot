@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.message
 
-import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 
 interface RetrieveMessageUseCase {
-    fun getMessages(roomId: String, lastId: String?, limit: Int): List<ChatMessage>
+    fun getMessages(roomId: String, lastId: String?, limit: Int): List<MessageResponseDto>
 }

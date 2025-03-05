@@ -1,6 +1,6 @@
 package com.stark.shoot.infrastructure.config.security
 
-import com.stark.shoot.infrastructure.common.exception.web.JwtAuthenticationException
+import com.stark.shoot.infrastructure.exception.web.JwtAuthenticationException
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import com.stark.shoot.infrastructure.config.security.service.CustomUserDetails
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken

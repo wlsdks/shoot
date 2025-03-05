@@ -1,5 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.user
 
+import com.stark.shoot.adapter.`in`.web.dto.ApiException
+import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.CreateUserRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
@@ -8,8 +10,8 @@ import com.stark.shoot.application.port.`in`.user.UserDeleteUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.bson.types.ObjectId
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
@@ -18,7 +20,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 class UserController(
     private val userCreateUseCase: UserCreateUseCase,
-    private val userDeleteUseCase: UserDeleteUseCase,
+    private val userDeleteUseCase: UserDeleteUseCase
 ) {
 
     @Operation(
@@ -26,11 +28,19 @@ class UserController(
         description = "새로운 사용자를 생성합니다."
     )
     @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun createUser(
-        @ModelAttribute request: CreateUserRequest
-    ): ResponseEntity<UserResponse> {
-        val user = userCreateUseCase.createUser(request)
-        return ResponseEntity.ok(user.toResponse())
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createUser(@ModelAttribute request: CreateUserRequest): ResponseDto<UserResponse> {
+        return try {
+            val user = userCreateUseCase.createUser(request)
+            ResponseDto.success(user.toResponse(), "회원가입이 완료되었습니다.")
+        } catch (e: Exception) {
+            throw ApiException(
+                "회원가입 처리 중 오류가 발생했습니다: ${e.message}",
+                ApiException.INVALID_INPUT,
+                HttpStatus.BAD_REQUEST,
+                e
+            )
+        }
     }
 
     @Operation(
@@ -42,10 +52,10 @@ class UserController(
         """
     )
     @DeleteMapping("/me")
-    fun deleteUser(authentication: Authentication): ResponseEntity<Void> {
-        val userId = ObjectId(authentication.name) // JWT에서 추출된 userId
+    fun deleteUser(authentication: Authentication): ResponseDto<Nothing?> {
+        val userId = ObjectId(authentication.name)
         userDeleteUseCase.deleteUser(userId)
-        return ResponseEntity.noContent().build()
+        return ResponseDto.success(null, "회원 탈퇴가 완료되었습니다.")
     }
 
 }

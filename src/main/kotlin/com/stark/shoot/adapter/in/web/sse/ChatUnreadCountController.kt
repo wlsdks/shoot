@@ -35,6 +35,7 @@ class ChatUnreadCountController(
         return try {
             sseEmitterUseCase.createEmitter(userId)
         } catch (e: Exception) {
+            logger.error(e) { "SSE 연결 실패: $userId - ${e.message}" }
             sendErrorResponse(e, userId)
         }
     }

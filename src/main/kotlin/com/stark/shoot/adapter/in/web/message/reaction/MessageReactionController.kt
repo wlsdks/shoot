@@ -1,12 +1,14 @@
 package com.stark.shoot.adapter.`in`.web.message.reaction
 
+import com.stark.shoot.adapter.`in`.web.dto.ApiException
+import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionListResponse
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionResponse
 import com.stark.shoot.application.port.`in`.message.reaction.MessageReactionUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.http.ResponseEntity
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
@@ -26,14 +28,21 @@ class MessageReactionController(
         @PathVariable messageId: String,
         @RequestBody request: ReactionRequest,
         authentication: Authentication
-    ): ResponseEntity<ReactionResponse> {
-        val userId = authentication.name // JWT에서 추출된 userId
-
-        val updatedMessage = messageReactionUseCase.addReaction(
-            messageId, userId, request.reactionType
-        )
-
-        return ResponseEntity.ok(ReactionResponse.from(updatedMessage))
+    ): ResponseDto<ReactionResponse> {
+        return try {
+            val userId = authentication.name // JWT에서 추출된 userId
+            val updatedMessage = messageReactionUseCase.addReaction(
+                messageId, userId, request.reactionType
+            )
+            ResponseDto.success(ReactionResponse.from(updatedMessage), "반응이 추가되었습니다.")
+        } catch (e: Exception) {
+            throw ApiException(
+                "반응 추가에 실패했습니다: ${e.message}",
+                ApiException.RESOURCE_NOT_FOUND,
+                HttpStatus.BAD_REQUEST,
+                e
+            )
+        }
     }
 
     @Operation(
@@ -45,14 +54,21 @@ class MessageReactionController(
         @PathVariable messageId: String,
         @PathVariable reactionType: String,
         authentication: Authentication
-    ): ResponseEntity<ReactionResponse> {
-        val userId = authentication.name
-
-        val updatedMessage = messageReactionUseCase.removeReaction(
-            messageId, userId, reactionType
-        )
-
-        return ResponseEntity.ok(ReactionResponse.from(updatedMessage))
+    ): ResponseDto<ReactionResponse> {
+        return try {
+            val userId = authentication.name
+            val updatedMessage = messageReactionUseCase.removeReaction(
+                messageId, userId, reactionType
+            )
+            ResponseDto.success(ReactionResponse.from(updatedMessage), "반응이 제거되었습니다.")
+        } catch (e: Exception) {
+            throw ApiException(
+                "반응 제거에 실패했습니다: ${e.message}",
+                ApiException.RESOURCE_NOT_FOUND,
+                HttpStatus.BAD_REQUEST,
+                e
+            )
+        }
     }
 
     @Operation(
@@ -62,9 +78,18 @@ class MessageReactionController(
     @GetMapping("/{messageId}/reactions")
     fun getReactions(
         @PathVariable messageId: String
-    ): ResponseEntity<ReactionListResponse> {
-        val reactions = messageReactionUseCase.getReactions(messageId)
-        return ResponseEntity.ok(ReactionListResponse.from(messageId, reactions))
+    ): ResponseDto<ReactionListResponse> {
+        return try {
+            val reactions = messageReactionUseCase.getReactions(messageId)
+            ResponseDto.success(ReactionListResponse.from(messageId, reactions))
+        } catch (e: Exception) {
+            throw ApiException(
+                "반응 조회에 실패했습니다: ${e.message}",
+                ApiException.RESOURCE_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                e
+            )
+        }
     }
 
 }

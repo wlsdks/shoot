@@ -1,15 +1,16 @@
 package com.stark.shoot.adapter.`in`.web.message
 
+import com.stark.shoot.adapter.`in`.web.dto.ApiException
+import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.application.port.`in`.message.RetrieveMessageUseCase
 import com.stark.shoot.domain.chat.message.ChatMessage
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.http.ResponseEntity
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import java.time.Instant
 
 @Tag(name = "메시지", description = "메시지 관련 API")
 @RequestMapping("/api/v1/messages")
@@ -25,11 +26,20 @@ class MessageReadController(
     @GetMapping("/get")
     fun getMessages(
         @RequestParam roomId: String,
-        @RequestParam(required = false) lastId: String?, // 마지막 메시지 ID (ObjectId)
+        @RequestParam(required = false) lastId: String?,
         @RequestParam(defaultValue = "20") limit: Int
-    ): ResponseEntity<List<ChatMessage>> {
-        val messages = retrieveMessageUseCase.getMessages(roomId, lastId, limit)
-        return ResponseEntity.ok(messages)
+    ): ResponseDto<List<ChatMessage>> {
+        return try {
+            val messages = retrieveMessageUseCase.getMessages(roomId, lastId, limit)
+            ResponseDto.success(messages)
+        } catch (e: Exception) {
+            throw ApiException(
+                "메시지 조회에 실패했습니다: ${e.message}",
+                ApiException.RESOURCE_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                e
+            )
+        }
     }
-
+    
 }

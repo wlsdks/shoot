@@ -1,9 +1,11 @@
 package com.stark.shoot.adapter.`in`.web.sse
 
+import com.stark.shoot.adapter.`in`.web.dto.ApiException
+import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.http.ResponseEntity
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -24,10 +26,19 @@ class MessageReadSseController(
     fun markMessageRead(
         @RequestParam roomId: String,
         @RequestParam userId: String,
-        @RequestParam(required = false) requestId: String? // 세션 대신 요청 식별자 사용
-    ): ResponseEntity<Unit> {
-        processMessageUseCase.markAllMessagesAsRead(roomId, userId, requestId)
-        return ResponseEntity.noContent().build()
+        @RequestParam(required = false) requestId: String?
+    ): ResponseDto<Nothing?> {
+        return try {
+            processMessageUseCase.markAllMessagesAsRead(roomId, userId, requestId)
+            ResponseDto.success(null, "메시지가 읽음으로 처리되었습니다.")
+        } catch (e: Exception) {
+            throw ApiException(
+                "메시지 읽음 처리에 실패했습니다: ${e.message}",
+                ApiException.INVALID_INPUT,
+                HttpStatus.BAD_REQUEST,
+                e
+            )
+        }
     }
 
 }

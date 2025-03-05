@@ -52,10 +52,10 @@ class UserController(
         """
     )
     @DeleteMapping("/me")
-    fun deleteUser(authentication: Authentication): ResponseDto<Nothing?> {
+    fun deleteUser(authentication: Authentication): ResponseDto<Unit> {
         val userId = ObjectId(authentication.name)
         userDeleteUseCase.deleteUser(userId)
-        return ResponseDto.success(null, "회원 탈퇴가 완료되었습니다.")
+        return ResponseDto.success(Unit, "회원 탈퇴가 완료되었습니다.")
     }
 
 }

@@ -27,7 +27,7 @@ class GlobalExceptionHandler {
 
         // 일반 요청은 기존대로 처리
         logger.error(ex) { "Unhandled exception: ${ex.message}" }
-        val responseDto = ResponseDto.error<Nothing>(ex)
+        val responseDto = ResponseDto.error<Unit>(ex)
         return ResponseEntity(responseDto, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 

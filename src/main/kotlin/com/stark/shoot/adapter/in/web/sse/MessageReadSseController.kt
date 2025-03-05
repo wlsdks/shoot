@@ -27,10 +27,10 @@ class MessageReadSseController(
         @RequestParam roomId: String,
         @RequestParam userId: String,
         @RequestParam(required = false) requestId: String?
-    ): ResponseDto<Nothing?> {
+    ): ResponseDto<Unit> {
         return try {
             processMessageUseCase.markAllMessagesAsRead(roomId, userId, requestId)
-            ResponseDto.success(null, "메시지가 읽음으로 처리되었습니다.")
+            ResponseDto.success(Unit, "메시지가 읽음으로 처리되었습니다.")
         } catch (e: Exception) {
             throw ApiException(
                 "메시지 읽음 처리에 실패했습니다: ${e.message}",

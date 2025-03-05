@@ -125,10 +125,10 @@ class ChatRoomController(
     fun updateAnnouncement(
         @PathVariable roomId: String,
         @RequestBody request: AnnouncementRequest
-    ): ResponseDto<Nothing?> {
+    ): ResponseDto<Unit> {
         return try {
             manageChatRoomUseCase.updateAnnouncement(roomId, request.announcement)
-            ResponseDto.success(null, "공지사항이 업데이트되었습니다.")
+            ResponseDto.success(Unit, "공지사항이 업데이트되었습니다.")
         } catch (e: Exception) {
             throw ApiException(
                 "공지사항 업데이트에 실패했습니다: ${e.message}",

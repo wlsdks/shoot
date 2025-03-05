@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.user.token
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.token.RefreshTokenUseCase
 import com.stark.shoot.application.port.out.user.token.RefreshTokenStorePort
-import com.stark.shoot.infrastructure.common.exception.web.InvalidRefreshTokenException
+import com.stark.shoot.infrastructure.exception.web.InvalidRefreshTokenException
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import org.springframework.stereotype.Service
 

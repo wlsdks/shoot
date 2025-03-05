@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.common.exception.socket
+package com.stark.shoot.infrastructure.exception.socket
 
 data class WebSocketError(
     val code: String,

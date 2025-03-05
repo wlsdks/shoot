@@ -9,7 +9,7 @@ import com.stark.shoot.application.port.out.message.SaveChatMessagePort
 import com.stark.shoot.domain.chat.event.ChatBulkReadEvent
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.infrastructure.common.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bson.types.ObjectId

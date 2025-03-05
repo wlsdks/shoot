@@ -6,7 +6,7 @@ import com.stark.shoot.application.port.out.message.LoadChatMessagePort
 import com.stark.shoot.application.port.out.message.SaveChatMessagePort
 import com.stark.shoot.domain.chat.event.MessageReactionEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.infrastructure.common.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service

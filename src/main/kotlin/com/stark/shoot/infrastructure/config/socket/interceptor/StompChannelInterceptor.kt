@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.infrastructure.common.exception.web.WebSocketException
+import com.stark.shoot.infrastructure.exception.web.WebSocketException
 import com.stark.shoot.infrastructure.config.socket.StompPrincipal
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.messaging.Message

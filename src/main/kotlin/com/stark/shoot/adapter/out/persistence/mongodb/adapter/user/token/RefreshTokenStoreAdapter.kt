@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user.token
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocument
 import com.stark.shoot.application.port.out.user.token.RefreshTokenStorePort
-import com.stark.shoot.infrastructure.common.exception.web.InvalidRefreshTokenException
+import com.stark.shoot.infrastructure.exception.web.InvalidRefreshTokenException
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria

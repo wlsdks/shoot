@@ -1,7 +1,10 @@
 package com.stark.shoot.adapter.`in`.web
 
+import com.stark.shoot.adapter.`in`.web.dto.ApiException
+import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -15,12 +18,17 @@ class MongoTestController(
         description = "MongoDB 연결 테스트를 수행합니다."
     )
     @GetMapping("/test-mongo")
-    fun testMongo(): String {
+    fun testMongo(): ResponseDto<String> {
         return try {
-            mongoTemplate.db.name // 현재 연결된 데이터베이스 이름 반환
-            "MongoDB 연결 성공: ${mongoTemplate.db.name}"
+            val dbName = mongoTemplate.db.name
+            ResponseDto.success("MongoDB 연결 성공: $dbName", "MongoDB 연결 테스트가 성공했습니다.")
         } catch (e: Exception) {
-            "MongoDB 연결 실패: ${e.message}"
+            throw ApiException(
+                "MongoDB 연결 실패: ${e.message}",
+                ApiException.DATABASE_ERROR,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                e
+            )
         }
     }
 

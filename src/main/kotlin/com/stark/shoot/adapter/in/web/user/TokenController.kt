@@ -24,7 +24,9 @@ class TokenController(
         description = "유효한 리프레시 토큰으로 새 액세스 토큰을 발급받음"
     )
     @PostMapping("/refresh-token")
-    fun refreshToken(@RequestHeader("Authorization") refreshTokenHeader: String): ResponseDto<LoginResponse> {
+    fun refreshToken(
+        @RequestHeader("Authorization") refreshTokenHeader: String
+    ): ResponseDto<LoginResponse> {
         return try {
             val loginResponse = refreshTokenUseCase.generateNewAccessToken(refreshTokenHeader)
             ResponseDto.success(loginResponse, "새 액세스 토큰이 발급되었습니다.")

@@ -26,7 +26,9 @@ class AuthController(
         description = "username, password로 로그인 후 JWT 토큰 발급"
     )
     @PostMapping("/login")
-    fun login(@RequestBody request: LoginRequest): ResponseDto<LoginResponse> {
+    fun login(
+        @RequestBody request: LoginRequest
+    ): ResponseDto<LoginResponse> {
         return try {
             val response = userLoginUseCase.login(request)
             ResponseDto.success(response, "로그인에 성공했습니다.")
@@ -45,7 +47,9 @@ class AuthController(
         description = "현재 로그인된 사용자의 전체 정보를 반환합니다."
     )
     @GetMapping("/me")
-    fun getCurrentUser(authentication: Authentication): ResponseDto<UserResponse> {
+    fun getCurrentUser(
+        authentication: Authentication
+    ): ResponseDto<UserResponse> {
         return try {
             val user = userAuthUseCase.retrieveUserDetails(authentication)
             ResponseDto.success(user)

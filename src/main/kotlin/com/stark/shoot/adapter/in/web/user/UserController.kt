@@ -29,7 +29,9 @@ class UserController(
     )
     @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
-    fun createUser(@ModelAttribute request: CreateUserRequest): ResponseDto<UserResponse> {
+    fun createUser(
+        @ModelAttribute request: CreateUserRequest
+    ): ResponseDto<UserResponse> {
         return try {
             val user = userCreateUseCase.createUser(request)
             ResponseDto.success(user.toResponse(), "회원가입이 완료되었습니다.")
@@ -52,7 +54,9 @@ class UserController(
         """
     )
     @DeleteMapping("/me")
-    fun deleteUser(authentication: Authentication): ResponseDto<Unit> {
+    fun deleteUser(
+        authentication: Authentication
+    ): ResponseDto<Unit> {
         val userId = ObjectId(authentication.name)
         userDeleteUseCase.deleteUser(userId)
         return ResponseDto.success(Unit, "회원 탈퇴가 완료되었습니다.")

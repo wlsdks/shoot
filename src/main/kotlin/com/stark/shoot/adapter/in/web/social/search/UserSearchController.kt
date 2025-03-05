@@ -20,7 +20,10 @@ class UserSearchController(
     private val friendUseCase: FriendUseCase
 ) {
 
-    @Operation(summary = "친구 검색", description = "로그인 사용자의 친구 목록 중 검색어와 일치하는 친구들을 반환합니다.")
+    @Operation(
+        summary = "친구 검색",
+        description = "로그인 사용자의 친구 목록 중 검색어와 일치하는 친구들을 반환합니다."
+    )
     @GetMapping("/search")
     fun searchFriends(
         @RequestParam userId: String,

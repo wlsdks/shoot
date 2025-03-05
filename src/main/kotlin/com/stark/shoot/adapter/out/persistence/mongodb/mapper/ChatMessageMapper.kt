@@ -1,5 +1,8 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.mapper
 
+import com.stark.shoot.adapter.`in`.web.dto.message.AttachmentDto
+import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
+import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.ChatMessageDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.AttachmentDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
@@ -26,12 +29,11 @@ class ChatMessageMapper {
             mentions = domain.mentions.map { ObjectId(it) }.toSet(),
             isDeleted = domain.isDeleted,
             readBy = domain.readBy.toMutableMap(),
-            metadata = domain.metadata.toMutableMap(), // 메타데이터 필드
+            metadata = domain.metadata.toMutableMap(),
             isPinned = domain.isPinned,
             pinnedBy = domain.pinnedBy?.let { ObjectId(it) },
             pinnedAt = domain.pinnedAt
         ).apply {
-            // BaseMongoDocument의 id를 나중에 설정
             id = domain.id?.let { ObjectId(it) }
             createdAt = domain.createdAt
         }
@@ -39,27 +41,28 @@ class ChatMessageMapper {
 
     fun toDomain(document: ChatMessageDocument): ChatMessage {
         return ChatMessage(
-            id = document.id?.toString(),          // ObjectId -> String
-            roomId = document.roomId.toString(),   // ObjectId -> String
-            senderId = document.senderId.toString(), // ObjectId -> String
+            id = document.id?.toString(),
+            roomId = document.roomId.toString(),
+            senderId = document.senderId.toString(),
             content = toMessageContent(document.content),
             status = document.status,
             replyToMessageId = document.replyToMessageId?.toString(),
-            reactions = document.reactions.mapValues { (_, userIds) ->  // Set<ObjectId> -> Set<String>
+            reactions = document.reactions.mapValues { (_, userIds) ->
                 userIds.map { it.toString() }.toSet()
             },
             mentions = document.mentions.map { it.toString() }.toSet(),
             createdAt = document.createdAt,
             updatedAt = document.updatedAt,
+            isDeleted = document.isDeleted,
             readBy = document.readBy.toMutableMap(),
-            metadata = document.metadata.toMutableMap() ?: mutableMapOf(), // 메타데이터 필드
+            metadata = document.metadata.toMutableMap() ?: mutableMapOf(),
             isPinned = document.isPinned,
             pinnedBy = document.pinnedBy?.toString(),
             pinnedAt = document.pinnedAt
         )
     }
 
-    // MessageContent <-> MessageContentDocument
+    // MessageContent <-> MessageContentDocument 변환
     private fun toMessageContentDocument(domain: MessageContent): MessageContentDocument {
         return MessageContentDocument(
             text = domain.text,
@@ -82,7 +85,7 @@ class ChatMessageMapper {
         )
     }
 
-    // MessageMetadata <-> MessageMetadataDocument
+    // MessageMetadata <-> MessageMetadataDocument 변환
     private fun toMessageMetadataDocument(domain: MessageMetadata): MessageMetadataDocument {
         return MessageMetadataDocument(
             urlPreview = domain.urlPreview?.let { toUrlPreviewDocument(it) },
@@ -97,7 +100,7 @@ class ChatMessageMapper {
         )
     }
 
-    // 첨부 파일 변환 메서드들
+    // Attachment <-> AttachmentDocument 변환
     private fun toAttachmentDocument(domain: Attachment): AttachmentDocument {
         return AttachmentDocument(
             id = domain.id,
@@ -122,7 +125,7 @@ class ChatMessageMapper {
         )
     }
 
-    // URL 프리뷰 변환 메서드들
+    // UrlPreview <-> UrlPreviewDocument 변환
     private fun toUrlPreviewDocument(domain: UrlPreview): UrlPreviewDocument {
         return UrlPreviewDocument(
             url = domain.url,
@@ -143,6 +146,51 @@ class ChatMessageMapper {
             siteName = document.siteName,
             fetchedAt = document.fetchedAt
         )
+    }
+
+    // 도메인 Attachment를 AttachmentDto로 변환
+    private fun toAttachmentDto(attachment: Attachment): AttachmentDto {
+        return AttachmentDto(
+            id = attachment.id,
+            filename = attachment.filename,
+            contentType = attachment.contentType,
+            size = attachment.size,
+            url = attachment.url,
+            thumbnailUrl = attachment.thumbnailUrl
+        )
+    }
+
+    // 도메인 모델(ChatMessage)을 MessageResponseDto로 변환
+    fun toDto(message: ChatMessage): MessageResponseDto {
+        return MessageResponseDto(
+            id = message.id ?: "",
+            roomId = message.roomId,
+            senderId = message.senderId,
+            content = MessageContentResponseDto(
+                text = message.content.text,
+                type = message.content.type,
+                attachments = message.content.attachments.map { toAttachmentDto(it) },
+                isEdited = message.content.isEdited,
+                isDeleted = message.content.isDeleted
+            ),
+            status = message.status,
+            replyToMessageId = message.replyToMessageId,
+            reactions = message.reactions,
+            mentions = message.mentions,
+            createdAt = message.createdAt,
+            updatedAt = message.updatedAt,
+            readBy = message.readBy,
+            isPinned = message.isPinned,
+            pinnedBy = message.pinnedBy,
+            pinnedAt = message.pinnedAt
+        )
+    }
+
+    /**
+     * 도메인 모델 리스트를 DTO 리스트로 변환
+     */
+    fun toDtoList(messages: List<ChatMessage>): List<MessageResponseDto> {
+        return messages.map { toDto(it) }
     }
 
 }

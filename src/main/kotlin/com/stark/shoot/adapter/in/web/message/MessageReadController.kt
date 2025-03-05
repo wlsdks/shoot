@@ -2,8 +2,8 @@ package com.stark.shoot.adapter.`in`.web.message
 
 import com.stark.shoot.adapter.`in`.web.dto.ApiException
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
+import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.application.port.`in`.message.RetrieveMessageUseCase
-import com.stark.shoot.domain.chat.message.ChatMessage
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
@@ -28,10 +28,10 @@ class MessageReadController(
         @RequestParam roomId: String,
         @RequestParam(required = false) lastId: String?,
         @RequestParam(defaultValue = "20") limit: Int
-    ): ResponseDto<List<ChatMessage>> {
+    ): ResponseDto<List<MessageResponseDto>> {
         return try {
-            val messages = retrieveMessageUseCase.getMessages(roomId, lastId, limit)
-            ResponseDto.success(messages)
+            val messageDtos = retrieveMessageUseCase.getMessages(roomId, lastId, limit)
+            ResponseDto.success(messageDtos)
         } catch (e: Exception) {
             throw ApiException(
                 "메시지 조회에 실패했습니다: ${e.message}",
@@ -41,5 +41,5 @@ class MessageReadController(
             )
         }
     }
-    
+
 }

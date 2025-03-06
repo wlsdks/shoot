@@ -1,12 +1,10 @@
 package com.stark.shoot.adapter.`in`.web.message
 
-import com.stark.shoot.adapter.`in`.web.dto.ApiException
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.application.port.`in`.message.RetrieveMessageUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -29,17 +27,8 @@ class MessageReadController(
         @RequestParam(required = false) lastId: String?,
         @RequestParam(defaultValue = "20") limit: Int
     ): ResponseDto<List<MessageResponseDto>> {
-        return try {
-            val messageDtos = retrieveMessageUseCase.getMessages(roomId, lastId, limit)
-            ResponseDto.success(messageDtos)
-        } catch (e: Exception) {
-            throw ApiException(
-                "메시지 조회에 실패했습니다: ${e.message}",
-                ApiException.RESOURCE_NOT_FOUND,
-                HttpStatus.NOT_FOUND,
-                e
-            )
-        }
+        val messageDtos = retrieveMessageUseCase.getMessages(roomId, lastId, limit)
+        return ResponseDto.success(messageDtos)
     }
 
 }

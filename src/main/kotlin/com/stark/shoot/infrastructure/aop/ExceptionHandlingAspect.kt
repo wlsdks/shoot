@@ -8,11 +8,14 @@ import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
 import org.aspectj.lang.reflect.MethodSignature
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
 
 /**
  * 모든 원시 예외를 ApiException으로 변환하고 로깅하는 Aspect
@@ -25,8 +28,10 @@ import java.util.concurrent.ConcurrentHashMap
 class ExceptionHandlingAspect {
 
     private val logger = KotlinLogging.logger {}
-
     private val errorCountMap = ConcurrentHashMap<String, Int>()
+
+    @Autowired
+    private lateinit var logExecutor: Executor
 
     @Around("@within(org.springframework.web.bind.annotation.RestController) || @within(org.springframework.web.bind.annotation.ControllerAdvice)")
     fun handleControllerExceptions(joinPoint: ProceedingJoinPoint): Any? {
@@ -47,7 +52,10 @@ class ExceptionHandlingAspect {
                 .filter { (name, _) -> !name.contains("password", ignoreCase = true) }
                 .joinToString(", ") { (name, value) -> "$name: ${value?.toString()?.take(100)}" }
 
-            logger.error { "Exception in $endpoint[$params]: ${e.message}" }
+            // 예외 로깅 (비동기 처리)
+            CompletableFuture.runAsync({
+                logger.error { "Exception in $endpoint[$params]: ${e.message}" }
+            }, logExecutor)
 
             // 예외 처리 로직
             when (e) {

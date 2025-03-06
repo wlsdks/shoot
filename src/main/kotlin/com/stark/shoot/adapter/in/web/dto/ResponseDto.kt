@@ -52,7 +52,7 @@ data class ResponseDto<T>(
                 success = false,
                 data = null,
                 message = exception.message,
-                errorCode = exception.errorCode,
+                errorCode = exception.errorCode.code,
                 timestamp = Instant.now(),
                 code = exception.status.value()
             )
@@ -65,4 +65,5 @@ data class ResponseDto<T>(
             return ResponseDto(false, null, exception.message, null, Instant.now(), code)
         }
     }
+    
 }

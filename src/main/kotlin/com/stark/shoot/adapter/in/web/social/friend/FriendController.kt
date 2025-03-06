@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.`in`.web.social.friend
 
-import com.stark.shoot.adapter.`in`.web.dto.ApiException
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
@@ -11,7 +10,6 @@ import com.stark.shoot.infrastructure.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.bson.types.ObjectId
-import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
@@ -28,17 +26,8 @@ class FriendController(
     fun getMyFriends(
         @RequestParam userId: String
     ): ResponseDto<List<FriendResponse>> {
-        return try {
-            val friends = findFriendUseCase.getFriends(userId.toObjectId())
-            ResponseDto.success(friends)
-        } catch (e: Exception) {
-            throw ApiException(
-                "친구 목록 조회에 실패했습니다: ${e.message}",
-                ApiException.RESOURCE_NOT_FOUND,
-                HttpStatus.NOT_FOUND,
-                e
-            )
-        }
+        val friends = findFriendUseCase.getFriends(userId.toObjectId())
+        return ResponseDto.success(friends)
     }
 
     @Operation(summary = "받은 친구 요청 목록", description = "내가 받은 친구 요청들(incoming)")
@@ -46,17 +35,8 @@ class FriendController(
     fun getIncomingFriendRequests(
         @RequestParam userId: String
     ): ResponseDto<List<FriendResponse>> {
-        return try {
-            val incomingRequests = findFriendUseCase.getIncomingFriendRequests(userId.toObjectId())
-            ResponseDto.success(incomingRequests)
-        } catch (e: Exception) {
-            throw ApiException(
-                "받은 친구 요청 목록 조회에 실패했습니다: ${e.message}",
-                ApiException.RESOURCE_NOT_FOUND,
-                HttpStatus.NOT_FOUND,
-                e
-            )
-        }
+        val incomingRequests = findFriendUseCase.getIncomingFriendRequests(userId.toObjectId())
+        return ResponseDto.success(incomingRequests)
     }
 
     @Operation(summary = "보낸 친구 요청 목록", description = "내가 보낸 친구 요청들(outgoing)")
@@ -64,17 +44,8 @@ class FriendController(
     fun getOutgoingFriendRequests(
         @RequestParam userId: String
     ): ResponseDto<List<FriendResponse>> {
-        return try {
-            val outgoingRequests = findFriendUseCase.getOutgoingFriendRequests(userId.toObjectId())
-            ResponseDto.success(outgoingRequests)
-        } catch (e: Exception) {
-            throw ApiException(
-                "보낸 친구 요청 목록 조회에 실패했습니다: ${e.message}",
-                ApiException.RESOURCE_NOT_FOUND,
-                HttpStatus.NOT_FOUND,
-                e
-            )
-        }
+        val outgoingRequests = findFriendUseCase.getOutgoingFriendRequests(userId.toObjectId())
+        return ResponseDto.success(outgoingRequests)
     }
 
     @Operation(summary = "친구 요청 보내기", description = "다른 사용자에게 친구 요청을 보냄")
@@ -83,40 +54,8 @@ class FriendController(
         @RequestParam userId: String,
         @RequestParam targetUserId: String
     ): ResponseDto<Unit> {
-        return try {
-            friendUseCase.sendFriendRequest(userId.toObjectId(), targetUserId.toObjectId())
-            ResponseDto.success(Unit, "친구 요청을 보냈습니다.")
-        } catch (e: Exception) {
-            when {
-                e.message?.contains("자기 자신") == true -> throw ApiException(
-                    e.message!!,
-                    ApiException.SELF_FRIEND_REQUEST,
-                    HttpStatus.BAD_REQUEST,
-                    e
-                )
-
-                e.message?.contains("이미 친구") == true -> throw ApiException(
-                    e.message!!,
-                    ApiException.ALREADY_FRIENDS,
-                    HttpStatus.BAD_REQUEST,
-                    e
-                )
-
-                e.message?.contains("이미 친구 요청") == true -> throw ApiException(
-                    e.message!!,
-                    ApiException.FRIEND_REQUEST_ALREADY_SENT,
-                    HttpStatus.BAD_REQUEST,
-                    e
-                )
-
-                else -> throw ApiException(
-                    "친구 요청에 실패했습니다: ${e.message}",
-                    ApiException.INVALID_INPUT,
-                    HttpStatus.BAD_REQUEST,
-                    e
-                )
-            }
-        }
+        friendUseCase.sendFriendRequest(userId.toObjectId(), targetUserId.toObjectId())
+        return ResponseDto.success(Unit, "친구 요청을 보냈습니다.")
     }
 
     @Operation(summary = "친구 요청 수락", description = "받은 친구 요청을 수락하여 서로 친구가 됨")
@@ -125,17 +64,8 @@ class FriendController(
         @RequestParam userId: String,
         @RequestParam requesterId: String
     ): ResponseDto<Unit> {
-        return try {
-            friendUseCase.acceptFriendRequest(userId.toObjectId(), requesterId.toObjectId())
-            ResponseDto.success(Unit, "친구 요청을 수락했습니다.")
-        } catch (e: Exception) {
-            throw ApiException(
-                "친구 요청 수락에 실패했습니다: ${e.message}",
-                ApiException.FRIEND_REQUEST_NOT_FOUND,
-                HttpStatus.BAD_REQUEST,
-                e
-            )
-        }
+        friendUseCase.acceptFriendRequest(userId.toObjectId(), requesterId.toObjectId())
+        return ResponseDto.success(Unit, "친구 요청을 수락했습니다.")
     }
 
     @Operation(summary = "친구 요청 거절", description = "받은 친구 요청을 거절")
@@ -144,17 +74,8 @@ class FriendController(
         @RequestParam userId: String,
         @RequestParam requesterId: String
     ): ResponseDto<Unit> {
-        return try {
-            friendUseCase.rejectFriendRequest(userId.toObjectId(), requesterId.toObjectId())
-            ResponseDto.success(Unit, "친구 요청을 거절했습니다.")
-        } catch (e: Exception) {
-            throw ApiException(
-                "친구 요청 거절에 실패했습니다: ${e.message}",
-                ApiException.FRIEND_REQUEST_NOT_FOUND,
-                HttpStatus.BAD_REQUEST,
-                e
-            )
-        }
+        friendUseCase.rejectFriendRequest(userId.toObjectId(), requesterId.toObjectId())
+        return ResponseDto.success(Unit, "친구 요청을 거절했습니다.")
     }
 
     @Operation(summary = "친구 삭제", description = "친구 목록에서 사용자를 삭제합니다.")
@@ -163,18 +84,9 @@ class FriendController(
         authentication: Authentication,
         @PathVariable friendId: String
     ): ResponseDto<UserResponse> {
-        return try {
-            val userId = ObjectId(authentication.name)
-            val user = friendUseCase.removeFriend(userId, ObjectId(friendId))
-            ResponseDto.success(user.toResponse(), "친구가 삭제되었습니다.")
-        } catch (e: Exception) {
-            throw ApiException(
-                "친구 삭제에 실패했습니다: ${e.message}",
-                ApiException.RESOURCE_NOT_FOUND,
-                HttpStatus.BAD_REQUEST,
-                e
-            )
-        }
+        val userId = ObjectId(authentication.name)
+        val user = friendUseCase.removeFriend(userId, ObjectId(friendId))
+        return ResponseDto.success(user.toResponse(), "친구가 삭제되었습니다.")
     }
 
 }

@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.`in`.web.user
 
-import com.stark.shoot.adapter.`in`.web.dto.ApiException
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.CreateUserRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
@@ -32,17 +31,8 @@ class UserController(
     fun createUser(
         @ModelAttribute request: CreateUserRequest
     ): ResponseDto<UserResponse> {
-        return try {
-            val user = userCreateUseCase.createUser(request)
-            ResponseDto.success(user.toResponse(), "회원가입이 완료되었습니다.")
-        } catch (e: Exception) {
-            throw ApiException(
-                "회원가입 처리 중 오류가 발생했습니다: ${e.message}",
-                ApiException.INVALID_INPUT,
-                HttpStatus.BAD_REQUEST,
-                e
-            )
-        }
+        val user = userCreateUseCase.createUser(request)
+        return ResponseDto.success(user.toResponse(), "회원가입이 완료되었습니다.")
     }
 
     @Operation(

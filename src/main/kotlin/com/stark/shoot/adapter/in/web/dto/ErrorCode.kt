@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus
 enum class ErrorCode(
     val code: String,
     val status: HttpStatus,
-    val message: String? = null
+    val message: String
 ) {
     // 공통 에러 (1000번대)
     INVALID_INPUT("E1001", HttpStatus.BAD_REQUEST, "유효하지 않은 입력입니다"),
@@ -37,4 +37,18 @@ enum class ErrorCode(
     // 외부 시스템 연동 에러 (9000번대)
     EXTERNAL_SERVICE_ERROR("E9001", HttpStatus.INTERNAL_SERVER_ERROR, "외부 서비스 오류"),
     DATABASE_ERROR("E9002", HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류");
+
+    // 에러 코드 문서화를 위한 함수
+    companion object {
+        fun getErrorCodeMap(): Map<String, Map<String, Any>> {
+            return values().associate { errorCode ->
+                errorCode.code to mapOf(
+                    "message" to errorCode.message,
+                    "status" to errorCode.status.value(),
+                    "description" to errorCode.name
+                )
+            }
+        }
+    }
+    
 }

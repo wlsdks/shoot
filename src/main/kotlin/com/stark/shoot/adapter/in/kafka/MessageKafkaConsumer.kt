@@ -18,7 +18,7 @@ class MessageKafkaConsumer(
 ) {
     private val logger = KotlinLogging.logger {}
 
-    @KafkaListener(topics = ["chat-messages"], groupId = "shoot-\${random.uuid}")
+    @KafkaListener(topics = ["chat-messages"], groupId = "shoot")
     fun consumeMessage(@Payload event: ChatEvent) {
         if (event.type == EventType.MESSAGE_CREATED) {
             try {

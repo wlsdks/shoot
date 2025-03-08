@@ -53,6 +53,21 @@ class ChatMessagePersistenceAdapter(
             .map(chatMessageMapper::toDomain)
     }
 
+    override fun findByRoomIdAndAfterId(
+        roomId: ObjectId,
+        lastId: ObjectId,
+        limit: Int
+    ): List<ChatMessage> {
+        val pageable = PageRequest.of(
+            0,
+            limit,
+            Sort.by(Sort.Direction.ASC, "_id") // ID 오름차순 정렬 (이후 메시지)
+        )
+
+        return chatMessageRepository.findByRoomIdAndIdAfter(roomId, lastId, pageable)
+            .map(chatMessageMapper::toDomain)
+    }
+
     override fun findUnreadByRoomId(
         roomId: ObjectId,
         userId: ObjectId

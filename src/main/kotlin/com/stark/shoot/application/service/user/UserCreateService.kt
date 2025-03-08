@@ -4,17 +4,22 @@ import com.stark.shoot.adapter.`in`.web.dto.user.CreateUserRequest
 import com.stark.shoot.application.port.`in`.user.UserCreateUseCase
 import com.stark.shoot.application.port.out.user.UserCreatePort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.infrastructure.annotation.UseCase
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.stereotype.Service
 import java.util.*
 
-@Service
+@UseCase
 class UserCreateService(
     private val userCreatePort: UserCreatePort,
     private val passwordEncoder: PasswordEncoder
 ) : UserCreateUseCase {
 
-    // 예시: User 생성 시 자동으로 userCode 생성
+    /**
+     * 사용자 생성
+     *
+     * @param request 사용자 생성 요청
+     * @return 생성된 사용자 정보
+     */
     override fun createUser(
         request: CreateUserRequest
     ): User {

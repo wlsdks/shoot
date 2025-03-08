@@ -1,24 +1,18 @@
-package com.stark.shoot.application.service.user.friend.schedule
+package com.stark.shoot.application.service.user.friend.recommend
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.application.port.out.user.friend.RecommendFriendPort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bson.types.ObjectId
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Service
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
-/**
- * 최적화된 친구 추천 서비스
- * - 캐싱 적용
- * - 주기적 사전 계산
- * - 리소스 사용량 제한
- */
-@Service
+@UseCase
 class FriendRecommendScheduleService(
     private val recommendFriendPort: RecommendFriendPort,
     private val redisStringTemplate: RedisTemplate<String, String>,

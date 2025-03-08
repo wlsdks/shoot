@@ -1,4 +1,4 @@
-package com.stark.shoot.application.service.user.friend
+package com.stark.shoot.application.service.user.friend.recommend
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -6,21 +6,15 @@ import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
 import com.stark.shoot.application.port.out.user.friend.RecommendFriendPort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bson.types.ObjectId
 import org.springframework.data.redis.core.StringRedisTemplate
-import org.springframework.stereotype.Service
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
-/**
- * 최적화된 친구 추천 서비스
- * - 캐싱 적용
- * - 주기적 사전 계산
- * - 리소스 사용량 제한
- */
-@Service
+@UseCase
 class RecommendFriendService(
     private val recommendFriendPort: RecommendFriendPort,
     private val redisStringTemplate: StringRedisTemplate,
@@ -173,22 +167,6 @@ class RecommendFriendService(
                     username = user.username
                 )
             }
-    }
-
-
-    /**
-     * 친구 관계 변경 시 캐시 무효화
-     * 친구 요청, 수락, 거절 등의 작업 후 호출하여 최신 상태를 반영하도록 함
-     */
-    fun invalidateCacheForUser(userId: ObjectId, maxDepth: Int) {
-        val cacheKey = getCacheKey(userId, maxDepth)
-        try {
-            redisStringTemplate.delete(cacheKey)
-            logger.debug { "Redis 캐시 삭제 성공: $cacheKey" }
-        } catch (e: Exception) {
-            logger.warn(e) { "Redis 캐시 삭제 실패: $cacheKey" }
-        }
-        localCache.remove(cacheKey)
     }
 
 }

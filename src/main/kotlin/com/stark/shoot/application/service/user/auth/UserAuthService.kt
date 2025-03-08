@@ -4,13 +4,14 @@ import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.exception.web.UnauthorizedException
 import org.bson.types.ObjectId
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 
-@Service
+@UseCase
 class UserAuthService(
     private val findUserPort: FindUserPort
 ) : UserAuthUseCase {

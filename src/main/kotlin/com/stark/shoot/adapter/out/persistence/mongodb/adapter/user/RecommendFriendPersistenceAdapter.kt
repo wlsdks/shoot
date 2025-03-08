@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocumen
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UserMapper
 import com.stark.shoot.application.port.out.user.friend.RecommendFriendPort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.springframework.data.domain.Sort
@@ -13,9 +14,8 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.aggregation.GraphLookupOperation
 import org.springframework.data.mongodb.core.aggregation.ReplaceWithOperation
 import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.stereotype.Component
 
-@Component
+@Adapter
 class RecommendFriendPersistenceAdapter(
     private val userMapper: UserMapper,
     private val mongoTemplate: MongoTemplate

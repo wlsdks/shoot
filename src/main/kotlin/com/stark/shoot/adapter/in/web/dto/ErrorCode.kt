@@ -26,6 +26,7 @@ enum class ErrorCode(
     SCHEDULED_MESSAGE_NOT_FOUND("E3005", HttpStatus.NOT_FOUND, "예약된 메시지를 찾을 수 없습니다"),
     SCHEDULED_MESSAGE_NOT_OWNED("E3006", HttpStatus.FORBIDDEN, "예약된 메시지를 소유하고 있지 않습니다"),
     SCHEDULED_MESSAGE_ALREADY_PROCESSED("E3007", HttpStatus.BAD_REQUEST, "이미 처리된 예약 메시지입니다"),
+    DRAFT_MESSAGE_NOT_FOUND("E3008", HttpStatus.NOT_FOUND, "임시 메시지를 찾을 수 없습니다"),
 
     // 채팅방 관련 에러 (4000번대)
     ROOM_NOT_FOUND("E4001", HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다"),

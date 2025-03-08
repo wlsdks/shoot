@@ -6,14 +6,14 @@ import com.stark.shoot.application.port.out.message.LoadChatMessagePort
 import com.stark.shoot.application.port.out.message.SaveChatMessagePort
 import com.stark.shoot.domain.chat.event.MessagePinEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.messaging.simp.SimpMessagingTemplate
-import org.springframework.stereotype.Service
 import java.time.Instant
 
-@Service
+@UseCase
 class MessagePinService(
     private val loadChatMessagePort: LoadChatMessagePort,
     private val saveChatMessagePort: SaveChatMessagePort,
@@ -23,7 +23,8 @@ class MessagePinService(
     private val logger = KotlinLogging.logger {}
 
     /**
-     * 메시지를 고정합니다.
+     * 메시지를 고정합니다. (채팅방에는 최대 1개의 고정 메시지만 존재)
+     * 만약 이미 고정된 메시지가 있으면, 해당 메시지를 해제하고 새 메시지를 고정합니다.
      *
      * @param messageId 메시지 ID
      * @param userId 사용자 ID
@@ -33,6 +34,7 @@ class MessagePinService(
         messageId: String,
         userId: String
     ): ChatMessage {
+        // 메시지 조회
         val message = (loadChatMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId"))
 
@@ -43,47 +45,16 @@ class MessagePinService(
         }
 
         // 채팅방에 이미 고정된 메시지가 있는지 확인하고, 있다면 해제
-        val roomId = message.roomId
-        val currentPinnedMessage = loadChatMessagePort
-            .findPinnedMessagesByRoomId(roomId.toObjectId(), 1)
-            .firstOrNull()
-
-        // 기존 고정 메시지가 있으면 해제
-        currentPinnedMessage?.let { pinnedMessage ->
-            // 이미 고정된 메시지 해제
-            val unpinnedMessage = pinnedMessage.copy(
-                isPinned = false,
-                pinnedBy = null,
-                pinnedAt = null,
-                updatedAt = Instant.now()
-            )
-            val savedUnpinnedMessage = saveChatMessagePort.save(unpinnedMessage)
-
-            // 고정 해제 이벤트 발행
-            sendPinStatusToClients(savedUnpinnedMessage, userId, false)
-            publishPinEvent(savedUnpinnedMessage, userId, false)
-
-            logger.info { "기존 고정 메시지 해제: messageId=${pinnedMessage.id}" }
-        }
+        unPinnedAlreadyExistMessage(message, userId)
 
         // 새 메시지 고정
-        val updatedMessage = message.copy(
-            isPinned = true,
-            pinnedBy = userId,
-            pinnedAt = Instant.now(),
-            updatedAt = Instant.now()
-        )
-
-        // 메시지 저장
-        val savedMessage = saveChatMessagePort.save(updatedMessage)
+        val savedMessage = pinnedNewMessage(message, userId)
 
         // WebSocket을 통해 실시간 업데이트 전송
         sendPinStatusToClients(savedMessage, userId, true)
 
         // 이벤트 발행
         publishPinEvent(savedMessage, userId, true)
-
-        logger.info { "새 메시지가 고정되었습니다: messageId=$messageId, userId=$userId, roomId=$roomId" }
         return savedMessage
     }
 
@@ -145,6 +116,81 @@ class MessagePinService(
 
         logger.debug { "고정된 메시지 ${pinnedMessages.size}개 조회됨: roomId=$roomId" }
         return pinnedMessages
+    }
+
+    /**
+     * 채팅방에 이미 고정된 메시지가 있는지 확인하고, 있다면 해제합니다.
+     *
+     * @param message 메시지
+     * @param userId 사용자 ID
+     */
+    private fun unPinnedAlreadyExistMessage(
+        message: ChatMessage,
+        userId: String
+    ) {
+        // 채팅방 ID
+        val roomId = message.roomId
+
+        // 채팅방에서 고정된 메시지 조회 (최대 1개)
+        val currentPinnedMessage = loadChatMessagePort
+            .findPinnedMessagesByRoomId(roomId.toObjectId(), 1)
+            .firstOrNull()
+
+        // 기존 고정 메시지가 있으면 해제
+        unPinnedMessage(currentPinnedMessage, userId)
+    }
+
+    /**
+     * 채팅방에 이미 고정된 메시지가 있는지 확인하고, 있다면 해제합니다.
+     *
+     * @param currentPinnedMessage 현재 고정된 메시지
+     * @param userId 사용자 ID
+     */
+    private fun unPinnedMessage(
+        currentPinnedMessage: ChatMessage?,
+        userId: String
+    ) {
+        currentPinnedMessage?.let { pinnedMessage ->
+            // 이미 고정된 메시지 해제
+            val unpinnedMessage = pinnedMessage.copy(
+                isPinned = false,
+                pinnedBy = null,
+                pinnedAt = null,
+                updatedAt = Instant.now()
+            )
+            val savedUnpinnedMessage = saveChatMessagePort.save(unpinnedMessage)
+
+            // 고정 해제 이벤트 발행
+            sendPinStatusToClients(savedUnpinnedMessage, userId, false)
+            publishPinEvent(savedUnpinnedMessage, userId, false)
+
+            logger.info { "기존 고정 메시지 해제: messageId=${pinnedMessage.id}" }
+        }
+    }
+
+    /**
+     * 메시지를 고정합니다.
+     *
+     * @param message 메시지
+     * @param userId 사용자 ID
+     * @return 고정된 메시지
+     */
+    private fun pinnedNewMessage(
+        message: ChatMessage,
+        userId: String
+    ): ChatMessage {
+        // 메시지 업데이트
+        val updatedMessage = message.copy(
+            isPinned = true,
+            pinnedBy = userId,
+            pinnedAt = Instant.now(),
+            updatedAt = Instant.now()
+        )
+
+        // 메시지 저장
+        val savedMessage = saveChatMessagePort.save(updatedMessage)
+
+        return savedMessage
     }
 
     /**

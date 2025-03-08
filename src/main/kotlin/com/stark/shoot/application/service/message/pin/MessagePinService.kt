@@ -2,8 +2,8 @@ package com.stark.shoot.application.service.message.pin
 
 import com.stark.shoot.application.port.`in`.message.pin.MessagePinUseCase
 import com.stark.shoot.application.port.out.event.EventPublisher
-import com.stark.shoot.application.port.out.message.LoadChatMessagePort
-import com.stark.shoot.application.port.out.message.SaveChatMessagePort
+import com.stark.shoot.application.port.out.message.LoadMessagePort
+import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.event.MessagePinEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -15,8 +15,8 @@ import java.time.Instant
 
 @UseCase
 class MessagePinService(
-    private val loadChatMessagePort: LoadChatMessagePort,
-    private val saveChatMessagePort: SaveChatMessagePort,
+    private val loadMessagePort: LoadMessagePort,
+    private val saveMessagePort: SaveMessagePort,
     private val messagingTemplate: SimpMessagingTemplate,
     private val eventPublisher: EventPublisher
 ) : MessagePinUseCase {
@@ -35,7 +35,7 @@ class MessagePinService(
         userId: String
     ): ChatMessage {
         // 메시지 조회
-        val message = (loadChatMessagePort.findById(messageId.toObjectId())
+        val message = (loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId"))
 
         // 이미 고정된 메시지인지 확인
@@ -69,7 +69,7 @@ class MessagePinService(
         messageId: String,
         userId: String
     ): ChatMessage {
-        val message = loadChatMessagePort.findById(messageId.toObjectId())
+        val message = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
         // 고정되지 않은 메시지인지 확인
@@ -87,7 +87,7 @@ class MessagePinService(
         )
 
         // 메시지 저장
-        val savedMessage = saveChatMessagePort.save(updatedMessage)
+        val savedMessage = saveMessagePort.save(updatedMessage)
 
         // WebSocket을 통해 실시간 업데이트 전송
         sendPinStatusToClients(savedMessage, userId, false)
@@ -112,7 +112,7 @@ class MessagePinService(
         logger.debug { "채팅방의 고정된 메시지 조회: roomId=$roomId" }
 
         // 채팅방에서 고정된 메시지 조회 (최대 1개)
-        val pinnedMessages = loadChatMessagePort.findPinnedMessagesByRoomId(roomId.toObjectId(), 1)
+        val pinnedMessages = loadMessagePort.findPinnedMessagesByRoomId(roomId.toObjectId(), 1)
 
         logger.debug { "고정된 메시지 ${pinnedMessages.size}개 조회됨: roomId=$roomId" }
         return pinnedMessages
@@ -132,7 +132,7 @@ class MessagePinService(
         val roomId = message.roomId
 
         // 채팅방에서 고정된 메시지 조회 (최대 1개)
-        val currentPinnedMessage = loadChatMessagePort
+        val currentPinnedMessage = loadMessagePort
             .findPinnedMessagesByRoomId(roomId.toObjectId(), 1)
             .firstOrNull()
 
@@ -158,7 +158,7 @@ class MessagePinService(
                 pinnedAt = null,
                 updatedAt = Instant.now()
             )
-            val savedUnpinnedMessage = saveChatMessagePort.save(unpinnedMessage)
+            val savedUnpinnedMessage = saveMessagePort.save(unpinnedMessage)
 
             // 고정 해제 이벤트 발행
             sendPinStatusToClients(savedUnpinnedMessage, userId, false)
@@ -188,7 +188,7 @@ class MessagePinService(
         )
 
         // 메시지 저장
-        val savedMessage = saveChatMessagePort.save(updatedMessage)
+        val savedMessage = saveMessagePort.save(updatedMessage)
 
         return savedMessage
     }

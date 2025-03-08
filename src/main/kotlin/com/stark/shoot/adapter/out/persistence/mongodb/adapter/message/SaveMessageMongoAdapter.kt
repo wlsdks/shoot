@@ -2,15 +2,15 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message
 
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMongoRepository
-import com.stark.shoot.application.port.out.message.SaveChatMessagePort
+import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
-class SaveChatMessageMongoAdapter(
+class SaveMessageMongoAdapter(
     private val chatMessageRepository: ChatMessageMongoRepository,
     private val chatMessageMapper: ChatMessageMapper
-) : SaveChatMessagePort {
+) : SaveMessagePort {
 
     /**
      * 채팅 메시지 저장

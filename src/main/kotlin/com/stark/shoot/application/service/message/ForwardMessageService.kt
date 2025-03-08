@@ -4,8 +4,8 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 import com.stark.shoot.application.port.`in`.message.ForwardMessageUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
-import com.stark.shoot.application.port.out.message.LoadChatMessagePort
-import com.stark.shoot.application.port.out.message.SaveChatMessagePort
+import com.stark.shoot.application.port.out.message.LoadMessagePort
+import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -15,8 +15,8 @@ import java.time.Instant
 
 @UseCase
 class ForwardMessageService(
-    private val loadChatMessagePort: LoadChatMessagePort,
-    private val saveChatMessagePort: SaveChatMessagePort,
+    private val loadMessagePort: LoadMessagePort,
+    private val saveMessagePort: SaveMessagePort,
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort
 ) : ForwardMessageUseCase {
@@ -30,7 +30,7 @@ class ForwardMessageService(
         forwardingUserId: String
     ): ChatMessage {
         // 1. 원본 메시지 조회
-        val originalMessage = (loadChatMessagePort.findById(originalMessageId.toObjectId())
+        val originalMessage = (loadMessagePort.findById(originalMessageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$originalMessageId"))
 
         // 2. 메시지 내용을 복사 (전달임을 표시하기 위해 텍스트 앞에 "[Forwarded]"를 추가)
@@ -76,7 +76,7 @@ class ForwardMessageService(
         )
 
         // 대상 채팅방에 새 메시지 저장 (도메인 객체로 반환)
-        val savedMessage = saveChatMessagePort.save(newMessage)
+        val savedMessage = saveMessagePort.save(newMessage)
 
         return savedMessage
     }

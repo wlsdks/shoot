@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.ApiException
 import com.stark.shoot.adapter.`in`.web.dto.ErrorCode
 import com.stark.shoot.application.port.`in`.chatroom.UpdateChatRoomFavoriteUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
-import com.stark.shoot.application.port.out.chatroom.LoadUserPinnedRoomsPort
+import com.stark.shoot.application.port.out.chatroom.LoadPinnedRoomsPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.Participant
@@ -18,7 +18,7 @@ import java.time.Instant
 class UpdateChatRoomFavoriteService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
-    private val loadUserPinnedRoomsPort: LoadUserPinnedRoomsPort
+    private val loadPinnedRoomsPort: LoadPinnedRoomsPort
 ) : UpdateChatRoomFavoriteUseCase {
 
     companion object {
@@ -43,7 +43,7 @@ class UpdateChatRoomFavoriteService(
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. id=$roomId")
 
         // 현재 사용자의 핀 채팅방 목록 조회
-        val pinnedRooms = loadUserPinnedRoomsPort.findByUserId(userId)
+        val pinnedRooms = loadPinnedRoomsPort.findByUserId(userId)
 
         // 참여자 메타데이터 업데이트: 사용자의 즐겨찾기 플래그 변경
         val updatedParticipants = updateParticipantsMetadata(chatRoom, userId, isFavorite, pinnedRooms)

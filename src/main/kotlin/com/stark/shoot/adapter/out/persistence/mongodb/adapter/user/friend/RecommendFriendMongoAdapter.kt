@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user
+package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user.friend
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UserMapper

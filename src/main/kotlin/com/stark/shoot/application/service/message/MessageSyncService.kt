@@ -5,7 +5,7 @@ import com.stark.shoot.adapter.`in`.web.socket.dto.MessageSyncInfoDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncResponseDto
 import com.stark.shoot.application.port.`in`.message.MessageSyncUseCase
-import com.stark.shoot.application.port.out.message.LoadChatMessagePort
+import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.enumerate.SyncDirection
@@ -16,7 +16,7 @@ import java.time.Instant
 
 @UseCase
 class MessageSyncService(
-    private val loadChatMessagePort: LoadChatMessagePort,
+    private val loadMessagePort: LoadMessagePort,
     private val messagingTemplate: SimpMessagingTemplate
 ) : MessageSyncUseCase {
 
@@ -49,7 +49,7 @@ class MessageSyncService(
             SyncDirection.INITIAL -> {
                 // 기본 동작: lastMessageId가 없으면 전체 조회, 있으면 이후 메시지 조회
                 if (request.lastMessageId == null) {
-                    allMessages.addAll(loadChatMessagePort.findByRoomId(roomObjectId, 50))
+                    allMessages.addAll(loadMessagePort.findByRoomId(roomObjectId, 50))
                 } else {
                     loadMessagesAfterLastMessage(request.lastMessageId, roomObjectId, allMessages)
                 }
@@ -82,7 +82,7 @@ class MessageSyncService(
         val lastId = messageId.toObjectId()
 
         // 이전 메시지 조회 (단일 배치)
-        val batch = loadChatMessagePort.findByRoomIdAndBeforeId(
+        val batch = loadMessagePort.findByRoomIdAndBeforeId(
             roomObjectId,
             lastId,
             30  // 이전 메시지는 한 번에 30개만 조회
@@ -112,7 +112,7 @@ class MessageSyncService(
 
         do {
             // 배치 사이즈 50개씩 조회
-            batch = loadChatMessagePort.findByRoomIdAndAfterId(
+            batch = loadMessagePort.findByRoomIdAndAfterId(
                 roomObjectId,
                 lastId,
                 50  // 이후 메시지는 한 번에 50개까지 조회

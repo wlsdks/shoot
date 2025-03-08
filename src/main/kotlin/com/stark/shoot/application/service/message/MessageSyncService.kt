@@ -8,6 +8,7 @@ import com.stark.shoot.application.port.`in`.message.MessageSyncUseCase
 import com.stark.shoot.application.port.out.message.LoadChatMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.enumerate.SyncDirection
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bson.types.ObjectId
@@ -33,14 +34,29 @@ class MessageSyncService(
         val roomObjectId = request.roomId.toObjectId()
         val allMessages = mutableListOf<ChatMessage>()
 
-        // lastMessageId가 없는 경우 (예: 처음 접속) 전체 또는 제한 없는 최근 메시지 전체 조회 (제한 없이 조회하기 위해 매우 큰 limit 값을 전달)
-        if (request.lastMessageId == null) {
-            allMessages.addAll(loadChatMessagePort.findByRoomId(roomObjectId, 9999))
-        }
+        when (request.direction) {
+            SyncDirection.BEFORE -> {
+                // 이전 메시지 조회
+                if (request.lastMessageId != null) {
+                    loadMessagesBeforeLastMessage(request.lastMessageId, roomObjectId, allMessages)
+                }
+            }
 
-        // lastMessageId가 있으면 클라이언트가 마지막으로 받은 메시지 이후의 모든 메시지를 가져오기 위해 배치로 조회
-        if (request.lastMessageId != null) {
-            loadMessagesAfterLastMessage(request.lastMessageId, roomObjectId, allMessages)
+            SyncDirection.AFTER -> {
+                // 이후 메시지 조회 (lastMessageId보다 이후 메시지)
+                if (request.lastMessageId != null) {
+                    loadMessagesAfterLastMessage(request.lastMessageId, roomObjectId, allMessages)
+                }
+            }
+
+            SyncDirection.INITIAL -> {
+                // 기본 동작: lastMessageId가 없으면 전체 조회, 있으면 이후 메시지 조회
+                if (request.lastMessageId == null) {
+                    allMessages.addAll(loadChatMessagePort.findByRoomId(roomObjectId, 50))
+                } else {
+                    loadMessagesAfterLastMessage(request.lastMessageId, roomObjectId, allMessages)
+                }
+            }
         }
 
         // 동기화 응답 데이터 생성
@@ -52,6 +68,33 @@ class MessageSyncService(
             "/queue/sync",
             response
         )
+    }
+
+    /**
+     * 지정된 메시지 이전의 메시지를 가져오기 위해 배치로 조회
+     *
+     * @param messageId 기준 메시지 ID
+     * @param roomObjectId 채팅방 ID
+     * @param allMessages 모든 메시지를 저장할 목록
+     */
+    private fun loadMessagesBeforeLastMessage(
+        messageId: String,
+        roomObjectId: ObjectId,
+        allMessages: MutableList<ChatMessage>
+    ) {
+        val lastId = messageId.toObjectId()
+
+        // 이전 메시지 조회 (단일 배치)
+        val batch = loadChatMessagePort.findByRoomIdAndBeforeId(
+            roomObjectId,
+            lastId,
+            30  // 이전 메시지는 한 번에 30개만 조회
+        )
+
+        // 조회된 메시지가 있으면 allMessages에 추가
+        if (batch.isNotEmpty()) {
+            allMessages.addAll(batch)
+        }
     }
 
 
@@ -72,11 +115,12 @@ class MessageSyncService(
 
         do {
             // 배치 사이즈 50개씩 조회
-            batch = loadChatMessagePort.findByRoomIdAndBeforeId(
+            batch = loadChatMessagePort.findByRoomIdAndAfterId(
                 roomObjectId,
                 lastId,
-                50
+                50  // 이후 메시지는 한 번에 50개까지 조회
             )
+
             // 조회된 메시지가 있으면 allMessages에 추가
             if (batch.isNotEmpty()) {
                 allMessages.addAll(batch)
@@ -110,18 +154,19 @@ class MessageSyncService(
                     timestamp = message.createdAt ?: Instant.now(),
                     senderId = message.senderId,
                     status = message.status.name,
-                    content = MessageContentRequest(  // 추가
+                    content = MessageContentRequest(
                         text = message.content.text,
                         type = message.content.type.name,
                         attachments = listOf(),
                         isEdited = message.content.isEdited,
                         isDeleted = message.content.isDeleted
                     ),
-                    readBy = message.readBy  // 추가
+                    readBy = message.readBy
                 )
             },
             timestamp = Instant.now(),
-            count = allMessages.size
+            count = allMessages.size,
+            direction = request.direction
         )
         return response
     }

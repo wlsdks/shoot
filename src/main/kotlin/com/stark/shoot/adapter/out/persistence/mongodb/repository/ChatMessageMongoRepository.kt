@@ -18,6 +18,13 @@ interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, Obje
         pageable: Pageable
     ): List<ChatMessageDocument>
 
+    @Query("{ 'roomId': ?0, '_id': { \$gt: ?1 } }") // 마지막 ID보다 큰 데이터 가져오기
+    fun findByRoomIdAndIdAfter(
+        roomId: ObjectId,
+        lastId: ObjectId,
+        pageable: Pageable
+    ): List<ChatMessageDocument>
+
     @Query("{ 'roomId': ?0, 'readBy.?#{[1]}' : { \$ne: true } }")
     fun findUnreadMessages(roomId: ObjectId, userId: String): List<ChatMessageDocument>
 

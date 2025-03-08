@@ -7,7 +7,7 @@ import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
-class SaveChatRoomPersistenceAdapter(
+class SaveChatRoomMongoAdapter(
     private val chatRoomRepository: ChatRoomMongoRepository,
     private val chatRoomMapper: ChatRoomMapper
 ) : SaveChatRoomPort {

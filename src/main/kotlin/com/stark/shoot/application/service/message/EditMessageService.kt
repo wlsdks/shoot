@@ -1,8 +1,8 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
-import com.stark.shoot.application.port.out.message.LoadChatMessagePort
-import com.stark.shoot.application.port.out.message.SaveChatMessagePort
+import com.stark.shoot.application.port.out.message.LoadMessagePort
+import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.util.toObjectId
@@ -10,8 +10,8 @@ import java.time.Instant
 
 @UseCase
 class EditMessageService(
-    private val loadChatMessagePort: LoadChatMessagePort,
-    private val saveChatMessagePort: SaveChatMessagePort
+    private val loadMessagePort: LoadMessagePort,
+    private val saveMessagePort: SaveMessagePort
 ) : EditMessageUseCase {
 
     /**
@@ -24,7 +24,7 @@ class EditMessageService(
         newContent: String
     ): ChatMessage {
         // 메시지 조회
-        val existingMessage = loadChatMessagePort.findById(messageId.toObjectId())
+        val existingMessage = loadMessagePort.findById(messageId.toObjectId())
             ?: throw IllegalArgumentException("메시지를 찾을 수 없습니다.")
 
         // 내용 업데이트 및 편집 여부 설정
@@ -40,7 +40,7 @@ class EditMessageService(
         )
 
         // 업데이트된 메시지 저장 후 반환
-        return saveChatMessagePort.save(updatedMessage)
+        return saveMessagePort.save(updatedMessage)
     }
 
 }

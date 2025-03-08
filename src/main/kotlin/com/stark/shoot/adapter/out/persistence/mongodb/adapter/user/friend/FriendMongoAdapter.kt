@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user
+package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user.friend
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UserMapper
@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 
 @Adapter
-class FriendPersistenceAdapter(
+class FriendMongoAdapter(
     private val userMongoRepository: UserMongoRepository,
     private val mongoTemplate: MongoTemplate,
     private val userMapper: UserMapper

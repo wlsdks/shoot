@@ -3,13 +3,13 @@ package com.stark.shoot.application.service.message
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.RetrieveMessageUseCase
-import com.stark.shoot.application.port.out.message.LoadChatMessagePort
+import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.util.toObjectId
 
 @UseCase
 class RetrieveMessageService(
-    private val loadChatMessagePort: LoadChatMessagePort,
+    private val loadMessagePort: LoadMessagePort,
     private val chatMessageMapper: ChatMessageMapper
 ) : RetrieveMessageUseCase {
 
@@ -28,9 +28,9 @@ class RetrieveMessageService(
     ): List<MessageResponseDto> {
         // 도메인 메시지 조회
         val domainMessages = if (lastId != null) {
-            loadChatMessagePort.findByRoomIdAndBeforeId(roomId.toObjectId(), lastId.toObjectId(), limit)
+            loadMessagePort.findByRoomIdAndBeforeId(roomId.toObjectId(), lastId.toObjectId(), limit)
         } else {
-            loadChatMessagePort.findByRoomId(roomId.toObjectId(), limit)
+            loadMessagePort.findByRoomId(roomId.toObjectId(), limit)
         }
 
         // DTO로 변환하여 반환

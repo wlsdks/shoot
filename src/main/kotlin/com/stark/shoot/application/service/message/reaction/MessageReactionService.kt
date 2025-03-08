@@ -2,8 +2,8 @@ package com.stark.shoot.application.service.message.reaction
 
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionResponse
 import com.stark.shoot.application.port.`in`.message.reaction.MessageReactionUseCase
-import com.stark.shoot.application.port.out.message.LoadChatMessagePort
-import com.stark.shoot.application.port.out.message.SaveChatMessagePort
+import com.stark.shoot.application.port.out.message.LoadMessagePort
+import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.enumerate.ReactionType
@@ -16,8 +16,8 @@ import java.time.Instant
 
 @UseCase
 class MessageReactionService(
-    private val loadChatMessagePort: LoadChatMessagePort,
-    private val saveChatMessagePort: SaveChatMessagePort,
+    private val loadMessagePort: LoadMessagePort,
+    private val saveMessagePort: SaveMessagePort,
     private val messagingTemplate: SimpMessagingTemplate
 ) : MessageReactionUseCase {
 
@@ -41,13 +41,13 @@ class MessageReactionService(
             ?: throw InvalidInputException("지원하지 않는 리액션 타입입니다: $reactionType")
 
         // 메시지 조회 (없으면 예외 발생)
-        val message = loadChatMessagePort.findById(messageId.toObjectId())
+        val message = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
         val addReactionMessage = processAddReactionMessage(message, type, userId)
 
         // 저장 및 반환
-        val savedMessage = saveChatMessagePort.save(addReactionMessage)
+        val savedMessage = saveMessagePort.save(addReactionMessage)
 
         // WebSocket으로 실시간 업데이트 전송
         notifyReactionUpdate(messageId, message.roomId, userId, type.code, true)
@@ -78,14 +78,14 @@ class MessageReactionService(
             ?: throw InvalidInputException("지원하지 않는 리액션 타입입니다: $reactionType")
 
         // 메시지 조회 (없으면 예외 발생)
-        val message = loadChatMessagePort.findById(messageId.toObjectId())
+        val message = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
         // 리액션 제거
         val removedReactionMessage = processRemoveReaction(message, type, userId)
 
         // 저장 및 반환
-        val savedMessage = saveChatMessagePort.save(removedReactionMessage)
+        val savedMessage = saveMessagePort.save(removedReactionMessage)
 
         // WebSocket으로 실시간 업데이트 전송
         notifyReactionUpdate(messageId, message.roomId, userId, type.code, false)
@@ -107,7 +107,7 @@ class MessageReactionService(
     override fun getReactions(
         messageId: String
     ): Map<String, Set<String>> {
-        val message = loadChatMessagePort.findById(messageId.toObjectId())
+        val message = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
         return message.reactions

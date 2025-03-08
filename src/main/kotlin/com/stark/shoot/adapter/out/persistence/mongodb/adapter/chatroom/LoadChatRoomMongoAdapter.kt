@@ -8,7 +8,7 @@ import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.types.ObjectId
 
 @Adapter
-class LoadChatRoomPersistenceAdapter(
+class LoadChatRoomMongoAdapter(
     private val chatRoomRepository: ChatRoomMongoRepository,
     private val chatRoomMapper: ChatRoomMapper
 ) : LoadChatRoomPort {

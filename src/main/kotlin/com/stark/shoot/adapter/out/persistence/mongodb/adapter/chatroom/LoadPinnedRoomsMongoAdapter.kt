@@ -2,19 +2,19 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.chatroom
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.room.ChatRoomDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatRoomMapper
-import com.stark.shoot.application.port.out.chatroom.LoadUserPinnedRoomsPort
+import com.stark.shoot.application.port.out.chatroom.LoadPinnedRoomsPort
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
-import org.springframework.stereotype.Component
 
-@Component
-class LoadUserPinnedRoomsAdapter(
+@Adapter
+class LoadPinnedRoomsMongoAdapter(
     private val mongoTemplate: MongoTemplate,
     private val chatRoomMapper: ChatRoomMapper
-) : LoadUserPinnedRoomsPort {
+) : LoadPinnedRoomsPort {
 
     /**
      * 사용자가 고정한 채팅방 목록을 조회합니다.

@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user
+package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user.friend
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UserMapper
@@ -16,7 +16,7 @@ import org.springframework.data.mongodb.core.aggregation.ReplaceWithOperation
 import org.springframework.data.mongodb.core.query.Criteria
 
 @Adapter
-class RecommendFriendPersistenceAdapter(
+class RecommendFriendMongoAdapter(
     private val userMapper: UserMapper,
     private val mongoTemplate: MongoTemplate
 ) : RecommendFriendPort {

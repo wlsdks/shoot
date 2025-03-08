@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
-import com.stark.shoot.application.port.out.message.SaveChatMessagePort
+import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.application.service.message.SendMessageService
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
@@ -18,12 +18,12 @@ import org.mockito.Mockito.*
 
 class SendRetrieveMessageServiceTest {
 
-    private val saveChatMessagePort = mock(SaveChatMessagePort::class.java)
+    private val saveMessagePort = mock(SaveMessagePort::class.java)
     private val loadChatRoomPort = mock(LoadChatRoomPort::class.java)
     private val eventPublisher = mock(EventPublisher::class.java)
 
     // 일단 위에서 생성한 mock 객체를 사용하여 SendMessageService 객체를 생성한다.
-    private val sendMessageService = SendMessageService(saveChatMessagePort, loadChatRoomPort, eventPublisher)
+    private val sendMessageService = SendMessageService(saveMessagePort, loadChatRoomPort, eventPublisher)
 
 
     @DisplayName("sendMessage 성공 테스트")
@@ -49,14 +49,14 @@ class SendRetrieveMessageServiceTest {
 
         // Mock 설정
         `when`(loadChatRoomPort.findById(ObjectId(roomId))).thenReturn(chatRoom)
-        `when`(saveChatMessagePort.save(any(ChatMessage::class.java))).thenReturn(message)
+        `when`(saveMessagePort.save(any(ChatMessage::class.java))).thenReturn(message)
 
         // 메서드 호출
         val result = sendMessageService.sendMessage(roomId, senderId, message)
 
         // 결과 검증
         verify(loadChatRoomPort).findById(ObjectId(roomId))
-        verify(saveChatMessagePort).save(any(ChatMessage::class.java))
+        verify(saveMessagePort).save(any(ChatMessage::class.java))
         verify(eventPublisher).publish(any())
         assert(result.content.text == "Hello, World!")
     }
@@ -88,7 +88,7 @@ class SendRetrieveMessageServiceTest {
 
         // 호출 검증
         verify(loadChatRoomPort).findById(ObjectId(roomId))
-        verifyNoInteractions(saveChatMessagePort, eventPublisher)
+        verifyNoInteractions(saveMessagePort, eventPublisher)
     }
 
 }

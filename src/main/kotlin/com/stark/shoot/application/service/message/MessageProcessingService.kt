@@ -4,7 +4,7 @@ import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.event.EventPublisher
-import com.stark.shoot.application.port.out.message.SaveChatMessagePort
+import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.room.ChatRoom
@@ -18,7 +18,7 @@ import org.springframework.data.redis.core.StringRedisTemplate
 
 @UseCase
 class MessageProcessingService(
-    private val saveChatMessagePort: SaveChatMessagePort,
+    private val saveMessagePort: SaveMessagePort,
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
     private val eventPublisher: EventPublisher,
@@ -78,7 +78,7 @@ class MessageProcessingService(
         )
 
         // 초기화된 메시지를 DB에 저장
-        val savedMessage = saveChatMessagePort.save(initializedMessage)
+        val savedMessage = saveMessagePort.save(initializedMessage)
 
         return savedMessage
     }

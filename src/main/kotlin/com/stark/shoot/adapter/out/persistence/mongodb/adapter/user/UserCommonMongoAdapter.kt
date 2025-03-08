@@ -10,7 +10,7 @@ import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.types.ObjectId
 
 @Adapter
-class UserPersistenceAdapter(
+class UserCommonMongoAdapter(
     private val userMongoRepository: UserMongoRepository,
     private val userMapper: UserMapper
 ) : UserCreatePort, UserDeletePort, UserUpdatePort {

@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.chatroom
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
-import com.stark.shoot.application.port.out.message.LoadChatMessagePort
+import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.Participant
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -15,7 +15,7 @@ import java.time.format.DateTimeFormatter
 @UseCase
 class FindChatroomService(
     private val loadChatRoomPort: LoadChatRoomPort,
-    private val loadChatMessagePort: LoadChatMessagePort
+    private val loadMessagePort: LoadMessagePort
 ) : FindChatRoomUseCase {
 
     // 타임스탬프 포맷터 (예: "오후 3:15")
@@ -133,7 +133,7 @@ class FindChatroomService(
         val lastMessageText =
             if (room.lastMessageId != null) {
                 // 마지막 메시지 ID로 메시지를 조회하여 텍스트를 가져옵니다.
-                val message = loadChatMessagePort.findById(ObjectId(room.lastMessageId))
+                val message = loadMessagePort.findById(ObjectId(room.lastMessageId))
 
                 // 메시지가 존재하면 content.text를 반환하고, 없으면 "최근 메시지가 없습니다."를 반환합니다.
                 message?.content?.text ?: "최근 메시지가 없습니다."

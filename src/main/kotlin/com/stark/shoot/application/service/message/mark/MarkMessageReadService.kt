@@ -4,8 +4,8 @@ import com.stark.shoot.application.port.`in`.message.mark.MarkMessageReadUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.event.EventPublisher
-import com.stark.shoot.application.port.out.message.LoadChatMessagePort
-import com.stark.shoot.application.port.out.message.SaveChatMessagePort
+import com.stark.shoot.application.port.out.message.LoadMessagePort
+import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.event.ChatBulkReadEvent
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -21,29 +21,29 @@ import java.util.concurrent.TimeUnit
 
 @UseCase
 class MarkMessageReadService(
-    private val saveChatMessagePort: SaveChatMessagePort,
+    private val saveMessagePort: SaveMessagePort,
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
     private val eventPublisher: EventPublisher,
     private val redisTemplate: StringRedisTemplate,
-    private val loadChatMessagePort: LoadChatMessagePort,
+    private val loadMessagePort: LoadMessagePort,
     private val simpMessagingTemplate: SimpMessagingTemplate
 ) : MarkMessageReadUseCase {
     private val logger = KotlinLogging.logger {}
 
     override fun markMessageAsRead(messageId: String, userId: String): ChatMessage {
-        val chatMessage = loadChatMessagePort.findById(messageId.toObjectId())
+        val chatMessage = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$messageId")
 
         // 업데이트 전 안 읽은 메시지 가져오기
         val roomId = chatMessage.roomId.toObjectId()
         val userObjectId = ObjectId(userId)
-        val unreadMessagesBefore = loadChatMessagePort.findUnreadByRoomId(roomId, userObjectId)
+        val unreadMessagesBefore = loadMessagePort.findUnreadByRoomId(roomId, userObjectId)
         logger.debug { "Unread messages before marking as read: $unreadMessagesBefore" }
 
         // 읽음 상태 업데이트
         chatMessage.readBy[userId] = true
-        val updatedMessage = saveChatMessagePort.save(chatMessage)
+        val updatedMessage = saveMessagePort.save(chatMessage)
 
         // unreadCount 계산
         val unreadCountBefore = unreadMessagesBefore.size ?: 0
@@ -97,7 +97,7 @@ class MarkMessageReadService(
         }
 
         // 모든 안 읽은 메시지 읽음 처리
-        val unreadMessages = loadChatMessagePort.findUnreadByRoomId(roomObjectId, participantId)
+        val unreadMessages = loadMessagePort.findUnreadByRoomId(roomObjectId, participantId)
             .filter { it.senderId != userId }  // 내가 보낸 메시지는 제외
 
         // 안 읽은 메시지가 없으면 불필요한 처리와 이벤트 발행 방지
@@ -109,7 +109,7 @@ class MarkMessageReadService(
         val updatedMessageIds = mutableListOf<String>()
         unreadMessages.forEach { message ->
             message.readBy[userId] = true
-            val updated = saveChatMessagePort.save(message)
+            val updated = saveMessagePort.save(message)
             updatedMessageIds.add(updated.id!!)
         }
 

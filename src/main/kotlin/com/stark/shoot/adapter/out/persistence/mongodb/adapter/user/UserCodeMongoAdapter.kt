@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 
 @Adapter
-class UserCodePersistenceAdapter(
+class UserCodeMongoAdapter(
     private val mongoTemplate: MongoTemplate
 ) : UpdateUserCodePort {
 

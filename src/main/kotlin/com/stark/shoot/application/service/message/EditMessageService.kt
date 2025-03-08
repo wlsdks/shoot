@@ -4,11 +4,11 @@ import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
 import com.stark.shoot.application.port.out.message.LoadChatMessagePort
 import com.stark.shoot.application.port.out.message.SaveChatMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.util.toObjectId
-import org.springframework.stereotype.Service
 import java.time.Instant
 
-@Service
+@UseCase
 class EditMessageService(
     private val loadChatMessagePort: LoadChatMessagePort,
     private val saveChatMessagePort: SaveChatMessagePort
@@ -33,6 +33,7 @@ class EditMessageService(
             isEdited = true
         )
 
+        // 업데이트된 메시지 생성
         val updatedMessage = existingMessage.copy(
             content = updateContent,
             updatedAt = Instant.now()

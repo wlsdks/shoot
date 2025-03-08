@@ -3,16 +3,19 @@ package com.stark.shoot.application.service.user
 import com.stark.shoot.application.port.`in`.user.FindUserUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.infrastructure.annotation.UseCase
 import org.bson.types.ObjectId
-import org.springframework.stereotype.Service
 
-@Service
+@UseCase
 class FindUserService(
     private val findUserPort: FindUserPort
 ) : FindUserUseCase {
 
     /**
-     * 유저 조회
+     * 사용자 ID로 사용자 조회
+     *
+     * @param id 사용자 ID
+     * @return 사용자 정보
      */
     override fun findById(
         id: ObjectId
@@ -22,6 +25,9 @@ class FindUserService(
 
     /**
      * 사용자명으로 사용자 조회
+     *
+     * @param username 사용자명
+     * @return 사용자 정보
      */
     override fun findByUsername(
         username: String
@@ -31,6 +37,9 @@ class FindUserService(
 
     /**
      * 사용자 코드로 사용자 조회
+     *
+     * @param userCode 사용자 코드
+     * @return 사용자 정보
      */
     override fun findByUserCode(
         userCode: String
@@ -38,8 +47,13 @@ class FindUserService(
         return findUserPort.findByUserCode(userCode)
     }
 
+
     /**
-     * 자기 자신을 제외한 임의의 유저들 N명 조회
+     * 사용자명 또는 사용자 코드로 사용자 조회
+     *
+     * @param excludeId 제외할 사용자 ID
+     * @param limit 조회할 사용자 수
+     * @return 사용자 목록
      */
     override fun findRandomUsers(
         excludeId: ObjectId,
@@ -50,6 +64,9 @@ class FindUserService(
 
     /**
      * 사용자명 또는 사용자 코드로 사용자 조회
+     *
+     * @param query 사용자명 또는 사용자 코드
+     * @return 사용자 목록
      */
     override fun findUserByUsernameOrUserCode(
         query: String

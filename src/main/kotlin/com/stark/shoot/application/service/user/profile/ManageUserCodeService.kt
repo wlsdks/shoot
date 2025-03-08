@@ -3,11 +3,11 @@ package com.stark.shoot.application.service.user.profile
 import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.code.UpdateUserCodePort
+import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.bson.types.ObjectId
-import org.springframework.stereotype.Service
 
-@Service
+@UseCase
 class ManageUserCodeService(
     private val findUserPort: FindUserPort,
     private val updateUserCodePort: UpdateUserCodePort

@@ -9,22 +9,46 @@ import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
-import org.springframework.stereotype.Service
+import com.stark.shoot.infrastructure.annotation.UseCase
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
 
-@Service
+@UseCase
 class SendMessageService(
     private val kafkaMessagePublishPort: KafkaMessagePublishPort
 ) : SendMessageUseCase {
 
+    /**
+     * 메시지 전송 처리 (Kafka로 이벤트 발행)
+     *
+     * @param requestMessage ChatMessageRequest
+     * @return CompletableFuture<String?>
+     */
     override fun handleMessage(
-        message: ChatMessageRequest
+        requestMessage: ChatMessageRequest
     ): CompletableFuture<String?> {
         // 임시 ID 복사
-        val tempId = message.tempId
+        val tempId = requestMessage.tempId
 
         // ChatMessage 생성
+        val chatMessage = createChatMessage(requestMessage)
+
+        // ChatEvent 생성
+        val chatEvent = createChatEvent(requestMessage, chatMessage)
+
+        // Kafka로 이벤트 발행
+        return publishKafkaMessage(requestMessage, chatEvent, tempId)
+    }
+
+    /**
+     * ChatMessage 객체 생성
+     *
+     * @param message ChatMessageRequest
+     * @return ChatMessage
+     */
+    private fun createChatMessage(
+        message: ChatMessageRequest
+    ): ChatMessage {
         val chatMessage = ChatMessage(
             roomId = message.roomId,
             senderId = message.senderId ?: throw IllegalArgumentException("User ID is required"),
@@ -36,9 +60,24 @@ class SendMessageService(
             createdAt = Instant.now()
         )
 
+        return chatMessage
+    }
+
+    /**
+     * ChatEvent 객체 생성
+     * kafka에 전송할 이벤트 객체를 생성합니다.
+     *
+     * @param requestMessage ChatMessageRequest
+     * @param chatMessage ChatMessage
+     * @return ChatEvent
+     */
+    private fun createChatEvent(
+        requestMessage: ChatMessageRequest,
+        chatMessage: ChatMessage
+    ): ChatEvent {
         // 메타데이터 복사 (tempId와 status 포함)
-        if (message.metadata.isNotEmpty()) {
-            chatMessage.metadata = message.metadata
+        if (requestMessage.metadata.isNotEmpty()) {
+            chatMessage.metadata = requestMessage.metadata
         }
 
         // ChatEvent 생성
@@ -47,10 +86,26 @@ class SendMessageService(
             data = chatMessage
         )
 
+        return chatEvent
+    }
+
+    /**
+     * Kafka로 이벤트 발행
+     *
+     * @param requestMessage ChatMessageRequest
+     * @param chatEvent ChatEvent
+     * @param tempId String?
+     * @return CompletableFuture<String?>
+     */
+    private fun publishKafkaMessage(
+        requestMessage: ChatMessageRequest,
+        chatEvent: ChatEvent,
+        tempId: String?
+    ): CompletableFuture<String?> {
         // Kafka로 이벤트 발행
         val future = kafkaMessagePublishPort.publishChatEvent(
             topic = "chat-messages",
-            key = message.roomId,
+            key = requestMessage.roomId,
             event = chatEvent
         )
 

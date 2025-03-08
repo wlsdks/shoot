@@ -4,5 +4,5 @@ import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import java.util.concurrent.CompletableFuture
 
 interface SendMessageUseCase {
-    fun handleMessage(message: ChatMessageRequest): CompletableFuture<String?>
+    fun handleMessage(requestMessage: ChatMessageRequest): CompletableFuture<String?>
 }

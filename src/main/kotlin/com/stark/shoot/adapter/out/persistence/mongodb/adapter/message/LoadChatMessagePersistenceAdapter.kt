@@ -3,19 +3,24 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMongoRepository
 import com.stark.shoot.application.port.out.message.LoadChatMessagePort
-import com.stark.shoot.application.port.out.message.SaveChatMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.types.ObjectId
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
-import org.springframework.stereotype.Component
 
-@Component
-class ChatMessagePersistenceAdapter(
+@Adapter
+class LoadChatMessagePersistenceAdapter(
     private val chatMessageRepository: ChatMessageMongoRepository,
     private val chatMessageMapper: ChatMessageMapper
-) : SaveChatMessagePort, LoadChatMessagePort {
+) : LoadChatMessagePort {
 
+    /**
+     * ID로 채팅 메시지 조회
+     *
+     * @param id 채팅 메시지 ID
+     * @return 채팅 메시지
+     */
     override fun findById(
         id: ObjectId
     ): ChatMessage? {
@@ -24,6 +29,13 @@ class ChatMessagePersistenceAdapter(
             .orElse(null)
     }
 
+    /**
+     * 채팅방 ID로 채팅 메시지 조회
+     *
+     * @param roomId 채팅방 ID
+     * @param limit 조회 개수
+     * @return 채팅 메시지 목록
+     */
     override fun findByRoomId(
         roomId: ObjectId,
         limit: Int
@@ -38,6 +50,14 @@ class ChatMessagePersistenceAdapter(
             .map(chatMessageMapper::toDomain)
     }
 
+    /**
+     * 채팅방 ID와 이전 메시지 ID로 이전 메시지 조회
+     *
+     * @param roomId 채팅방 ID
+     * @param lastId 이전 메시지 ID
+     * @param limit 조회 개수
+     * @return 채팅 메시지 목록
+     */
     override fun findByRoomIdAndBeforeId(
         roomId: ObjectId,
         lastId: ObjectId,
@@ -53,6 +73,14 @@ class ChatMessagePersistenceAdapter(
             .map(chatMessageMapper::toDomain)
     }
 
+    /**
+     * 채팅방 ID와 이후 메시지 ID로 이후 메시지 조회
+     *
+     * @param roomId 채팅방 ID
+     * @param lastId 이후 메시지 ID
+     * @param limit 조회 개수
+     * @return 채팅 메시지 목록
+     */
     override fun findByRoomIdAndAfterId(
         roomId: ObjectId,
         lastId: ObjectId,
@@ -68,6 +96,13 @@ class ChatMessagePersistenceAdapter(
             .map(chatMessageMapper::toDomain)
     }
 
+    /**
+     * 채팅방 ID와 사용자 ID로 읽지 않은 메시지 조회
+     *
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @return 읽지 않은 메시지 목록
+     */
     override fun findUnreadByRoomId(
         roomId: ObjectId,
         userId: ObjectId
@@ -76,6 +111,13 @@ class ChatMessagePersistenceAdapter(
         return notReadMessage.map(chatMessageMapper::toDomain)
     }
 
+    /**
+     * 채팅방 ID로 고정된 메시지 조회
+     *
+     * @param roomId 채팅방 ID
+     * @param limit 조회 개수
+     * @return 고정된 메시지 목록
+     */
     override fun findPinnedMessagesByRoomId(
         roomId: ObjectId,
         limit: Int
@@ -89,23 +131,6 @@ class ChatMessagePersistenceAdapter(
         // MongoDB 쿼리: {roomId: roomId, "metadata.isPinned": true}
         return chatMessageRepository.findPinnedMessagesByRoomId(roomId, pageable)
             .map(chatMessageMapper::toDomain)
-    }
-
-    override fun save(
-        message: ChatMessage
-    ): ChatMessage {
-        val document = chatMessageMapper.toDocument(message)
-        return chatMessageRepository.save(document)
-            .let(chatMessageMapper::toDomain)
-    }
-
-    override fun saveAll(
-        messages: List<ChatMessage>
-    ): List<ChatMessage> {
-        val documents = messages.map(chatMessageMapper::toDocument)
-        return chatMessageRepository.saveAll(documents)
-            .map(chatMessageMapper::toDomain)
-            .toList()
     }
 
 }

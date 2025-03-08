@@ -3,19 +3,19 @@ package com.stark.shoot.application.service.active
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.active.ChatActivity
 import com.stark.shoot.application.port.`in`.active.UserActiveUseCase
+import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
-import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
 
-@Service
+@UseCase
 class UserActiveService(
     private val redisTemplate: StringRedisTemplate,
     private val objectMapper: ObjectMapper
 ) : UserActiveUseCase {
 
     private val logger = KotlinLogging.logger {}
-    
+
     /**
      * 사용자 활동 상태 업데이트
      * /app/active로 받은 메시지를 JSON으로 파싱해서 Redis에 active:<userId>:<roomId>로 저장. active 값은 "true" 또는 "false".

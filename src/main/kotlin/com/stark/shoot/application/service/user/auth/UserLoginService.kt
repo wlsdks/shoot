@@ -6,12 +6,12 @@ import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.token.RefreshTokenStorePort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.stereotype.Service
 
 
-@Service
+@UseCase
 class UserLoginService(
     private val findUserPort: FindUserPort,
     private val refreshTokenStorePort: RefreshTokenStorePort,

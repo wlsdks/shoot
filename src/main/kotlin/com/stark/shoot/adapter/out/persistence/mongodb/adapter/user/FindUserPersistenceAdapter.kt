@@ -5,13 +5,13 @@ import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.UserMongoRepository
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.stereotype.Component
 
-@Component
+@Adapter
 class FindUserPersistenceAdapter(
     private val userMongoRepository: UserMongoRepository,
     private val userMapper: UserMapper,
@@ -20,6 +20,9 @@ class FindUserPersistenceAdapter(
 
     /**
      * 사용자명으로 사용자 조회
+     *
+     * @param username 사용자명
+     * @return 사용자
      */
     override fun findByUsername(
         username: String
@@ -30,6 +33,9 @@ class FindUserPersistenceAdapter(
 
     /**
      * ID로 사용자 조회
+     *
+     * @param id 사용자 ID
+     * @return 사용자
      */
     override fun findUserById(
         id: ObjectId
@@ -42,6 +48,8 @@ class FindUserPersistenceAdapter(
 
     /**
      * 모든 사용자 조회
+     *
+     * @return 사용자 목록
      */
     override fun findAll(): List<User> {
         val docs = userMongoRepository.findAll()
@@ -50,6 +58,9 @@ class FindUserPersistenceAdapter(
 
     /**
      * 사용자 코드로 사용자 조회
+     *
+     * @param userCode 사용자 코드
+     * @return 사용자
      */
     override fun findByUserCode(
         userCode: String
@@ -60,6 +71,10 @@ class FindUserPersistenceAdapter(
 
     /**
      * 랜덤 사용자 조회
+     *
+     * @param excludeUserId 제외할 사용자 ID
+     * @param limit 조회할 사용자 수
+     * @return 사용자 목록
      */
     override fun findRandomUsers(
         excludeUserId: ObjectId,
@@ -67,8 +82,10 @@ class FindUserPersistenceAdapter(
     ): List<User> {
         // 1) match _id != excludeUserId
         val matchStage = Aggregation.match(Criteria.where("_id").ne(excludeUserId))
+
         // 2) sample limit
         val sampleStage = Aggregation.sample(limit.toLong())
+
         // 3) pipeline
         val pipeline = Aggregation.newAggregation(matchStage, sampleStage)
 
@@ -79,6 +96,9 @@ class FindUserPersistenceAdapter(
 
     /**
      * 코드로 사용자 조회
+     *
+     * @param newCode 사용자 코드
+     * @return 사용자
      */
     override fun findByCode(
         newCode: String
@@ -89,6 +109,9 @@ class FindUserPersistenceAdapter(
 
     /**
      * 사용자명 또는 사용자 코드로 사용자 조회
+     *
+     * @param query 사용자명 또는 사용자 코드
+     * @return 사용자 목록
      */
     override fun findByUsernameOrUserCode(
         query: String

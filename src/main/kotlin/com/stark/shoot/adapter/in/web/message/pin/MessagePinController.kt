@@ -18,7 +18,7 @@ class MessagePinController(
 
     @Operation(
         summary = "메시지 고정",
-        description = "중요한 메시지를 채팅방에 고정합니다."
+        description = "중요한 메시지를 채팅방에 고정합니다. (이미 존재하면 해제하고 새로 고정)"
     )
     @PostMapping("/{messageId}/pin")
     fun pinMessage(

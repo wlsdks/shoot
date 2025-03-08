@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.sse
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
-import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
+import com.stark.shoot.application.port.`in`.message.mark.MarkMessageReadUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.PostMapping
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/messages")
 @RestController
 class MessageReadSseController(
-    private val processMessageUseCase: ProcessMessageUseCase
+    private val markMessageReadUseCase: MarkMessageReadUseCase
 ) {
 
     @Operation(
@@ -26,7 +26,7 @@ class MessageReadSseController(
         @RequestParam userId: String,
         @RequestParam(required = false) requestId: String?
     ): ResponseDto<Unit> {
-        processMessageUseCase.markAllMessagesAsRead(roomId, userId, requestId)
+        markMessageReadUseCase.markAllMessagesAsRead(roomId, userId, requestId)
         return ResponseDto.success(Unit, "메시지가 읽음으로 처리되었습니다.")
     }
 

@@ -5,11 +5,11 @@ import com.stark.shoot.application.port.`in`.user.profile.UserUpdateProfileUseCa
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.infrastructure.annotation.UseCase
 import org.bson.types.ObjectId
-import org.springframework.stereotype.Service
 import java.time.Instant
 
-@Service
+@UseCase
 class UserUpdateProfileService(
     private val findUserPort: FindUserPort,
     private val userUpdatePort: UserUpdatePort

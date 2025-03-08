@@ -6,10 +6,10 @@ import com.stark.shoot.application.port.out.user.UserCreatePort
 import com.stark.shoot.application.port.out.user.UserDeletePort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.types.ObjectId
-import org.springframework.stereotype.Component
 
-@Component
+@Adapter
 class UserPersistenceAdapter(
     private val userMongoRepository: UserMongoRepository,
     private val userMapper: UserMapper

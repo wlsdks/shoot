@@ -2,20 +2,24 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocument
 import com.stark.shoot.application.port.out.user.code.UpdateUserCodePort
+import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
-import org.springframework.stereotype.Component
 
-@Component
+@Adapter
 class UserCodePersistenceAdapter(
     private val mongoTemplate: MongoTemplate
 ) : UpdateUserCodePort {
 
     /**
      * 사용자 코드 설정
+     *
+     * @param userId 사용자 ID
+     * @param newCode 새로운 사용자 코드
+     * @return Unit (void)
      */
     override fun setUserCode(
         userId: ObjectId,
@@ -28,6 +32,9 @@ class UserCodePersistenceAdapter(
 
     /**
      * 사용자 코드 삭제
+     *
+     * @param userId 사용자 ID
+     * @return Unit (void)
      */
     override fun clearUserCode(
         userId: ObjectId

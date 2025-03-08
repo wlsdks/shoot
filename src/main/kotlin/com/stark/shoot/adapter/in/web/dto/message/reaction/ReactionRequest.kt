@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.`in`.web.dto.message.reaction
 
 data class ReactionRequest(
-    val userId: String,
-    val reactionType: String
+    val reactionType: String  // ReactionType.code 값 (e.g. "like", "sad")
 )

@@ -22,6 +22,10 @@ enum class ErrorCode(
     MESSAGE_TOO_LONG("E3001", HttpStatus.BAD_REQUEST, "메시지가 너무 깁니다"),
     MESSAGE_ALREADY_DELETED("E3002", HttpStatus.BAD_REQUEST, "이미 삭제된 메시지입니다"),
     MESSAGE_EDIT_TIMEOUT("E3003", HttpStatus.BAD_REQUEST, "메시지 수정 시간이 초과되었습니다"),
+    INVALID_SCHEDULED_TIME("E3004", HttpStatus.BAD_REQUEST, "예약 시간은 현재 시간 이후여야 합니다"),
+    SCHEDULED_MESSAGE_NOT_FOUND("E3005", HttpStatus.NOT_FOUND, "예약된 메시지를 찾을 수 없습니다"),
+    SCHEDULED_MESSAGE_NOT_OWNED("E3006", HttpStatus.FORBIDDEN, "예약된 메시지를 소유하고 있지 않습니다"),
+    SCHEDULED_MESSAGE_ALREADY_PROCESSED("E3007", HttpStatus.BAD_REQUEST, "이미 처리된 예약 메시지입니다"),
 
     // 채팅방 관련 에러 (4000번대)
     ROOM_NOT_FOUND("E4001", HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다"),
@@ -37,7 +41,7 @@ enum class ErrorCode(
 
     // 외부 시스템 연동 에러 (9000번대)
     EXTERNAL_SERVICE_ERROR("E9001", HttpStatus.INTERNAL_SERVER_ERROR, "외부 서비스 오류"),
-    DATABASE_ERROR("E9002", HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류")
+    DATABASE_ERROR("E9002", HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류"),
     ;
 
     // 에러 코드 문서화를 위한 함수
@@ -52,5 +56,5 @@ enum class ErrorCode(
             }
         }
     }
-    
+
 }

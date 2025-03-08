@@ -30,7 +30,7 @@ class MessageKafkaConsumer(
                 sendStatusUpdate(roomId, tempId, MessageStatus.PROCESSING.name, null)
 
                 // 메시지 저장
-                val savedMessage = processMessageUseCase.processMessage(event.data)
+                val savedMessage = processMessageUseCase.processMessageCreate(event.data)
 
                 // 저장 성공 상태 업데이트
                 sendStatusUpdate(roomId, tempId, MessageStatus.SAVED.name, savedMessage.id)

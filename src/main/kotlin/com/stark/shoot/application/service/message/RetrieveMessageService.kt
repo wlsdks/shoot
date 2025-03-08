@@ -4,10 +4,10 @@ import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.RetrieveMessageUseCase
 import com.stark.shoot.application.port.out.message.LoadChatMessagePort
+import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.util.toObjectId
-import org.springframework.stereotype.Service
 
-@Service
+@UseCase
 class RetrieveMessageService(
     private val loadChatMessagePort: LoadChatMessagePort,
     private val chatMessageMapper: ChatMessageMapper

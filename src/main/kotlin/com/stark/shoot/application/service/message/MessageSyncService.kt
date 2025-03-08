@@ -10,7 +10,6 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.enumerate.SyncDirection
 import com.stark.shoot.infrastructure.util.toObjectId
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bson.types.ObjectId
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.time.Instant
@@ -20,8 +19,6 @@ class MessageSyncService(
     private val loadChatMessagePort: LoadChatMessagePort,
     private val messagingTemplate: SimpMessagingTemplate
 ) : MessageSyncUseCase {
-    private val logger = KotlinLogging.logger {}
-
 
     /**
      * 클라이언트 재연결 시 메시지 동기화

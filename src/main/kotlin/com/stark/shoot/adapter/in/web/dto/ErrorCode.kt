@@ -27,6 +27,7 @@ enum class ErrorCode(
     ROOM_NOT_FOUND("E4001", HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다"),
     USER_NOT_IN_ROOM("E4002", HttpStatus.FORBIDDEN, "사용자가 채팅방에 속해있지 않습니다"),
     TOO_MANY_PINNED_ROOMS("E4003", HttpStatus.BAD_REQUEST, "고정된 채팅방이 너무 많습니다"),
+    FAVORITE_LIMIT_EXCEEDED("E4004", HttpStatus.BAD_REQUEST, "즐겨찾기 개수 제한을 초과했습니다"),
 
     // 친구 관련 에러 (5000번대)
     FRIEND_REQUEST_ALREADY_SENT("E5001", HttpStatus.CONFLICT, "이미 친구 요청을 보냈습니다"),
@@ -36,7 +37,8 @@ enum class ErrorCode(
 
     // 외부 시스템 연동 에러 (9000번대)
     EXTERNAL_SERVICE_ERROR("E9001", HttpStatus.INTERNAL_SERVER_ERROR, "외부 서비스 오류"),
-    DATABASE_ERROR("E9002", HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류");
+    DATABASE_ERROR("E9002", HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류")
+    ;
 
     // 에러 코드 문서화를 위한 함수
     companion object {

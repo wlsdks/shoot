@@ -1,16 +1,16 @@
-package com.stark.shoot.application.service.chatroom
+package com.stark.shoot.application.service.sse
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
 import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
+import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.stereotype.Service
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-@Service
+@UseCase
 class SseEmitterService : SseEmitterUseCase {
 
     private val emitters = ConcurrentHashMap<String, SseEmitter>()

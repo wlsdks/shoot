@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.socket.dto
 
+import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
 import java.time.Instant
 
 data class SyncRequestDto(
@@ -12,15 +13,17 @@ data class SyncRequestDto(
 data class SyncResponseDto(
     val roomId: String,
     val userId: String,
-    val messages: List<MessageSyncInfo>,
+    val messages: List<MessageSyncInfoDto>,
     val timestamp: Instant,
     val count: Int
 )
 
-data class MessageSyncInfo(
+data class MessageSyncInfoDto(
     val id: String,
     val tempId: String? = null,
     val timestamp: Instant,
     val senderId: String,
-    val status: String
+    val status: String,
+    val content: MessageContentRequest? = null,  // 추가
+    val readBy: Map<String, Boolean>? = null  // 추가
 )

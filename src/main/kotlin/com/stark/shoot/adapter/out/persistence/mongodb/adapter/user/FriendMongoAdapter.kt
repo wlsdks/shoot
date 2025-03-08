@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 
 @Adapter
-class FriendPersistenceAdapter(
+class FriendMongoAdapter(
     private val userMongoRepository: UserMongoRepository,
     private val mongoTemplate: MongoTemplate,
     private val userMapper: UserMapper

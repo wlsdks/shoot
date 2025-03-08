@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.query.Criteria
 
 @Adapter
-class FindUserPersistenceAdapter(
+class FindUserMongoAdapter(
     private val userMongoRepository: UserMongoRepository,
     private val userMapper: UserMapper,
     private val mongoTemplate: MongoTemplate

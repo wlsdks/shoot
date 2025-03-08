@@ -10,7 +10,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 
 @Adapter
-class LoadChatMessagePersistenceAdapter(
+class LoadChatMessageMongoAdapter(
     private val chatMessageRepository: ChatMessageMongoRepository,
     private val chatMessageMapper: ChatMessageMapper
 ) : LoadChatMessagePort {

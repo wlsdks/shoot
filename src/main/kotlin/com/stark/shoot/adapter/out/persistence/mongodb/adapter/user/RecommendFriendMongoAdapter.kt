@@ -16,7 +16,7 @@ import org.springframework.data.mongodb.core.aggregation.ReplaceWithOperation
 import org.springframework.data.mongodb.core.query.Criteria
 
 @Adapter
-class RecommendFriendPersistenceAdapter(
+class RecommendFriendMongoAdapter(
     private val userMapper: UserMapper,
     private val mongoTemplate: MongoTemplate
 ) : RecommendFriendPort {

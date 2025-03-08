@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.query.Update
 import java.time.Instant
 
 @Adapter
-class RefreshTokenStoreAdapter(
+class RefreshTokenStoreMongoAdapter(
     private val mongoTemplate: MongoTemplate
 ) : RefreshTokenStorePort {
 

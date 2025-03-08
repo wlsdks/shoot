@@ -4,14 +4,14 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.room.ChatRoomDoc
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatRoomMapper
 import com.stark.shoot.application.port.out.chatroom.LoadUserPinnedRoomsPort
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
-import org.springframework.stereotype.Component
 
-@Component
-class LoadUserPinnedRoomsAdapter(
+@Adapter
+class LoadUserPinnedRoomsMongoAdapter(
     private val mongoTemplate: MongoTemplate,
     private val chatRoomMapper: ChatRoomMapper
 ) : LoadUserPinnedRoomsPort {

@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.socket.message
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
@@ -7,7 +8,8 @@ import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.swagger.v3.oas.annotations.Operation
-import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.connection.stream.StreamRecords
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
@@ -18,7 +20,8 @@ import java.util.concurrent.CompletableFuture
 class MessageStompHandler(
     private val sendMessageUseCase: SendMessageUseCase,
     private val messagingTemplate: SimpMessagingTemplate,
-    private val redisPublisherTemplate: RedisTemplate<String, Any>
+    private val redisTemplate: StringRedisTemplate,
+    private val objectMapper: ObjectMapper
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -72,11 +75,21 @@ class MessageStompHandler(
     private fun publishToRedis(
         message: ChatMessageRequest
     ) {
-        val channel = "chat:room:${message.roomId}"
+        val streamKey = "stream:chat:room:${message.roomId}"
         try {
-            // 메시지 객체를 그대로 발행
-            redisPublisherTemplate.convertAndSend(channel, message)
-            logger.debug { "Redis 채널에 메시지 발행: $channel, tempId: ${message.tempId}" }
+            val messageJson = objectMapper.writeValueAsString(message)
+            val map = mapOf("message" to messageJson)
+
+            // StreamRecords 사용
+            val record = StreamRecords.newRecord()
+                .ofMap(map)
+                .withStreamKey(streamKey)
+
+            // Stream 추가
+            val messageId = redisTemplate.opsForStream<String, String>()
+                .add(record)
+
+            logger.debug { "Redis Stream에 메시지 발행: $streamKey, id: $messageId, tempId: ${message.tempId}" }
         } catch (e: Exception) {
             logger.error(e) { "Redis 발행 실패: ${e.message}" }
             throw e

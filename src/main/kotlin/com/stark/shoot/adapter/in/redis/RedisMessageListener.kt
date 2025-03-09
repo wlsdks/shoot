@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets
 /**
  * Redis Pub/Sub 메시지를 수신하여 WebSocket으로 브로드캐스트하는 리스너
  */
+@Deprecated("Redis Stream을 사용하도록 변경")
 @Component
 class RedisMessageListener(
     private val simpMessagingTemplate: SimpMessagingTemplate,

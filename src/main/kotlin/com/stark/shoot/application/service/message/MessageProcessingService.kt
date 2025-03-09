@@ -13,10 +13,9 @@ import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.redis.RedisLockManager
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bson.types.ObjectId
 import org.springframework.data.redis.core.StringRedisTemplate
-import java.util.UUID
+import java.util.*
 
 @UseCase
 class MessageProcessingService(
@@ -28,18 +27,23 @@ class MessageProcessingService(
     private val redisLockManager: RedisLockManager
 ) : ProcessMessageUseCase {
 
-    private val logger = KotlinLogging.logger {}
-
     /**
      * 메시지 저장 및 채팅방 메타데이터 업데이트 담당
      * 새 메시지가 도착할 때 sender를 제외한 다른 참여자의 unreadCount가 증가하고,
      * 사용자가 해당 채팅방을 열거나 스크롤하여 메시지를 확인하면(예: "모두 읽음" 버튼 또는 자동 감지), unreadCount가 0으로 업데이트되도록 하면 됩니다.
+     *
+     * @param message 채팅 메시지
+     * @return ChatMessage 저장된 메시지
      */
     override fun processMessageCreate(
         message: ChatMessage
     ): ChatMessage {
-        // 분산 락을 사용하여 동일 채팅방에 대한 동시 업데이트 방지
-        return redisLockManager.withLock("chatroom:${message.roomId}", "processor-${UUID.randomUUID()}") {
+        // 분산 락 키 생성 (채팅방별로 락을 걸기 위해 사용)
+        val lockKey = "chatroom:${message.roomId}"
+        val ownerId = "processor-${UUID.randomUUID()}"
+
+        // 분산 락을 사용하여 동일 채팅방에 대한 동시 업데이트 방지 (동시에 특정 채팅방에 대해서 접근 불가능하도록 락을 걸어줌)
+        return redisLockManager.withLock(lockKey, ownerId) {
             // 채팅방 조회 (존재하지 않으면 예외 발생)
             val roomObjectId = message.roomId.toObjectId()
             val chatRoom = loadChatRoomPort.findById(roomObjectId)

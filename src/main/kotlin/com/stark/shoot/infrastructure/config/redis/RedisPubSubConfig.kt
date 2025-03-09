@@ -8,6 +8,7 @@ import org.springframework.data.redis.listener.PatternTopic
 import org.springframework.data.redis.listener.RedisMessageListenerContainer
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter
 
+@Deprecated("Redis Stream 사용으로 대체")
 @Configuration
 class RedisPubSubConfig(
     private val redisMessageListener: RedisMessageListener

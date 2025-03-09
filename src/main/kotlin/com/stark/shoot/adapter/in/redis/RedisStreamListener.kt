@@ -53,16 +53,45 @@ class RedisStreamListener(
      */
     private fun createConsumerGroups() {
         try {
+            // 채팅방별 스트림 키 조회
             val streamKeys = redisTemplate.keys("stream:chat:room:*")
+
+            // 스트림이 없으면 생성
+            if (streamKeys.isEmpty()) {
+                logger.info { "채팅방 스트림이 없습니다." }
+                return
+            }
+
+            // 각 스트림에 대해 소비자 그룹 생성
             streamKeys.forEach { streamKey ->
                 try {
-                    redisTemplate.opsForStream<Any, Any>()
-                        .createGroup(streamKey, "chat-consumers")
-                } catch (e: Exception) {
-                    // 이미 존재하는 그룹은 무시
-                    if (e.message != null && !e.message!!.contains("BUSYGROUP")) {
-                        logger.warn(e) { "소비자 그룹 생성 오류: $streamKey" }
+                    // 스트림이 비어있는지 확인
+                    val streamExists = redisTemplate.hasKey(streamKey)
+
+                    if (!streamExists) {
+                        // 빈 스트림 생성 (첫 메시지 추가)
+                        redisTemplate.opsForStream<String, String>()
+                            .add(
+                                StreamRecords.newRecord()
+                                    .ofMap(mapOf("init" to "true"))
+                                    .withStreamKey(streamKey)
+                            )
+                        logger.info { "Created empty stream: $streamKey" }
                     }
+
+                    // 소비자 그룹 생성 시도
+                    try {
+                        redisTemplate.opsForStream<Any, Any>()
+                            .createGroup(streamKey, "chat-consumers")
+                        logger.info { "Created consumer group for: $streamKey" }
+                    } catch (e: Exception) {
+                        // 이미 존재하는 그룹은 무시
+                        if (e.message != null && !e.message!!.contains("BUSYGROUP")) {
+                            logger.warn(e) { "소비자 그룹 생성 오류: $streamKey" }
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.error(e) { "Stream initialization error for: $streamKey" }
                 }
             }
         } catch (e: Exception) {

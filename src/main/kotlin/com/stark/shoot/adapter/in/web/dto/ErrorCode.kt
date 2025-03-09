@@ -43,6 +43,8 @@ enum class ErrorCode(
     // 외부 시스템 연동 에러 (9000번대)
     EXTERNAL_SERVICE_ERROR("E9001", HttpStatus.INTERNAL_SERVER_ERROR, "외부 서비스 오류"),
     DATABASE_ERROR("E9002", HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류"),
+    LOCK_ACQUIRE_FAILED("E9003", HttpStatus.INTERNAL_SERVER_ERROR, "락 획득에 실패했습니다"),
+
     ;
 
     // 에러 코드 문서화를 위한 함수

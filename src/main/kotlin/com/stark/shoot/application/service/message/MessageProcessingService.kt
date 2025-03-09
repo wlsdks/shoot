@@ -10,11 +10,13 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.Participant
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.config.redis.RedisLockManager
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bson.types.ObjectId
 import org.springframework.data.redis.core.StringRedisTemplate
+import java.util.UUID
 
 @UseCase
 class MessageProcessingService(
@@ -22,7 +24,8 @@ class MessageProcessingService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
     private val eventPublisher: EventPublisher,
-    private val redisTemplate: StringRedisTemplate
+    private val redisTemplate: StringRedisTemplate,
+    private val redisLockManager: RedisLockManager
 ) : ProcessMessageUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -35,28 +38,30 @@ class MessageProcessingService(
     override fun processMessageCreate(
         message: ChatMessage
     ): ChatMessage {
-        // 채팅방 조회 (존재하지 않으면 예외 발생)
-        val roomObjectId = message.roomId.toObjectId()
-        val chatRoom = loadChatRoomPort.findById(roomObjectId)
-            ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
+        // 분산 락을 사용하여 동일 채팅방에 대한 동시 업데이트 방지
+        return redisLockManager.withLock("chatroom:${message.roomId}", "processor-${UUID.randomUUID()}") {
+            // 채팅방 조회 (존재하지 않으면 예외 발생)
+            val roomObjectId = message.roomId.toObjectId()
+            val chatRoom = loadChatRoomPort.findById(roomObjectId)
+                ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
 
-        // readBy 초기화 후 저장
-        val savedMessage = saveChatMessage(message, chatRoom)
+            // readBy 초기화 후 저장 (트랜잭션 일관성을 위해 먼저 메시지 저장)
+            val savedMessage = saveChatMessage(message, chatRoom)
 
-        // 보낸 사람 제외 unreadCount 증가
-        val updatedParticipants = updateUnreadCount(message, chatRoom)
+            // 보낸 사람 제외 unreadCount 증가후 채팅방 업데이트 (Redis와 MongoDB 작업의 일관성을 보장하기 위해 동일 락 내에서 처리)
+            val updatedParticipants = updateUnreadCount(message, chatRoom)
+            updateChatRoom(chatRoom, updatedParticipants, savedMessage)
 
-        // 채팅방 업데이트
-        updateChatRoom(chatRoom, updatedParticipants, savedMessage)
+            // unreadCount 정보 추출 (이벤트 발행은 DB 작업 완료 후 수행)
+            val unreadCounts: Map<String, Int> = updatedParticipants.mapKeys { it.key.toString() }
+                .mapValues { it.value.unreadCount }
 
-        // unreadCount 정보 추출
-        val unreadCounts: Map<String, Int> = updatedParticipants.mapKeys { it.key.toString() }
-            .mapValues { it.value.unreadCount }
+            // unreadCount와 마지막 메시지 정보 이벤트 발행 (채팅방 목록 업데이트용)
+            publishMessageCreatedEvent(roomObjectId, unreadCounts, savedMessage)
 
-        // unreadCount와 마지막 메시지 정보 이벤트 발행 (채팅방 목록 업데이트용)
-        publishMessageCreatedEvent(roomObjectId, unreadCounts, savedMessage)
-
-        return savedMessage
+            // 저장된 메시지 반환
+            savedMessage
+        }
     }
 
     /**

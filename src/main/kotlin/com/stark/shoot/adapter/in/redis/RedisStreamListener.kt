@@ -81,8 +81,11 @@ class RedisStreamListener(
 
                     // 소비자 그룹 생성 시도
                     try {
+                        // Spring Data Redis 버전에 따라 파라미터 순서 다를 수 있음
+                        // 방법 1
                         redisTemplate.opsForStream<Any, Any>()
                             .createGroup(streamKey, "chat-consumers")
+
                         logger.info { "Created consumer group for: $streamKey" }
                     } catch (e: Exception) {
                         // 이미 존재하는 그룹은 무시
@@ -107,7 +110,6 @@ class RedisStreamListener(
     private fun pollMessages() {
         try {
             val streamKeys = redisTemplate.keys("stream:chat:room:*")
-
             if (streamKeys.isEmpty()) return
 
             // 각 스트림에서 최대 10개 메시지를 읽음
@@ -121,26 +123,79 @@ class RedisStreamListener(
             for (key in streamKeys) {
                 try {
                     // 명시적인 타입 선언으로 타입 불일치 문제 해결
-                    val messages = redisTemplate.opsForStream<Any, Any>()
+                    val messages = redisTemplate.opsForStream<String, Any>()
                         .read(consumerOptions, readOptions, StreamOffset.create(key, ReadOffset.lastConsumed()))
 
                     // 메시지가 없으면 다음 스트림으로
-                    if (messages?.isEmpty() != false) continue
+                    if (messages.isNullOrEmpty()) continue
 
-                    // 각 메시지 처리
+                    // 각 메시지 개별 처리 및 ACK
                     for (message in messages) {
-                        processMessage(message)
+                        try {
+                            processMessage(message)
 
-                        // 처리 완료된 메시지 승인 (ACK)
-                        redisTemplate.opsForStream<Any, Any>()
-                            .acknowledge("chat-consumers", key, message.id)
+                            // 개별 메시지 ACK
+                            redisTemplate.opsForStream<String, Any>()
+                                .acknowledge("chat-consumers", key, message.id)
+                        } catch (e: Exception) {
+                            // 개별 메시지 처리 오류 - 로깅하고 계속 진행
+                            logger.error { "메시지 처리 오류 (ID: ${message.id}): ${e.message}" }
+                        }
                     }
                 } catch (e: Exception) {
-                    logger.error(e) { "스트림 처리 오류: $key" }
+                    when {
+                        // 소비자 그룹 관련 오류인 경우
+                        e.message?.contains("NOGROUP") == true -> {
+                            logger.warn { "소비자 그룹이 없음: $key - 재생성 시도" }
+                            try {
+                                createConsumerGroupForStream(key)
+                            } catch (ex: Exception) {
+                                logger.error { "소비자 그룹 재생성 실패: $key - ${ex.message}" }
+                            }
+                        }
+                        // 기타 스트림 처리 오류
+                        else -> {
+                            logger.error { "스트림 처리 오류: $key - ${e.message}" }
+                        }
+                    }
                 }
             }
         } catch (e: Exception) {
-            logger.error(e) { "Stream 메시지 폴링 오류" }
+            logger.error { "Stream 메시지 폴링 오류: ${e.message}" }
+        }
+    }
+
+    /**
+     * 단일 스트림에 대한 소비자 그룹을 생성합니다.
+     * NOGROUP 예외 발생 시 호출됩니다.
+     */
+    private fun createConsumerGroupForStream(streamKey: String) {
+        // 스트림이 비어있는지 확인
+        val streamExists = redisTemplate.hasKey(streamKey)
+
+        if (!streamExists) {
+            // 빈 스트림 생성 (첫 메시지 추가)
+            redisTemplate.opsForStream<String, String>()
+                .add(
+                    StreamRecords.newRecord()
+                        .ofMap(mapOf("init" to "true"))
+                        .withStreamKey(streamKey)
+                )
+            logger.info { "Created empty stream: $streamKey" }
+        }
+
+        // 소비자 그룹 생성
+        try {
+            // "0"을 사용하지 않고 원래 코드와 동일하게 유지
+            redisTemplate.opsForStream<Any, Any>()
+                .createGroup(streamKey, "chat-consumers")
+            logger.info { "Re-created consumer group for: $streamKey" }
+        } catch (e: Exception) {
+            if (e.message != null && !e.message!!.contains("BUSYGROUP")) {
+                logger.error(e) { "소비자 그룹 재생성 오류: $streamKey - ${e.message}" }
+            } else {
+                logger.info { "소비자 그룹이 이미 존재함: $streamKey" }
+            }
         }
     }
 

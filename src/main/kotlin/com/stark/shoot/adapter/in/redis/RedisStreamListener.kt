@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
 import java.time.Duration
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -25,6 +26,9 @@ class RedisStreamListener(
 ) {
     private val logger = KotlinLogging.logger {}
     private val executor = Executors.newSingleThreadScheduledExecutor()
+
+    // 각 서버 인스턴스에 고유한 소비자 ID 생성 (여러 서버를 고려)
+    private val consumerId = UUID.randomUUID().toString()
 
     companion object {
         private val ROOM_ID_PATTERN = Regex("stream:chat:room:([^:]+)")
@@ -117,7 +121,8 @@ class RedisStreamListener(
                 .count(10)
                 .block(Duration.ofMillis(100))
 
-            val consumerOptions = Consumer.from("chat-consumers", "consumer-1")
+            // 소비자 옵션 생성 (각 서버 인스턴스별로 고유한 ID 사용)
+            val consumerOptions = Consumer.from("chat-consumers", consumerId)
 
             // 각 스트림에 대해 별도로 처리
             for (key in streamKeys) {

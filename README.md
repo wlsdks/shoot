@@ -13,6 +13,7 @@
    - [WebSocket을 활용한 실시간 채팅](#websocket을-활용한-실시간-채팅)
    - [Redis Stream으로 메시지 브로드캐스팅](#redis-stream으로-메시지-브로드캐스팅)
    - [Kafka를 통한 메시지 영구 저장](#kafka를-통한-메시지-영구-저장)
+   - [Redis 기반 분산락을 통한 동시성 제어](#redis-기반-분산락을-통한-동시성-제어)
    - [읽음 처리 및 안읽은 메시지 카운트](#읽음-처리-및-안읽은-메시지-카운트)
    - [SSE를 이용한 실시간 채팅방 목록 업데이트](#sse를-이용한-실시간-채팅방-목록-업데이트)
    - [타이핑 인디케이터 기능](#타이핑-인디케이터-기능)
@@ -339,6 +340,29 @@ fun consumeMessage(@Payload event: ChatEvent) {
             sendErrorResponse(event, e)
         }
     }
+}
+```
+
+### Redis 기반 분산락을 통한 동시성 제어
+
+분산 환경에서 여러 서버가 동일한 데이터에 동시 접근할 때 발생하는 동시성 문제를 해결하기 위해 Redis 기반 분산락을 구현했습니다. 이 메커니즘은 메시지 처리, 채팅방 메타데이터 업데이트, 읽지 않은 메시지 카운트 처리 등에서 데이터 일관성을 보장합니다.
+
+**핵심 구현 요소:**
+- Redis의 SETNX 명령어를 활용한 원자적 락 획득
+- 자동 만료 시간 설정으로 서버 장애 시에도 락 해제 보장
+- Lua 스크립트를 통한 안전한 락 해제 (소유자 검증)
+- 지수 백오프 전략을 적용한 효율적인 재시도 메커니즘
+- 채팅방별 독립적인 락으로 시스템 병렬성 유지
+
+**동작 방식:**
+```kotlin
+// 채팅 메시지 처리 시 분산락 적용 예시
+override fun processMessageCreate(message: ChatMessage): ChatMessage {
+   // 채팅방 ID 기반으로 락 획득
+   return redisLockManager.withLock("chatroom:${message.roomId}", "processor-${UUID.randomUUID()}") {
+      // 트랜잭션적 작업 수행 (메시지 저장, 메타데이터 업데이트, 이벤트 발행 등)
+      // ...
+   } // 작업 완료 후 자동으로 락 해제
 }
 ```
 

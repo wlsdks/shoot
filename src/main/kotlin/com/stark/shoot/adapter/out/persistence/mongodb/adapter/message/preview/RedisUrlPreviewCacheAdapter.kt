@@ -63,6 +63,8 @@ class RedisUrlPreviewCacheAdapter(
 
     /**
      * URL에 대한 캐시 키를 생성합니다.
+     * 기본적으로 같은 문자열에 대해 Kotlin(Java)의 hashCode() 메서드는 항상 동일한 해시 값을 반환합니다.
+     * 이론상 해시 충돌이 있을수도 있지만 거의 없다고 보는게 좋습니다.
      *
      * @param url URL
      * @return 캐시 키

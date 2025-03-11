@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.mapper
 import com.stark.shoot.adapter.`in`.web.dto.message.AttachmentDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
+import com.stark.shoot.adapter.`in`.web.dto.message.UrlPreviewDto
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.ChatMessageDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.AttachmentDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
@@ -171,7 +172,8 @@ class ChatMessageMapper {
                 type = message.content.type,
                 attachments = message.content.attachments.map { toAttachmentDto(it) },
                 isEdited = message.content.isEdited,
-                isDeleted = message.content.isDeleted
+                isDeleted = message.content.isDeleted,
+                urlPreview = message.content.metadata?.urlPreview?.let { toUrlPreviewDto(it) }
             ),
             status = message.status,
             replyToMessageId = message.replyToMessageId,
@@ -183,6 +185,17 @@ class ChatMessageMapper {
             isPinned = message.isPinned,
             pinnedBy = message.pinnedBy,
             pinnedAt = message.pinnedAt
+        )
+    }
+
+    // UrlPreview 도메인 객체를 DTO로 변환하는 매퍼
+    private fun toUrlPreviewDto(preview: UrlPreview): UrlPreviewDto {
+        return UrlPreviewDto(
+            url = preview.url,
+            title = preview.title,
+            description = preview.description,
+            imageUrl = preview.imageUrl,
+            siteName = preview.siteName
         )
     }
 

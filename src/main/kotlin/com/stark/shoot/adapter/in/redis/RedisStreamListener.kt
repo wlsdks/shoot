@@ -2,6 +2,8 @@ package com.stark.shoot.adapter.`in`.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UrlPreviewMapper
+import com.stark.shoot.domain.chat.message.UrlPreview
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
@@ -22,7 +24,8 @@ import java.util.concurrent.TimeUnit
 class RedisStreamListener(
     private val simpMessagingTemplate: SimpMessagingTemplate,
     private val objectMapper: ObjectMapper,
-    private val redisTemplate: StringRedisTemplate
+    private val redisTemplate: StringRedisTemplate,
+    private val urlPreviewMapper: UrlPreviewMapper
 ) {
     private val logger = KotlinLogging.logger {}
     private val executor = Executors.newSingleThreadScheduledExecutor()
@@ -222,6 +225,22 @@ class RedisStreamListener(
                 // 레코드 값을 안전하게 추출
                 val messageValue = record.value["message"]?.toString() ?: return
                 val chatMessage = objectMapper.readValue(messageValue, ChatMessageRequest::class.java)
+
+                // URL 미리보기가 메타데이터에 있는 경우 처리
+                if (chatMessage.metadata.containsKey("urlPreview")) {
+                    try {
+                        // String으로 저장된 UrlPreview 객체를 다시 역직렬화
+                        val previewJson = chatMessage.metadata["urlPreview"] as String
+                        val urlPreview = objectMapper.readValue(previewJson, UrlPreview::class.java)
+
+                        // URL 미리보기 정보를 클라이언트가 사용할 수 있는 DTO로 변환해서 추가
+                        val urlPreviewDto = urlPreviewMapper.domainToDto(urlPreview)
+                        chatMessage.content.urlPreview = urlPreviewDto
+                    } catch (e: Exception) {
+                        logger.warn { "URL 미리보기 정보 처리 실패: ${e.message}" }
+                    }
+                }
+
                 simpMessagingTemplate.convertAndSend("/topic/messages/$roomId", chatMessage)
             } else {
                 logger.warn { "Could not extract roomId from stream key: $streamKey" }

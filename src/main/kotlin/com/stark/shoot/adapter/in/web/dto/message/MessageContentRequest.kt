@@ -10,5 +10,6 @@ data class MessageContentRequest @JsonCreator constructor(
     @JsonProperty("type") val type: String,
     @JsonProperty("attachments") val attachments: List<String> = emptyList(),
     @JsonProperty("isEdited") val isEdited: Boolean = false,
-    @JsonProperty("isDeleted") val isDeleted: Boolean = false
+    @JsonProperty("isDeleted") val isDeleted: Boolean = false,
+    @JsonProperty("urlPreview") var urlPreview: UrlPreviewDto? = null
 )

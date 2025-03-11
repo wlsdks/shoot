@@ -33,7 +33,8 @@ data class MessageContentResponseDto(
     val type: MessageType,
     val attachments: List<AttachmentDto> = emptyList(),
     val isEdited: Boolean,
-    val isDeleted: Boolean
+    val isDeleted: Boolean,
+    val urlPreview: UrlPreviewDto? = null,
 )
 
 /**
@@ -56,6 +57,5 @@ data class UrlPreviewDto(
     val title: String?,
     val description: String?,
     val imageUrl: String?,
-    val siteName: String? = null,
-    val fetchedAt: Instant = Instant.now()
+    val siteName: String? = null
 )

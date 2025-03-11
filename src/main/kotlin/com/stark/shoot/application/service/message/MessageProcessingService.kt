@@ -1,12 +1,17 @@
 package com.stark.shoot.application.service.message
 
+import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.SaveMessagePort
+import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
+import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
+import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.chat.message.MessageMetadata
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.Participant
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -24,7 +29,10 @@ class MessageProcessingService(
     private val saveChatRoomPort: SaveChatRoomPort,
     private val eventPublisher: EventPublisher,
     private val redisTemplate: StringRedisTemplate,
-    private val redisLockManager: RedisLockManager
+    private val redisLockManager: RedisLockManager,
+    private val extractUrlPort: ExtractUrlPort,
+    private val loadUrlContentPort: LoadUrlContentPort,
+    private val cacheUrlPreviewPort: CacheUrlPreviewPort
 ) : ProcessMessageUseCase {
 
     /**
@@ -44,13 +52,16 @@ class MessageProcessingService(
 
         // 분산 락을 사용하여 동일 채팅방에 대한 동시 업데이트 방지 (동시에 특정 채팅방에 대해서 접근 불가능하도록 락을 걸어줌)
         return redisLockManager.withLock(lockKey, ownerId) {
+            // URL 미리보기 처리 (Jsoup 사용) 및 업데이트된 메시지 받기
+            val processedMessage = processCreateUrlPreview(message)
+
             // 채팅방 조회 (존재하지 않으면 예외 발생)
             val roomObjectId = message.roomId.toObjectId()
             val chatRoom = loadChatRoomPort.findById(roomObjectId)
                 ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
 
             // readBy 초기화 후 저장 (트랜잭션 일관성을 위해 먼저 메시지 저장)
-            val savedMessage = saveChatMessage(message, chatRoom)
+            val savedMessage = saveChatMessage(processedMessage, chatRoom)
 
             // 보낸 사람 제외 unreadCount 증가후 채팅방 업데이트 (Redis와 MongoDB 작업의 일관성을 보장하기 위해 동일 락 내에서 처리)
             val updatedParticipants = updateUnreadCount(message, chatRoom)
@@ -66,6 +77,52 @@ class MessageProcessingService(
             // 저장된 메시지 반환
             savedMessage
         }
+    }
+
+    /**
+     * URL 미리보기 처리
+     *
+     * @param message 채팅 메시지
+     * @return 미리보기가 적용된 ChatMessage 객체
+     */
+    private fun processCreateUrlPreview(
+        message: ChatMessage
+    ): ChatMessage {
+        // 원본 메시지를 기본값으로 시작
+        var processedMessage = message
+
+        if (message.content.type == MessageType.TEXT) {
+            // 1. 텍스트에서 URL 추출 (포트 사용)
+            val urls = extractUrlPort.extractUrls(message.content.text)
+
+            if (urls.isNotEmpty()) {
+                val url = urls.first()
+
+                // 2. 캐시 확인 (포트 사용)
+                var preview = cacheUrlPreviewPort.getCachedUrlPreview(url)
+
+                // 3. 캐시 미스시 URL 내용 로드 (포트 사용)
+                if (preview == null) {
+                    preview = loadUrlContentPort.fetchUrlContent(url)
+
+                    // 4. 로드 성공시 캐싱 (포트 사용)
+                    if (preview != null) {
+                        cacheUrlPreviewPort.cacheUrlPreview(url, preview)
+                    }
+                }
+
+                // 5. 미리보기 정보가 있으면 메시지 업데이트
+                if (preview != null) {
+                    val currentMetadata = message.content.metadata ?: MessageMetadata()
+                    val updatedMetadata = currentMetadata.copy(urlPreview = preview)
+                    val updatedContent = message.content.copy(metadata = updatedMetadata)
+                    processedMessage = message.copy(content = updatedContent)
+                }
+            }
+        }
+
+        // 처리된 메시지 반환 (미리보기 추가 여부와 상관없이)
+        return processedMessage
     }
 
     /**

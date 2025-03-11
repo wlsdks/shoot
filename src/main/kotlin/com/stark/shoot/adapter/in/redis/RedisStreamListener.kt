@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UrlPreviewMapper
 import com.stark.shoot.domain.chat.message.UrlPreview
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
@@ -23,7 +24,8 @@ import java.util.concurrent.TimeUnit
 class RedisStreamListener(
     private val simpMessagingTemplate: SimpMessagingTemplate,
     private val objectMapper: ObjectMapper,
-    private val redisTemplate: StringRedisTemplate
+    private val redisTemplate: StringRedisTemplate,
+    private val urlPreviewMapper: UrlPreviewMapper
 ) {
     private val logger = KotlinLogging.logger {}
     private val executor = Executors.newSingleThreadScheduledExecutor()
@@ -231,12 +233,9 @@ class RedisStreamListener(
                         val previewJson = chatMessage.metadata["urlPreview"] as String
                         val urlPreview = objectMapper.readValue(previewJson, UrlPreview::class.java)
 
-                        // URL 미리보기 정보를 클라이언트가 사용할 수 있는 형태로 변환
-                        // 예: 메타데이터에서 문자열로 저장된 UrlPreview를 별도 필드로 추출
-                        chatMessage.metadata["urlPreviewTitle"] = urlPreview.title ?: ""
-                        chatMessage.metadata["urlPreviewDescription"] = urlPreview.description ?: ""
-                        chatMessage.metadata["urlPreviewImageUrl"] = urlPreview.imageUrl ?: ""
-                        chatMessage.metadata["urlPreviewSiteName"] = urlPreview.siteName ?: ""
+                        // URL 미리보기 정보를 클라이언트가 사용할 수 있는 DTO로 변환해서 추가
+                        val urlPreviewDto = urlPreviewMapper.domainToDto(urlPreview)
+                        chatMessage.content.urlPreview = urlPreviewDto
                     } catch (e: Exception) {
                         logger.warn { "URL 미리보기 정보 처리 실패: ${e.message}" }
                     }

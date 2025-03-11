@@ -51,7 +51,7 @@ dependencies {
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
 
     // jsoup
-    implementation("org.jsoup:jsoup:1.18.3")
+    implementation("org.jsoup:jsoup:1.19.1")
 
     // swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3")

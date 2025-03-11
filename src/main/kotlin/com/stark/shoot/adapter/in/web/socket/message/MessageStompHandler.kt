@@ -5,6 +5,8 @@ import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
+import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
+import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.swagger.v3.oas.annotations.Operation
@@ -21,7 +23,9 @@ class MessageStompHandler(
     private val sendMessageUseCase: SendMessageUseCase,
     private val messagingTemplate: SimpMessagingTemplate,
     private val redisTemplate: StringRedisTemplate,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val extractUrlPort: ExtractUrlPort,
+    private val cacheUrlPreviewPort: CacheUrlPreviewPort
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -53,7 +57,25 @@ class MessageStompHandler(
                 this.metadata["tempId"] = tempId
             }
 
-            // 2. Redis와 Kafka로 비동기 발행
+            // 2. URL 미리보기 처리 (캐시 확인만)
+            if (message.content.type == "TEXT") {
+                val urls = extractUrlPort.extractUrls(message.content.text)
+                if (urls.isNotEmpty()) {
+                    val url = urls.first()
+                    val cachedPreview = cacheUrlPreviewPort.getCachedUrlPreview(url)
+
+                    // 캐시된 미리보기가 있으면 메시지에 추가
+                    if (cachedPreview != null) {
+                        message.metadata["urlPreview"] = objectMapper.writeValueAsString(cachedPreview)
+                    } else {
+                        // 캐시 미스인 경우 처리 필요 표시
+                        message.metadata["needsUrlPreview"] = "true"
+                        message.metadata["previewUrl"] = url
+                    }
+                }
+            }
+
+            // 3. Redis와 Kafka로 비동기 발행
             CompletableFuture.allOf(
                 CompletableFuture.runAsync { publishToRedis(message) },
                 sendToKafka(message)

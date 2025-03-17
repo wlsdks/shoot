@@ -12,7 +12,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.web.bind.annotation.RestController
-import java.time.Instant
 
 @RestController
 class MessageSyncController(
@@ -41,7 +40,7 @@ class MessageSyncController(
                     ErrorResponse(
                         status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         message = "메시지 동기화 중 오류가 발생했습니다.",
-                        timestamp = Instant.now()
+                        timestamp = System.currentTimeMillis()
                     )
                 )
             }

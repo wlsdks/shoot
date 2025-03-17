@@ -2,7 +2,9 @@ package com.stark.shoot.infrastructure.config.redis
 
 import com.stark.shoot.adapter.`in`.web.dto.ApiException
 import com.stark.shoot.adapter.`in`.web.dto.ErrorCode
+import com.stark.shoot.infrastructure.exception.web.LockAcquisitionException
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.delay
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.stereotype.Component
@@ -21,16 +23,39 @@ class RedisLockManager(
     }
 
     /**
-     * 락 획득 후 작업 실행 (재시도 로직 포함)
+     * 일반 함수: Redis 분산 락을 획득하여 작업을 실행합니다.
+     *
      * @param lockKey 락 키
-     * @param ownerId 락 소유자 ID
-     * @param action 실행할 작업
-     * @return 작업 실행 결과
+     * @param ownerId 락 소유자 ID (충돌 방지용)
+     * @param action 락 획득 후 실행할 작업
+     * @return 작업 결과
      */
-    fun <T> withLock(
+    fun <T> withLock(lockKey: String, ownerId: String, action: () -> T): T {
+        val isAcquired = acquireLock(lockKey, ownerId)
+        if (!isAcquired) {
+            throw LockAcquisitionException("분산 락 획득 실패: $lockKey")
+        }
+
+        try {
+            return action()
+        } finally {
+            releaseLock(lockKey, ownerId)
+        }
+    }
+
+
+    /**
+     * 코루틴 지원 함수: Redis 분산 락을 획득하여 suspend 작업을 실행합니다.
+     *
+     * @param lockKey 락 키
+     * @param ownerId 락 소유자 ID (충돌 방지용)
+     * @param action 락 획득 후 실행할 suspend 작업
+     * @return 작업 결과
+     */
+    suspend fun <T> withLockSuspend(
         lockKey: String,
         ownerId: String,
-        action: () -> T
+        action: suspend () -> T  // 여기를 suspend 함수로 변경
     ): T {
         // 락 획득 시도
         val startTime = System.currentTimeMillis()
@@ -44,7 +69,7 @@ class RedisLockManager(
             if (!acquired) {
                 // 지수 백오프 적용 (최대 400ms까지)
                 waitTime = minOf(waitTime * 2, 400)
-                Thread.sleep(waitTime)
+                delay(waitTime)  // Thread.sleep 대신 코루틴 친화적인 delay 사용
                 retryCount++
             }
         }
@@ -61,11 +86,12 @@ class RedisLockManager(
         // 락 획득 후 작업 실행
         try {
             logger.debug { "Executing action with lock: $lockKey" }
-            return action()
+            return action()  // 여기서 suspend 함수 호출
         } finally {
             releaseLock(lockKey, ownerId)
         }
     }
+
 
     /**
      * 분산 락 획득

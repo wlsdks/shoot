@@ -12,12 +12,12 @@ import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageMetadata
 import com.stark.shoot.domain.chat.message.UrlPreview
+import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
-import java.util.concurrent.CompletableFuture
 
 @Component
 class MessageKafkaConsumer(
@@ -26,36 +26,37 @@ class MessageKafkaConsumer(
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
     private val messagingTemplate: SimpMessagingTemplate,
     private val chatMessageMapper: ChatMessageMapper,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val appCoroutineScope: ApplicationCoroutineScope
 ) {
     private val logger = KotlinLogging.logger {}
 
     @KafkaListener(topics = ["chat-messages"], groupId = "shoot")
     fun consumeMessage(@Payload event: ChatEvent) {
         if (event.type == EventType.MESSAGE_CREATED) {
-            try {
-                // 메시지 내부의 임시 ID, 채팅방 ID 추출
-                val tempId = event.data.metadata["tempId"] as? String ?: return
-                val roomId = event.data.roomId
+            // 코루틴 내부에서 비동기 처리
+            appCoroutineScope.launch {
+                try {
+                    // 메시지 내부의 임시 ID, 채팅방 ID 추출
+                    val tempId = event.data.metadata["tempId"] as? String ?: return@launch
+                    val roomId = event.data.roomId
 
-                // MongoDB 저장 전 처리 중 상태 업데이트
-                sendStatusUpdate(roomId, tempId, MessageStatus.PROCESSING.name, null)
+                    // MongoDB 저장 전 처리 중 상태 업데이트
+                    sendStatusUpdate(roomId, tempId, MessageStatus.PROCESSING.name, null)
 
-                // 메시지 저장
-                val savedMessage = processMessageUseCase.processMessageCreate(event.data)
+                    // 메시지 저장
+                    val savedMessage = processMessageUseCase.processMessageCreate(event.data)
 
-                // 저장 성공 상태 업데이트
-                sendStatusUpdate(roomId, tempId, MessageStatus.SAVED.name, savedMessage.id)
+                    // 저장 성공 상태 업데이트
+                    sendStatusUpdate(roomId, tempId, MessageStatus.SAVED.name, savedMessage.id)
 
-                // URL 미리보기 처리 필요 여부 확인
-                if (savedMessage.metadata.containsKey("needsUrlPreview") &&
-                    savedMessage.metadata.containsKey("previewUrl")
-                ) {
+                    // URL 미리보기 처리 필요 여부 확인
+                    if (savedMessage.metadata.containsKey("needsUrlPreview") &&
+                        savedMessage.metadata.containsKey("previewUrl")
+                    ) {
+                        val previewUrl = savedMessage.metadata["previewUrl"] as String
 
-                    val previewUrl = savedMessage.metadata["previewUrl"] as String
-
-                    // URL 미리보기 비동기 처리
-                    CompletableFuture.runAsync {
+                        // URL 미리보기 비동기 처리
                         try {
                             val preview = loadUrlContentPort.fetchUrlContent(previewUrl)
                             if (preview != null) {
@@ -72,9 +73,9 @@ class MessageKafkaConsumer(
                             logger.error(e) { "URL 미리보기 처리 실패: $previewUrl" }
                         }
                     }
+                } catch (e: Exception) {
+                    sendErrorResponse(event, e)
                 }
-            } catch (e: Exception) {
-                sendErrorResponse(event, e)
             }
         }
     }

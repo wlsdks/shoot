@@ -5,6 +5,8 @@ import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMon
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.Adapter
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import org.bson.types.ObjectId
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -131,6 +133,57 @@ class LoadMessageMongoAdapter(
         // MongoDB 쿼리: {roomId: roomId, "metadata.isPinned": true}
         return chatMessageRepository.findPinnedMessagesByRoomId(roomId, pageable)
             .map(chatMessageMapper::toDomain)
+    }
+
+    /**
+     * 채팅방 ID로 메시지 조회 (Flow)
+     *
+     * @param roomId 채팅방 ID
+     * @param limit 조회 개수
+     * @return 채팅 메시지 Flow
+     */
+    override fun findByRoomIdFlow(
+        roomId: ObjectId,
+        limit: Int
+    ): Flow<ChatMessage> = flow {
+        val messages = findByRoomId(roomId, limit)
+        messages.forEach { emit(it) }
+    }
+
+
+    /**
+     * 채팅방 ID와 이전 메시지 ID로 이전 메시지 조회 (Flow)
+     *
+     * @param roomId 채팅방 ID
+     * @param messageId 이전 메시지 ID
+     * @param limit 조회 개수
+     * @return 채팅 메시지 Flow
+     */
+    override fun findByRoomIdAndBeforeIdFlow(
+        roomId: ObjectId,
+        messageId: ObjectId,
+        limit: Int
+    ): Flow<ChatMessage> = flow {
+        val messages = findByRoomIdAndBeforeId(roomId, messageId, limit)
+        messages.forEach { emit(it) }
+    }
+
+
+    /**
+     * 채팅방 ID와 이후 메시지 ID로 이후 메시지 조회 (Flow)
+     *
+     * @param roomId 채팅방 ID
+     * @param messageId 이후 메시지 ID
+     * @param limit 조회 개수
+     * @return 채팅 메시지 Flow
+     */
+    override fun findByRoomIdAndAfterIdFlow(
+        roomId: ObjectId,
+        messageId: ObjectId,
+        limit: Int
+    ): Flow<ChatMessage> = flow {
+        val messages = findByRoomIdAndAfterId(roomId, messageId, limit)
+        messages.forEach { emit(it) }
     }
 
 }

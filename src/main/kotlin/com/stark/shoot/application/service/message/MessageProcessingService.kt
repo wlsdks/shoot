@@ -18,6 +18,10 @@ import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.redis.RedisLockManager
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.bson.types.ObjectId
 import org.springframework.data.redis.core.StringRedisTemplate
 import java.util.*
@@ -43,39 +47,48 @@ class MessageProcessingService(
      * @param message 채팅 메시지
      * @return ChatMessage 저장된 메시지
      */
-    override fun processMessageCreate(
+    override suspend fun processMessageCreate(
         message: ChatMessage
     ): ChatMessage {
         // 분산 락 키 생성 (채팅방별로 락을 걸기 위해 사용)
         val lockKey = "chatroom:${message.roomId}"
         val ownerId = "processor-${UUID.randomUUID()}"
 
-        // 분산 락을 사용하여 동일 채팅방에 대한 동시 업데이트 방지 (동시에 특정 채팅방에 대해서 접근 불가능하도록 락을 걸어줌)
-        return redisLockManager.withLock(lockKey, ownerId) {
-            // URL 미리보기 처리 (Jsoup 사용) 및 업데이트된 메시지 받기
-            val processedMessage = processCreateUrlPreview(message)
+        // 코루틴 블록 내에서 분산 락 획득
+        return withContext(Dispatchers.IO) {
+            redisLockManager.withLockSuspend(lockKey, ownerId) {
+                // URL 미리보기 처리 (Jsoup 사용) 및 업데이트된 메시지 받기 (비동기)
+                val processedMessage = processCreateUrlPreviewSuspend(message)
 
-            // 채팅방 조회 (존재하지 않으면 예외 발생)
-            val roomObjectId = message.roomId.toObjectId()
-            val chatRoom = loadChatRoomPort.findById(roomObjectId)
-                ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
+                // 채팅방 조회 (존재하지 않으면 예외 발생)
+                val roomObjectId = message.roomId.toObjectId()
+                val chatRoom = loadChatRoomPort.findById(roomObjectId)
+                    ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
 
-            // readBy 초기화 후 저장 (트랜잭션 일관성을 위해 먼저 메시지 저장)
-            val savedMessage = saveChatMessage(processedMessage, chatRoom)
+                // readBy 초기화 후 저장 (트랜잭션 일관성을 위해 먼저 메시지 저장)
+                val savedMessage = saveChatMessage(processedMessage, chatRoom)
 
-            // 보낸 사람 제외 unreadCount 증가후 채팅방 업데이트 (Redis와 MongoDB 작업의 일관성을 보장하기 위해 동일 락 내에서 처리)
-            val updatedParticipants = updateUnreadCount(message, chatRoom)
-            updateChatRoom(chatRoom, updatedParticipants, savedMessage)
+                // 비동기 작업들을 병렬로 실행
+                coroutineScope {
+                    launch {
+                        // 보낸 사람 제외 unreadCount 증가후 채팅방 업데이트 (Redis와 MongoDB 작업의 일관성을 보장하기 위해 동일 락 내에서 처리)
+                        val updatedParticipants = updateUnreadCount(message, chatRoom)
+                        updateChatRoom(chatRoom, updatedParticipants, savedMessage)
+                    }
 
-            // unreadCount 정보 추출 (이벤트 발행은 DB 작업 완료 후 수행)
-            val unreadCounts: Map<String, Int> = updatedParticipants.mapKeys { it.key.toString() }
-                .mapValues { it.value.unreadCount }
+                    launch {
+                        // unreadCount 정보 추출 (이벤트 발행은 DB 작업 완료 후 수행)
+                        val unreadCounts = chatRoom.metadata.participantsMetadata.mapKeys { it.key.toString() }
+                            .mapValues { it.value.unreadCount }
 
-            // unreadCount와 마지막 메시지 정보 이벤트 발행 (채팅방 목록 업데이트용)
-            publishMessageCreatedEvent(roomObjectId, unreadCounts, savedMessage)
+                        // unreadCount와 마지막 메시지 정보 이벤트 발행 (채팅방 목록 업데이트용)
+                        publishMessageCreatedEvent(roomObjectId, unreadCounts, savedMessage)
+                    }
+                }
 
-            // 저장된 메시지 반환
-            savedMessage
+                // 저장된 메시지 반환
+                savedMessage
+            }
         }
     }
 
@@ -85,44 +98,39 @@ class MessageProcessingService(
      * @param message 채팅 메시지
      * @return 미리보기가 적용된 ChatMessage 객체
      */
-    private fun processCreateUrlPreview(
+    private suspend fun processCreateUrlPreviewSuspend(
         message: ChatMessage
     ): ChatMessage {
-        // 원본 메시지를 기본값으로 시작
-        var processedMessage = message
-
-        if (message.content.type == MessageType.TEXT) {
-            // 1. 텍스트에서 URL 추출 (포트 사용)
-            val urls = extractUrlPort.extractUrls(message.content.text)
-
-            if (urls.isNotEmpty()) {
-                val url = urls.first()
-
-                // 2. 캐시 확인 (포트 사용)
-                var preview = cacheUrlPreviewPort.getCachedUrlPreview(url)
-
-                // 3. 캐시 미스시 URL 내용 로드 (포트 사용)
-                if (preview == null) {
-                    preview = loadUrlContentPort.fetchUrlContent(url)
-
-                    // 4. 로드 성공시 캐싱 (포트 사용)
-                    if (preview != null) {
-                        cacheUrlPreviewPort.cacheUrlPreview(url, preview)
-                    }
-                }
-
-                // 5. 미리보기 정보가 있으면 메시지 업데이트
-                if (preview != null) {
-                    val currentMetadata = message.content.metadata ?: MessageMetadata()
-                    val updatedMetadata = currentMetadata.copy(urlPreview = preview)
-                    val updatedContent = message.content.copy(metadata = updatedMetadata)
-                    processedMessage = message.copy(content = updatedContent)
-                }
-            }
+        if (message.content.type != MessageType.TEXT) {
+            return message
         }
 
-        // 처리된 메시지 반환 (미리보기 추가 여부와 상관없이)
-        return processedMessage
+        return withContext(Dispatchers.IO) {
+            // 텍스트에서 URL 추출 (포트 사용)
+            val urls = extractUrlPort.extractUrls(message.content.text)
+
+            // URL이 없으면 그대로 반환
+            if (urls.isEmpty()) {
+                return@withContext message
+            }
+
+            // URL 미리보기 처리 (캐시 확인 및 미리보기 추가)
+            val url = urls.first()
+            val preview = cacheUrlPreviewPort.getCachedUrlPreview(url)
+                ?: loadUrlContentPort.fetchUrlContent(url)?.also {
+                    cacheUrlPreviewPort.cacheUrlPreview(url, it)
+                }
+
+            // URL 미리보기가 있는 경우 메시지에 추가
+            if (preview != null) {
+                val currentMetadata = message.content.metadata ?: MessageMetadata()
+                val updatedMetadata = currentMetadata.copy(urlPreview = preview)
+                val updatedContent = message.content.copy(metadata = updatedMetadata)
+                message.copy(content = updatedContent)
+            } else {
+                message
+            }
+        }
     }
 
     /**

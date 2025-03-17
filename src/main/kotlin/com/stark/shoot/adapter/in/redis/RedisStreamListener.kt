@@ -41,6 +41,8 @@ class RedisStreamListener(
 
     companion object {
         private val ROOM_ID_PATTERN = Regex("stream:chat:room:([^:]+)")
+        private const val CONSUMER_GROUP = "chat-consumers"
+        private const val STREAM_KEY_PATTERN = "stream:chat:room:*"
     }
 
     /**
@@ -79,59 +81,58 @@ class RedisStreamListener(
      * Redis Stream의 소비자 그룹을 생성합니다.
      */
     private fun createConsumerGroups() {
-        try {
-            // 채팅방별 스트림 키 조회
-            val streamKeys = redisTemplate.keys("stream:chat:room:*")
-
-            // 스트림이 없으면 생성
-            if (streamKeys.isEmpty()) {
-                logger.info { "채팅방 스트림이 없습니다." }
-                return
+        val streamKeys = redisTemplate.keys(STREAM_KEY_PATTERN) ?: emptySet()
+        if (streamKeys.isEmpty()) {
+            logger.info { "채팅방 스트림이 없습니다." }
+            return
+        }
+        streamKeys.forEach { streamKey ->
+            try {
+                ensureStreamExists(streamKey)
+                createConsumerGroup(streamKey)
+            } catch (e: Exception) {
+                logger.error(e) { "Stream initialization error for: $streamKey" }
             }
-
-            // 각 스트림에 대해 소비자 그룹 생성
-            streamKeys.forEach { streamKey ->
-                try {
-                    // 스트림이 비어있는지 확인
-                    val streamExists = redisTemplate.hasKey(streamKey)
-
-                    if (!streamExists) {
-                        // 빈 스트림 생성 (첫 메시지 추가)
-                        redisTemplate.opsForStream<String, String>()
-                            .add(
-                                StreamRecords.newRecord()
-                                    .ofMap(mapOf("init" to "true"))
-                                    .withStreamKey(streamKey)
-                            )
-                        logger.info { "Created empty stream: $streamKey" }
-                    }
-
-                    // 소비자 그룹 생성 시도
-                    try {
-                        redisTemplate.opsForStream<Any, Any>()
-                            .createGroup(streamKey, "chat-consumers")
-
-                        logger.info { "Created consumer group for: $streamKey" }
-                    } catch (e: Exception) {
-                        // 이미 존재하는 그룹은 무시
-                        if (e.message != null && !e.message!!.contains("BUSYGROUP")) {
-                            logger.warn(e) { "소비자 그룹 생성 오류: $streamKey" }
-                        }
-                    }
-                } catch (e: Exception) {
-                    logger.error(e) { "Stream initialization error for: $streamKey" }
-                }
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "소비자 그룹 초기화 오류" }
         }
     }
+
+
+    /**
+     * 지정한 스트림이 존재하지 않으면 빈 스트림을 생성합니다.
+     */
+    private fun ensureStreamExists(streamKey: String) {
+        if (!redisTemplate.hasKey(streamKey)) {
+            redisTemplate.opsForStream<String, String>()
+                .add(
+                    // 빈 스트림 생성을 위해 초기화 레코드 추가
+                    StreamRecords.newRecord()
+                        .ofMap(mapOf("init" to "true"))
+                        .withStreamKey(streamKey)
+                )
+            logger.info { "Created empty stream: $streamKey" }
+        }
+    }
+
+    /**
+     * 지정한 스트림에 대해 소비자 그룹을 생성합니다.
+     */
+    private fun createConsumerGroup(streamKey: String) {
+        try {
+            redisTemplate.opsForStream<Any, Any>().createGroup(streamKey, CONSUMER_GROUP)
+            logger.info { "Created consumer group for: $streamKey" }
+        } catch (e: Exception) {
+            if (e.message?.contains("BUSYGROUP") != true) {
+                logger.warn(e) { "소비자 그룹 생성 오류: $streamKey" }
+            }
+        }
+    }
+
 
     /**
      * Redis Stream에서 새로운 메시지를 주기적으로 폴링합니다.
      */
     private suspend fun pollMessages() {
-        val streamKeys = redisTemplate.keys("stream:chat:room:*")
+        val streamKeys = redisTemplate.keys(STREAM_KEY_PATTERN) ?: emptySet()
         if (streamKeys.isEmpty()) return
 
         // 각 스트림에서 최대 10개 메시지를 읽음
@@ -140,127 +141,77 @@ class RedisStreamListener(
             .block(Duration.ofMillis(100))
 
         // 소비자 옵션 생성 (각 서버 인스턴스별로 고유한 ID 사용)
-        val consumerOptions = Consumer.from("chat-consumers", consumerId)
+        val consumerOptions = Consumer.from(CONSUMER_GROUP, consumerId)
 
-        // 각 스트림에 대해 병렬적으로 처리할 수도 있지만,
-        // 메시지 순서 보장을 위해 순차적으로 처리
-        for (key in streamKeys) {
+        // 각 스트림에 대해 병렬적으로 처리할 수도 있지만, 메시지 순서 보장을 위해 순차적으로 처리
+        streamKeys.forEach { key ->
             try {
                 // 명시적인 타입 선언으로 타입 불일치 문제 해결
                 val messages = redisTemplate.opsForStream<String, Any>()
                     .read(consumerOptions, readOptions, StreamOffset.create(key, ReadOffset.lastConsumed()))
 
-                // 메시지가 없으면 다음 스트림으로
-                if (messages.isNullOrEmpty()) continue
-
                 // 각 메시지 개별 처리 및 ACK
-                for (message in messages) {
+                messages?.forEach { message ->
                     try {
                         processMessage(message)
-
-                        // 개별 메시지 ACK
                         redisTemplate.opsForStream<String, Any>()
-                            .acknowledge("chat-consumers", key, message.id)
+                            .acknowledge(CONSUMER_GROUP, key, message.id) // 개별 메시지 ACK
                     } catch (e: Exception) {
-                        // 개별 메시지 처리 오류 - 로깅하고 계속 진행
                         logger.error { "메시지 처리 오류 (ID: ${message.id}): ${e.message}" }
                     }
                 }
             } catch (e: Exception) {
-                when {
-                    // 소비자 그룹 관련 오류인 경우
-                    e.message?.contains("NOGROUP") == true -> {
-                        logger.warn { "소비자 그룹이 없음: $key - 재생성 시도" }
-                        try {
-                            createConsumerGroupForStream(key)
-                        } catch (ex: Exception) {
-                            logger.error { "소비자 그룹 재생성 실패: $key - ${ex.message}" }
-                        }
+                if (e.message?.contains("NOGROUP") == true) {
+                    logger.warn { "소비자 그룹이 없음: $key - 재생성 시도" }
+                    try {
+                        createConsumerGroup(key)
+                    } catch (ex: Exception) {
+                        logger.error { "소비자 그룹 재생성 실패: $key - ${ex.message}" }
                     }
-                    // 기타 스트림 처리 오류
-                    else -> {
-                        logger.error { "스트림 처리 오류: $key - ${e.message}" }
-                    }
+                } else {
+                    logger.error { "스트림 처리 오류: $key - ${e.message}" }
                 }
-            }
-        }
-    }
-
-    /**
-     * 단일 스트림에 대한 소비자 그룹을 생성합니다.
-     * NOGROUP 예외 발생 시 호출됩니다.
-     */
-    private fun createConsumerGroupForStream(streamKey: String) {
-        // 스트림이 비어있는지 확인
-        val streamExists = redisTemplate.hasKey(streamKey)
-
-        if (!streamExists) {
-            // 빈 스트림 생성 (첫 메시지 추가)
-            redisTemplate.opsForStream<String, String>()
-                .add(
-                    StreamRecords.newRecord()
-                        .ofMap(mapOf("init" to "true"))
-                        .withStreamKey(streamKey)
-                )
-            logger.info { "Created empty stream: $streamKey" }
-        }
-
-        // 소비자 그룹 생성
-        try {
-            // "0"을 사용하지 않고 원래 코드와 동일하게 유지
-            redisTemplate.opsForStream<Any, Any>()
-                .createGroup(streamKey, "chat-consumers")
-            logger.info { "Re-created consumer group for: $streamKey" }
-        } catch (e: Exception) {
-            if (e.message != null && !e.message!!.contains("BUSYGROUP")) {
-                logger.error(e) { "소비자 그룹 재생성 오류: $streamKey - ${e.message}" }
-            } else {
-                logger.info { "소비자 그룹이 이미 존재함: $streamKey" }
             }
         }
     }
 
     /**
      * Redis Stream에서 읽은 개별 메시지를 처리합니다.
+     *
      * 메시지에서 채팅방 ID를 추출하고, JSON 형식의 메시지를 ChatMessageRequest 객체로 변환한 후
      * WebSocket을 통해 해당 채팅방의 구독자들에게 전달합니다.
      *
      * @param record Redis Stream에서 읽은 맵 형식의 레코드
      */
     private fun processMessage(record: MapRecord<*, *, *>) {
-        try {
-            // 안전한 타입 처리를 위해 toString() 사용
-            val streamKey = record.stream.toString()
-            val roomIdMatch = ROOM_ID_PATTERN.find(streamKey)
-            val roomId = roomIdMatch?.groupValues?.getOrNull(1)
-
-            if (roomId != null) {
-                // 레코드 값을 안전하게 추출
-                val messageValue = record.value["message"]?.toString() ?: return
-                val chatMessage = objectMapper.readValue(messageValue, ChatMessageRequest::class.java)
-
-                // URL 미리보기가 메타데이터에 있는 경우 처리
-                if (chatMessage.metadata.containsKey("urlPreview")) {
-                    try {
-                        // String으로 저장된 UrlPreview 객체를 다시 역직렬화
-                        val previewJson = chatMessage.metadata["urlPreview"] as String
-                        val urlPreview = objectMapper.readValue(previewJson, UrlPreview::class.java)
-
-                        // URL 미리보기 정보를 클라이언트가 사용할 수 있는 DTO로 변환해서 추가
-                        val urlPreviewDto = urlPreviewMapper.domainToDto(urlPreview)
-                        chatMessage.content.urlPreview = urlPreviewDto
-                    } catch (e: Exception) {
-                        logger.warn { "URL 미리보기 정보 처리 실패: ${e.message}" }
-                    }
-                }
-
-                simpMessagingTemplate.convertAndSend("/topic/messages/$roomId", chatMessage)
-            } else {
-                logger.warn { "Could not extract roomId from stream key: $streamKey" }
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "Redis Stream 메시지 처리 오류: ${e.message}" }
+        // 안전한 타입 처리를 위해 toString() 사용
+        val streamKey = record.stream.toString()
+        val roomId = ROOM_ID_PATTERN.find(streamKey)?.groupValues?.getOrNull(1)
+        if (roomId == null) {
+            logger.warn { "Could not extract roomId from stream key: $streamKey" }
+            return
         }
+
+        // 레코드 값을 안전하게 추출
+        val messageValue = record.value["message"]?.toString() ?: return
+        val chatMessage = objectMapper.readValue(messageValue, ChatMessageRequest::class.java)
+
+        // URL 미리보기가 메타데이터에 있는 경우 처리
+        if (chatMessage.metadata.containsKey("urlPreview")) {
+            runCatching {
+                // String으로 저장된 UrlPreview 객체를 다시 역직렬화
+                val previewJson = chatMessage.metadata["urlPreview"] as? String
+
+                // URL 미리보기 정보를 클라이언트가 사용할 수 있는 DTO로 변환해서 추가
+                previewJson?.let {
+                    val urlPreview = objectMapper.readValue(it, UrlPreview::class.java)
+                    chatMessage.content.urlPreview = urlPreviewMapper.domainToDto(urlPreview)
+                }
+            }.onFailure { e ->
+                logger.warn { "URL 미리보기 정보 처리 실패: ${e.message}" }
+            }
+        }
+        simpMessagingTemplate.convertAndSend("/topic/messages/$roomId", chatMessage)
     }
 
     /**

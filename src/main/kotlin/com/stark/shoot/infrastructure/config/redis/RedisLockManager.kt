@@ -27,7 +27,7 @@ class RedisLockManager(
      * @param action 실행할 작업
      * @return 작업 실행 결과
      */
-    fun <T> withLock(
+    suspend fun <T> withLockSuspend(
         lockKey: String,
         ownerId: String,
         action: () -> T

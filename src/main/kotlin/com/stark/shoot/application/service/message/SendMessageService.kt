@@ -10,13 +10,17 @@ import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.infrastructure.annotation.UseCase
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.time.Instant
-import java.util.concurrent.CompletableFuture
 
 @UseCase
 class SendMessageService(
     private val kafkaMessagePublishPort: KafkaMessagePublishPort
 ) : SendMessageUseCase {
+
+    private val logger = KotlinLogging.logger {}
 
     /**
      * 메시지 전송 처리 (Kafka로 이벤트 발행)
@@ -24,9 +28,9 @@ class SendMessageService(
      * @param requestMessage ChatMessageRequest
      * @return CompletableFuture<String?>
      */
-    override fun handleMessage(
+    override suspend fun handleMessageSuspend(
         requestMessage: ChatMessageRequest
-    ): CompletableFuture<String?> {
+    ): String? {
         // 임시 ID 복사
         val tempId = requestMessage.tempId
 
@@ -36,8 +40,8 @@ class SendMessageService(
         // ChatEvent 생성
         val chatEvent = createChatEvent(requestMessage, chatMessage)
 
-        // Kafka로 이벤트 발행
-        return publishKafkaMessage(requestMessage, chatEvent, tempId)
+        // Kafka로 이벤트 발행 (코루틴 방식)
+        return publishKafkaMessageSuspend(requestMessage, chatEvent, tempId)
     }
 
     /**
@@ -89,29 +93,23 @@ class SendMessageService(
         return chatEvent
     }
 
-    /**
-     * Kafka로 이벤트 발행
-     *
-     * @param requestMessage ChatMessageRequest
-     * @param chatEvent ChatEvent
-     * @param tempId String?
-     * @return CompletableFuture<String?>
-     */
-    private fun publishKafkaMessage(
+    private suspend fun publishKafkaMessageSuspend(
         requestMessage: ChatMessageRequest,
         chatEvent: ChatEvent,
         tempId: String?
-    ): CompletableFuture<String?> {
-        // Kafka로 이벤트 발행
-        val future = kafkaMessagePublishPort.publishChatEvent(
-            topic = "chat-messages",
-            key = requestMessage.roomId,
-            event = chatEvent
-        )
-
-        // Kafka 발행 성공 후 tempId 반환 (실제 저장 ID는 Kafka Consumer에서 생성됨)
-        return future.thenApply {
+    ): String? = withContext(Dispatchers.IO) {
+        try {
+            kafkaMessagePublishPort.publishChatEventSuspend(
+                topic = "chat-messages",
+                key = requestMessage.roomId,
+                event = chatEvent
+            )
             tempId
+        } catch (e: Exception) {
+            // 에러 로깅
+            logger.error(e) { "Kafka 발행 실패: ${requestMessage.roomId}" }
+            // 예외 전파
+            throw e
         }
     }
 

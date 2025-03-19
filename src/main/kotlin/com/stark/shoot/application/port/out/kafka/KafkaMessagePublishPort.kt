@@ -5,4 +5,5 @@ import java.util.concurrent.CompletableFuture
 
 interface KafkaMessagePublishPort {
     fun publishChatEvent(topic: String, key: String, event: ChatEvent): CompletableFuture<Void>
+    suspend fun publishChatEventSuspend(topic: String, key: String, event: ChatEvent)
 }

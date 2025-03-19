@@ -7,16 +7,19 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
+import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.swagger.v3.oas.annotations.Operation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.springframework.data.redis.connection.stream.StreamRecords
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
+import java.time.Instant
 import java.util.*
-import java.util.concurrent.CompletableFuture
 
 @Controller
 class MessageStompHandler(
@@ -25,7 +28,8 @@ class MessageStompHandler(
     private val redisTemplate: StringRedisTemplate,
     private val objectMapper: ObjectMapper,
     private val extractUrlPort: ExtractUrlPort,
-    private val cacheUrlPreviewPort: CacheUrlPreviewPort
+    private val cacheUrlPreviewPort: CacheUrlPreviewPort,
+    private val applicationCoroutineScope: ApplicationCoroutineScope
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -75,13 +79,17 @@ class MessageStompHandler(
                 }
             }
 
-            // 3. Redis와 Kafka로 비동기 발행
-            CompletableFuture.allOf(
-                CompletableFuture.runAsync { publishToRedis(message) },
-                sendToKafka(message)
-            ).exceptionally { throwable ->
-                handleMessageError(message, tempId, throwable)
-                null
+            // 3. Redis와 Kafka 발행 - 코루틴으로 변경
+            applicationCoroutineScope.launch {
+                try {
+                    // Redis 발행
+                    publishToRedisSuspend(message)
+
+                    // Kafka 발행과 상태 업데이트
+                    sendToKafkaSuspend(message)
+                } catch (throwable: Throwable) {
+                    handleMessageError(message, tempId, throwable)
+                }
             }
         } catch (e: Exception) {
             logger.error(e) { "메시지 처리 중 예외 발생: ${e.message}" }
@@ -94,27 +102,29 @@ class MessageStompHandler(
      *
      * @param message 메시지
      */
-    private fun publishToRedis(
+    private suspend fun publishToRedisSuspend(
         message: ChatMessageRequest
     ) {
-        val streamKey = "stream:chat:room:${message.roomId}"
-        try {
-            val messageJson = objectMapper.writeValueAsString(message)
-            val map = mapOf("message" to messageJson)
+        withContext(Dispatchers.IO) {
+            val streamKey = "stream:chat:room:${message.roomId}"
+            try {
+                val messageJson = objectMapper.writeValueAsString(message)
+                val map = mapOf("message" to messageJson)
 
-            // StreamRecords 사용
-            val record = StreamRecords.newRecord()
-                .ofMap(map)
-                .withStreamKey(streamKey)
+                // StreamRecords 사용
+                val record = StreamRecords.newRecord()
+                    .ofMap(map)
+                    .withStreamKey(streamKey)
 
-            // Stream 추가
-            val messageId = redisTemplate.opsForStream<String, String>()
-                .add(record)
+                // Stream 추가
+                val messageId = redisTemplate.opsForStream<String, String>()
+                    .add(record)
 
-            logger.debug { "Redis Stream에 메시지 발행: $streamKey, id: $messageId, tempId: ${message.tempId}" }
-        } catch (e: Exception) {
-            logger.error(e) { "Redis 발행 실패: ${e.message}" }
-            throw e
+                logger.debug { "Redis Stream에 메시지 발행: $streamKey, id: $messageId, tempId: ${message.tempId}" }
+            } catch (e: Exception) {
+                logger.error(e) { "Redis 발행 실패: ${e.message}" }
+                throw e
+            }
         }
     }
 
@@ -122,25 +132,30 @@ class MessageStompHandler(
      * Kafka를 통해 메시지를 발행하고 상태를 업데이트합니다.
      *
      * @param message 메시지
-     * @return CompletableFuture<Void> Kafka 발행 결과
      */
-    private fun sendToKafka(
+    private suspend fun sendToKafkaSuspend(
         message: ChatMessageRequest
-    ): CompletableFuture<Void> {
+    ) = withContext(Dispatchers.IO) {
         val tempId = message.tempId ?: ""
 
-        return sendMessageUseCase.handleMessage(message)
-            .thenAccept { _ ->
-                // Kafka 발행 성공 시 상태 업데이트
-                val statusUpdate = MessageStatusResponse(
-                    tempId = tempId,
-                    status = MessageStatus.SENT_TO_KAFKA.name, // Kafka로 전송됨 (아직 DB에 저장되지 않음)
-                    persistedId = null,
-                    errorMessage = null
-                )
-                messagingTemplate.convertAndSend("/topic/message/status/${message.roomId}", statusUpdate)
-                logger.debug { "메시지 Kafka 발행 성공, 상태 업데이트: tempId=$tempId" }
-            }
+        try {
+            // 코루틴 컨텍스트 내에서 다른 suspend 함수 호출
+            val result = sendMessageUseCase.handleMessageSuspend(message)
+
+            // 상태 업데이트 (메시징 작업도 I/O 작업)
+            val statusUpdate = MessageStatusResponse(
+                tempId = tempId,
+                status = MessageStatus.SENT_TO_KAFKA.name, // Kafka로 전송됨 (아직 DB에 저장되지 않음)
+                persistedId = null,
+                errorMessage = null,
+                createdAt = Instant.now().toString()
+            )
+            messagingTemplate.convertAndSend("/topic/message/status/${message.roomId}", statusUpdate)
+            logger.debug { "메시지 Kafka 발행 성공, 상태 업데이트: tempId=$tempId" }
+        } catch (e: Exception) {
+            logger.error(e) { "Kafka 발행 실패: ${e.message}" }
+            throw e
+        }
     }
 
     /**
@@ -170,7 +185,8 @@ class MessageStompHandler(
             tempId = tempId,
             status = MessageStatus.FAILED.name,
             persistedId = null,
-            errorMessage = throwable.message
+            errorMessage = throwable.message,
+            createdAt = Instant.now().toString()
         )
         messagingTemplate.convertAndSend("/topic/message/status/${message.roomId}", statusUpdate)
     }

@@ -5,9 +5,11 @@ import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PreDestroy
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 @UseCase
@@ -18,6 +20,9 @@ class SseEmitterService : SseEmitterUseCase {
 
     // 활성 사용자 ID 캐시 추가
     private val activeUserIds = ConcurrentHashMap.newKeySet<String>()
+
+    // 스케줄러를 추적하기 위한 컬렉션 추가
+    private val heartbeatSchedulers = ConcurrentHashMap<String, ScheduledExecutorService>()
 
     /**
      * 새로운 SSE emitter를 생성합니다.
@@ -170,6 +175,9 @@ class SseEmitterService : SseEmitterUseCase {
             thread
         }
 
+        // 스케줄러 추적
+        heartbeatSchedulers[userId] = scheduler
+
         // 15초마다 Heartbeat 전송
         scheduler.scheduleAtFixedRate({
             try {
@@ -188,15 +196,22 @@ class SseEmitterService : SseEmitterUseCase {
                 scheduler.shutdown()
             }
         }, 15, 15, TimeUnit.SECONDS)
+    }
 
-        // 메모리 누수 방지 (애플리케이션 종료 시 스케줄러도 종료되도록)
-        Runtime.getRuntime().addShutdownHook(Thread {
+    /**
+     * 애플리케이션 종료 시 리소스를 정리합니다.
+     */
+    @PreDestroy
+    fun shutdown() {
+        logger.info { "Shutting down ${heartbeatSchedulers.size} SSE heartbeat schedulers" }
+        heartbeatSchedulers.forEach { (userId, scheduler) ->
             try {
                 scheduler.shutdown()
             } catch (e: Exception) {
-                logger.error { "Failed to shutdown heartbeat scheduler" }
+                logger.error { "Failed to shutdown heartbeat scheduler for user: $userId" }
             }
-        })
+        }
+        heartbeatSchedulers.clear()
     }
 
 }

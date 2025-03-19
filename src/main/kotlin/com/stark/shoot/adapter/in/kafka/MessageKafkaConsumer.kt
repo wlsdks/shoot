@@ -18,6 +18,7 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 @Component
 class MessageKafkaConsumer(
@@ -96,7 +97,16 @@ class MessageKafkaConsumer(
         persistedId: String?,
         errorMessage: String? = null
     ) {
-        val statusUpdate = MessageStatusResponse(tempId, status, persistedId, errorMessage)
+        // 현재 시간을 ISO 형식 문자열로 변환
+        val createdAt = Instant.now().toString()
+
+        val statusUpdate = MessageStatusResponse(
+            tempId = tempId,
+            status = status,
+            persistedId = persistedId,
+            errorMessage = errorMessage,
+            createdAt = createdAt
+        )
         messagingTemplate.convertAndSend("/topic/message/status/$roomId", statusUpdate)
     }
 

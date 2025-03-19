@@ -8,5 +8,6 @@ data class MessageStatusResponse(
     val tempId: String,                // 임시 메시지 ID (클라이언트 추적용)
     val status: String,                // 상태: "sending", "saved", "failed" 등
     val persistedId: String?,          // 영구 저장된 메시지 ID (성공 시)
-    val errorMessage: String? = null   // 오류 메시지 (실패 시)
+    val errorMessage: String? = null,  // 오류 메시지 (실패 시)
+    val createdAt: String?,            // 생성 시각
 )

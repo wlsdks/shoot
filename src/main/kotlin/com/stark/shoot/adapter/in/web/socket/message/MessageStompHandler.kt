@@ -18,6 +18,7 @@ import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
+import java.time.Instant
 import java.util.*
 
 @Controller
@@ -146,7 +147,8 @@ class MessageStompHandler(
                 tempId = tempId,
                 status = MessageStatus.SENT_TO_KAFKA.name, // Kafka로 전송됨 (아직 DB에 저장되지 않음)
                 persistedId = null,
-                errorMessage = null
+                errorMessage = null,
+                createdAt = Instant.now().toString()
             )
             messagingTemplate.convertAndSend("/topic/message/status/${message.roomId}", statusUpdate)
             logger.debug { "메시지 Kafka 발행 성공, 상태 업데이트: tempId=$tempId" }
@@ -183,7 +185,8 @@ class MessageStompHandler(
             tempId = tempId,
             status = MessageStatus.FAILED.name,
             persistedId = null,
-            errorMessage = throwable.message
+            errorMessage = throwable.message,
+            createdAt = Instant.now().toString()
         )
         messagingTemplate.convertAndSend("/topic/message/status/${message.roomId}", statusUpdate)
     }

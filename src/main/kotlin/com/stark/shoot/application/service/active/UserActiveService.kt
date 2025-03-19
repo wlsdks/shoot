@@ -6,6 +6,8 @@ import com.stark.shoot.application.port.`in`.active.UserActiveUseCase
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.scheduling.annotation.Scheduled
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -50,6 +52,30 @@ class UserActiveService(
         } catch (e: Exception) {
             logger.error(e) { "Failed to process chat activity: $message" }
         }
+    }
+
+
+    /**
+     * 만료된 캐시 항목 정리
+     * 1시간마다 실행되며, 24시간 이상 사용되지 않은 캐시 항목을 삭제합니다.
+     */
+    @Scheduled(fixedRate = 3600000) // 1시간마다 실행
+    fun cleanupExpiredCacheEntries() {
+        val currentTime = Instant.now().toEpochMilli()
+        val expirationThreshold = 24 * 3600 * 1000L // 24시간
+
+        // 삭제 전 캐시 크기 기록
+        val beforeSize = userActiveCache.size
+
+        // ConcurrentHashMap의 removeIf 메서드 활용
+        userActiveCache.entries.removeIf { (_, value) ->
+            currentTime - value.second > expirationThreshold
+        }
+
+        // 삭제된 항목 수 계산
+        val removedCount = beforeSize - userActiveCache.size
+
+        logger.info { "캐시 정리 완료: ${removedCount}개 항목 제거됨 (현재 캐시 크기: ${userActiveCache.size})" }
     }
 
 }

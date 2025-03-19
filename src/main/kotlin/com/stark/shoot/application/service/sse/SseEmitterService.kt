@@ -36,24 +36,31 @@ class SseEmitterService : SseEmitterUseCase {
         activeUserIds.add(userId)
 
         emitter.onCompletion {
-            logger.info { "SSE connection completed for user: $userId" }
+            logger.debug { "SSE connection completed for user: $userId" }
             emitters.remove(userId)
             activeUserIds.remove(userId) // 활성 사용자에서 제거
         }
 
         emitter.onTimeout {
-            logger.info { "SSE connection timeout for user: $userId" }
+            logger.debug { "SSE connection timeout for user: $userId" }
             emitters.remove(userId)
             activeUserIds.remove(userId) // 활성 사용자에서 제거
         }
 
-        emitter.onError {
-            logger.error { "SSE connection error for user: $userId, error: ${it.message}" }
+        emitter.onError { error ->
+            // 일반적인 클라이언트 연결 끊김은 DEBUG로 로깅
+            if (error.message?.contains("disconnected client") == true ||
+                error.message?.contains("Broken pipe") == true
+            ) {
+                logger.debug { "Client disconnected (normal): $userId - ${error.message}" }
+            } else {
+                logger.error { "SSE connection error for user: $userId, error: ${error.message}" }
+            }
             emitters.remove(userId)
             activeUserIds.remove(userId) // 활성 사용자에서 제거
         }
 
-        // Heartbeat 전송은 유지
+        // Heartbeat 전송
         sendSseHeartBeat(emitter, userId)
         return emitter
     }
@@ -167,10 +174,15 @@ class SseEmitterService : SseEmitterUseCase {
         scheduler.scheduleAtFixedRate({
             try {
                 emitter.send(SseEmitter.event().name("heartbeat").data("ping"))
-                // 디버그 레벨로 낮춤 (너무 자주 발생하는 로그)
                 logger.debug { "Heartbeat sent to user: $userId" }
             } catch (e: Exception) {
-                logger.warn { "Failed to send heartbeat to user: $userId, error: ${e.message}" }
+                // 파이프 끊김 오류는 일반적인 현상이므로 DEBUG 레벨로 로깅
+                if (e.message?.contains("Broken pipe") == true) {
+                    logger.debug { "Client disconnected (normal): $userId - ${e.message}" }
+                } else {
+                    logger.warn { "Failed to send heartbeat to user: $userId, error: ${e.message}" }
+                }
+
                 emitters.remove(userId)
                 activeUserIds.remove(userId) // 활성 사용자에서도 제거
                 scheduler.shutdown()

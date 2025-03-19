@@ -28,7 +28,7 @@ class KafkaMessagePublishAdapter(
     ): CompletableFuture<Void> {
         return kafkaTemplate.send(topic, key, event)
             .thenAccept { result ->
-                logger.info { "Message sent to topic: $topic, key: $key, offset: ${result.recordMetadata.offset()}" }
+//                logger.info { "Message sent to topic: $topic, key: $key, offset: ${result.recordMetadata.offset()}" }
             }
             .exceptionally { ex ->
                 logger.error(ex) { "Failed to send message to topic: $topic, key: $key, event: $event" }
@@ -46,7 +46,7 @@ class KafkaMessagePublishAdapter(
     ) = withContext(Dispatchers.IO) {
         try {
             val result = kafkaTemplate.send(topic, key, event).await()
-            logger.info { "Message sent to topic: $topic, key: $key, offset: ${result.recordMetadata.offset()}" }
+//            logger.info { "Message sent to topic: $topic, key: $key, offset: ${result.recordMetadata.offset()}" }
         } catch (ex: Exception) {
             logger.error(ex) { "Failed to send message to topic: $topic, key: $key, event: $event" }
             throw KafkaPublishException("Failed to publish message to Kafka", ex)

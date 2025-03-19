@@ -29,7 +29,7 @@ class TypingStompHandler(
         val lastSent = typingRateLimiter.getOrDefault(key, 0L)
 
         if (now - lastSent > 1000) { // 1초 제한
-            logger.info { "Typing status: $message" }
+//            logger.info { "Typing status: $message" }
             messagingTemplate.convertAndSend("/topic/typing/${message.roomId}", message)
             typingRateLimiter[key] = now
         }

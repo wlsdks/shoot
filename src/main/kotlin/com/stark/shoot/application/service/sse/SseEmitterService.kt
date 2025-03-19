@@ -63,7 +63,7 @@ class SseEmitterService : SseEmitterUseCase {
     ) {
         emitters[userId]?.let { emitter ->
             try {
-                logger.info { "Sending update to user: $userId, roomId: $roomId, unreadCount: $unreadCount, message: $lastMessage" }
+//                logger.info { "Sending update to user: $userId, roomId: $roomId, unreadCount: $unreadCount, message: $lastMessage" }
 
                 // 데이터 구조를 명확하게 하여 JSON 형식으로 보냄
                 val data = mapOf(

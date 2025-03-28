@@ -1,4 +1,4 @@
-package com.stark.shoot.application.filter.message.config
+package com.stark.shoot.infrastructure.config.filter
 
 import com.stark.shoot.application.filter.message.chain.DefaultMessageProcessingChain
 import com.stark.shoot.application.filter.message.impl.*

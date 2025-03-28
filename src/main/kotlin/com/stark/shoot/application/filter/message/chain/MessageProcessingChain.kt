@@ -1,4 +1,4 @@
-package com.stark.shoot.application.port.`in`.message.process
+package com.stark.shoot.application.filter.message.chain
 
 import com.stark.shoot.domain.chat.message.ChatMessage
 

@@ -1,7 +1,8 @@
-package com.stark.shoot.application.service.message.filter
+package com.stark.shoot.application.filter.message.impl
 
-import com.stark.shoot.application.port.`in`.message.process.MessageProcessingChain
-import com.stark.shoot.application.port.`in`.message.process.MessageProcessingFilter
+import com.stark.shoot.application.filter.common.MessageProperty
+import com.stark.shoot.application.filter.message.chain.MessageProcessingChain
+import com.stark.shoot.application.filter.common.MessageProcessingFilter
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.message.ChatMessage

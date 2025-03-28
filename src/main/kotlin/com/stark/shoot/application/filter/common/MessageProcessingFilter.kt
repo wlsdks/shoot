@@ -1,5 +1,6 @@
-package com.stark.shoot.application.port.`in`.message.process
+package com.stark.shoot.application.filter.common
 
+import com.stark.shoot.application.filter.message.chain.MessageProcessingChain
 import com.stark.shoot.domain.chat.message.ChatMessage
 
 interface MessageProcessingFilter {

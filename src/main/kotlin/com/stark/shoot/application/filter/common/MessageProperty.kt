@@ -1,4 +1,4 @@
-package com.stark.shoot.application.service.message.filter
+package com.stark.shoot.application.filter.common
 
 import com.stark.shoot.domain.chat.room.Participant
 import org.bson.types.ObjectId

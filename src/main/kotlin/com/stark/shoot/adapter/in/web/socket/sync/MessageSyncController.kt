@@ -1,7 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.socket.sync
 
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
-import com.stark.shoot.application.port.`in`.message.MessageSyncUseCase
+import com.stark.shoot.application.port.`in`.message.GetMessageSyncFlowUseCase
+import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -15,7 +16,8 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class MessageSyncController(
-    private val messageSyncUseCase: MessageSyncUseCase,
+    private val getMessageSyncFlowUseCase: GetMessageSyncFlowUseCase,
+    private val sendSyncMessagesToUserUseCase: SendSyncMessagesToUserUseCase,
     private val appCoroutineScope: ApplicationCoroutineScope,
     private val messagingTemplate: SimpMessagingTemplate
 ) {
@@ -25,13 +27,13 @@ class MessageSyncController(
     @MessageMapping("/sync")
     fun syncMessages(@Payload request: SyncRequestDto) {
         // Flow 반환 메서드 호출
-        val messagesFlow = messageSyncUseCase.chatMessagesFlow(request)
+        val messagesFlow = getMessageSyncFlowUseCase.chatMessagesFlow(request)
 
         // 코루틴 시작
         appCoroutineScope.launch {
             try {
                 val messages = messagesFlow.toList() // Flow를 List로 변환
-                messageSyncUseCase.sendMessagesToUser(request, messages) // 메시지 전송
+                sendSyncMessagesToUserUseCase.sendMessagesToUser(request, messages) // 메시지 전송
             } catch (e: Exception) {
                 logger.error { "동기화 중 에러 발생" + e.message }
                 messagingTemplate.convertAndSendToUser(

@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.`in`.web.message
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
-import com.stark.shoot.application.port.`in`.message.RetrieveMessageUseCase
+import com.stark.shoot.application.port.`in`.message.GetMessagesUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/messages")
 @RestController
 class MessageReadController(
-    private val retrieveMessageUseCase: RetrieveMessageUseCase
+    private val getMessagesUseCase: GetMessagesUseCase
 ) {
 
     @Operation(
@@ -27,7 +27,7 @@ class MessageReadController(
         @RequestParam(required = false) lastId: String?,
         @RequestParam(defaultValue = "20") limit: Int
     ): ResponseDto<List<MessageResponseDto>> {
-        val messageDtos = retrieveMessageUseCase.getMessages(roomId, lastId, limit)
+        val messageDtos = getMessagesUseCase.getMessages(roomId, lastId, limit)
         return ResponseDto.success(messageDtos)
     }
 

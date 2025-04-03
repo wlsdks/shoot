@@ -4,7 +4,8 @@ import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
 import com.stark.shoot.adapter.`in`.web.socket.dto.MessageSyncInfoDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncResponseDto
-import com.stark.shoot.application.port.`in`.message.MessageSyncUseCase
+import com.stark.shoot.application.port.`in`.message.GetMessageSyncFlowUseCase
+import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -21,7 +22,7 @@ import java.time.Instant
 class MessageSyncService(
     private val loadMessagePort: LoadMessagePort,
     private val messagingTemplate: SimpMessagingTemplate
-) : MessageSyncUseCase {
+) : SendSyncMessagesToUserUseCase, GetMessageSyncFlowUseCase {
 
     /**
      * 클라이언트 재연결 시 메시지 동기화

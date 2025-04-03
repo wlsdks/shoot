@@ -2,16 +2,16 @@ package com.stark.shoot.application.service.message
 
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
-import com.stark.shoot.application.port.`in`.message.RetrieveMessageUseCase
+import com.stark.shoot.application.port.`in`.message.GetMessagesUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.util.toObjectId
 
 @UseCase
-class RetrieveMessageService(
+class GetMessagesService(
     private val loadMessagePort: LoadMessagePort,
     private val chatMessageMapper: ChatMessageMapper
-) : RetrieveMessageUseCase {
+) : GetMessagesUseCase {
 
     /**
      * 특정 채팅방의 메시지를 조회 (DTO 반환)

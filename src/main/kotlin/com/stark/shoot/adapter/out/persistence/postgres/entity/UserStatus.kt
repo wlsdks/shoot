@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.out.persistence.mongodb.document.user.type
+package com.stark.shoot.adapter.out.persistence.postgres.entity
 
 enum class UserStatus {
     OFFLINE,        // 오프라인

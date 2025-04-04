@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.chat.user
 
-import com.stark.shoot.adapter.out.persistence.mongodb.document.user.type.UserStatus
+import com.stark.shoot.adapter.out.persistence.postgres.entity.UserStatus
 import org.bson.types.ObjectId
 import java.time.Instant
 

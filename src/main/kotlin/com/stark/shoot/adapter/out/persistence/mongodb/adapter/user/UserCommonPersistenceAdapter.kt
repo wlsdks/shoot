@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user
 
-import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UserMapper
+import com.stark.shoot.adapter.out.persistence.postgres.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.UserCreatePort
 import com.stark.shoot.application.port.out.user.UserDeletePort

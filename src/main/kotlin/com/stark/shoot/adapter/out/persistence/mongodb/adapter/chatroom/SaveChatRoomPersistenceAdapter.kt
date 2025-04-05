@@ -1,14 +1,14 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.adapter.chatroom
 
-import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatRoomMapper
-import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatRoomMongoRepository
+import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
+import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
-class SaveChatRoomMongoAdapter(
-    private val chatRoomRepository: ChatRoomMongoRepository,
+class SaveChatRoomPersistenceAdapter(
+    private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomMapper: ChatRoomMapper
 ) : SaveChatRoomPort {
 
@@ -21,8 +21,8 @@ class SaveChatRoomMongoAdapter(
     override fun save(
         chatRoom: ChatRoom
     ): ChatRoom {
-        val document = chatRoomMapper.toDocument(chatRoom)
-        return chatRoomRepository.save(document)
+        val chatRoomEntity = chatRoomMapper.toEntity(chatRoom)
+        return chatRoomRepository.save(chatRoomEntity)
             .let(chatRoomMapper::toDomain)
     }
 

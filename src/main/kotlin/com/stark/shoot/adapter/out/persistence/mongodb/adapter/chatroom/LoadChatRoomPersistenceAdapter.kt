@@ -1,14 +1,14 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.adapter.chatroom
 
-import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatRoomMapper
-import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatRoomMongoRepository
+import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
+import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
 class LoadChatRoomPersistenceAdapter(
-    private val chatRoomRepository: ChatRoomMongoRepository,
+    private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomMapper: ChatRoomMapper
 ) : LoadChatRoomPort {
 
@@ -35,8 +35,10 @@ class LoadChatRoomPersistenceAdapter(
     override fun findByParticipantId(
         participantId: Long
     ): List<ChatRoom> {
-        return chatRoomRepository.findByParticipantsContaining(participantId)
-            .map(chatRoomMapper::toDomain)
+        return chatRoomRepository.findByParticipantIds(
+            (listOf(participantId))
+                .toMutableList()
+        ).map(chatRoomMapper::toDomain)
     }
 
 }

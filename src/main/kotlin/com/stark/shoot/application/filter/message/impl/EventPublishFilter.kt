@@ -21,8 +21,7 @@ class EventPublishFilter(
         chain: MessageProcessingChain
     ): ChatMessage {
         // 채팅방 ID로 채팅방 조회
-        val roomId = message.roomId.toObjectId()
-        val chatRoom = loadChatRoomPort.findById(roomId)
+        val chatRoom = loadChatRoomPort.findById(message.roomId)
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
 
         // 읽지 않은 메시지 수 이벤트 발행

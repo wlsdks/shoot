@@ -8,9 +8,7 @@ import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.ChatRoomMetadata
 import com.stark.shoot.domain.chat.room.ChatRoomSettings
-import com.stark.shoot.domain.chat.room.Participant
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase

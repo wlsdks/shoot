@@ -1,18 +1,15 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user
 
-import com.stark.shoot.adapter.out.persistence.mongodb.document.user.UserDocument
+import com.stark.shoot.adapter.out.persistence.postgres.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.code.UpdateUserCodePort
+import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.Adapter
-import org.bson.types.ObjectId
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.Update
 
 @Adapter
 class UserCodePersistenceAdapter(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userMapper: UserMapper
 ) : UpdateUserCodePort {
 
     /**
@@ -23,27 +20,10 @@ class UserCodePersistenceAdapter(
      * @return Unit (void)
      */
     override fun updateUserCode(
-        userId: ObjectId,
-        newCode: String
+        user: User
     ) {
-
-        val query = Query(Criteria.where("_id").`is`(userId))
-        val update = Update().set("userCode", newCode)
-        mongoTemplate.updateFirst(query, update, UserDocument::class.java)
-    }
-
-    /**
-     * 사용자 코드 삭제
-     *
-     * @param userId 사용자 ID
-     * @return Unit (void)
-     */
-    override fun clearUserCode(
-        userId: ObjectId
-    ) {
-        val query = Query(Criteria.where("_id").`is`(userId))
-        val update = Update().unset("userCode")
-        mongoTemplate.updateFirst(query, update, UserDocument::class.java)
+        val userEntity = userMapper.toEntity(user)
+        userRepository.save(userEntity)
     }
 
 }

@@ -5,7 +5,6 @@ import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.Participant
 import com.stark.shoot.infrastructure.annotation.UseCase
 import org.bson.types.ObjectId
 import java.time.Instant

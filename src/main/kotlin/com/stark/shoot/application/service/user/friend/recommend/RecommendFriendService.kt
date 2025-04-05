@@ -8,7 +8,6 @@ import com.stark.shoot.application.port.out.user.friend.RecommendFriendPort
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.bson.types.ObjectId
 import org.springframework.data.redis.core.StringRedisTemplate
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
@@ -30,25 +29,24 @@ class RecommendFriendService(
     private val inProgressUsers = ConcurrentHashMap.newKeySet<String>()
 
     // 캐시 키 생성
-    private fun getCacheKey(userId: ObjectId, maxDepth: Int): String {
-        return "friend_recommend:${userId}:$maxDepth"
+    private fun getCacheKey(userId: Long, limit: Int): String {
+        return "friend_recommend:${userId}:$limit"
     }
 
     // 캐시 유효 시간 (분)
     private val CACHE_TTL_MINUTES = 120L
 
     /**
-     * BFS 기반 친구 추천
+     * 친구 추천 구현
      * - 캐싱 적용
      * - 페이징 지원
      */
-    override fun findBFSRecommendedUsers(
-        userId: ObjectId,
-        maxDepth: Int,
+    override fun getRecommendedFriends(
+        userId: Long,
         skip: Int,
         limit: Int
     ): List<FriendResponse> {
-        val cacheKey = getCacheKey(userId, maxDepth)
+        val cacheKey = getCacheKey(userId, limit)
 
         // 1. 캐시 확인
         val cachedUsers = getCachedRecommendations(cacheKey)
@@ -71,7 +69,7 @@ class RecommendFriendService(
             inProgressUsers.add(userIdStr)
 
             // 4. 데이터베이스에서 추천 친구 계산
-            val recommendations = calculateAndCacheRecommendations(userId, maxDepth, cacheKey, limit)
+            val recommendations = calculateAndCacheRecommendations(userId, cacheKey, limit)
 
             // 5. 페이징 및 변환
             return paginateAndConvert(recommendations, skip, limit)
@@ -120,19 +118,13 @@ class RecommendFriendService(
      * 추천 목록 계산 및 캐싱
      */
     private fun calculateAndCacheRecommendations(
-        userId: ObjectId,
-        maxDepth: Int,
+        userId: Long,
         cacheKey: String,
         limit: Int
     ): List<User> {
-        logger.info { "친구 추천 목록 계산 시작: $userId (깊이: $maxDepth)" }
+        logger.info { "친구 추천 목록 계산 시작: $userId" }
 
-        val recommendedUsers = recommendFriendPort.findBFSRecommendedUsers(
-            userId,
-            maxDepth,
-            0,
-            limit
-        )
+        val recommendedUsers = recommendFriendPort.recommendFriends(userId, limit * 2)
 
         logger.info { "친구 추천 목록 계산 완료: $userId (${recommendedUsers.size}명)" }
 
@@ -164,7 +156,9 @@ class RecommendFriendService(
             .map { user ->
                 FriendResponse(
                     id = user.id.toString(),
-                    username = user.username
+                    username = user.username,
+                    nickname = user.nickname,
+                    profileImageUrl = user.profileImageUrl
                 )
             }
     }

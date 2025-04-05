@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.out.persistence.mongodb.mapper
+package com.stark.shoot.adapter.out.persistence.postgres.mapper
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.domain.chat.user.User
@@ -17,9 +17,7 @@ class UserMapper {
             lastSeenAt = user.lastSeenAt,
             bio = user.bio,
             passwordHash = user.passwordHash,
-            isDeleted = user.isDeleted,
-            refreshToken = user.refreshToken,
-            refreshTokenExpiration = user.refreshTokenExpiration
+            isDeleted = user.isDeleted
         )
     }
 
@@ -39,9 +37,7 @@ class UserMapper {
             friendIds = emptySet(),
             incomingFriendRequestIds = emptySet(),
             outgoingFriendRequestIds = emptySet(),
-            userCode = userEntity.userCode,
-            refreshToken = userEntity.refreshToken,
-            refreshTokenExpiration = userEntity.refreshTokenExpiration
+            userCode = userEntity.userCode
         )
     }
 

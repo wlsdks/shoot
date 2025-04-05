@@ -1,8 +1,7 @@
 package com.stark.shoot.application.port.out.user.friend
 
 import com.stark.shoot.domain.chat.user.User
-import org.bson.types.ObjectId
 
 interface RecommendFriendPort {
-    fun findBFSRecommendedUsers(userId: ObjectId, maxDepth: Int, skip: Int, limit: Int): List<User>
+    fun recommendFriends(userId: Long, limit: Int): List<User>
 }

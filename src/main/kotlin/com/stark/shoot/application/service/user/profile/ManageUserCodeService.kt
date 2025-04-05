@@ -36,7 +36,8 @@ class ManageUserCodeService(
         }
 
         // 3. 사용자 코드 업데이트
-        updateUserCodePort.updateUserCode(userId, newCode)
+        user.changeUserCode(newCode)
+        updateUserCodePort.updateUserCode(user)
     }
 
     /**
@@ -45,7 +46,11 @@ class ManageUserCodeService(
     override fun removeUserCode(
         userId: Long
     ) {
-        updateUserCodePort.clearUserCode(userId)
+        // 1. 유저 코드 조회
+
+        // 2. 유저 코드 삭제
+
+        // 3. 업데이트
     }
 
 }

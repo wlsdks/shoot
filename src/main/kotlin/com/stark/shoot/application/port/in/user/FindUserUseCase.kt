@@ -7,6 +7,4 @@ interface FindUserUseCase {
     fun findById(id: ObjectId): User?
     fun findByUsername(username: String): User?
     fun findByUserCode(userCode: String): User?
-    fun findRandomUsers(excludeId: ObjectId, limit: Int): List<User>
-    fun findUserByUsernameOrUserCode(query: String): List<User>
 }

@@ -5,10 +5,9 @@ import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatRoomMongoR
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.infrastructure.annotation.Adapter
-import org.bson.types.ObjectId
 
 @Adapter
-class LoadChatRoomMongoAdapter(
+class LoadChatRoomPersistenceAdapter(
     private val chatRoomRepository: ChatRoomMongoRepository,
     private val chatRoomMapper: ChatRoomMapper
 ) : LoadChatRoomPort {
@@ -16,13 +15,13 @@ class LoadChatRoomMongoAdapter(
     /**
      * ID로 채팅방 조회
      *
-     * @param id 채팅방 ID
+     * @param userId 채팅방 ID
      * @return 채팅방
      */
     override fun findById(
-        id: ObjectId
+        userId: Long
     ): ChatRoom? {
-        return chatRoomRepository.findById(id)
+        return chatRoomRepository.findById(userId)
             .map(chatRoomMapper::toDomain)
             .orElse(null)
     }
@@ -34,7 +33,7 @@ class LoadChatRoomMongoAdapter(
      * @return 채팅방 목록
      */
     override fun findByParticipantId(
-        participantId: ObjectId
+        participantId: Long
     ): List<ChatRoom> {
         return chatRoomRepository.findByParticipantsContaining(participantId)
             .map(chatRoomMapper::toDomain)

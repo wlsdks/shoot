@@ -34,10 +34,10 @@ class FriendService(
             throw InvalidInputException("자기 자신에게 친구 요청 불가")
         }
         // 요청 보낸 유저, 받는 유저 둘 다 DB에 있는지 검사
-        val currentUser = findUserPort.findUserById(currentUserId)
+        val currentUser = findUserPort.findUserById()
             ?: throw ResourceNotFoundException("User not found: $currentUserId")
 
-        val targetUser = findUserPort.findUserById(targetUserId)
+        val targetUser = findUserPort.findUserById()
             ?: throw ResourceNotFoundException("User not found: $targetUserId")
 
         // 이미 친구? 이미 보냈거나 받은 요청? 등 체크
@@ -68,7 +68,7 @@ class FriendService(
         requesterId: ObjectId
     ) {
         // currentUserId = 수락하는 사람, requesterId = 요청 보낸 사람
-        val currentUser = findUserPort.findUserById(currentUserId)
+        val currentUser = findUserPort.findUserById()
             ?: throw ResourceNotFoundException("User not found: $currentUserId")
         if (!currentUser.incomingFriendRequests.contains(requesterId)) {
             throw InvalidInputException("해당 요청이 없습니다.")
@@ -98,7 +98,7 @@ class FriendService(
         currentUserId: ObjectId,
         requesterId: ObjectId
     ) {
-        val currentUser = findUserPort.findUserById(currentUserId)
+        val currentUser = findUserPort.findUserById()
             ?: throw ResourceNotFoundException("User not found: $currentUserId")
         if (!currentUser.incomingFriendRequests.contains(requesterId)) {
             throw InvalidInputException("해당 요청이 없습니다.")
@@ -124,10 +124,10 @@ class FriendService(
         userId: ObjectId,
         friendId: ObjectId
     ): User {
-        val user = findUserPort.findUserById(userId)
+        val user = findUserPort.findUserById()
             ?: throw ResourceNotFoundException("User not found: $userId")
 
-        val friend = findUserPort.findUserById(friendId)
+        val friend = findUserPort.findUserById()
             ?: throw ResourceNotFoundException("User not found: $friendId")
 
         // 친구 관계 삭제

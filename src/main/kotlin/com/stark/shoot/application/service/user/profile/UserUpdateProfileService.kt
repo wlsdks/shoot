@@ -26,7 +26,7 @@ class UserUpdateProfileService(
         userId: ObjectId,
         request: UpdateProfileRequest
     ): User {
-        val user = findUserPort.findUserById(userId)
+        val user = findUserPort.findUserById()
             ?: throw IllegalArgumentException("User not found")
 
         val updatedUser = user.copy(

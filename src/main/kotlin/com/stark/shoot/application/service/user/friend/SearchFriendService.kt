@@ -24,7 +24,7 @@ class SearchFriendService(
         query: String
     ): List<FriendResponse> {
         // 현재 사용자 조회
-        val currentUser = findUserPort.findUserById(currentUserId)
+        val currentUser = findUserPort.findUserById()
             ?: throw ResourceNotFoundException("User not found: $currentUserId")
 
         // 제외할 사용자 목록: 본인, 이미 친구, 받은/보낸 친구 요청 대상

@@ -1,12 +1,11 @@
 package com.stark.shoot.domain.chat.room
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.room.embedded.type.ChatRoomType
-import org.bson.types.ObjectId
 import java.time.Instant
 
 data class ChatRoom(
     val id: String? = null,                    // 채팅방 ID
-    val participants: MutableSet<ObjectId>,    // 참여자 (유저) 목록
+    val participants: MutableSet<Long>,    // 참여자 (유저) 목록
     val lastMessageId: String? = null,         // 마지막 메시지 ID
     val lastMessageText: String? = null,       // 마지막 메시지 텍스트
     val metadata: ChatRoomMetadata,            // 채팅방 메타데이터

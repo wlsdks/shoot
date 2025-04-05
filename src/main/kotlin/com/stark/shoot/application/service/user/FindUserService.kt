@@ -20,7 +20,7 @@ class FindUserService(
     override fun findById(
         id: ObjectId
     ): User? {
-        return findUserPort.findUserById(id)
+        return findUserPort.findUserById()
     }
 
     /**
@@ -45,33 +45,6 @@ class FindUserService(
         userCode: String
     ): User? {
         return findUserPort.findByUserCode(userCode)
-    }
-
-
-    /**
-     * 사용자명 또는 사용자 코드로 사용자 조회
-     *
-     * @param excludeId 제외할 사용자 ID
-     * @param limit 조회할 사용자 수
-     * @return 사용자 목록
-     */
-    override fun findRandomUsers(
-        excludeId: ObjectId,
-        limit: Int
-    ): List<User> {
-        return findUserPort.findRandomUsers(excludeId, limit)
-    }
-
-    /**
-     * 사용자명 또는 사용자 코드로 사용자 조회
-     *
-     * @param query 사용자명 또는 사용자 코드
-     * @return 사용자 목록
-     */
-    override fun findUserByUsernameOrUserCode(
-        query: String
-    ): List<User> {
-        return findUserPort.findByUsernameOrUserCode(query)
     }
 
 }

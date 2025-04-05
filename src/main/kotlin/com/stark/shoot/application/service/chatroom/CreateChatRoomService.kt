@@ -12,7 +12,6 @@ import com.stark.shoot.domain.chat.room.ChatRoomMetadata
 import com.stark.shoot.domain.chat.room.ChatRoomSettings
 import com.stark.shoot.domain.chat.room.Participant
 import com.stark.shoot.infrastructure.annotation.UseCase
-import org.bson.types.ObjectId
 
 @UseCase
 class CreateChatRoomService(
@@ -29,8 +28,8 @@ class CreateChatRoomService(
      * @apiNote 1:1 채팅방 생성
      */
     override fun createDirectChat(
-        userId: ObjectId,
-        friendId: ObjectId
+        userId: Long,
+        friendId: Long
     ): ChatRoom {
         // 1) 이미 존재하는 1:1 채팅방이 있는지 확인
         val existingRooms = loadChatRoomPort.findByParticipantId(userId)
@@ -65,9 +64,9 @@ class CreateChatRoomService(
      * @return ChatRoomMetadata 채팅방 메타데이터
      */
     private fun createChatRoomMetadata(
-        userId: ObjectId,
-        friendId: ObjectId,
-        participants: Set<ObjectId>
+        userId: Long,
+        friendId: Long,
+        participants: Set<Long>
     ): ChatRoomMetadata {
         // 각 참여자의 닉네임을 조회 (여기서는 userService를 통해 가져온다고 가정)
         val currentUserNickname = findUserPort.findUserById(userId)?.nickname  // "내이름" 같은 값 반환
@@ -98,7 +97,7 @@ class CreateChatRoomService(
      * @return ChatRoom 채팅방
      */
     private fun createChatRoom(
-        participants: Set<ObjectId>,
+        participants: Set<Long>,
         metadata: ChatRoomMetadata
     ): ChatRoom {
         // 채팅방 도메인 객체 생성 (lastMessageId 등은 기본값 사용)
@@ -119,7 +118,7 @@ class CreateChatRoomService(
      * @param savedRoom 저장된 채팅방
      */
     private fun publishChatRoomCreatedEvent(
-        participants: Set<ObjectId>,
+        participants: Set<Long>,
         savedRoom: ChatRoom
     ) {
         participants.forEach { participantId ->

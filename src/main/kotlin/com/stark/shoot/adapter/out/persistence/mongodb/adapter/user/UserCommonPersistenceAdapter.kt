@@ -1,17 +1,16 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.adapter.user
 
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.UserMapper
-import com.stark.shoot.adapter.out.persistence.mongodb.repository.UserMongoRepository
+import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.UserCreatePort
 import com.stark.shoot.application.port.out.user.UserDeletePort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.Adapter
-import org.bson.types.ObjectId
 
 @Adapter
-class UserCommonMongoAdapter(
-    private val userMongoRepository: UserMongoRepository,
+class UserCommonPersistenceAdapter(
+    private val userRepository: UserRepository,
     private val userMapper: UserMapper
 ) : UserCreatePort, UserDeletePort, UserUpdatePort {
 
@@ -24,8 +23,8 @@ class UserCommonMongoAdapter(
     override fun createUser(
         user: User
     ): User {
-        val userDocument = userMapper.toDocument(user)
-        val savedUser = userMongoRepository.save(userDocument)
+        val userEntity = userMapper.toEntity(user)
+        val savedUser = userRepository.save(userEntity)
         return userMapper.toDomain(savedUser)
     }
 
@@ -38,8 +37,8 @@ class UserCommonMongoAdapter(
     override fun updateUser(
         user: User
     ): User {
-        val userDocument = userMapper.toDocument(user)
-        val updatedUser = userMongoRepository.save(userDocument)
+        val userEntity = userMapper.toEntity(user)
+        val updatedUser = userRepository.save(userEntity)
         return userMapper.toDomain(updatedUser)
     }
 
@@ -49,13 +48,13 @@ class UserCommonMongoAdapter(
      * @param userId 사용자 ID
      */
     override fun deleteUser(
-        userId: ObjectId
+        userId: Long
     ) {
-        val userDocument = userMongoRepository.findById(userId)
+        val userDocument = userRepository.findById(userId)
             .orElseThrow { IllegalArgumentException("User not found") }
         val userDomain = userMapper.toDomain(userDocument)
         val deletedUser = userDomain.copy(isDeleted = true)
-        userMongoRepository.save(userMapper.toDocument(deletedUser))
+        userRepository.save(userMapper.toEntity(deletedUser))
     }
 
 }

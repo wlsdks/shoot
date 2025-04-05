@@ -41,12 +41,6 @@ class UserEntity(
     var isDeleted: Boolean = false
         protected set
 
-    var refreshToken: String? = null
-        protected set
-
-    var refreshTokenExpiration: Instant? = null
-        protected set
-
     // 보조 생성자: 도메인 객체(User)의 모든 필드를 받아서 초기화할 수 있도록 함.
     constructor(
         username: String,
@@ -58,16 +52,12 @@ class UserEntity(
         bio: String?,
         passwordHash: String?,
         isDeleted: Boolean,
-        refreshToken: String?,
-        refreshTokenExpiration: Instant?
     ) : this(username, nickname, status, userCode) {
         this.profileImageUrl = profileImageUrl
         this.lastSeenAt = lastSeenAt
         this.bio = bio
         this.passwordHash = passwordHash
         this.isDeleted = isDeleted
-        this.refreshToken = refreshToken
-        this.refreshTokenExpiration = refreshTokenExpiration
     }
 
 }

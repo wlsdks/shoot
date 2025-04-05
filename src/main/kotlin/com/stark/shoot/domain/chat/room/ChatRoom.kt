@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.chat.room
 
-import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomType
+import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomType
 import java.time.Instant
 
 data class ChatRoom(

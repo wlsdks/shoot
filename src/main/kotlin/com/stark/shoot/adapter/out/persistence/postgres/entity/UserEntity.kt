@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.out.persistence.postgres.entity
 
+import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.UserStatus
 import jakarta.persistence.*
 import java.time.Instant
 

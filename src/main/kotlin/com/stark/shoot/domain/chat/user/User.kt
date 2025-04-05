@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.chat.user
 
-import com.stark.shoot.adapter.out.persistence.postgres.entity.UserStatus
+import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.UserStatus
 import java.time.Instant
 
 data class User(

@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.out.persistence.postgres.entity
 
+import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomType
 import com.stark.shoot.infrastructure.util.ParticipantsConverter
 import jakarta.persistence.*
 import java.time.Instant

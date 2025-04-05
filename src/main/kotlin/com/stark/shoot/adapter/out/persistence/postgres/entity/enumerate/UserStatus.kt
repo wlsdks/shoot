@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.out.persistence.postgres.entity
+package com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate
 
 enum class UserStatus {
     OFFLINE,        // 오프라인

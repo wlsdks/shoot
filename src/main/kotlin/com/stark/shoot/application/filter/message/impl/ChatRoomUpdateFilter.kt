@@ -1,12 +1,11 @@
 package com.stark.shoot.application.filter.message.impl
 
-import com.stark.shoot.application.filter.message.chain.MessageProcessingChain
 import com.stark.shoot.application.filter.common.MessageProcessingFilter
+import com.stark.shoot.application.filter.message.chain.MessageProcessingChain
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import com.stark.shoot.infrastructure.util.toObjectId
 import org.springframework.stereotype.Component
 import java.time.Instant
 
@@ -26,7 +25,6 @@ class ChatRoomUpdateFilter(
         // 채팅방 업데이트
         val updatedRoom = chatRoom.copy(
             lastMessageId = message.id,
-            lastMessageText = message.content.text,
             lastActiveAt = Instant.now()
         )
 

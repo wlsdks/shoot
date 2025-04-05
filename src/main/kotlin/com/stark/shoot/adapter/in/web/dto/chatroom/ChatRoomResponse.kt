@@ -38,7 +38,7 @@ data class ChatRoomResponse(
             return ChatRoomResponse(
                 roomId = chatRoom.id ?: "",
                 title = roomTitle,
-                lastMessage = chatRoom.lastMessageText ?: "최근 메시지가 없습니다.",
+                lastMessage = null, // lastMessage 정보가 도메인에 없으므로 null 처리
                 unreadMessages = 0, // unreadMessages 정보가 도메인에 없으므로 기본값 0 처리
                 isPinned = isPinned,
                 timestamp = chatRoom.lastActiveAt.atZone(ZoneId.systemDefault()).let { formatter.format(it) }

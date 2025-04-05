@@ -10,7 +10,6 @@ import java.time.Instant
 class ChatRoomEntity(
     title: String?,
     type: ChatRoomType,
-    settings: ChatRoomSettingsEntity,
     announcement: String?,
     participantIds: List<Long>,
     pinnedParticipantIds: List<Long>,
@@ -23,10 +22,6 @@ class ChatRoomEntity(
 
     @Enumerated(EnumType.STRING)
     var type: ChatRoomType = type
-        protected set
-
-    @Embedded
-    var settings: ChatRoomSettingsEntity = settings
         protected set
 
     var announcement: String? = announcement

@@ -11,8 +11,4 @@ interface RefreshTokenPort {
     ): RefreshToken
 
     fun findByToken(token: String): RefreshToken?
-    fun findAllByUserId(userId: Long): List<RefreshToken>
-    fun saveRefreshToken(refreshToken: RefreshToken): RefreshToken
-    fun deleteByToken(token: String)
-    fun deleteAllByUserId(userId: Long)
 }

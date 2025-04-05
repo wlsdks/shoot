@@ -48,40 +48,4 @@ class RefreshTokenPersistenceAdapter(
         }
     }
 
-    override fun findAllByUserId(userId: Long): List<RefreshToken> {
-        return refreshTokenRepository.findAllByUserId(userId).map {
-            refreshTokenMapper.toDomain(it)
-        }
-    }
-
-    override fun saveRefreshToken(refreshToken: RefreshToken): RefreshToken {
-        // 기존 엔티티 찾기
-        val entity = refreshToken.id?.let { id ->
-            refreshTokenRepository.findById(id)
-                .orElseThrow { ResourceNotFoundException("RefreshToken not found: $id") }
-        } ?: throw IllegalArgumentException("RefreshToken ID cannot be null for update operation")
-
-        // 엔티티 속성 업데이트
-        val updatedEntity = RefreshTokenEntity(
-            user = entity.user,
-            token = refreshToken.token,
-            expirationDate = refreshToken.expirationDate,
-            deviceInfo = refreshToken.deviceInfo,
-            ipAddress = refreshToken.ipAddress,
-            lastUsedAt = refreshToken.lastUsedAt,
-            isRevoked = refreshToken.isRevoked
-        )
-
-        val savedEntity = refreshTokenRepository.save(updatedEntity)
-        return refreshTokenMapper.toDomain(savedEntity)
-    }
-
-    override fun deleteByToken(token: String) {
-        refreshTokenRepository.deleteByToken(token)
-    }
-
-    override fun deleteAllByUserId(userId: Long) {
-        refreshTokenRepository.deleteAllByUserId(userId)
-    }
-
 }

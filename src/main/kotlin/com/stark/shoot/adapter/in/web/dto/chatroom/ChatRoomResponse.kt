@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.dto.chatroom
 
-import com.stark.shoot.adapter.out.persistence.mongodb.document.room.embedded.type.ChatRoomType
+import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomType
 import com.stark.shoot.domain.chat.room.ChatRoom
 import org.bson.types.ObjectId
 import java.time.ZoneId

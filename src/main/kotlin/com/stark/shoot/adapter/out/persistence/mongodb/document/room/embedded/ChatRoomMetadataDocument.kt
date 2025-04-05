@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.document.room.embedded
 
-import com.stark.shoot.adapter.out.persistence.mongodb.document.room.embedded.type.ChatRoomType
+import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomType
 import org.bson.types.ObjectId
 
 data class ChatRoomMetadataDocument(

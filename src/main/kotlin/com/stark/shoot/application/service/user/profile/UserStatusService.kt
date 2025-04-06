@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.user.profile
 
-import com.stark.shoot.adapter.out.persistence.mongodb.document.user.type.UserStatus
+import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.UserStatus
 import com.stark.shoot.application.port.`in`.user.profile.UserStatusUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
@@ -34,7 +34,7 @@ class UserStatusService(
 
         // JWT 토큰에서 사용자 ID 추출해서 유저 정보 조회
         val userId = jwtProvider.extractId(token).toObjectId()
-        val user = findUserPort.findUserById(userId)
+        val user = findUserPort.findUserById()
             ?: throw IllegalArgumentException("User not found")
 
         // Jwt에서 username 추출

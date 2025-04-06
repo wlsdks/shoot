@@ -2,14 +2,14 @@ package com.stark.shoot.application.service.user.token
 
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.token.RefreshTokenUseCase
-import com.stark.shoot.application.port.out.user.token.RefreshTokenStorePort
+import com.stark.shoot.application.port.out.user.token.RefreshTokenPort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import com.stark.shoot.infrastructure.exception.web.InvalidRefreshTokenException
 
 @UseCase
 class RefreshTokenService(
-    private val refreshTokenStorePort: RefreshTokenStorePort,
+    private val refreshTokenPort: RefreshTokenPort,
     private val jwtProvider: JwtProvider
 ) : RefreshTokenUseCase {
 
@@ -48,7 +48,7 @@ class RefreshTokenService(
         val isValidRefreshToken = !jwtProvider.isTokenValid(refreshToken)
 
         // 토큰 검증 (저장된 리프레시 토큰을 확인해서 2차 검증)
-        val isValidRefreshTokenStoredAt = !refreshTokenStorePort.isValidRefreshToken(refreshToken)
+        val isValidRefreshTokenStoredAt = !refreshTokenPort.isValidRefreshToken(refreshToken)
 
         // 2가지 유효성 검증을 통과하지 못하면 예외 발생
         if (isValidRefreshToken || isValidRefreshTokenStoredAt) {

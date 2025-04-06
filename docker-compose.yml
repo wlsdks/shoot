@@ -1,5 +1,18 @@
 version: '3.8'
 services:
+  postgres:
+    image: postgres:13
+    container_name: shoot-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: member
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
   mongodb:
     image: mongo:latest
     container_name: mongodb-shoot
@@ -47,6 +60,8 @@ services:
 
 volumes:
   mongodb-data:
+  postgres-data:
+    driver: local
 
 networks:
   spring-network:

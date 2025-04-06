@@ -2,6 +2,25 @@ server:
   port: 8100
 
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/member
+    username: root
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+
+  # JPA 설정
+  jpa:
+    database: POSTGRESQL
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: create
+    open-in-view: false
+    # show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 10
+        highlight_sql: true
   data:
     # 몽고 DB 설정
     mongodb:

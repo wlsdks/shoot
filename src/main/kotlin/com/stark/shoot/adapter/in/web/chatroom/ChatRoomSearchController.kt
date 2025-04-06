@@ -21,12 +21,12 @@ class ChatRoomSearchController(
     @Operation(summary = "채팅방 검색", description = "채팅방을 검색합니다.")
     @GetMapping("/search")
     fun searchChatRooms(
-        @RequestParam userId: String,
+        @RequestParam userId: Long,
         @RequestParam(required = false) query: String?,
         @RequestParam(required = false) type: String?,
         @RequestParam(required = false) unreadOnly: Boolean?
     ): ResponseDto<List<ChatRoomResponse>> {
-        val results = chatRoomSearchUseCase.searchChatRooms(userId.toObjectId(), query, type, unreadOnly)
+        val results = chatRoomSearchUseCase.searchChatRooms(userId, query, type, unreadOnly)
         return ResponseDto.success(results)
     }
 

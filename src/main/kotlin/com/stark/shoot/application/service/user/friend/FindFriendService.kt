@@ -5,7 +5,6 @@ import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import org.bson.types.ObjectId
 
 @UseCase
 class FindFriendService(
@@ -14,61 +13,64 @@ class FindFriendService(
 
     /**
      * 친구 목록 조회
+     *
+     * @param currentUserId 현재 사용자 ID (Long 타입)
+     * @return 친구 정보를 담은 FriendResponse 목록
      */
     override fun getFriends(
-        currentUserId: ObjectId
+        currentUserId: Long
     ): List<FriendResponse> {
         // 현재 사용자 조회
         val user = findUserPort.findUserById(currentUserId)
             ?: throw ResourceNotFoundException("User not found")
 
-        // 친구 목록 조회
-        return user.friends.map { friendId ->
+        // 친구 목록은 도메인 User 객체의 friendIds 필드로 관리한다고 가정합니다.
+        return user.friendIds.map { friendId ->
             val friend = findUserPort.findUserById(friendId)
                 ?: throw ResourceNotFoundException("Friend not found: $friendId")
-
-            // 친구 정보를 DTO로 변환
-            FriendResponse(id = friendId.toString(), username = friend.username)
+            FriendResponse(id = friend.id?.toString() ?: "", username = friend.username)
         }
     }
 
     /**
      * 받은 친구 요청 목록 조회
+     *
+     * @param currentUserId 현재 사용자 ID
+     * @return 받은 친구 요청 정보를 담은 FriendResponse 목록
      */
     override fun getIncomingFriendRequests(
-        currentUserId: ObjectId
+        currentUserId: Long
     ): List<FriendResponse> {
         // 현재 사용자 조회
         val user = findUserPort.findUserById(currentUserId)
             ?: throw ResourceNotFoundException("User not found")
 
-        // 받은 친구 요청 목록 조회
-        return user.incomingFriendRequests.map { requesterId ->
+        // incomingFriendRequestIds는 받은 친구 요청 대상 User ID들의 집합으로 가정합니다.
+        return user.incomingFriendRequestIds.map { requesterId ->
             val requester = findUserPort.findUserById(requesterId)
                 ?: throw ResourceNotFoundException("Requester not found: $requesterId")
-
-            // 친구 정보를 DTO로 변환
-            FriendResponse(id = requesterId.toString(), username = requester.username)
+            FriendResponse(id = requester.id?.toString() ?: "", username = requester.username)
         }
     }
 
     /**
      * 보낸 친구 요청 목록 조회
+     *
+     * @param currentUserId 현재 사용자 ID
+     * @return 보낸 친구 요청 정보를 담은 FriendResponse 목록
      */
     override fun getOutgoingFriendRequests(
-        currentUserId: ObjectId
+        currentUserId: Long
     ): List<FriendResponse> {
         // 현재 사용자 조회
         val user = findUserPort.findUserById(currentUserId)
             ?: throw ResourceNotFoundException("User not found")
 
-        // 보낸 친구 요청 목록 조회
-        return user.outgoingFriendRequests.map { targetId ->
+        // outgoingFriendRequestIds는 보낸 친구 요청 대상 User ID들의 집합으로 가정합니다.
+        return user.outgoingFriendRequestIds.map { targetId ->
             val target = findUserPort.findUserById(targetId)
                 ?: throw ResourceNotFoundException("Target not found: $targetId")
-
-            // 친구 정보를 DTO로 변환
-            FriendResponse(id = target.id.toString(), username = target.username)
+            FriendResponse(id = target.id?.toString() ?: "", username = target.username)
         }
     }
 

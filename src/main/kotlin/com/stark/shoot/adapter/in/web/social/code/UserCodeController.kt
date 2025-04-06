@@ -5,9 +5,8 @@ import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.FindUserUseCase
 import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
-import com.stark.shoot.application.port.`in`.user.friend.FriendUseCase
+import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import com.stark.shoot.infrastructure.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
@@ -18,16 +17,16 @@ import org.springframework.web.bind.annotation.*
 class UserCodeController(
     private val findUserUseCase: FindUserUseCase,
     private val manageUserCodeUseCase: ManageUserCodeUseCase,
-    private val friendUseCase: FriendUseCase
+    private val friendRequestUseCase: FriendRequestUseCase
 ) {
 
     @Operation(summary = "유저 코드 등록/수정", description = "유저가 본인의 userCode를 새로 설정 또는 수정합니다.")
     @PostMapping("/{userId}/code")
     fun updateUserCode(
-        @PathVariable userId: String,
+        @PathVariable userId: Long,
         @RequestParam code: String
     ): ResponseDto<Unit> {
-        manageUserCodeUseCase.updateUserCode(userId.toObjectId(), code)
+        manageUserCodeUseCase.updateUserCode(userId, code)
         return ResponseDto.success(Unit, "유저 코드가 성공적으로 설정되었습니다.")
     }
 
@@ -47,23 +46,23 @@ class UserCodeController(
     @Operation(summary = "유저 코드 삭제", description = "유저가 본인의 userCode를 제거합니다.")
     @DeleteMapping("/{userId}/code")
     fun removeUserCode(
-        @PathVariable userId: String
+        @PathVariable userId: Long
     ): ResponseDto<Unit> {
-        manageUserCodeUseCase.removeUserCode(userId.toObjectId())
+        manageUserCodeUseCase.removeUserCode(userId)
         return ResponseDto.success(Unit, "유저 코드가 삭제되었습니다.")
     }
 
     @Operation(summary = "유저 코드로 친구 요청", description = "상대방 코드로 사용자를 조회한 후, 친구 요청을 보냅니다.")
     @PostMapping("/request/by-code")
     fun sendFriendRequestByCode(
-        @RequestParam userId: String,
+        @RequestParam userId: Long,
         @RequestParam targetCode: String
     ): ResponseDto<Unit> {
         // 조회는 클라이언트에서 미리 수행하는 것을 권장하지만, 여기서도 한 번 더 확인
         val targetUser = findUserUseCase.findByUserCode(targetCode)
             ?: throw ResourceNotFoundException("해당 코드($targetCode)를 가진 유저가 없습니다.")
 
-        friendUseCase.sendFriendRequest(userId.toObjectId(), targetUser.id!!)
+        friendRequestUseCase.sendFriendRequest(userId, targetUser.id!!)
         return ResponseDto.success(Unit, "친구 요청을 보냈습니다.")
     }
 

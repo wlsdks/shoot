@@ -1,8 +1,7 @@
 package com.stark.shoot.application.port.out.user.code
 
-import org.bson.types.ObjectId
+import com.stark.shoot.domain.chat.user.User
 
 interface UpdateUserCodePort {
-    fun setUserCode(userId: ObjectId, newCode: String)
-    fun clearUserCode(userId: ObjectId)
+    fun updateUserCode(user: User)
 }

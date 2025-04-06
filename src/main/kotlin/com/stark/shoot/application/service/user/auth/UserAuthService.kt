@@ -7,9 +7,7 @@ import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.exception.web.UnauthorizedException
-import org.bson.types.ObjectId
 import org.springframework.security.core.Authentication
-import org.springframework.stereotype.Service
 
 @UseCase
 class UserAuthService(
@@ -29,7 +27,8 @@ class UserAuthService(
             throw UnauthorizedException("인증되지 않은 사용자입니다.")
         }
 
-        val userId = ObjectId(authentication.name) // sub가 id디버깅
+        val userId = authentication.name.toLong()
+
         val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("해당 사용자를 찾을 수 없습니다: $userId")
 

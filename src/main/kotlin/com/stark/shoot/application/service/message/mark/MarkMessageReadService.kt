@@ -2,7 +2,7 @@ package com.stark.shoot.application.service.message.mark
 
 import com.stark.shoot.application.port.`in`.message.mark.MarkMessageReadUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
-import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.ReadStatusPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
@@ -13,17 +13,17 @@ import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.bson.types.ObjectId
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.simp.SimpMessagingTemplate
-import java.time.Instant
+import org.springframework.transaction.annotation.Transactional
 import java.util.concurrent.TimeUnit
 
+@Transactional
 @UseCase
 class MarkMessageReadService(
     private val saveMessagePort: SaveMessagePort,
     private val loadChatRoomPort: LoadChatRoomPort,
-    private val saveChatRoomPort: SaveChatRoomPort,
+    private val readStatusPort: ReadStatusPort,
     private val eventPublisher: EventPublisher,
     private val redisTemplate: StringRedisTemplate,
     private val loadMessagePort: LoadMessagePort,
@@ -31,61 +31,59 @@ class MarkMessageReadService(
 ) : MarkMessageReadUseCase {
     private val logger = KotlinLogging.logger {}
 
-    override fun markMessageAsRead(messageId: String, userId: String): ChatMessage {
+    /**
+     * 단일 메시지를 읽음 상태로 표시합니다.
+     *
+     * @param messageId 메시지 ID
+     * @param userId 사용자 ID
+     * @return 업데이트된 메시지
+     */
+    override fun markMessageAsRead(
+        messageId: String,
+        userId: Long
+    ): ChatMessage {
         val chatMessage = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$messageId")
 
-        // 업데이트 전 안 읽은 메시지 가져오기
-        val roomId = chatMessage.roomId.toObjectId()
-        val userObjectId = ObjectId(userId)
-        val unreadMessagesBefore = loadMessagePort.findUnreadByRoomId(roomId, userObjectId)
-        logger.debug { "Unread messages before marking as read: $unreadMessagesBefore" }
+        // 이미 읽은 메시지인 경우 추가 작업 없이 반환
+        if (chatMessage.readBy[userId] == true) {
+            return chatMessage
+        }
 
-        // 읽음 상태 업데이트
+        // 메시지 읽음 상태 업데이트
         chatMessage.readBy[userId] = true
         val updatedMessage = saveMessagePort.save(chatMessage)
 
-        // unreadCount 계산
-        val unreadCountBefore = unreadMessagesBefore.size ?: 0
-        val wasUnread = unreadMessagesBefore.any { it.id == messageId }
-        val newUnreadCount = if (wasUnread) unreadCountBefore - 1 else unreadCountBefore
-        val finalUnreadCount = newUnreadCount.coerceAtLeast(0)
+        // 채팅방 사용자의 마지막 읽은 메시지 ID 업데이트
+        val roomId = chatMessage.roomId.toLong()
+        val userIdLong = userId.toLong()
 
-        // 채팅방 정보 업데이트
-        val room = loadChatRoomPort.findById(roomId)!!
-        val participant = room.metadata.participantsMetadata[userObjectId]!!
-        val updatedParticipant = participant.copy(unreadCount = finalUnreadCount, lastReadAt = Instant.now())
-        val updatedParticipants =
-            room.metadata.participantsMetadata.toMutableMap().apply { put(userObjectId, updatedParticipant) }
-        val updatedRoom = room.copy(metadata = room.metadata.copy(participantsMetadata = updatedParticipants))
-        saveChatRoomPort.save(updatedRoom)
+        readStatusPort.updateLastReadMessageId(roomId, userIdLong, messageId)
 
-        // Redis와 이벤트 업데이트
-        redisTemplate.opsForHash<String, String>().put("unread:$userId", roomId.toString(), finalUnreadCount.toString())
-        val unreadCounts = updatedParticipants.mapKeys { it.key.toString() }.mapValues { it.value.unreadCount }
-        eventPublisher.publish(
-            ChatUnreadCountUpdatedEvent(
-                roomId = roomId.toString(),
-                unreadCounts = unreadCounts,
-                lastMessage = updatedMessage.content.text
-            )
-        )
+        // 읽지 않은 메시지 수 업데이트 (Redis 활용)
+        updateUnreadCountInRedis(roomId, userId)
 
-        logger.info { "Marked message as read: messageId=$messageId, userId=$userId, newUnreadCount=$finalUnreadCount" }
+        // 이벤트 발행 (채팅방의 모든 참여자에게 읽은 상태 알림)
+        publishReadEvent(roomId, chatMessage)
+
+        logger.info { "메시지 읽음 처리 완료: messageId=$messageId, userId=$userId" }
         return updatedMessage
     }
 
-    // MessageProcessingService.kt 수정
-    override fun markAllMessagesAsRead(roomId: String, userId: String, requestId: String?) {
-        val roomObjectId = roomId.toObjectId()
-        val chatRoom = loadChatRoomPort.findById(roomObjectId)
-            ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=$roomId")
-        val participantId = ObjectId(userId)
-        val participantMeta = chatRoom.metadata.participantsMetadata[participantId]
-            ?: throw IllegalArgumentException("참여자가 없습니다. userId=$userId")
-
+    /**
+     * 채팅방의 모든 메시지를 읽음 상태로 표시합니다.
+     *
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @param requestId 요청 ID (중복 요청 방지용, 선택적)
+     */
+    override fun markAllMessagesAsRead(
+        roomId: Long,
+        userId: Long,
+        requestId: Long?
+    ) {
         // 중복 요청 체크 (Redis 캐시 활용)
-        if (!requestId.isNullOrEmpty()) {
+        if (requestId != null) {
             val key = "read_operation:$roomId:$userId:$requestId"
             val exists = redisTemplate.opsForValue().get(key)
             if (exists != null) {
@@ -96,55 +94,147 @@ class MarkMessageReadService(
             redisTemplate.opsForValue().set(key, "1", 5, TimeUnit.SECONDS)
         }
 
-        // 모든 안 읽은 메시지 읽음 처리
-        val unreadMessages = loadMessagePort.findUnreadByRoomId(roomObjectId, participantId)
-            .filter { it.senderId != userId }  // 내가 보낸 메시지는 제외
+        // 채팅방 조회 및 사용자 참여 확인
+        val chatRoom = loadChatRoomPort.findById(roomId.toLong())
+            ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=$roomId")
 
-        // 안 읽은 메시지가 없으면 불필요한 처리와 이벤트 발행 방지
+        if (!chatRoom.participants.contains(userId.toLong())) {
+            throw IllegalArgumentException("참여하지 않은 채팅방입니다. userId=$userId, roomId=$roomId")
+        }
+
+        // 읽지 않은 메시지 조회 (내가 보낸 메시지 제외)
+        val unreadMessages = loadMessagePort.findUnreadByRoomId(roomId, userId).filter { it.senderId != userId }
+
+        // 읽지 않은 메시지가 없으면 불필요한 작업 방지
         if (unreadMessages.isEmpty()) {
             logger.info { "읽지 않은 메시지가 없습니다. roomId=$roomId, userId=$userId" }
             return
         }
 
+        // 모든 메시지 읽음 처리
+        val updatedMessageIds = processUnreadMessages(unreadMessages, userId)
+
+        // 마지막으로 읽은 메시지 ID 업데이트
+        val lastMessage = unreadMessages.maxByOrNull { it.createdAt ?: java.time.Instant.MIN }?.id
+        if (lastMessage != null) {
+            readStatusPort.updateLastReadMessageId(roomId, userId, lastMessage)
+        }
+
+        // Redis와 이벤트 업데이트
+        redisTemplate.opsForHash<String, String>().put("unread:$userId", roomId.toString(), "0")
+
+        // 채팅방의 마지막 메시지 내용 조회
+        val lastMessageText = chatRoom.lastMessageId?.let {
+            // 실제 구현시 메시지 내용 조회 로직 추가
+            "최근 메시지"
+        } ?: "메시지가 없습니다"
+
+        // 이벤트 발행
+        publishBulkReadEvent(roomId, updatedMessageIds, userId, lastMessageText)
+
+        logger.info { "채팅방 모든 메시지 읽음 처리 완료: roomId=$roomId, userId=$userId, 메시지 수=${updatedMessageIds.size}" }
+    }
+
+    /**
+     * 읽지 않은 메시지들을 일괄 처리합니다.
+     *
+     * @param unreadMessages 읽지 않은 메시지 목록
+     * @param userId 사용자 ID
+     * @return 업데이트된 메시지 ID 목록
+     */
+    private fun processUnreadMessages(
+        unreadMessages: List<ChatMessage>,
+        userId: Long
+    ): List<String> {
         val updatedMessageIds = mutableListOf<String>()
+
         unreadMessages.forEach { message ->
             message.readBy[userId] = true
             val updated = saveMessagePort.save(message)
-            updatedMessageIds.add(updated.id!!)
+            updated.id?.let { updatedMessageIds.add(it) }
         }
 
-        // 참여자 unreadCount 초기화
-        val updatedParticipant = participantMeta.copy(unreadCount = 0, lastReadAt = Instant.now())
-        val updatedParticipants = chatRoom.metadata.participantsMetadata.toMutableMap()
-            .apply { put(participantId, updatedParticipant) }
-        val updatedRoom = chatRoom.copy(metadata = chatRoom.metadata.copy(participantsMetadata = updatedParticipants))
-        saveChatRoomPort.save(updatedRoom)
+        return updatedMessageIds
+    }
 
-        // Redis와 이벤트 업데이트 (lastMessage 필드 추가 - null 방지)
-        redisTemplate.opsForHash<String, String>().put("unread:$userId", roomId, "0")
-        val unreadCounts = updatedParticipants.mapKeys { it.key.toString() }.mapValues { it.value.unreadCount }
+    /**
+     * Redis에 읽지 않은 메시지 수를 업데이트합니다.
+     *
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     */
+    private fun updateUnreadCountInRedis(
+        roomId: Long,
+        userId: Long
+    ) {
+        try {
+            // 현재 읽지 않은 메시지 수 조회
+            val currentUnreadCount = redisTemplate.opsForHash<String, String>()
+                .get("unread:$userId", roomId)?.toIntOrNull() ?: 0
 
-        // 마지막 메시지 찾기 (null 방지)
-        val lastMessage = chatRoom.lastMessageText ?: "최근 메시지가 없습니다."
+            // 읽지 않은 메시지 수가 0보다 크면 감소
+            if (currentUnreadCount > 0) {
+                val newUnreadCount = currentUnreadCount - 1
+                redisTemplate.opsForHash<String, String>()
+                    .put("unread:$userId", roomId.toString(), newUnreadCount.toString())
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Redis 읽지 않은 메시지 수 업데이트 실패: roomId=$roomId, userId=$userId" }
+        }
+    }
 
-        // 이벤트 발행 시 lastMessage 필드에 의미 있는 값 전달
-        eventPublisher.publish(
-            ChatUnreadCountUpdatedEvent(
-                roomId = roomId,
-                unreadCounts = unreadCounts,
-                lastMessage = lastMessage
+    /**
+     * 메시지 읽음 이벤트를 발행합니다.
+     *
+     * @param roomId 채팅방 ID
+     * @param message 읽은 메시지
+     */
+    private fun publishReadEvent(
+        roomId: Long,
+        message: ChatMessage
+    ) {
+        // 채팅방의 모든 참여자에게 읽음 상태 업데이트를 알림
+        simpMessagingTemplate.convertAndSend(
+            "/topic/read/$roomId",
+            mapOf(
+                "messageId" to message.id,
+                "userId" to message.senderId,
+                "readBy" to message.readBy
             )
         )
+    }
 
-        // 여기서 Bulk Read 이벤트 발행
-        if (updatedMessageIds.isNotEmpty()) {
+    /**
+     * 일괄 메시지 읽음 이벤트를 발행합니다.
+     *
+     * @param roomId 채팅방 ID
+     * @param messageIds 읽은 메시지 ID 목록
+     * @param userId 사용자 ID
+     * @param lastMessage 마지막 메시지 내용
+     */
+    private fun publishBulkReadEvent(
+        roomId: Long,
+        messageIds: List<String>,
+        userId: Long,
+        lastMessage: String
+    ) {
+        // 채팅방 일괄 읽음 이벤트 발행
+        if (messageIds.isNotEmpty()) {
+            // WebSocket을 통한 실시간 알림
             simpMessagingTemplate.convertAndSend(
                 "/topic/read-bulk/$roomId",
-                ChatBulkReadEvent(roomId, updatedMessageIds, userId)
+                ChatBulkReadEvent(roomId, messageIds, userId)
+            )
+
+            // 읽지 않은 메시지 수 업데이트 이벤트 발행
+            eventPublisher.publish(
+                ChatUnreadCountUpdatedEvent(
+                    roomId = roomId,
+                    unreadCounts = mapOf(userId to 0),
+                    lastMessage = lastMessage
+                )
             )
         }
-
-        logger.info { "Marked all messages as read: roomId=$roomId, userId=$userId" }
     }
 
 }

@@ -106,10 +106,10 @@ class LoadMessageMongoAdapter(
      * @return 읽지 않은 메시지 목록
      */
     override fun findUnreadByRoomId(
-        roomId: ObjectId,
-        userId: ObjectId
+        roomId: Long,
+        userId: Long
     ): List<ChatMessage> {
-        val notReadMessage = chatMessageRepository.findUnreadMessages(roomId, userId.toString())
+        val notReadMessage = chatMessageRepository.findUnreadMessages(roomId, userId)
         return notReadMessage.map(chatMessageMapper::toDomain)
     }
 

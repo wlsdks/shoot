@@ -6,15 +6,24 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface ChatRoomRepository : JpaRepository<ChatRoomEntity, Long> {
-    fun findByParticipantIds(participantIds: MutableList<Long>): MutableList<ChatRoomEntity>
 
-    @Query(
-        value = """
-            SELECT * 
-            FROM chat_rooms 
-            WHERE pinned_participant_ids @> to_jsonb(:userId::bigint)
-        """,
-        nativeQuery = true
-    )
+    @Query("""
+        SELECT cr 
+        FROM ChatRoomEntity cr 
+        JOIN ChatRoomUserEntity cru 
+            ON cr.id = cru.chatRoom.id 
+        WHERE cru.user.id = :userId
+    """)
+    fun findByParticipant(@Param("userId") userId: Long): List<ChatRoomEntity>
+
+    @Query("""
+        SELECT cr 
+        FROM ChatRoomEntity cr 
+        JOIN ChatRoomUserEntity cru 
+            ON cr.id = cru.chatRoom.id 
+        WHERE cru.user.id = :userId 
+            AND cru.isPinned = true
+    """)
     fun findPinnedRoomsByUserId(@Param("userId") userId: Long): List<ChatRoomEntity>
+
 }

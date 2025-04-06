@@ -27,7 +27,7 @@ class EventPublishFilter(
 
         eventPublisher.publish(
             ChatUnreadCountUpdatedEvent(
-                roomId = chatRoom.id.toString(),
+                roomId = chatRoom.id!!,
                 unreadCounts = mapOf(),
                 lastMessage = message.content.text
             )

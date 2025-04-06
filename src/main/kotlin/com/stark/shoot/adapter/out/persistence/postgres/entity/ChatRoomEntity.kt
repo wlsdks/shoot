@@ -1,8 +1,10 @@
 package com.stark.shoot.adapter.out.persistence.postgres.entity
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomType
-import com.stark.shoot.infrastructure.util.ParticipantsConverter
-import jakarta.persistence.*
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Table
 import java.time.Instant
 
 @Entity
@@ -11,8 +13,6 @@ class ChatRoomEntity(
     title: String?,
     type: ChatRoomType,
     announcement: String?,
-    participantIds: List<Long>,
-    pinnedParticipantIds: List<Long>,
     lastMessageId: Long?,
     lastActiveAt: Instant
 ) : BaseEntity() {
@@ -25,16 +25,6 @@ class ChatRoomEntity(
         protected set
 
     var announcement: String? = announcement
-        protected set
-
-    @Convert(converter = ParticipantsConverter::class)
-    @Column(name = "participant_ids", columnDefinition = "jsonb")
-    var participantIds: List<Long> = participantIds
-        protected set
-
-    @Convert(converter = ParticipantsConverter::class)
-    @Column(name = "pinned_participant_ids", columnDefinition = "jsonb")
-    var pinnedParticipantIds: List<Long> = pinnedParticipantIds
         protected set
 
     var lastMessageId: Long? = lastMessageId

@@ -6,7 +6,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 data class ChatRoomResponse(
-    val roomId: String,
+    val roomId: Long,
     val title: String,  // 1:1 채팅인 경우, 상대방의 이름이나 채팅방 제목을 담습니다.
     val lastMessage: String?,
     val unreadMessages: Int,
@@ -36,7 +36,7 @@ data class ChatRoomResponse(
                 chatRoom.title ?: "채팅방"
             }
             return ChatRoomResponse(
-                roomId = chatRoom.id ?: "",
+                roomId = chatRoom.id ?: 0L,
                 title = roomTitle,
                 lastMessage = null, // lastMessage 정보가 도메인에 없으므로 null 처리
                 unreadMessages = 0, // unreadMessages 정보가 도메인에 없으므로 기본값 0 처리

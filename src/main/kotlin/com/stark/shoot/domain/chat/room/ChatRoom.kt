@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoo
 import java.time.Instant
 
 data class ChatRoom(
-    val id: String? = null,                    // 엔티티의 id(Long)를 String으로 변환
+    val id: Long? = null,
     val title: String? = null,
     val type: ChatRoomType,
     val announcement: String? = null,

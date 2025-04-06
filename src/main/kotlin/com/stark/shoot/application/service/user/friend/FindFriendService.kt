@@ -28,7 +28,12 @@ class FindFriendService(
         return user.friendIds.map { friendId ->
             val friend = findUserPort.findUserById(friendId)
                 ?: throw ResourceNotFoundException("Friend not found: $friendId")
-            FriendResponse(id = friend.id?.toString() ?: "", username = friend.username)
+            FriendResponse(
+                id = friend.id ?: 0L,
+                username = friend.username ?: "",
+                nickname = friend.nickname ?: "",
+                profileImageUrl = friend.profileImageUrl
+            )
         }
     }
 
@@ -49,7 +54,12 @@ class FindFriendService(
         return user.incomingFriendRequestIds.map { requesterId ->
             val requester = findUserPort.findUserById(requesterId)
                 ?: throw ResourceNotFoundException("Requester not found: $requesterId")
-            FriendResponse(id = requester.id?.toString() ?: "", username = requester.username)
+            FriendResponse(
+                id = requester.id ?: 0L,
+                username = requester.username ?: "",
+                nickname = requester.nickname ?: "",
+                profileImageUrl = requester.profileImageUrl
+            )
         }
     }
 
@@ -70,7 +80,12 @@ class FindFriendService(
         return user.outgoingFriendRequestIds.map { targetId ->
             val target = findUserPort.findUserById(targetId)
                 ?: throw ResourceNotFoundException("Target not found: $targetId")
-            FriendResponse(id = target.id?.toString() ?: "", username = target.username)
+            FriendResponse(
+                id = target.id ?: 0L,
+                username = target.username ?: "",
+                nickname = target.nickname ?: "",
+                profileImageUrl = target.profileImageUrl
+            )
         }
     }
 

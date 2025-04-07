@@ -18,13 +18,13 @@ class DraftMessageController(
     @Operation(summary = "임시 메시지 저장", description = "작성 중인 메시지를 임시 저장합니다.")
     @PostMapping
     fun saveDraft(
-        @RequestParam roomId: String,
+        @RequestParam roomId: Long,
         @RequestParam content: String,
         @RequestParam(required = false, defaultValue = "[]") attachments: List<String>,
         @RequestParam(required = false, defaultValue = "[]") mentions: Set<String>,
         authentication: Authentication
     ): ResponseDto<DraftMessageResponseDto> {
-        val userId = authentication.name
+        val userId = authentication.name.toLong()
 
         val result = draftMessageUseCase.saveDraft(
             userId = userId,
@@ -46,7 +46,7 @@ class DraftMessageController(
         @RequestParam(required = false, defaultValue = "[]") mentions: Set<String>,
         authentication: Authentication
     ): ResponseDto<DraftMessageResponseDto> {
-        val userId = authentication.name
+        val userId = authentication.name.toLong()
 
         val result = draftMessageUseCase.updateDraft(
             draftId = draftId,
@@ -65,29 +65,19 @@ class DraftMessageController(
         @PathVariable draftId: String,
         authentication: Authentication
     ): ResponseDto<Boolean> {
-        val userId = authentication.name
-
-        val result = draftMessageUseCase.deleteDraft(
-            draftId = draftId,
-            userId = userId
-        )
-
+        val userId = authentication.name.toLong()
+        val result = draftMessageUseCase.deleteDraft(draftId, userId)
         return ResponseDto.success(result, "임시 메시지가 삭제되었습니다.")
     }
 
     @Operation(summary = "채팅방별 임시 메시지 조회", description = "특정 채팅방의 임시 저장된 메시지를 조회합니다.")
     @GetMapping("/room/{roomId}")
     fun getDraftByRoom(
-        @PathVariable roomId: String,
+        @PathVariable roomId: Long,
         authentication: Authentication
     ): ResponseDto<DraftMessageResponseDto?> {
-        val userId = authentication.name
-
-        val result = draftMessageUseCase.getDraftByRoom(
-            userId = userId,
-            roomId = roomId
-        )
-
+        val userId = authentication.name.toLong()
+        val result = draftMessageUseCase.getDraftByRoom(userId, roomId)
         return ResponseDto.success(result)
     }
 
@@ -95,8 +85,8 @@ class DraftMessageController(
     @GetMapping
     fun getAllDrafts(
         authentication: Authentication
-    ): ResponseDto<Map<String, DraftMessageResponseDto>> {
-        val userId = authentication.name
+    ): ResponseDto<Map<Long, DraftMessageResponseDto>> {
+        val userId = authentication.name.toLong()
         val result = draftMessageUseCase.getAllDrafts(userId)
         return ResponseDto.success(result)
     }

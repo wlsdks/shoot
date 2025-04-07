@@ -10,16 +10,16 @@ data class ChatMessage(
     val content: MessageContent,
     val status: MessageStatus,
     val replyToMessageId: String? = null,
-    val reactions: Map<String, Set<String>> = emptyMap(),
-    val mentions: Set<String> = emptySet(),
+    val reactions: Map<String, Set<Long>> = emptyMap(),
+    val mentions: Set<Long> = emptySet(),
     val createdAt: Instant? = Instant.now(),
     val updatedAt: Instant? = null,
     val isDeleted: Boolean = false,
-    val readBy: MutableMap<String, Boolean> = mutableMapOf(),
+    val readBy: MutableMap<Long, Boolean> = mutableMapOf(),
     var metadata: MutableMap<String, Any> = mutableMapOf(),
 
     // 메시지 고정기능
     val isPinned: Boolean = false,
-    val pinnedBy: String? = null,
+    val pinnedBy: Long? = null,
     val pinnedAt: Instant? = null
 )

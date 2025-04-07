@@ -4,9 +4,9 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 
 data class PinResponse(
     val messageId: String,
-    val roomId: String,
+    val roomId: Long,
     val isPinned: Boolean,
-    val pinnedBy: String?,
+    val pinnedBy: Long?,
     val pinnedAt: String?,
     val content: String,
     val updatedAt: String

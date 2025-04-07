@@ -7,8 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class ChatMessageRequest(
     @JsonProperty("id") val id: String? = null,
     @JsonProperty("tempId") var tempId: String? = null,
-    @JsonProperty("roomId") val roomId: String,
-    @JsonProperty("senderId") val senderId: String,
+    @JsonProperty("roomId") val roomId: Long,
+    @JsonProperty("senderId") val senderId: Long,
     @JsonProperty("content") val content: MessageContentRequest,
     @JsonProperty("status") var status: String? = null,
     @JsonProperty("readBy") val readBy: Map<String, Boolean>? = null,

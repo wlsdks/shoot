@@ -31,7 +31,7 @@ class ChatUnreadCountController(
         value = ["/updates/{userId}"],
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
     )
-    fun streamUpdates(@PathVariable userId: String): SseEmitter {
+    fun streamUpdates(@PathVariable userId: Long): SseEmitter {
         return try {
             sseEmitterUseCase.createEmitter(userId)
         } catch (e: Exception) {
@@ -49,7 +49,7 @@ class ChatUnreadCountController(
      */
     private fun sendErrorResponse(
         e: Exception,
-        userId: String
+        userId: Long
     ): SseEmitter {
         // SSE 연결 도중 예외 발생 시 로깅 후 새로운 에러 전용 SSE 이미터 반환
         logger.error(e) { "Error creating SSE emitter for user: $userId" }

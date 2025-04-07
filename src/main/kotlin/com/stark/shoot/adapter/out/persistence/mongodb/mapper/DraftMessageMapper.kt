@@ -17,8 +17,8 @@ class DraftMessageMapper {
      */
     fun toDocument(domain: DraftMessage): DraftMessageDocument {
         return DraftMessageDocument(
-            userId = domain.userId.toObjectId(),
-            roomId = domain.roomId.toObjectId(),
+            userId = domain.userId,
+            roomId = domain.roomId,
             content = domain.content,
             attachments = domain.attachments,
             mentions = domain.mentions,
@@ -36,8 +36,8 @@ class DraftMessageMapper {
     fun toDomain(document: DraftMessageDocument): DraftMessage {
         return DraftMessage(
             id = document.id?.toString(),
-            userId = document.userId.toString(),
-            roomId = document.roomId.toString(),
+            userId = document.userId,
+            roomId = document.roomId,
             content = document.content,
             attachments = document.attachments,
             mentions = document.mentions,

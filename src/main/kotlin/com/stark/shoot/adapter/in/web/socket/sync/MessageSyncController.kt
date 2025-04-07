@@ -37,7 +37,7 @@ class MessageSyncController(
             } catch (e: Exception) {
                 logger.error { "동기화 중 에러 발생" + e.message }
                 messagingTemplate.convertAndSendToUser(
-                    request.userId,
+                    request.userId.toString(),
                     "/queue/errors",
                     ErrorResponse(
                         status = HttpStatus.INTERNAL_SERVER_ERROR.value(),

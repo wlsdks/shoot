@@ -53,8 +53,8 @@ class ScheduledMessageMongoAdapter(
      * @return 스케줄된 메시지 목록
      */
     override fun findByUserId(
-        userId: ObjectId,
-        roomId: ObjectId?
+        userId: Long,
+        roomId: Long?
     ): List<ScheduledMessage> {
         val criteria = Criteria.where("senderId").`is`(userId)
 

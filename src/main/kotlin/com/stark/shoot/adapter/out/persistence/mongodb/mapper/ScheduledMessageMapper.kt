@@ -22,8 +22,8 @@ class ScheduledMessageMapper(
      */
     fun toDocument(domain: ScheduledMessage): ScheduledMessageDocument {
         return ScheduledMessageDocument(
-            roomId = domain.roomId.toObjectId(),
-            senderId = domain.senderId.toObjectId(),
+            roomId = domain.roomId,
+            senderId = domain.senderId,
             content = toMessageContentDocument(domain.content),
             scheduledAt = domain.scheduledAt,
             status = domain.status.name,
@@ -40,8 +40,8 @@ class ScheduledMessageMapper(
     fun toDomain(document: ScheduledMessageDocument): ScheduledMessage {
         return ScheduledMessage(
             id = document.id?.toString(),
-            roomId = document.roomId.toString(),
-            senderId = document.senderId.toString(),
+            roomId = document.roomId,
+            senderId = document.senderId,
             content = toMessageContent(document.content),
             scheduledAt = document.scheduledAt,
             createdAt = document.createdAt ?: document.scheduledAt.minusSeconds(1),

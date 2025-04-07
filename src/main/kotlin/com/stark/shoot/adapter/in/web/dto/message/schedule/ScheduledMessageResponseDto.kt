@@ -6,8 +6,8 @@ import java.time.Instant
 
 data class ScheduledMessageResponseDto(
     val id: String,
-    val roomId: String,
-    val senderId: String,
+    val roomId: Long,
+    val senderId: Long,
     val content: MessageContentResponseDto,
     val scheduledAt: Instant,
     val createdAt: Instant,

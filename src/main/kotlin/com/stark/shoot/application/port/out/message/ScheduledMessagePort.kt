@@ -7,6 +7,6 @@ import java.time.Instant
 interface ScheduledMessagePort {
     fun saveScheduledMessage(scheduledMessage: ScheduledMessage): ScheduledMessage
     fun findById(id: ObjectId): ScheduledMessage?
-    fun findByUserId(userId: ObjectId, roomId: ObjectId? = null): List<ScheduledMessage>
+    fun findByUserId(userId: Long, roomId: Long? = null): List<ScheduledMessage>
     fun findPendingMessagesBeforeTime(time: Instant): List<ScheduledMessage>
 }

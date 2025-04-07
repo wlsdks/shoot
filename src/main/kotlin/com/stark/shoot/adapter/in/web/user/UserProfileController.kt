@@ -7,7 +7,6 @@ import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.profile.UserUpdateProfileUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.bson.types.ObjectId
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -30,7 +29,7 @@ class UserProfileController(
         authentication: Authentication,
         @RequestBody request: UpdateProfileRequest
     ): ResponseDto<UserResponse> {
-        val userId = ObjectId(authentication.name)
+        val userId = authentication.name.toLong()
         val user = userUpdateProfileUseCase.updateProfile(userId, request)
         return ResponseDto.success(user.toResponse(), "프로필이 성공적으로 업데이트되었습니다.")
     }

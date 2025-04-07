@@ -9,7 +9,7 @@ import com.stark.shoot.domain.common.DomainEvent
  * @param unreadCounts 각 참여자(문자열 ID)별 읽지 않은 메시지 수
  */
 data class ChatUnreadCountUpdatedEvent(
-    val roomId: String,
-    val unreadCounts: Map<String, Int>,
+    val roomId: Long,
+    val unreadCounts: Map<Long, Int>,
     val lastMessage: String? = null
 ) : DomainEvent

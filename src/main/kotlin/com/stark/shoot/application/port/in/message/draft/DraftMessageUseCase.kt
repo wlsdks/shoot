@@ -4,8 +4,8 @@ import com.stark.shoot.adapter.`in`.web.dto.message.draft.DraftMessageResponseDt
 
 interface DraftMessageUseCase {
     fun saveDraft(
-        userId: String,
-        roomId: String,
+        userId: Long,
+        roomId: Long,
         content: String,
         attachments: List<String> = emptyList(),
         mentions: Set<String> = emptySet()
@@ -13,21 +13,13 @@ interface DraftMessageUseCase {
 
     fun updateDraft(
         draftId: String,
-        userId: String,
+        userId: Long,
         content: String,
         attachments: List<String> = emptyList(),
         mentions: Set<String> = emptySet()
     ): DraftMessageResponseDto
 
-    fun deleteDraft(
-        draftId: String,
-        userId: String
-    ): Boolean
-
-    fun getDraftByRoom(
-        userId: String,
-        roomId: String
-    ): DraftMessageResponseDto?
-
-    fun getAllDrafts(userId: String): Map<String, DraftMessageResponseDto>
+    fun deleteDraft(draftId: String, userId: Long): Boolean
+    fun getDraftByRoom(userId: Long, roomId: Long): DraftMessageResponseDto?
+    fun getAllDrafts(userId: Long): Map<Long, DraftMessageResponseDto>
 }

@@ -21,12 +21,12 @@ class ScheduledMessageController(
     @Operation(summary = "메시지 예약", description = "지정된 시간에 전송될 메시지를 예약합니다.")
     @PostMapping
     fun scheduleMessage(
-        @RequestParam roomId: String,
+        @RequestParam roomId: Long,
         @RequestParam content: String,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) scheduledAt: LocalDateTime,
         authentication: Authentication
     ): ResponseDto<ScheduledMessageResponseDto> {
-        val userId = authentication.name
+        val userId = authentication.name.toLong()
         val scheduledInstant = scheduledAt.atZone(ZoneId.systemDefault()).toInstant()
 
         val result = scheduledMessageUseCase.scheduleMessage(
@@ -45,7 +45,7 @@ class ScheduledMessageController(
         @PathVariable scheduledMessageId: String,
         authentication: Authentication
     ): ResponseDto<ScheduledMessageResponseDto> {
-        val userId = authentication.name
+        val userId = authentication.name.toLong()
 
         val result = scheduledMessageUseCase.cancelScheduledMessage(
             scheduledMessageId = scheduledMessageId,
@@ -63,7 +63,7 @@ class ScheduledMessageController(
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) newScheduledAt: LocalDateTime?,
         authentication: Authentication
     ): ResponseDto<ScheduledMessageResponseDto> {
-        val userId = authentication.name
+        val userId = authentication.name.toLong()
         val newScheduledInstant = newScheduledAt?.atZone(ZoneId.systemDefault())?.toInstant()
 
         val result = scheduledMessageUseCase.updateScheduledMessage(
@@ -79,10 +79,10 @@ class ScheduledMessageController(
     @Operation(summary = "예약된 메시지 목록 조회", description = "사용자가 예약한 메시지 목록을 조회합니다.")
     @GetMapping
     fun getScheduledMessages(
-        @RequestParam(required = false) roomId: String?,
+        @RequestParam(required = false) roomId: Long?,
         authentication: Authentication
     ): ResponseDto<List<ScheduledMessageResponseDto>> {
-        val userId = authentication.name
+        val userId = authentication.name.toLong()
 
         val result = scheduledMessageUseCase.getScheduledMessagesByUser(
             userId = userId,
@@ -98,7 +98,7 @@ class ScheduledMessageController(
         @PathVariable scheduledMessageId: String,
         authentication: Authentication
     ): ResponseDto<ScheduledMessageResponseDto> {
-        val userId = authentication.name
+        val userId = authentication.name.toLong()
 
         val result = scheduledMessageUseCase.sendScheduledMessageNow(
             scheduledMessageId = scheduledMessageId,

@@ -1,10 +1,7 @@
 package com.stark.shoot.application.port.`in`.chatroom
 
-import org.bson.types.ObjectId
-
 interface ManageChatRoomUseCase {
-    fun addParticipant(roomId: String, userId: ObjectId): Boolean
-    fun removeParticipant(roomId: String, userId: ObjectId): Boolean
-    fun updateRoomSettings(roomId: String, title: String?, notificationEnabled: Boolean?)
-    fun updateAnnouncement(roomId: String, announcement: String?)
+    fun addParticipant(roomId: Long, userId: Long): Boolean
+    fun removeParticipant(roomId: Long, userId: Long): Boolean
+    fun updateAnnouncement(roomId: Long, announcement: String?)
 }

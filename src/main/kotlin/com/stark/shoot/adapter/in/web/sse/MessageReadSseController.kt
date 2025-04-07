@@ -22,9 +22,9 @@ class MessageReadSseController(
     )
     @PostMapping("/mark-read")
     fun markMessageRead(
-        @RequestParam roomId: String,
-        @RequestParam userId: String,
-        @RequestParam(required = false) requestId: String?
+        @RequestParam roomId: Long,
+        @RequestParam userId: Long,
+        @RequestParam(required = false) requestId: Long?
     ): ResponseDto<Unit> {
         markMessageReadUseCase.markAllMessagesAsRead(roomId, userId, requestId)
         return ResponseDto.success(Unit, "메시지가 읽음으로 처리되었습니다.")

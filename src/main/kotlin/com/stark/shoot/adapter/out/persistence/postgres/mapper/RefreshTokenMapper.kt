@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component
 @Component
 class RefreshTokenMapper {
 
+    /**
+     * RefreshTokenEntity를 도메인 객체로 변환
+     */
     fun toDomain(entity: RefreshTokenEntity): RefreshToken {
         return RefreshToken(
             id = entity.id,

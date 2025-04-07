@@ -51,8 +51,8 @@ class DraftMessageMongoAdapter(
      * @return 임시 메시지
      */
     override fun findByUserAndRoom(
-        userId: ObjectId,
-        roomId: ObjectId
+        userId: Long,
+        roomId: Long
     ): DraftMessage? {
         val query = Query(
             Criteria.where("userId").`is`(userId)
@@ -70,7 +70,7 @@ class DraftMessageMongoAdapter(
      * @return 임시 메시지 목록
      */
     override fun findAllByUser(
-        userId: ObjectId
+        userId: Long
     ): List<DraftMessage> {
         val query = Query(Criteria.where("userId").`is`(userId))
         val documents = mongoTemplate.find(query, DraftMessageDocument::class.java)

@@ -21,8 +21,8 @@ class MessageForwardController(
     @PostMapping("/forward")
     fun forwardMessage(
         @RequestParam originalMessageId: String,
-        @RequestParam targetRoomId: String,
-        @RequestParam forwardingUserId: String
+        @RequestParam targetRoomId: Long,
+        @RequestParam forwardingUserId: Long
     ): ResponseDto<ChatMessageResponse> {
         val forwardedMessage = forwardMessageUseCase.forwardMessage(
             originalMessageId = originalMessageId,

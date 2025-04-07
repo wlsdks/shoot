@@ -6,16 +6,16 @@ import com.stark.shoot.infrastructure.enumerate.ReactionType
 interface MessageReactionUseCase {
     fun addReaction(
         messageId: String,
-        userId: String,
+        userId: Long,
         reactionType: String
     ): ReactionResponse
 
     fun removeReaction(
         messageId: String,
-        userId: String,
+        userId: Long,
         reactionType: String
     ): ReactionResponse
 
-    fun getReactions(messageId: String): Map<String, Set<String>>
+    fun getReactions(messageId: String): Map<String, Set<Long>>
     fun getSupportedReactionTypes(): List<ReactionType>
 }

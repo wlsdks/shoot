@@ -25,7 +25,7 @@ class MessagePinController(
         @PathVariable messageId: String,
         authentication: Authentication
     ): ResponseDto<PinResponse> {
-        val userId = authentication.name
+        val userId = authentication.name.toLong()
         val updatedMessage = messagePinUseCase.pinMessage(messageId, userId)
         return ResponseDto.success(PinResponse.from(updatedMessage), "메시지가 고정되었습니다.")
     }
@@ -39,7 +39,7 @@ class MessagePinController(
         @PathVariable messageId: String,
         authentication: Authentication
     ): ResponseDto<PinResponse> {
-        val userId = authentication.name
+        val userId = authentication.name.toLong()
         val updatedMessage = messagePinUseCase.unpinMessage(messageId, userId)
         return ResponseDto.success(PinResponse.from(updatedMessage), "메시지 고정이 해제되었습니다.")
     }
@@ -50,7 +50,7 @@ class MessagePinController(
     )
     @GetMapping("/pins")
     fun getPinnedMessages(
-        @RequestParam roomId: String
+        @RequestParam roomId: Long
     ): ResponseDto<PinnedMessagesResponse> {
         val pinnedMessages = messagePinUseCase.getPinnedMessages(roomId)
         return ResponseDto.success(PinnedMessagesResponse.from(roomId, pinnedMessages))

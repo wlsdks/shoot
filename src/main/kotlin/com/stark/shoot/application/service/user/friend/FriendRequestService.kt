@@ -17,13 +17,12 @@ class FriendRequestService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
     private val eventPublisher: EventPublisher,
-    private val redisStringTemplate: StringRedisTemplate
+    private val redisTemplate: StringRedisTemplate
 ) : FriendRequestUseCase {
-
-    private val maxPinnedFriends = 5
 
     /**
      * 친구 요청을 보냅니다.
+     *
      * @param currentUserId 현재 사용자 ID
      * @param targetUserId 친구 요청을 받을 사용자 ID
      */
@@ -31,28 +30,31 @@ class FriendRequestService(
         currentUserId: Long,
         targetUserId: Long
     ) {
+        // 자기 자신에게 요청하는 경우 방지
         if (currentUserId == targetUserId) {
             throw InvalidInputException("자기 자신에게 친구 요청을 보낼 수 없습니다.")
         }
 
-        // 사용자 존재 확인만 - 객체 로드 없이
+        // 사용자 존재 여부 확인
         if (!findUserPort.existsById(currentUserId)) {
-            throw ResourceNotFoundException("User not found: $currentUserId")
+            throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
         }
 
         if (!findUserPort.existsById(targetUserId)) {
-            throw ResourceNotFoundException("User not found: $targetUserId")
+            throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId")
         }
 
-        // 효율적인 관계 확인
+        // 이미 친구인지 확인
         if (findUserPort.checkFriendship(currentUserId, targetUserId)) {
             throw InvalidInputException("이미 친구 상태입니다.")
         }
 
+        // 이미 친구 요청을 보냈는지 확인
         if (findUserPort.checkOutgoingFriendRequest(currentUserId, targetUserId)) {
             throw InvalidInputException("이미 친구 요청을 보냈습니다.")
         }
 
+        // 상대방으로부터 이미 친구 요청을 받은 상태인지 확인
         if (findUserPort.checkIncomingFriendRequest(currentUserId, targetUserId)) {
             throw InvalidInputException("상대방이 이미 친구 요청을 보냈습니다. 수락하거나 거절해주세요.")
         }
@@ -60,13 +62,14 @@ class FriendRequestService(
         // 친구 요청 추가
         updateFriendPort.addOutgoingFriendRequest(currentUserId, targetUserId)
 
-        // 캐시 무효화
+        // 추천 친구 캐시 무효화
         invalidateRecommendationCache(currentUserId)
         invalidateRecommendationCache(targetUserId)
     }
 
     /**
      * 친구 요청을 수락합니다.
+     *
      * @param currentUserId 현재 사용자 ID
      * @param requesterId 친구 요청을 보낸 사용자 ID
      */
@@ -74,7 +77,7 @@ class FriendRequestService(
         currentUserId: Long,
         requesterId: Long
     ) {
-        // 친구 요청 확인 - 단일 쿼리로 확인
+        // 친구 요청 존재 여부 확인
         if (!findUserPort.checkIncomingFriendRequest(currentUserId, requesterId)) {
             throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
         }
@@ -83,13 +86,13 @@ class FriendRequestService(
         updateFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
         updateFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
 
-        // 친구 관계 추가
+        // 양방향 친구 관계 추가
         updateFriendPort.addFriendRelation(currentUserId, requesterId)
         updateFriendPort.addFriendRelation(requesterId, currentUserId)
 
-        // 이벤트 발행
-        eventPublisher.publish(FriendAddedEvent(userId = currentUserId.toString(), friendId = requesterId.toString()))
-        eventPublisher.publish(FriendAddedEvent(userId = requesterId.toString(), friendId = currentUserId.toString()))
+        // 이벤트 발행 (양쪽 사용자에게 친구 추가 알림)
+        eventPublisher.publish(FriendAddedEvent(userId = currentUserId, friendId = requesterId))
+        eventPublisher.publish(FriendAddedEvent(userId = requesterId, friendId = currentUserId))
 
         // 캐시 무효화
         invalidateRecommendationCache(currentUserId)
@@ -98,6 +101,7 @@ class FriendRequestService(
 
     /**
      * 친구 요청을 거절합니다.
+     *
      * @param currentUserId 현재 사용자 ID
      * @param requesterId 친구 요청을 보낸 사용자 ID
      */
@@ -105,12 +109,12 @@ class FriendRequestService(
         currentUserId: Long,
         requesterId: Long
     ) {
-        // 친구 요청 확인 - 단일 쿼리로 확인
+        // 친구 요청 존재 여부 확인
         if (!findUserPort.checkIncomingFriendRequest(currentUserId, requesterId)) {
             throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
         }
 
-        // 요청 목록에서 제거
+        // 친구 요청 제거
         updateFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
         updateFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
 
@@ -120,14 +124,25 @@ class FriendRequestService(
     }
 
     /**
-     * 추천 캐시 무효화
+     * 추천 친구 캐시를 무효화합니다.
+     *
+     * @param userId 사용자 ID
      */
     private fun invalidateRecommendationCache(userId: Long) {
-        val cacheKey = "friend_recommend:$userId:$maxPinnedFriends"
         try {
-            redisStringTemplate.delete(cacheKey)
+            // 추천 친구 캐시 키 패턴
+            val cacheKeyPattern = "friend_recommend:$userId:*"
+
+            // 해당 패턴의 모든 키 조회
+            val keys = redisTemplate.keys(cacheKeyPattern)
+
+            // 키가 있으면 삭제
+            if (!keys.isNullOrEmpty()) {
+                redisTemplate.delete(keys)
+            }
         } catch (e: Exception) {
-            println("캐시 삭제 실패: $cacheKey, error: ${e.message}")
+            // 캐시 삭제 실패는 치명적인 오류가 아니므로 로깅만 하고 계속 진행
+            // 실제 구현 시 로깅 추가 필요
         }
     }
 

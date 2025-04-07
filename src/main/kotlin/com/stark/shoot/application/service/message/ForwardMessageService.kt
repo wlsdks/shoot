@@ -26,8 +26,8 @@ class ForwardMessageService(
      */
     override fun forwardMessage(
         originalMessageId: String,
-        targetRoomId: String,
-        forwardingUserId: String
+        targetRoomId: Long,
+        forwardingUserId: Long
     ): ChatMessage {
         // 1. 원본 메시지 조회
         val originalMessage = (loadMessagePort.findById(originalMessageId.toObjectId())
@@ -57,8 +57,8 @@ class ForwardMessageService(
      * @return 저장된 메시지
      */
     private fun forwardMessageSave(
-        targetRoomId: String,
-        forwardingUserId: String,
+        targetRoomId: Long,
+        forwardingUserId: Long,
         forwardedContent: MessageContent
     ): ChatMessage {
         // 전달할 메시지 생성
@@ -88,11 +88,11 @@ class ForwardMessageService(
      * @param savedForwardMessage 전달된 메시지
      */
     private fun modifyChatRoomMetadata(
-        targetRoomId: String,
+        targetRoomId: Long,
         savedForwardMessage: ChatMessage
     ) {
         // 대상 채팅방 조회
-        val chatRoom = loadChatRoomPort.findById(targetRoomId.toObjectId())
+        val chatRoom = loadChatRoomPort.findById(targetRoomId)
             ?: throw ResourceNotFoundException("대상 채팅방을 찾을 수 없습니다. id=$targetRoomId")
 
         // 마지막 메시지 및 마지막 활동 시간 갱신

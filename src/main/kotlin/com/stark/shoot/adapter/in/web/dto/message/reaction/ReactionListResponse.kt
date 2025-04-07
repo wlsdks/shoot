@@ -7,7 +7,7 @@ data class ReactionListResponse(
     val reactions: List<ReactionInfoDto>
 ) {
     companion object {
-        fun from(messageId: String, reactions: Map<String, Set<String>>): ReactionListResponse {
+        fun from(messageId: String, reactions: Map<String, Set<Long>>): ReactionListResponse {
             val reactionInfos = reactions.map { (reactionType, userIds) ->
                 val type = ReactionType.fromCode(reactionType)
                     ?: ReactionType.LIKE // 기본값

@@ -28,7 +28,7 @@ class MessageReactionController(
         @RequestBody request: ReactionRequest,
         authentication: Authentication
     ): ResponseDto<ReactionResponse> {
-        val userId = authentication.name // JWT에서 추출된 userId
+        val userId = authentication.name.toLong()
         val response = messageReactionUseCase.addReaction(messageId, userId, request.reactionType)
         return ResponseDto.success(response, "반응이 추가되었습니다.")
     }
@@ -43,7 +43,7 @@ class MessageReactionController(
         @PathVariable reactionType: String,
         authentication: Authentication
     ): ResponseDto<ReactionResponse> {
-        val userId = authentication.name
+        val userId = authentication.name.toLong()
         val response = messageReactionUseCase.removeReaction(messageId, userId, reactionType)
         return ResponseDto.success(response, "반응이 제거되었습니다.")
     }

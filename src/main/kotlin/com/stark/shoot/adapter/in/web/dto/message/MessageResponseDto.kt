@@ -10,18 +10,18 @@ import java.time.Instant
  */
 data class MessageResponseDto(
     val id: String,
-    val roomId: String,
-    val senderId: String,
+    val roomId: Long,
+    val senderId: Long,
     val content: MessageContentResponseDto,  // content 객체 구조로 변경
     val status: MessageStatus,
     val replyToMessageId: String? = null,
-    val reactions: Map<String, Set<String>> = emptyMap(),
-    val mentions: Set<String> = emptySet(),
+    val reactions: Map<String, Set<Long>> = emptyMap(),
+    val mentions: Set<Long> = emptySet(),
     val createdAt: Instant? = null,
     val updatedAt: Instant? = null,
-    val readBy: Map<String, Boolean> = emptyMap(),
+    val readBy: Map<Long, Boolean> = emptyMap(),
     val isPinned: Boolean = false,
-    val pinnedBy: String? = null,
+    val pinnedBy: Long? = null,
     val pinnedAt: Instant? = null
 )
 

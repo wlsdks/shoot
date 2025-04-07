@@ -5,8 +5,8 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 data class PinnedMessageItem(
     val messageId: String,
     val content: String,
-    val senderId: String,
-    val pinnedBy: String?,
+    val senderId: Long,
+    val pinnedBy: Long?,
     val pinnedAt: String?,
     val createdAt: String
 ) {

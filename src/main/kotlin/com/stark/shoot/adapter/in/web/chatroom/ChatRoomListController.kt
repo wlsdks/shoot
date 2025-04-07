@@ -3,7 +3,6 @@ package com.stark.shoot.adapter.`in`.web.chatroom
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
-import com.stark.shoot.infrastructure.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -24,9 +23,9 @@ class ChatRoomListController(
     )
     @GetMapping
     fun getChatRooms(
-        @RequestParam userId: String
+        @RequestParam userId: Long
     ): ResponseDto<List<ChatRoomResponse>> {
-        val chatRooms = findChatRoomUseCase.getChatRoomsForUser(userId.toObjectId())
+        val chatRooms = findChatRoomUseCase.getChatRoomsForUser(userId)
         return ResponseDto.success(chatRooms)
     }
 

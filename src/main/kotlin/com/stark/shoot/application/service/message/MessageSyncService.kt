@@ -10,7 +10,6 @@ import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.enumerate.SyncDirection
-import com.stark.shoot.infrastructure.util.toObjectId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
@@ -32,7 +31,7 @@ class MessageSyncService(
     override fun chatMessagesFlow(
         request: SyncRequestDto
     ): Flow<MessageSyncInfoDto> = flow {
-        val roomObjectId = request.roomId.toObjectId()
+        val roomObjectId = request.roomId
 
         val messageFlow = when (request.direction) {
             // 초기 로드 시 메시지 동기화
@@ -89,7 +88,7 @@ class MessageSyncService(
 
         // 개인 채널로 동기화 응답 전송 (클라이언트는 /user/queue/sync로 구독)
         messagingTemplate.convertAndSendToUser(
-            request.userId,
+            request.userId.toString(),
             "/queue/sync",
             response
         )

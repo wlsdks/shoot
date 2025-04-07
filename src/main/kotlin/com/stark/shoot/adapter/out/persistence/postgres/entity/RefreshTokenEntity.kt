@@ -23,8 +23,8 @@ class RefreshTokenEntity(
     val ipAddress: String? = null,
 
     @Column(nullable = true)
-    val lastUsedAt: Instant? = null,
+    var lastUsedAt: Instant? = null,
 
     @Column(nullable = false)
-    val isRevoked: Boolean = false
+    var isRevoked: Boolean = false
 ) : BaseEntity()

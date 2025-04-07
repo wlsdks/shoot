@@ -6,7 +6,7 @@ import org.bson.types.ObjectId
 interface DraftMessagePort {
     fun saveDraft(draft: DraftMessage): DraftMessage
     fun findById(id: ObjectId): DraftMessage?
-    fun findByUserAndRoom(userId: ObjectId, roomId: ObjectId): DraftMessage?
-    fun findAllByUser(userId: ObjectId): List<DraftMessage>
+    fun findByUserAndRoom(userId: Long, roomId: Long): DraftMessage?
+    fun findAllByUser(userId: Long): List<DraftMessage>
     fun deleteDraft(id: ObjectId): Boolean
 }

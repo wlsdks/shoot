@@ -5,8 +5,8 @@ import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
 interface SseEmitterUseCase {
-    fun createEmitter(userId: String): SseEmitter
-    fun sendUpdate(userId: String, roomId: String, unreadCount: Int, lastMessage: String?)
+    fun createEmitter(userId: Long): SseEmitter
+    fun sendUpdate(userId: Long, roomId: Long, unreadCount: Int, lastMessage: String?)
     fun sendChatRoomCreatedEvent(event: ChatRoomCreatedEvent)
     fun sendFriendAddedEvent(event: FriendAddedEvent)
 }

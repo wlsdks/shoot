@@ -4,7 +4,7 @@ import com.stark.shoot.domain.common.DomainEvent
 
 data class MessagePinEvent(
     val messageId: String,
-    val roomId: String,
+    val roomId: Long,
     val isPinned: Boolean,
-    val userId: String
+    val userId: Long
 ) : DomainEvent

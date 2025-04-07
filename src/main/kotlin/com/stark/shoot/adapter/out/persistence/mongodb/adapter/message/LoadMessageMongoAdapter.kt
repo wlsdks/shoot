@@ -39,7 +39,7 @@ class LoadMessageMongoAdapter(
      * @return 채팅 메시지 목록
      */
     override fun findByRoomId(
-        roomId: ObjectId,
+        roomId: Long,
         limit: Int
     ): List<ChatMessage> {
         val pageable = PageRequest.of(
@@ -61,7 +61,7 @@ class LoadMessageMongoAdapter(
      * @return 채팅 메시지 목록
      */
     override fun findByRoomIdAndBeforeId(
-        roomId: ObjectId,
+        roomId: Long,
         lastId: ObjectId,
         limit: Int
     ): List<ChatMessage> {
@@ -84,7 +84,7 @@ class LoadMessageMongoAdapter(
      * @return 채팅 메시지 목록
      */
     override fun findByRoomIdAndAfterId(
-        roomId: ObjectId,
+        roomId: Long,
         lastId: ObjectId,
         limit: Int
     ): List<ChatMessage> {
@@ -121,7 +121,7 @@ class LoadMessageMongoAdapter(
      * @return 고정된 메시지 목록
      */
     override fun findPinnedMessagesByRoomId(
-        roomId: ObjectId,
+        roomId: Long,
         limit: Int
     ): List<ChatMessage> {
         val pageable = PageRequest.of(
@@ -143,7 +143,7 @@ class LoadMessageMongoAdapter(
      * @return 채팅 메시지 Flow
      */
     override fun findByRoomIdFlow(
-        roomId: ObjectId,
+        roomId: Long,
         limit: Int
     ): Flow<ChatMessage> = flow {
         val messages = findByRoomId(roomId, limit)
@@ -160,7 +160,7 @@ class LoadMessageMongoAdapter(
      * @return 채팅 메시지 Flow
      */
     override fun findByRoomIdAndBeforeIdFlow(
-        roomId: ObjectId,
+        roomId: Long,
         messageId: ObjectId,
         limit: Int
     ): Flow<ChatMessage> = flow {
@@ -178,7 +178,7 @@ class LoadMessageMongoAdapter(
      * @return 채팅 메시지 Flow
      */
     override fun findByRoomIdAndAfterIdFlow(
-        roomId: ObjectId,
+        roomId: Long,
         messageId: ObjectId,
         limit: Int
     ): Flow<ChatMessage> = flow {

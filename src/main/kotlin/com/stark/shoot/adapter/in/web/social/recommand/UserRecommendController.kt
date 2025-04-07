@@ -3,7 +3,6 @@ package com.stark.shoot.adapter.`in`.web.social.recommand
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
-import com.stark.shoot.infrastructure.util.toObjectId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -24,15 +23,12 @@ class UserRecommendController(
     )
     @GetMapping("/recommend/bfs")
     fun recommendFriendsBFS(
-        @RequestParam userId: String,
+        @RequestParam userId: Long,
         @RequestParam(defaultValue = "10") limit: Int,
         @RequestParam(defaultValue = "2") maxDepth: Int,
         @RequestParam(defaultValue = "0") skip: Int
     ): ResponseDto<List<FriendResponse>> {
-        val recommendations = recommendFriendsUseCase.findBFSRecommendedUsers(
-            userId.toObjectId(), maxDepth, skip, limit
-        )
-
+        val recommendations = recommendFriendsUseCase.getRecommendedFriends(userId, skip, limit)
         return ResponseDto.success(recommendations)
     }
 

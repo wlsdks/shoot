@@ -155,7 +155,7 @@ class RecommendFriendService(
             .take(limit)
             .map { user ->
                 FriendResponse(
-                    id = user.id.toString(),
+                    id = user.id ?: 0L,
                     username = user.username,
                     nickname = user.nickname,
                     profileImageUrl = user.profileImageUrl

@@ -6,6 +6,7 @@ import com.stark.shoot.application.port.out.user.token.RefreshTokenPort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import com.stark.shoot.infrastructure.exception.web.InvalidRefreshTokenException
+import java.time.Instant
 
 @UseCase
 class RefreshTokenService(
@@ -17,42 +18,63 @@ class RefreshTokenService(
      * 리프레시 토큰으로 새 액세스 토큰 발급
      *
      * @param refreshTokenHeader 리프레시 토큰 헤더
-     * @return 새 액세스 토큰
+     * @return 새 액세스 토큰 및 리프레시 토큰 정보
      */
     override fun generateNewAccessToken(
         refreshTokenHeader: String
     ): LoginResponse {
         // 헤더에서 리프레시 토큰 추출
-        val refreshToken = refreshTokenHeader.replace("Bearer ", "")
+        val refreshToken = extractTokenFromHeader(refreshTokenHeader)
 
         // 리프레시 토큰 유효성 검증
-        validationRefreshToken(refreshToken)
+        validateRefreshToken(refreshToken)
+
+        // 리프레시 토큰 사용 기록 업데이트
+        refreshTokenPort.updateTokenUsage(refreshToken)
 
         // 리프레시 토큰에서 userId와 username 추출
-        val userId = jwtProvider.extractId(refreshToken)                 // sub에서 id 추출
-        val username = jwtProvider.extractUsername(refreshToken)         // 클레임에서 username 추출
-        val newAccessToken = jwtProvider.generateToken(userId, username) // id와 username으로 새 토큰 생성
+        val userId = jwtProvider.extractId(refreshToken)
+        val username = jwtProvider.extractUsername(refreshToken)
 
-        // 새 액세스 토큰 생성 후 리프레시 토큰 반환
+        // 새 액세스 토큰 생성
+        val newAccessToken = jwtProvider.generateToken(userId, username)
+
+        // 응답 생성 (리프레시 토큰은 재사용)
         return LoginResponse(userId, newAccessToken, refreshToken)
     }
 
+    /**
+     * 헤더에서 토큰 추출
+     */
+    private fun extractTokenFromHeader(header: String): String {
+        return if (header.startsWith("Bearer ")) {
+            header.substring(7)
+        } else {
+            header // 이미 토큰만 전달된 경우
+        }
+    }
 
     /**
      * 리프레시 토큰 유효성 검증
-     *
-     * @param refreshToken 리프레시 토큰
      */
-    private fun validationRefreshToken(refreshToken: String) {
-        // 토큰 검증 (헤더로 받은 토큰을 먼저 유틸로 검증)
-        val isValidRefreshToken = !jwtProvider.isTokenValid(refreshToken)
+    private fun validateRefreshToken(refreshToken: String) {
+        // 토큰 형식 및 서명 검증
+        if (!jwtProvider.isRefreshTokenValid(refreshToken)) {
+            throw InvalidRefreshTokenException("유효하지 않은 리프레시 토큰 형식입니다.")
+        }
 
-        // 토큰 검증 (저장된 리프레시 토큰을 확인해서 2차 검증)
-        val isValidRefreshTokenStoredAt = !refreshTokenPort.isValidRefreshToken(refreshToken)
+        // DB에 저장된 토큰 확인
+        val storedToken = refreshTokenPort.findByToken(refreshToken)
+            ?: throw InvalidRefreshTokenException("존재하지 않는 리프레시 토큰입니다.")
 
-        // 2가지 유효성 검증을 통과하지 못하면 예외 발생
-        if (isValidRefreshToken || isValidRefreshTokenStoredAt) {
-            throw InvalidRefreshTokenException("유효하지 않은 리프레시 토큰입니다.")
+        // 토큰 상태 확인 (취소 여부)
+        if (storedToken.isRevoked) {
+            throw InvalidRefreshTokenException("취소된 리프레시 토큰입니다.")
+        }
+
+        // 토큰 만료 확인
+        if (storedToken.expirationDate.isBefore(Instant.now())) {
+            throw InvalidRefreshTokenException("만료된 리프레시 토큰입니다.")
         }
     }
 

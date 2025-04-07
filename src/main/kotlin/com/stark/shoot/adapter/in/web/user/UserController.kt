@@ -8,7 +8,6 @@ import com.stark.shoot.application.port.`in`.user.UserCreateUseCase
 import com.stark.shoot.application.port.`in`.user.UserDeleteUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
@@ -47,7 +46,7 @@ class UserController(
     fun deleteUser(
         authentication: Authentication
     ): ResponseDto<Unit> {
-        val userId = ObjectId(authentication.name)
+        val userId = authentication.name.toLong()
         userDeleteUseCase.deleteUser(userId)
         return ResponseDto.success(Unit, "회원 탈퇴가 완료되었습니다.")
     }

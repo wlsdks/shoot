@@ -10,7 +10,6 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageMetadataDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.UrlPreviewDocument
 import com.stark.shoot.domain.chat.message.*
-import com.stark.shoot.infrastructure.util.toObjectId
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 
@@ -19,20 +18,20 @@ class ChatMessageMapper {
 
     fun toDocument(domain: ChatMessage): ChatMessageDocument {
         return ChatMessageDocument(
-            roomId = domain.roomId.toObjectId(),
-            senderId = domain.senderId.toObjectId(),
+            roomId = domain.roomId,
+            senderId = domain.senderId,
             content = toMessageContentDocument(domain.content),
             status = domain.status,
             replyToMessageId = domain.replyToMessageId?.let { ObjectId(it) },
             reactions = domain.reactions.mapValues { (_, userIds) ->
-                userIds.map { ObjectId(it) }.toSet()
+                userIds.map { it }.toSet()
             },
-            mentions = domain.mentions.map { ObjectId(it) }.toSet(),
+            mentions = domain.mentions.map { it }.toSet(),
             isDeleted = domain.isDeleted,
             readBy = domain.readBy.toMutableMap(),
             metadata = domain.metadata.toMutableMap(),
             isPinned = domain.isPinned,
-            pinnedBy = domain.pinnedBy?.let { ObjectId(it) },
+            pinnedBy = domain.pinnedBy,
             pinnedAt = domain.pinnedAt
         ).apply {
             id = domain.id?.let { ObjectId(it) }
@@ -43,22 +42,22 @@ class ChatMessageMapper {
     fun toDomain(document: ChatMessageDocument): ChatMessage {
         return ChatMessage(
             id = document.id?.toString(),
-            roomId = document.roomId.toString(),
-            senderId = document.senderId.toString(),
+            roomId = document.roomId,
+            senderId = document.senderId,
             content = toMessageContent(document.content),
             status = document.status,
             replyToMessageId = document.replyToMessageId?.toString(),
             reactions = document.reactions.mapValues { (_, userIds) ->
-                userIds.map { it.toString() }.toSet()
+                userIds.map { it }.toSet()
             },
-            mentions = document.mentions.map { it.toString() }.toSet(),
+            mentions = document.mentions.map { it }.toSet(),
             createdAt = document.createdAt,
             updatedAt = document.updatedAt,
             isDeleted = document.isDeleted,
             readBy = document.readBy.toMutableMap(),
             metadata = document.metadata.toMutableMap() ?: mutableMapOf(),
             isPinned = document.isPinned,
-            pinnedBy = document.pinnedBy?.toString(),
+            pinnedBy = document.pinnedBy,
             pinnedAt = document.pinnedAt
         )
     }

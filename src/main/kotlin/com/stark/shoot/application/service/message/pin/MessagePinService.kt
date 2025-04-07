@@ -32,7 +32,7 @@ class MessagePinService(
      */
     override fun pinMessage(
         messageId: String,
-        userId: String
+        userId: Long
     ): ChatMessage {
         // 메시지 조회
         val message = (loadMessagePort.findById(messageId.toObjectId())
@@ -67,7 +67,7 @@ class MessagePinService(
      */
     override fun unpinMessage(
         messageId: String,
-        userId: String
+        userId: Long
     ): ChatMessage {
         val message = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
@@ -107,12 +107,12 @@ class MessagePinService(
      * @return 고정된 메시지 목록 (최대 1개)
      */
     override fun getPinnedMessages(
-        roomId: String
+        roomId: Long
     ): List<ChatMessage> {
         logger.debug { "채팅방의 고정된 메시지 조회: roomId=$roomId" }
 
         // 채팅방에서 고정된 메시지 조회 (최대 1개)
-        val pinnedMessages = loadMessagePort.findPinnedMessagesByRoomId(roomId.toObjectId(), 1)
+        val pinnedMessages = loadMessagePort.findPinnedMessagesByRoomId(roomId, 1)
 
         logger.debug { "고정된 메시지 ${pinnedMessages.size}개 조회됨: roomId=$roomId" }
         return pinnedMessages
@@ -126,14 +126,14 @@ class MessagePinService(
      */
     private fun unPinnedAlreadyExistMessage(
         message: ChatMessage,
-        userId: String
+        userId: Long
     ) {
         // 채팅방 ID
         val roomId = message.roomId
 
         // 채팅방에서 고정된 메시지 조회 (최대 1개)
         val currentPinnedMessage = loadMessagePort
-            .findPinnedMessagesByRoomId(roomId.toObjectId(), 1)
+            .findPinnedMessagesByRoomId(roomId, 1)
             .firstOrNull()
 
         // 기존 고정 메시지가 있으면 해제
@@ -148,7 +148,7 @@ class MessagePinService(
      */
     private fun unPinnedMessage(
         currentPinnedMessage: ChatMessage?,
-        userId: String
+        userId: Long
     ) {
         currentPinnedMessage?.let { pinnedMessage ->
             // 이미 고정된 메시지 해제
@@ -177,7 +177,7 @@ class MessagePinService(
      */
     private fun pinnedNewMessage(
         message: ChatMessage,
-        userId: String
+        userId: Long
     ): ChatMessage {
         // 메시지 업데이트
         val updatedMessage = message.copy(
@@ -198,7 +198,7 @@ class MessagePinService(
      */
     private fun sendPinStatusToClients(
         message: ChatMessage,
-        userId: String,
+        userId: Long,
         isPinned: Boolean
     ) {
         val roomId = message.roomId
@@ -222,7 +222,7 @@ class MessagePinService(
      */
     private fun publishPinEvent(
         message: ChatMessage,
-        userId: String,
+        userId: Long,
         isPinned: Boolean
     ) {
         val messageId = message.id ?: return

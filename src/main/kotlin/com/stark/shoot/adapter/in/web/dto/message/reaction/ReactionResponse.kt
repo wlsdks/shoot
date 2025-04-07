@@ -10,7 +10,7 @@ data class ReactionResponse(
     companion object {
         fun from(
             messageId: String,
-            reactions: Map<String, Set<String>>,
+            reactions: Map<String, Set<Long>>,
             updatedAt: String
         ): ReactionResponse {
             val reactionInfos = reactions.map { (reactionType, userIds) ->

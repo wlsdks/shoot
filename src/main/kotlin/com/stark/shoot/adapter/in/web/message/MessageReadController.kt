@@ -23,11 +23,11 @@ class MessageReadController(
     )
     @GetMapping("/get")
     fun getMessages(
-        @RequestParam roomId: String,
-        @RequestParam(required = false) lastId: String?,
+        @RequestParam roomId: Long,
+        @RequestParam(required = false) lastMessageId: String?,
         @RequestParam(defaultValue = "20") limit: Int
     ): ResponseDto<List<MessageResponseDto>> {
-        val messageDtos = getMessagesUseCase.getMessages(roomId, lastId, limit)
+        val messageDtos = getMessagesUseCase.getMessages(roomId, lastMessageId, limit)
         return ResponseDto.success(messageDtos)
     }
 

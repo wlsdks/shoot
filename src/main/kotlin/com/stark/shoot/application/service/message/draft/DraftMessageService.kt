@@ -30,26 +30,23 @@ class DraftMessageService(
      * @return 저장된 임시 메시지
      */
     override fun saveDraft(
-        userId: String,
-        roomId: String,
+        userId: Long,
+        roomId: Long,
         content: String,
         attachments: List<String>,
         mentions: Set<String>
     ): DraftMessageResponseDto {
         // 채팅방 존재 여부 확인
-        val chatRoom = loadChatRoomPort.findById(roomId.toObjectId())
+        val chatRoom = loadChatRoomPort.findById(roomId)
             ?: throw ApiException("채팅방을 찾을 수 없습니다.", ErrorCode.ROOM_NOT_FOUND)
 
         // 사용자가 채팅방에 속해 있는지 확인
-        if (!chatRoom.participants.contains(userId.toObjectId())) {
+        if (!chatRoom.participants.contains(userId)) {
             throw ApiException("채팅방에 속해 있지 않습니다", ErrorCode.USER_NOT_IN_ROOM)
         }
 
         // 기존 임시 메시지가 있는지 확인
-        val existingDraft = draftMessagePort.findByUserAndRoom(
-            userId.toObjectId(),
-            roomId.toObjectId()
-        )
+        val existingDraft = draftMessagePort.findByUserAndRoom(userId, roomId)
 
         // 기존 임시 메시지 업데이트 또는 새로 생성
         val draftToSave = existingDraft?.copy(
@@ -81,7 +78,7 @@ class DraftMessageService(
      */
     override fun updateDraft(
         draftId: String,
-        userId: String,
+        userId: Long,
         content: String,
         attachments: List<String>,
         mentions: Set<String>
@@ -116,7 +113,7 @@ class DraftMessageService(
      */
     override fun deleteDraft(
         draftId: String,
-        userId: String
+        userId: Long
     ): Boolean {
         // 임시 메시지 조회
         val draft = draftMessagePort.findById(draftId.toObjectId())
@@ -138,14 +135,10 @@ class DraftMessageService(
      * @return 임시 메시지
      */
     override fun getDraftByRoom(
-        userId: String,
-        roomId: String
+        userId: Long,
+        roomId: Long
     ): DraftMessageResponseDto? {
-        val findByUserAndRoom = draftMessagePort.findByUserAndRoom(
-            userId.toObjectId(),
-            roomId.toObjectId()
-        )
-
+        val findByUserAndRoom = draftMessagePort.findByUserAndRoom(userId, roomId)
         return draftMessageMapper.toDraftMessageResponseDto(findByUserAndRoom ?: return null)
     }
 
@@ -156,9 +149,9 @@ class DraftMessageService(
      * @return 임시 메시지 목록
      */
     override fun getAllDrafts(
-        userId: String
-    ): Map<String, DraftMessageResponseDto> {
-        val drafts = draftMessagePort.findAllByUser(userId.toObjectId())
+        userId: Long
+    ): Map<Long, DraftMessageResponseDto> {
+        val drafts = draftMessagePort.findAllByUser(userId)
         val draftMessages = drafts.associateBy { it.roomId }
 
         // 임시 메시지 DTO로 변환

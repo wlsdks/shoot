@@ -5,31 +5,31 @@ import java.time.Instant
 
 interface ScheduledMessageUseCase {
     fun scheduleMessage(
-        roomId: String,
-        senderId: String,
+        roomId: Long,
+        senderId: Long,
         content: String,
         scheduledAt: Instant
     ): ScheduledMessageResponseDto
 
     fun cancelScheduledMessage(
         scheduledMessageId: String,
-        userId: String
+        userId: Long
     ): ScheduledMessageResponseDto
 
     fun updateScheduledMessage(
         scheduledMessageId: String,
-        userId: String,
+        userId: Long,
         newContent: String,
         newScheduledAt: Instant? = null
     ): ScheduledMessageResponseDto
 
     fun getScheduledMessagesByUser(
-        userId: String,
-        roomId: String? = null
+        userId: Long,
+        roomId: Long? = null
     ): List<ScheduledMessageResponseDto>
 
     fun sendScheduledMessageNow(
         scheduledMessageId: String,
-        userId: String
+        userId: Long
     ): ScheduledMessageResponseDto
 }

@@ -33,7 +33,7 @@ class MessageReactionService(
      */
     override fun addReaction(
         messageId: String,
-        userId: String,
+        userId: Long,
         reactionType: String
     ): ReactionResponse {
         // 리액션 타입 검증
@@ -70,7 +70,7 @@ class MessageReactionService(
      */
     override fun removeReaction(
         messageId: String,
-        userId: String,
+        userId: Long,
         reactionType: String
     ): ReactionResponse {
         // 리액션 타입 검증
@@ -106,7 +106,7 @@ class MessageReactionService(
      */
     override fun getReactions(
         messageId: String
-    ): Map<String, Set<String>> {
+    ): Map<String, Set<Long>> {
         val message = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
@@ -133,7 +133,7 @@ class MessageReactionService(
     private fun processAddReactionMessage(
         message: ChatMessage,
         type: ReactionType,
-        userId: String
+        userId: Long
     ): ChatMessage {
         // 기존 반응 맵을 복사
         val updatedReactions = message.reactions.toMutableMap()
@@ -167,7 +167,7 @@ class MessageReactionService(
     private fun processRemoveReaction(
         message: ChatMessage,
         type: ReactionType,
-        userId: String
+        userId: Long
     ): ChatMessage {
         // 기존 반응을 수정할 수 있도록 복사
         val updatedReactions = message.reactions.toMutableMap()
@@ -204,8 +204,8 @@ class MessageReactionService(
      */
     private fun notifyReactionUpdate(
         messageId: String,
-        roomId: String,
-        userId: String,
+        roomId: Long,
+        userId: Long,
         reactionType: String,
         isAdded: Boolean
     ) {

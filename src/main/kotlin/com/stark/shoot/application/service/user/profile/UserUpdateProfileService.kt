@@ -6,6 +6,7 @@ import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.bson.types.ObjectId
 import java.time.Instant
 
@@ -23,11 +24,12 @@ class UserUpdateProfileService(
      * @return 수정된 사용자 정보
      */
     override fun updateProfile(
-        userId: ObjectId,
+        userId: Long,
         request: UpdateProfileRequest
     ): User {
-        val user = findUserPort.findUserById()
-            ?: throw IllegalArgumentException("User not found")
+        // 사용자 정보 조회
+        val user = findUserPort.findUserById(userId)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
 
         val updatedUser = user.copy(
             nickname = request.nickname ?: user.nickname,

@@ -5,7 +5,7 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 interface ForwardMessageUseCase {
     fun forwardMessage(
         originalMessageId: String,
-        targetRoomId: String,
-        forwardingUserId: String
+        targetRoomId: Long,
+        forwardingUserId: Long
     ): ChatMessage
 }

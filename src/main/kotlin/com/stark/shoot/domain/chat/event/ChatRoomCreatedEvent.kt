@@ -4,6 +4,6 @@ import com.stark.shoot.domain.common.DomainEvent
 
 // 새 이벤트 정의
 data class ChatRoomCreatedEvent(
-    val roomId: String,
-    val userId: String
+    val roomId: Long,
+    val userId: Long
 ) : DomainEvent

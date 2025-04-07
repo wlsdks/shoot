@@ -81,8 +81,8 @@ class CreateChatRoomService(
         chatRoom.participants.forEach { participantId ->
             eventPublisher.publish(
                 ChatRoomCreatedEvent(
-                    roomId = chatRoom.id.toString(),
-                    userId = participantId.toString()
+                    roomId = chatRoom.id ?: 0L,
+                    userId = participantId
                 )
             )
         }

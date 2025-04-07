@@ -55,7 +55,7 @@ class SendMessageService(
     ): ChatMessage {
         val chatMessage = ChatMessage(
             roomId = message.roomId,
-            senderId = message.senderId ?: throw IllegalArgumentException("User ID is required"),
+            senderId = message.senderId,
             content = MessageContent(
                 text = message.content.text,
                 type = MessageType.TEXT
@@ -101,7 +101,7 @@ class SendMessageService(
         try {
             kafkaMessagePublishPort.publishChatEventSuspend(
                 topic = "chat-messages",
-                key = requestMessage.roomId,
+                key = requestMessage.roomId.toString(),
                 event = chatEvent
             )
             tempId

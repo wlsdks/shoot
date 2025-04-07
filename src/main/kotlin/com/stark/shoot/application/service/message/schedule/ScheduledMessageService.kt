@@ -28,17 +28,17 @@ class ScheduledMessageService(
     private val logger = KotlinLogging.logger {}
 
     override fun scheduleMessage(
-        roomId: String,
-        senderId: String,
+        roomId: Long,
+        senderId: Long,
         content: String,
         scheduledAt: Instant
     ): ScheduledMessageResponseDto {
         // 채팅방 존재여부 확인
-        val chatRoom = (loadChatRoomPort.findById(roomId.toObjectId())
+        val chatRoom = (loadChatRoomPort.findById(roomId)
             ?: throw ApiException("채팅방을 찾을 수 없습니다.", ErrorCode.ROOM_NOT_FOUND))
 
         // 사용자가 채팅방에 속해있는지 확인
-        if (!chatRoom.participants.contains(senderId.toObjectId())) {
+        if (!chatRoom.participants.contains(senderId)) {
             throw ApiException("채팅방에 속해있지 않습니다", ErrorCode.USER_NOT_IN_ROOM)
         }
 
@@ -65,7 +65,7 @@ class ScheduledMessageService(
 
     override fun cancelScheduledMessage(
         scheduledMessageId: String,
-        userId: String
+        userId: Long
     ): ScheduledMessageResponseDto {
         // 예약 메시지 존재여부 확인
         val scheduledMessage = (scheduledMessagePort.findById(scheduledMessageId.toObjectId())
@@ -92,7 +92,7 @@ class ScheduledMessageService(
 
     override fun updateScheduledMessage(
         scheduledMessageId: String,
-        userId: String,
+        userId: Long,
         newContent: String,
         newScheduledAt: Instant?
     ): ScheduledMessageResponseDto {
@@ -134,11 +134,10 @@ class ScheduledMessageService(
     }
 
     override fun getScheduledMessagesByUser(
-        userId: String,
-        roomId: String?
+        userId: Long,
+        roomId: Long?
     ): List<ScheduledMessageResponseDto> {
-        val roomObjectId = roomId?.toObjectId()
-        val scheduledMessageList = scheduledMessagePort.findByUserId(userId.toObjectId(), roomObjectId)
+        val scheduledMessageList = scheduledMessagePort.findByUserId(userId, roomId)
             .filter { it.status == ScheduledMessageStatus.PENDING }
 
         // 예약 메시지 목록 반환
@@ -147,7 +146,7 @@ class ScheduledMessageService(
 
     override fun sendScheduledMessageNow(
         scheduledMessageId: String,
-        userId: String
+        userId: Long
     ): ScheduledMessageResponseDto {
         // 예약 메시지 조회
         val scheduledMessage = (scheduledMessagePort.findById(scheduledMessageId.toObjectId())

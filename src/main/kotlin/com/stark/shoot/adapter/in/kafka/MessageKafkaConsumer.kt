@@ -91,7 +91,7 @@ class MessageKafkaConsumer(
      * @param errorMessage 오류 메시지 (실패 시)
      */
     private fun sendStatusUpdate(
-        roomId: String,
+        roomId: Long,
         tempId: String,
         status: String,
         persistedId: String?,

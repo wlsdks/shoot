@@ -14,6 +14,7 @@ import com.stark.shoot.domain.chat.message.MessageMetadata
 import com.stark.shoot.domain.chat.message.UrlPreview
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.runBlocking
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.messaging.simp.SimpMessagingTemplate
@@ -36,10 +37,10 @@ class MessageKafkaConsumer(
     fun consumeMessage(@Payload event: ChatEvent) {
         if (event.type == EventType.MESSAGE_CREATED) {
             // 코루틴 내부에서 비동기 처리
-            appCoroutineScope.launch {
+            runBlocking {
                 try {
                     // 메시지 내부의 임시 ID, 채팅방 ID 추출
-                    val tempId = event.data.metadata["tempId"] as? String ?: return@launch
+                    val tempId = event.data.metadata["tempId"] as? String ?: return@runBlocking
                     val roomId = event.data.roomId
 
                     // MongoDB 저장 전 처리 중 상태 업데이트

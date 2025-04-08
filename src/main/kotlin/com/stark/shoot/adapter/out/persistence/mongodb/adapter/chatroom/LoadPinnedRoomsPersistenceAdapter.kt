@@ -21,7 +21,7 @@ class LoadPinnedRoomsPersistenceAdapter(
      */
     override fun findByUserId(userId: Long): List<ChatRoom> {
         // 1. 먼저 해당 사용자가 고정한 채팅방 사용자 관계 조회
-        val pinnedChatRoomUsers = chatRoomUserRepository.findByUserIdAndPinnedIsTrue(userId)
+        val pinnedChatRoomUsers = chatRoomUserRepository.findByUserIdAndIsPinnedTrue(userId)
 
         // 2. 고정된 채팅방이 없으면 빈 리스트 반환
         if (pinnedChatRoomUsers.isEmpty()) {

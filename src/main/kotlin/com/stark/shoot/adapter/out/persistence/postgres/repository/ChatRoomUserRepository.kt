@@ -39,7 +39,7 @@ interface ChatRoomUserRepository : JpaRepository<ChatRoomUserEntity, Long> {
         @Param("userId") userId: Long
     ): String?
 
-    fun findByUserIdAndPinnedIsTrue(userId: Long): List<ChatRoomUserEntity>
+    fun findByUserIdAndIsPinnedTrue(userId: Long): List<ChatRoomUserEntity>
     fun findByChatRoomId(chatRoomId: Long): List<ChatRoomUserEntity>
     fun findByUserId(userId: Long): List<ChatRoomUserEntity>
 

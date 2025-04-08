@@ -12,9 +12,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import org.springframework.data.redis.connection.stream.*
+import org.springframework.data.redis.core.ScanOptions
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
+import java.nio.charset.Charset
 import java.time.Duration
 import java.util.*
 
@@ -132,7 +134,7 @@ class RedisStreamListener(
      * Redis Stream에서 새로운 메시지를 주기적으로 폴링합니다.
      */
     private suspend fun pollMessages() {
-        val streamKeys = redisTemplate.keys(STREAM_KEY_PATTERN) ?: emptySet()
+        val streamKeys = scanStreamKeys(STREAM_KEY_PATTERN)
         if (streamKeys.isEmpty()) return
 
         // 각 스트림에서 최대 10개 메시지를 읽음
@@ -173,6 +175,29 @@ class RedisStreamListener(
                 }
             }
         }
+    }
+
+    /**
+     * Redis Stream에서 키를 스캔하여 해당 패턴에 맞는 모든 키를 반환합니다.
+     *
+     * @param pattern 검색할 키 패턴
+     * @return 패턴에 맞는 모든 키의 집합
+     */
+    private fun scanStreamKeys(pattern: String): Set<String> {
+        val keys = mutableSetOf<String>()
+        val scanOptions = ScanOptions.scanOptions().match(pattern).count(100).build()
+
+        // 수정된 코드
+        val cursorFactory = redisTemplate.connectionFactory?.connection?.keyCommands()?.scan(scanOptions)
+
+        cursorFactory?.let { cursor ->
+            while (cursor.hasNext()) {
+                val key = String(cursor.next(), Charset.defaultCharset())
+                keys.add(key)
+            }
+        }
+
+        return keys
     }
 
     /**

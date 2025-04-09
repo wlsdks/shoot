@@ -9,7 +9,9 @@ import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import org.springframework.transaction.annotation.Transactional
 
+@Transactional
 @UseCase
 class UpdateChatRoomFavoriteService(
     private val loadChatRoomPort: LoadChatRoomPort,

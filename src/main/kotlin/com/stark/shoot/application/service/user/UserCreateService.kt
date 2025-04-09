@@ -6,8 +6,10 @@ import com.stark.shoot.application.port.out.user.UserCreatePort
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
+@Transactional
 @UseCase
 class UserCreateService(
     private val userCreatePort: UserCreatePort,

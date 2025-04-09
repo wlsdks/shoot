@@ -6,7 +6,9 @@ import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import org.springframework.transaction.annotation.Transactional
 
+@Transactional
 @UseCase
 class ManageChatRoomService(
     private val loadChatRoomPort: LoadChatRoomPort,

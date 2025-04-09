@@ -11,8 +11,8 @@ import org.apache.kafka.common.errors.DuplicateResourceException
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
-@UseCase
 @Transactional
+@UseCase
 class ManageUserCodeService(
     private val findUserPort: FindUserPort,
     private val updateUserCodePort: UpdateUserCodePort,

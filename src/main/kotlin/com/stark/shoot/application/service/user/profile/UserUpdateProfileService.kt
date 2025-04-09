@@ -7,9 +7,10 @@ import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import org.bson.types.ObjectId
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
+@Transactional
 @UseCase
 class UserUpdateProfileService(
     private val findUserPort: FindUserPort,

@@ -8,8 +8,10 @@ import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.security.core.Authentication
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
+@Transactional
 @UseCase
 class UserStatusService(
     private val userUpdatePort: UserUpdatePort,

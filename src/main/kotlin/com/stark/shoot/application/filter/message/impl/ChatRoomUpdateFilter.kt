@@ -22,16 +22,18 @@ class ChatRoomUpdateFilter(
         val chatRoom = loadChatRoomPort.findById(message.roomId)
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
 
-        // 채팅방 업데이트
-        val updatedRoom = chatRoom.copy(
-            lastMessageId = message.id,
-            lastActiveAt = Instant.now()
-        )
+        // 마지막 메시지 ID와 마지막 활동 시간만 업데이트
+        val now = Instant.now()
+        val needsUpdate = message.id != null &&
+                (chatRoom.lastMessageId != message.id || chatRoom.lastActiveAt.isBefore(now.minusSeconds(60)))
 
-        saveChatRoomPort.save(updatedRoom)
-
-        // 메시지에서 임시 프로퍼티 제거
-        message.metadata.remove("property")
+        if (needsUpdate) {
+            val updatedRoom = chatRoom.copy(
+                lastMessageId = message.id,
+                lastActiveAt = now
+            )
+            saveChatRoomPort.save(updatedRoom)
+        }
 
         return chain.proceed(message)
     }

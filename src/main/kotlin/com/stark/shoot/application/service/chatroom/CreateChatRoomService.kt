@@ -10,8 +10,10 @@ import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
+@Transactional
 @UseCase
 class CreateChatRoomService(
     private val loadChatRoomPort: LoadChatRoomPort,

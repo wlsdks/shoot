@@ -7,11 +7,13 @@ data class ChatRoom(
     val id: Long? = null,
     val title: String? = null,
     val type: ChatRoomType,
-    val announcement: String? = null,
-    val participants: MutableSet<Long>,        // 참여자 목록 (User id)
-    val pinnedParticipants: MutableSet<Long> = mutableSetOf(),  // 고정된 참여자 목록
-    val lastMessageId: String? = null,           // 메시지 id (String 변환)
+    val participants: MutableSet<Long>,
+    val lastMessageId: String? = null,
     val lastActiveAt: Instant = Instant.now(),
     val createdAt: Instant = Instant.now(),
+
+    // 필요한 경우에만 남길 선택적 필드
+    val announcement: String? = null,
+    val pinnedParticipants: MutableSet<Long> = mutableSetOf(),
     val updatedAt: Instant? = null
 )

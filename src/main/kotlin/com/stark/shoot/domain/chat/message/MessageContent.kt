@@ -5,8 +5,10 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 data class MessageContent(
     val text: String,
     val type: MessageType,
+    val isEdited: Boolean = false,
+    val isDeleted: Boolean = false,
+
+    // 필요한 경우에만 남길 선택적 필드
     val metadata: MessageMetadata? = null,
-    val attachments: List<Attachment> = emptyList(),
-    var isEdited: Boolean = false,
-    var isDeleted: Boolean = false
+    val attachments: List<Attachment> = emptyList()
 )

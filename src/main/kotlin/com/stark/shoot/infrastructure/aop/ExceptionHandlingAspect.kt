@@ -7,15 +7,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
-import org.aspectj.lang.reflect.MethodSignature
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executor
 
 /**
  * 모든 원시 예외를 ApiException으로 변환하고 로깅하는 Aspect
@@ -28,108 +23,72 @@ import java.util.concurrent.Executor
 class ExceptionHandlingAspect {
 
     private val logger = KotlinLogging.logger {}
-    private val errorCountMap = ConcurrentHashMap<String, Int>()
-
-    @Autowired
-    private lateinit var logExecutor: Executor
 
     @Around("@within(org.springframework.web.bind.annotation.RestController) || @within(org.springframework.web.bind.annotation.ControllerAdvice)")
     fun handleControllerExceptions(joinPoint: ProceedingJoinPoint): Any? {
         return try {
             joinPoint.proceed()
         } catch (e: Exception) {
-            val signature = joinPoint.signature as MethodSignature
-            val methodName = signature.method.name
-            val className = signature.declaringType.simpleName
-            val endpoint = "$className.$methodName"
+            // 이미 ApiException 타입이면 그대로 전파
+            if (e is ApiException) {
+                throw e
+            }
 
-            // 에러 발생 빈도 측정
-            errorCountMap.compute(endpoint) { _, count -> (count ?: 0) + 1 }
-
-            val paramNames = signature.parameterNames
-            val args = joinPoint.args
-            val params = paramNames.zip(args)
-                .filter { (name, _) -> !name.contains("password", ignoreCase = true) }
-                .joinToString(", ") { (name, value) -> "$name: ${value?.toString()?.take(100)}" }
-
-            // 예외 로깅 (비동기 처리)
-            CompletableFuture.runAsync({
-                logger.error { "Exception in $endpoint[$params]: ${e.message}" }
-            }, logExecutor)
-
-            // 예외 처리 로직
+            // 로깅 - 중요한 예외만 ERROR 레벨로 로깅
             when (e) {
-                // 입력 데이터 관련 예외
+                is ResourceNotFoundException, is InvalidInputException ->
+                    logger.info { "Expected exception in ${joinPoint.signature.declaringTypeName}.${joinPoint.signature.name}: ${e.message}" }
+
+                else ->
+                    logger.error(e) { "Unexpected exception in ${joinPoint.signature.declaringTypeName}.${joinPoint.signature.name}" }
+            }
+
+            // 예외 변환 - 맵을 사용하여 when 문 단순화
+            val apiException = when (e) {
                 is MethodArgumentNotValidException -> {
-                    val errors = e.bindingResult.fieldErrors.joinToString("; ") {
-                        "${it.field}: ${it.defaultMessage}"
-                    }
-                    throw ApiException("유효하지 않은 입력: $errors", ErrorCode.INVALID_INPUT, e)
+                    val errors = e.bindingResult.fieldErrors.joinToString("; ") { "${it.field}: ${it.defaultMessage}" }
+                    ApiException("유효하지 않은 입력: $errors", ErrorCode.INVALID_INPUT, e)
                 }
 
                 is MethodArgumentTypeMismatchException ->
-                    throw ApiException("잘못된 형식의 파라미터: ${e.name} = ${e.value}", ErrorCode.INVALID_INPUT, e)
+                    ApiException("잘못된 형식의 파라미터: ${e.name} = ${e.value}", ErrorCode.INVALID_INPUT, e)
 
-                // 비즈니스 로직 예외
-                is IllegalStateException -> {
-                    when {
-                        e.message?.contains("최대 핀") == true ->
-                            throw ApiException(e.message!!, ErrorCode.TOO_MANY_PINNED_ROOMS, e)
-
-                        e.message?.contains("친구") == true && e.message?.contains("이미") == true ->
-                            throw ApiException(e.message!!, ErrorCode.ALREADY_FRIENDS, e)
-
-                        else ->
-                            throw ApiException(e.message ?: "상태 오류", ErrorCode.INVALID_INPUT, e)
-                    }
-                }
-
-                // 리소스 관련 예외
                 is ResourceNotFoundException ->
-                    throw ApiException(e.message ?: "리소스를 찾을 수 없습니다", ErrorCode.RESOURCE_NOT_FOUND, e)
+                    ApiException(e.message ?: "리소스를 찾을 수 없습니다", ErrorCode.RESOURCE_NOT_FOUND, e)
 
-                // 입력 검증 예외
                 is InvalidInputException ->
-                    throw ApiException(e.message ?: "유효하지 않은 입력", ErrorCode.INVALID_INPUT, e)
+                    ApiException(e.message ?: "유효하지 않은 입력", ErrorCode.INVALID_INPUT, e)
 
-                // 인증 관련 예외
                 is UnauthorizedException ->
-                    throw ApiException(e.message ?: "인증이 필요합니다", ErrorCode.UNAUTHORIZED, e)
+                    ApiException(e.message ?: "인증이 필요합니다", ErrorCode.UNAUTHORIZED, e)
 
                 is JwtAuthenticationException ->
-                    throw ApiException(e.message ?: "토큰이 유효하지 않습니다", ErrorCode.INVALID_TOKEN, e)
+                    ApiException(e.message ?: "토큰이 유효하지 않습니다", ErrorCode.INVALID_TOKEN, e)
 
                 is InvalidRefreshTokenException ->
-                    throw ApiException(e.message ?: "리프레시 토큰이 유효하지 않습니다", ErrorCode.TOKEN_EXPIRED, e)
+                    ApiException(e.message ?: "리프레시 토큰이 유효하지 않습니다", ErrorCode.TOKEN_EXPIRED, e)
 
-                // 웹소켓 예외
                 is WebSocketException ->
-                    throw ApiException(e.message ?: "웹소켓 오류", ErrorCode.INVALID_INPUT, e)
+                    ApiException(e.message ?: "웹소켓 오류", ErrorCode.INVALID_INPUT, e)
 
-                // Kafka 관련 예외
                 is KafkaPublishException ->
-                    throw ApiException(e.message ?: "메시지 발행 실패", ErrorCode.EXTERNAL_SERVICE_ERROR, e)
+                    ApiException(e.message ?: "메시지 발행 실패", ErrorCode.EXTERNAL_SERVICE_ERROR, e)
 
-                // Spring Security 예외
                 is AccessDeniedException ->
-                    throw ApiException("접근 권한이 없습니다", ErrorCode.ACCESS_DENIED, e)
+                    ApiException("접근 권한이 없습니다", ErrorCode.ACCESS_DENIED, e)
 
-                // 기타 예외
-                else -> {
-                    // 예외 유형 로깅 (추후 분석용)
-                    logger.error { "Unhandled exception type: ${e.javaClass.name} in $endpoint" }
+                is LockAcquisitionException ->
+                    ApiException(e.message ?: "리소스 잠금 실패", ErrorCode.LOCK_ACQUIRE_FAILED, e)
 
-                    throw ApiException(
-                        "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
-                        ErrorCode.EXTERNAL_SERVICE_ERROR,
-                        e
-                    )
-                }
+                else -> ApiException(
+                    "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+                    ErrorCode.EXTERNAL_SERVICE_ERROR,
+                    e
+                )
             }
+
+            throw apiException
         }
     }
-
-    // 에러 통계 제공 메서드 (필요시 API로 노출하거나 모니터링 시스템과 통합)
-    fun getErrorStatistics(): Map<String, Int> = errorCountMap.toMap()
 
 }

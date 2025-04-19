@@ -1,10 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.social.friend
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
-import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.`in`.user.friend.RemoveFriendUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -16,37 +14,9 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/v1/friends")
 class FriendController(
-    private val findFriendUseCase: FindFriendUseCase,
     private val friendRequestUseCase: FriendRequestUseCase,
     private val removeFriendUseCase: RemoveFriendUseCase
 ) {
-
-    @Operation(summary = "내 친구 목록 가져오기", description = "로그인 사용자의 친구 목록을 조회")
-    @GetMapping
-    fun getMyFriends(
-        @RequestParam userId: Long
-    ): ResponseDto<List<FriendResponse>> {
-        val friends = findFriendUseCase.getFriends(userId)
-        return ResponseDto.success(friends)
-    }
-
-    @Operation(summary = "받은 친구 요청 목록", description = "내가 받은 친구 요청들(incoming)")
-    @GetMapping("/incoming")
-    fun getIncomingFriendRequests(
-        @RequestParam userId: Long
-    ): ResponseDto<List<FriendResponse>> {
-        val incomingRequests = findFriendUseCase.getIncomingFriendRequests(userId)
-        return ResponseDto.success(incomingRequests)
-    }
-
-    @Operation(summary = "보낸 친구 요청 목록", description = "내가 보낸 친구 요청들(outgoing)")
-    @GetMapping("/outgoing")
-    fun getOutgoingFriendRequests(
-        @RequestParam userId: Long
-    ): ResponseDto<List<FriendResponse>> {
-        val outgoingRequests = findFriendUseCase.getOutgoingFriendRequests(userId)
-        return ResponseDto.success(outgoingRequests)
-    }
 
     @Operation(summary = "친구 요청 보내기", description = "다른 사용자에게 친구 요청을 보냄")
     @PostMapping("/request")

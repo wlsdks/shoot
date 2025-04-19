@@ -1,7 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.chatroom
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.chatroom.AnnouncementRequest
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.InvitationRequest
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ManageParticipantRequest
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
@@ -67,16 +66,6 @@ class ChatRoomController(
     ): ResponseDto<Boolean> {
         val result = manageChatRoomUseCase.addParticipant(roomId, request.userId)
         return ResponseDto.success(result, "사용자를 채팅방에 초대했습니다.")
-    }
-
-    @Operation(summary = "채팅방 공지사항 설정", description = "채팅방의 공지사항을 업데이트합니다.")
-    @PutMapping("/{roomId}/announcement")
-    fun updateAnnouncement(
-        @PathVariable roomId: Long,
-        @RequestBody request: AnnouncementRequest
-    ): ResponseDto<Unit> {
-        manageChatRoomUseCase.updateAnnouncement(roomId, request.announcement)
-        return ResponseDto.success(Unit, "공지사항이 업데이트되었습니다.")
     }
 
 }

@@ -1,8 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.chatroom
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.chatroom.InvitationRequest
-import com.stark.shoot.adapter.`in`.web.dto.chatroom.ManageParticipantRequest
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
 import com.stark.shoot.domain.chat.room.ChatRoom
@@ -28,26 +26,6 @@ class ChatRoomController(
         return ResponseDto.success(room, "채팅방이 생성되었습니다.")
     }
 
-    @Operation(summary = "채팅방 참여자 추가", description = "채팅방에 참여자를 추가합니다.")
-    @PostMapping("/{roomId}/participants")
-    fun addParticipant(
-        @PathVariable roomId: Long,
-        @RequestBody request: ManageParticipantRequest
-    ): ResponseDto<Boolean> {
-        val result = manageChatRoomUseCase.addParticipant(roomId, request.userId)
-        return ResponseDto.success(result, "참여자가 추가되었습니다.")
-    }
-
-    @Operation(summary = "채팅방 참여자 제거", description = "채팅방에서 참여자를 제거합니다.")
-    @DeleteMapping("/{roomId}/participants")
-    fun removeParticipant(
-        @PathVariable roomId: Long,
-        @RequestBody request: ManageParticipantRequest
-    ): ResponseDto<Boolean> {
-        val result = manageChatRoomUseCase.removeParticipant(roomId, request.userId)
-        return ResponseDto.success(result, "참여자가 제거되었습니다.")
-    }
-
     @Operation(summary = "채팅방 퇴장", description = "현재 사용자가 채팅방에서 퇴장합니다.")
     @DeleteMapping("/{roomId}/exit")
     fun exitChatRoom(
@@ -56,16 +34,6 @@ class ChatRoomController(
     ): ResponseDto<Boolean> {
         val result = manageChatRoomUseCase.removeParticipant(roomId, userId)
         return ResponseDto.success(result, "채팅방에서 퇴장했습니다.")
-    }
-
-    @Operation(summary = "채팅방 초대", description = "채팅방에 사용자를 초대합니다.")
-    @PostMapping("/{roomId}/invite")
-    fun inviteParticipant(
-        @PathVariable roomId: Long,
-        @RequestBody request: InvitationRequest
-    ): ResponseDto<Boolean> {
-        val result = manageChatRoomUseCase.addParticipant(roomId, request.userId)
-        return ResponseDto.success(result, "사용자를 채팅방에 초대했습니다.")
     }
 
 }

@@ -11,7 +11,6 @@ import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.time.Instant
 
 @UseCase
@@ -96,27 +95,7 @@ class MessagePinService(
         // 이벤트 발행
         publishPinEvent(savedMessage, userId, false)
 
-        logger.info { "메시지 고정이 해제되었습니다: messageId=$messageId, userId=$userId" }
         return savedMessage
-    }
-
-    /**
-     * 채팅방에서 고정된 메시지를 조회합니다.
-     * 한 채팅방에는 최대 1개의 고정 메시지만 존재합니다.
-     *
-     * @param roomId 채팅방 ID
-     * @return 고정된 메시지 목록 (최대 1개)
-     */
-    override fun getPinnedMessages(
-        roomId: Long
-    ): List<ChatMessage> {
-        logger.debug { "채팅방의 고정된 메시지 조회: roomId=$roomId" }
-
-        // 채팅방에서 고정된 메시지 조회 (최대 1개)
-        val pinnedMessages = loadMessagePort.findPinnedMessagesByRoomId(roomId, 1)
-
-        logger.debug { "고정된 메시지 ${pinnedMessages.size}개 조회됨: roomId=$roomId" }
-        return pinnedMessages
     }
 
     /**
@@ -129,12 +108,9 @@ class MessagePinService(
         message: ChatMessage,
         userId: Long
     ) {
-        // 채팅방 ID
-        val roomId = message.roomId
-
         // 채팅방에서 고정된 메시지 조회 (최대 1개)
         val currentPinnedMessage = loadMessagePort
-            .findPinnedMessagesByRoomId(roomId, 1)
+            .findPinnedMessagesByRoomId(message.roomId, 1)
             .firstOrNull()
 
         // 기존 고정 메시지가 있으면 해제
@@ -214,8 +190,10 @@ class MessagePinService(
             "timestamp" to Instant.now().toString()
         )
 
-        webSocketMessageBroker.sendMessage("/topic/pins/$roomId", pinStatusData)
-        logger.debug { "WebSocket을 통해 메시지 고정 상태 변경 전송: messageId=$messageId, isPinned=$isPinned" }
+        webSocketMessageBroker.sendMessage(
+            "/topic/pins/$roomId",
+            pinStatusData
+        )
     }
 
     /**
@@ -226,17 +204,14 @@ class MessagePinService(
         userId: Long,
         isPinned: Boolean
     ) {
-        val messageId = message.id ?: return
-
         val pinEvent = MessagePinEvent(
-            messageId = messageId,
+            messageId = message.id ?: return,
             roomId = message.roomId,
             isPinned = isPinned,
             userId = userId
         )
 
         eventPublisher.publish(pinEvent)
-        logger.debug { "메시지 고정 이벤트 발행: messageId=$messageId, isPinned=$isPinned" }
     }
 
 }

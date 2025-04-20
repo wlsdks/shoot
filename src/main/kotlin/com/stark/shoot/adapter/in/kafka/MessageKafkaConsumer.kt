@@ -49,28 +49,7 @@ class MessageKafkaConsumer(
                     sendStatusUpdate(roomId, tempId, MessageStatus.SAVED.name, savedMessage.id)
 
                     // URL 미리보기 처리 필요 여부 확인
-                    if (savedMessage.metadata.needsUrlPreview &&
-                        savedMessage.metadata.previewUrl != null
-                    ) {
-                        val previewUrl = savedMessage.metadata.previewUrl!!
-
-                        // URL 미리보기 비동기 처리
-                        try {
-                            val preview = loadUrlContentPort.fetchUrlContent(previewUrl)
-                            if (preview != null) {
-                                // 캐싱
-                                cacheUrlPreviewPort.cacheUrlPreview(previewUrl, preview)
-
-                                // 메시지 업데이트
-                                val updatedMessage = updateMessageWithPreview(savedMessage, preview)
-
-                                // 업데이트된 메시지 전송 (URL 정보가 저장되면 화면에 실시간 업데이트)
-                                sendMessageUpdate(updatedMessage)
-                            }
-                        } catch (e: Exception) {
-                            logger.error(e) { "URL 미리보기 처리 실패: $previewUrl" }
-                        }
-                    }
+                    processChatMessageForUrlPreview(savedMessage)
                 } catch (e: Exception) {
                     sendErrorResponse(event, e)
                 }
@@ -130,6 +109,38 @@ class MessageKafkaConsumer(
         }
 
         logger.error(e) { "메시지 처리 오류: ${e.message}" }
+    }
+
+    /**
+     * URL 미리보기를 처리합니다.
+     * 메시지의 메타데이터에 URL 미리보기가 필요하다고 표시된 경우,
+     * URL을 비동기적으로 가져와서 메시지를 업데이트합니다.
+     *
+     * @param savedMessage 저장된 메시지
+     */
+    private fun processChatMessageForUrlPreview(savedMessage: ChatMessage) {
+        if (savedMessage.metadata.needsUrlPreview &&
+            savedMessage.metadata.previewUrl != null
+        ) {
+            val previewUrl = savedMessage.metadata.previewUrl!!
+
+            // URL 미리보기 비동기 처리
+            try {
+                val preview = loadUrlContentPort.fetchUrlContent(previewUrl)
+                if (preview != null) {
+                    // 캐싱
+                    cacheUrlPreviewPort.cacheUrlPreview(previewUrl, preview)
+
+                    // 메시지 업데이트
+                    val updatedMessage = updateMessageWithPreview(savedMessage, preview)
+
+                    // 업데이트된 메시지 전송 (URL 정보가 저장되면 화면에 실시간 업데이트)
+                    sendMessageUpdate(updatedMessage)
+                }
+            } catch (e: Exception) {
+                logger.error(e) { "URL 미리보기 처리 실패: $previewUrl" }
+            }
+        }
     }
 
     /**

@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
@@ -12,7 +13,6 @@ import kotlinx.coroutines.isActive
 import org.springframework.data.redis.connection.stream.*
 import org.springframework.data.redis.core.ScanOptions
 import org.springframework.data.redis.core.StringRedisTemplate
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
 import java.nio.charset.Charset
 import java.time.Duration
@@ -25,9 +25,9 @@ import java.util.*
  */
 @Component
 class RedisStreamListener(
-    private val simpMessagingTemplate: SimpMessagingTemplate,
     private val objectMapper: ObjectMapper,
     private val redisTemplate: StringRedisTemplate,
+    private val webSocketMessageBroker: WebSocketMessageBroker,
     private val appCoroutineScope: ApplicationCoroutineScope
 ) {
     private val logger = KotlinLogging.logger {}
@@ -218,7 +218,7 @@ class RedisStreamListener(
         val messageValue = record.value["message"]?.toString() ?: return
         val chatMessage = objectMapper.readValue(messageValue, ChatMessageRequest::class.java)
 
-        simpMessagingTemplate.convertAndSend("/topic/messages/$roomId", chatMessage)
+        webSocketMessageBroker.sendMessage("/topic/messages/$roomId", chatMessage)
     }
 
     /**

@@ -24,8 +24,8 @@ class MessageProcessingService(
         val ownerId = "processor-${UUID.randomUUID()}"
 
         try {
+            // 이미 트랜잭션 컨텍스트 내에 있으므로 suspend 함수 직접 호출 가능
             return redisLockManager.withLockSuspend(lockKey, ownerId) {
-                // 이미 트랜잭션 컨텍스트 내에 있으므로 suspend 함수 직접 호출 가능
                 messageProcessingChain.reset().proceed(message)
             }
         } catch (e: Exception) {

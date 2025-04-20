@@ -1,5 +1,6 @@
 package com.stark.shoot.application.service.message.mark
 
+import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.mark.MarkMessageReadUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.ReadStatusPort
@@ -14,7 +15,6 @@ import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.transaction.annotation.Transactional
 import java.util.concurrent.TimeUnit
 
@@ -25,9 +25,9 @@ class MarkMessageReadService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val readStatusPort: ReadStatusPort,
     private val eventPublisher: EventPublisher,
-    private val redisTemplate: StringRedisTemplate,
     private val loadMessagePort: LoadMessagePort,
-    private val simpMessagingTemplate: SimpMessagingTemplate
+    private val redisTemplate: StringRedisTemplate,
+    private val webSocketMessageBroker: WebSocketMessageBroker
 ) : MarkMessageReadUseCase {
     private val logger = KotlinLogging.logger {}
 
@@ -194,7 +194,7 @@ class MarkMessageReadService(
         message: ChatMessage
     ) {
         // 채팅방의 모든 참여자에게 읽음 상태 업데이트를 알림
-        simpMessagingTemplate.convertAndSend(
+        webSocketMessageBroker.sendMessage(
             "/topic/read/$roomId",
             mapOf(
                 "messageId" to message.id,
@@ -221,7 +221,7 @@ class MarkMessageReadService(
         // 채팅방 일괄 읽음 이벤트 발행
         if (messageIds.isNotEmpty()) {
             // WebSocket을 통한 실시간 알림
-            simpMessagingTemplate.convertAndSend(
+            webSocketMessageBroker.sendMessage(
                 "/topic/read-bulk/$roomId",
                 ChatBulkReadEvent(roomId, messageIds, userId)
             )

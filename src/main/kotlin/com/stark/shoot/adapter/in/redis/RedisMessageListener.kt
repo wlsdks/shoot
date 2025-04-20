@@ -2,10 +2,10 @@ package com.stark.shoot.adapter.`in`.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.connection.Message
 import org.springframework.data.redis.connection.MessageListener
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 
@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets
 @Deprecated("Redis Stream을 사용하도록 변경")
 @Component
 class RedisMessageListener(
-    private val simpMessagingTemplate: SimpMessagingTemplate,
+    private val webSocketMessageBroker: WebSocketMessageBroker,
     private val objectMapper: ObjectMapper
 ) : MessageListener {
 
@@ -42,7 +42,7 @@ class RedisMessageListener(
 
             if (roomId != null) {
                 val chatMessage = objectMapper.readValue(messageBody, ChatMessageRequest::class.java)
-                simpMessagingTemplate.convertAndSend("/topic/messages/$roomId", chatMessage)
+                webSocketMessageBroker.sendMessage("/topic/messages/$roomId", chatMessage)
             } else {
                 logger.warn { "Could not extract roomId from channel: $channel" }
             }

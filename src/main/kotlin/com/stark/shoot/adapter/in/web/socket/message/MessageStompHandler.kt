@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.`in`.web.socket.message
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
+import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
@@ -17,7 +18,6 @@ import kotlinx.coroutines.withContext
 import org.springframework.data.redis.connection.stream.StreamRecords
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.handler.annotation.MessageMapping
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
 import java.time.Instant
 import java.util.*
@@ -25,7 +25,7 @@ import java.util.*
 @Controller
 class MessageStompHandler(
     private val sendMessageUseCase: SendMessageUseCase,
-    private val messagingTemplate: SimpMessagingTemplate,
+    private val webSocketMessageBroker: WebSocketMessageBroker,
     private val redisTemplate: StringRedisTemplate,
     private val objectMapper: ObjectMapper,
     private val extractUrlPort: ExtractUrlPort,
@@ -151,7 +151,8 @@ class MessageStompHandler(
                 errorMessage = null,
                 createdAt = Instant.now().toString()
             )
-            messagingTemplate.convertAndSend("/topic/message/status/${message.roomId}", statusUpdate)
+
+            webSocketMessageBroker.sendMessage("/topic/message/status/${message.roomId}", statusUpdate)
             logger.debug { "메시지 Kafka 발행 성공, 상태 업데이트: tempId=$tempId" }
         } catch (e: Exception) {
             logger.error(e) { "Kafka 발행 실패: ${e.message}" }
@@ -179,7 +180,7 @@ class MessageStompHandler(
             message = throwable.message ?: "메시지 처리 중 오류가 발생했습니다",
             timestamp = System.currentTimeMillis()
         )
-        messagingTemplate.convertAndSend("/topic/errors/${message.roomId}", errorResponse)
+        webSocketMessageBroker.sendMessage("/topic/errors/${message.roomId}", errorResponse)
 
         // 2. 메시지 상태 업데이트 전송
         val statusUpdate = MessageStatusResponse(
@@ -189,7 +190,7 @@ class MessageStompHandler(
             errorMessage = throwable.message,
             createdAt = Instant.now().toString()
         )
-        messagingTemplate.convertAndSend("/topic/message/status/${message.roomId}", statusUpdate)
+        webSocketMessageBroker.sendMessage("/topic/message/status/${message.roomId}", statusUpdate)
     }
 
     /**
@@ -207,6 +208,7 @@ class MessageStompHandler(
             message = e.message ?: "메시지 처리 중 오류가 발생했습니다",
             timestamp = System.currentTimeMillis()
         )
-        messagingTemplate.convertAndSend("/topic/errors/${message.roomId}", errorResponse)
+        webSocketMessageBroker.sendMessage("/topic/errors/${message.roomId}", errorResponse)
     }
+    
 }

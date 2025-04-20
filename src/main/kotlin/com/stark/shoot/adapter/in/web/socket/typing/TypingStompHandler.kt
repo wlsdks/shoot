@@ -1,18 +1,16 @@
 package com.stark.shoot.adapter.`in`.web.socket.typing
 
+import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.`in`.web.socket.dto.TypingIndicatorMessage
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.messaging.handler.annotation.MessageMapping
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
 import java.util.concurrent.ConcurrentHashMap
 
 @Controller
 class TypingStompHandler(
-    private val messagingTemplate: SimpMessagingTemplate
+    private val webSocketMessageBroker: WebSocketMessageBroker
 ) {
-    private val logger = KotlinLogging.logger {}
     private val typingRateLimiter = ConcurrentHashMap<String, Long>()
 
     @Operation(
@@ -29,8 +27,7 @@ class TypingStompHandler(
         val lastSent = typingRateLimiter.getOrDefault(key, 0L)
 
         if (now - lastSent > 1000) { // 1초 제한
-//            logger.info { "Typing status: $message" }
-            messagingTemplate.convertAndSend("/topic/typing/${message.roomId}", message)
+            webSocketMessageBroker.sendMessage("/topic/typing/${message.roomId}", message)
             typingRateLimiter[key] = now
         }
     }

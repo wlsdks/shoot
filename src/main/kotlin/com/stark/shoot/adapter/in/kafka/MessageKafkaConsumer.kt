@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.kafka
 
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
+import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
@@ -15,7 +16,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
 import java.time.Instant
 
@@ -24,7 +24,7 @@ class MessageKafkaConsumer(
     private val processMessageUseCase: ProcessMessageUseCase,
     private val loadUrlContentPort: LoadUrlContentPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
-    private val messagingTemplate: SimpMessagingTemplate,
+    private val webSocketMessageBroker: WebSocketMessageBroker,
     private val chatMessageMapper: ChatMessageMapper
 ) {
     private val logger = KotlinLogging.logger {}
@@ -83,7 +83,8 @@ class MessageKafkaConsumer(
             errorMessage = errorMessage,
             createdAt = createdAt
         )
-        messagingTemplate.convertAndSend("/topic/message/status/$roomId", statusUpdate)
+
+        webSocketMessageBroker.sendMessage("/topic/message/status/$roomId", statusUpdate)
     }
 
     /**
@@ -178,7 +179,7 @@ class MessageKafkaConsumer(
         val messageDto = chatMessageMapper.toDto(message)
 
         // WebSocket으로 전송
-        messagingTemplate.convertAndSend(
+        webSocketMessageBroker.sendMessage(
             "/topic/message/update/${message.roomId}",
             messageDto
         )

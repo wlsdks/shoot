@@ -1,5 +1,6 @@
 package com.stark.shoot.application.service.message.pin
 
+import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.pin.MessagePinUseCase
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
@@ -17,7 +18,7 @@ import java.time.Instant
 class MessagePinService(
     private val loadMessagePort: LoadMessagePort,
     private val saveMessagePort: SaveMessagePort,
-    private val messagingTemplate: SimpMessagingTemplate,
+    private val webSocketMessageBroker: WebSocketMessageBroker,
     private val eventPublisher: EventPublisher
 ) : MessagePinUseCase {
     private val logger = KotlinLogging.logger {}
@@ -213,7 +214,7 @@ class MessagePinService(
             "timestamp" to Instant.now().toString()
         )
 
-        messagingTemplate.convertAndSend("/topic/pins/$roomId", pinStatusData)
+        webSocketMessageBroker.sendMessage("/topic/pins/$roomId", pinStatusData)
         logger.debug { "WebSocket을 통해 메시지 고정 상태 변경 전송: messageId=$messageId, isPinned=$isPinned" }
     }
 

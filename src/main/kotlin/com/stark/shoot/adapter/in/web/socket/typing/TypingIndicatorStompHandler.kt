@@ -1,17 +1,15 @@
 package com.stark.shoot.adapter.`in`.web.socket.typing
 
-import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.`in`.web.socket.dto.TypingIndicatorMessage
+import com.stark.shoot.application.port.`in`.message.TypingIndicatorMessageUseCase
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
-import java.util.concurrent.ConcurrentHashMap
 
 @Controller
-class TypingStompHandler(
-    private val webSocketMessageBroker: WebSocketMessageBroker
+class TypingIndicatorStompHandler(
+    private val typingIndicatorMessageUseCase: TypingIndicatorMessageUseCase
 ) {
-    private val typingRateLimiter = ConcurrentHashMap<String, Long>()
 
     @Operation(
         summary = "타이핑 인디케이터 (작성중 표시)",
@@ -22,14 +20,7 @@ class TypingStompHandler(
     )
     @MessageMapping("/typing")
     fun handleTypingIndicator(message: TypingIndicatorMessage) {
-        val key = "${message.userId}:${message.roomId}"
-        val now = System.currentTimeMillis()
-        val lastSent = typingRateLimiter.getOrDefault(key, 0L)
-
-        if (now - lastSent > 1000) { // 1초 제한
-            webSocketMessageBroker.sendMessage("/topic/typing/${message.roomId}", message)
-            typingRateLimiter[key] = now
-        }
+        typingIndicatorMessageUseCase.sendMessage(message)
     }
 
 }

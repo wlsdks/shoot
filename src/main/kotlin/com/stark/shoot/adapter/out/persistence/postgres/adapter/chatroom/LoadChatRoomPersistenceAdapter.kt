@@ -22,7 +22,8 @@ class LoadChatRoomPersistenceAdapter(
      */
     override fun findById(roomId: Long): ChatRoom? {
         // 1. 채팅방 엔티티 조회
-        val chatRoomEntity = chatRoomRepository.findById(roomId).orElse(null) ?: return null
+        val chatRoomEntity = chatRoomRepository.findById(roomId)
+            .orElse(null) ?: return null
 
         // 2. 해당 채팅방의 모든 참여자 조회
         val participants = chatRoomUserRepository.findByChatRoomId(roomId)

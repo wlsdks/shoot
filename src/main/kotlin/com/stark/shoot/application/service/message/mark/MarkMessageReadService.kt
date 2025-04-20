@@ -55,16 +55,13 @@ class MarkMessageReadService(
         val updatedMessage = saveMessagePort.save(chatMessage)
 
         // 채팅방 사용자의 마지막 읽은 메시지 ID 업데이트
-        val roomId = chatMessage.roomId.toLong()
-        val userIdLong = userId.toLong()
-
-        readStatusPort.updateLastReadMessageId(roomId, userIdLong, messageId)
+        readStatusPort.updateLastReadMessageId(chatMessage.roomId, userId, messageId)
 
         // 읽지 않은 메시지 수 업데이트 (Redis 활용)
-        updateUnreadCountInRedis(roomId, userId)
+        updateUnreadCountInRedis(chatMessage.roomId, userId)
 
-        // 이벤트 발행 (채팅방의 모든 참여자에게 읽은 상태 알림)
-        publishReadEvent(roomId, chatMessage)
+        // 채팅방의 모든 참여자에게 읽은 상태 알림
+        sendMarkMessageReadToSocket(chatMessage.roomId, chatMessage)
 
         logger.info { "메시지 읽음 처리 완료: messageId=$messageId, userId=$userId" }
         return updatedMessage
@@ -75,7 +72,7 @@ class MarkMessageReadService(
      *
      * @param roomId 채팅방 ID
      * @param userId 사용자 ID
-     * @param requestId 요청 ID (중복 요청 방지용, 선택적)
+     * @param requestId 프론트에서 생성한 요청 ID (중복 요청 방지용, 선택적이며 유저나 채팅방id와는 전혀 관계 없음)
      */
     override fun markAllMessagesAsRead(
         roomId: Long,
@@ -94,16 +91,19 @@ class MarkMessageReadService(
             redisTemplate.opsForValue().set(key, "1", 5, TimeUnit.SECONDS)
         }
 
+        // todo: 근데 이렇게 5초마다 요청을 받도록 하면..?? 계속 채팅방 읽고있으면 어떻게 되는걸까? 계속 다른 requestId로 요청해야하나?
+
         // 채팅방 조회 및 사용자 참여 확인
-        val chatRoom = loadChatRoomPort.findById(roomId.toLong())
+        val chatRoom = loadChatRoomPort.findById(roomId)
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=$roomId")
 
-        if (!chatRoom.participants.contains(userId.toLong())) {
+        if (!chatRoom.participants.contains(userId)) {
             throw IllegalArgumentException("참여하지 않은 채팅방입니다. userId=$userId, roomId=$roomId")
         }
 
         // 읽지 않은 메시지 조회 (내가 보낸 메시지 제외)
-        val unreadMessages = loadMessagePort.findUnreadByRoomId(roomId, userId).filter { it.senderId != userId }
+        val unreadMessages = loadMessagePort.findUnreadByRoomId(roomId, userId)
+            .filter { it.senderId != userId }
 
         // 읽지 않은 메시지가 없으면 불필요한 작업 방지
         if (unreadMessages.isEmpty()) {
@@ -120,7 +120,7 @@ class MarkMessageReadService(
             readStatusPort.updateLastReadMessageId(roomId, userId, lastMessage)
         }
 
-        // Redis와 이벤트 업데이트
+        // Redis와 이벤트 업데이트 (읽지 않은 메시지 수 0으로 설정)
         redisTemplate.opsForHash<String, String>().put("unread:$userId", roomId.toString(), "0")
 
         // 채팅방의 마지막 메시지 내용 조회
@@ -129,8 +129,13 @@ class MarkMessageReadService(
             "최근 메시지"
         } ?: "메시지가 없습니다"
 
-        // 이벤트 발행
-        publishBulkReadEvent(roomId, updatedMessageIds, userId, lastMessageText)
+        if (updatedMessageIds.isNotEmpty()) {
+            // WebSocket을 통해 읽음 완료처리된 메시지 id를 실시간 알림
+            sendBulkReadNotification(roomId, updatedMessageIds, userId)
+
+            // 읽지 않은 메시지 수 업데이트 이벤트 발행
+            publishEvent(roomId, userId, lastMessageText)
+        }
 
         logger.info { "채팅방 모든 메시지 읽음 처리 완료: roomId=$roomId, userId=$userId, 메시지 수=${updatedMessageIds.size}" }
     }
@@ -148,10 +153,11 @@ class MarkMessageReadService(
     ): List<String> {
         val updatedMessageIds = mutableListOf<String>()
 
+        // fixme: 이렇게 하면 쿼리가 매번 나가니까 한번에 업데이트하도록 로직 개선이 필요함
         unreadMessages.forEach { message ->
             message.readBy[userId] = true
-            val updated = saveMessagePort.save(message)
-            updated.id?.let { updatedMessageIds.add(it) }
+            val updatedMessage = saveMessagePort.save(message)
+            updatedMessage.id?.let { updatedMessageIds.add(it) }
         }
 
         return updatedMessageIds
@@ -184,12 +190,12 @@ class MarkMessageReadService(
     }
 
     /**
-     * 메시지 읽음 이벤트를 발행합니다.
+     * 메시지 읽음 상태를 WebSocket을 통해 알립니다.
      *
      * @param roomId 채팅방 ID
      * @param message 읽은 메시지
      */
-    private fun publishReadEvent(
+    private fun sendMarkMessageReadToSocket(
         roomId: Long,
         message: ChatMessage
     ) {
@@ -205,36 +211,42 @@ class MarkMessageReadService(
     }
 
     /**
-     * 일괄 메시지 읽음 이벤트를 발행합니다.
+     * 채팅방의 모든 참여자에게 읽음 상태 업데이트를 WebSocket을 통해 알립니다.
      *
      * @param roomId 채팅방 ID
      * @param messageIds 읽은 메시지 ID 목록
      * @param userId 사용자 ID
-     * @param lastMessage 마지막 메시지 내용
      */
-    private fun publishBulkReadEvent(
+    private fun sendBulkReadNotification(
         roomId: Long,
         messageIds: List<String>,
+        userId: Long
+    ) {
+        webSocketMessageBroker.sendMessage(
+            "/topic/read-bulk/$roomId",
+            ChatBulkReadEvent(roomId, messageIds, userId)
+        )
+    }
+
+    /**
+     * 채팅방의 모든 참여자에게 읽음 상태 업데이트 이벤트를 발행합니다.
+     *
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @param lastMessage 마지막 메시지 내용
+     */
+    private fun publishEvent(
+        roomId: Long,
         userId: Long,
         lastMessage: String
     ) {
-        // 채팅방 일괄 읽음 이벤트 발행
-        if (messageIds.isNotEmpty()) {
-            // WebSocket을 통한 실시간 알림
-            webSocketMessageBroker.sendMessage(
-                "/topic/read-bulk/$roomId",
-                ChatBulkReadEvent(roomId, messageIds, userId)
+        eventPublisher.publish(
+            ChatUnreadCountUpdatedEvent(
+                roomId = roomId,
+                unreadCounts = mapOf(userId to 0),
+                lastMessage = lastMessage
             )
-
-            // 읽지 않은 메시지 수 업데이트 이벤트 발행
-            eventPublisher.publish(
-                ChatUnreadCountUpdatedEvent(
-                    roomId = roomId,
-                    unreadCounts = mapOf(userId to 0),
-                    lastMessage = lastMessage
-                )
-            )
-        }
+        )
     }
 
 }

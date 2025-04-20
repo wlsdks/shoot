@@ -24,7 +24,6 @@ class EventPublishFilter(
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
 
         // 읽지 않은 메시지 수 이벤트 발행
-
         eventPublisher.publish(
             ChatUnreadCountUpdatedEvent(
                 roomId = chatRoom.id!!,

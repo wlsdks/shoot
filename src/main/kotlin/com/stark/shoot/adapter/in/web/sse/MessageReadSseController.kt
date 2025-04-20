@@ -18,7 +18,10 @@ class MessageReadSseController(
 
     @Operation(
         summary = "메시지 읽음 처리 (SSE)",
-        description = "해당 채팅방의 메시지를 읽음 처리하고 SSE로 채팅방 목록을 업데이트"
+        description = """
+            - 해당 채팅방의 메시지를 읽음 처리하고 SSE로 채팅방 목록을 업데이트
+            - sessionId를 requestId로 받아서 중복 처리를 방지합니다.
+        """
     )
     @PostMapping("/mark-read")
     fun markMessageRead(

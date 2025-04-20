@@ -41,13 +41,13 @@ class MarkMessageReadService(
     override fun markMessageAsRead(
         messageId: String,
         userId: Long
-    ): ChatMessage {
+    ) {
         val chatMessage = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$messageId")
 
         // 이미 읽은 메시지인 경우 추가 작업 없이 반환
         if (chatMessage.readBy[userId] == true) {
-            return chatMessage
+            return
         }
 
         // 메시지 읽음 상태 업데이트
@@ -63,8 +63,11 @@ class MarkMessageReadService(
         // 채팅방의 모든 참여자에게 읽은 상태 알림
         sendMarkMessageReadToSocket(chatMessage.roomId, chatMessage)
 
-        logger.info { "메시지 읽음 처리 완료: messageId=$messageId, userId=$userId" }
-        return updatedMessage
+        // 웹소켓에 전송
+        webSocketMessageBroker.sendMessage(
+            destination = "/topic/messages/${updatedMessage.roomId}",
+            payload = updatedMessage
+        )
     }
 
     /**

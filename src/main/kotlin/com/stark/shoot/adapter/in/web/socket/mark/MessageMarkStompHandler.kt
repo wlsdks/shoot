@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.`in`.web.socket.mark
 
-import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.`in`.web.socket.dto.ChatReadRequest
 import com.stark.shoot.application.port.`in`.message.mark.MarkMessageReadUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -9,8 +8,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 class MessageMarkStompHandler(
-    private val markMessageReadUseCase: MarkMessageReadUseCase,
-    private val webSocketMessageBroker: WebSocketMessageBroker,
+    private val markMessageReadUseCase: MarkMessageReadUseCase
 ) {
 
     @Operation(
@@ -22,14 +20,9 @@ class MessageMarkStompHandler(
     )
     @MessageMapping("/read")
     fun handleRead(request: ChatReadRequest) {
-        // 메시지 읽음처리
-        val updatedMessage = markMessageReadUseCase
-            .markMessageAsRead(request.messageId, request.userId)
-
-        // 웹소켓에 전송
-        webSocketMessageBroker.sendMessage(
-            destination = "/topic/messages/${updatedMessage.roomId}",
-            payload = updatedMessage
+        markMessageReadUseCase.markMessageAsRead(
+            request.messageId,
+            request.userId
         )
     }
 

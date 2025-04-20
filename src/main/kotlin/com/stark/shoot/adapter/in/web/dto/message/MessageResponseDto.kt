@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.web.dto.message
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.message.UrlPreview
 import java.time.Instant
 
 /**
@@ -35,6 +36,17 @@ data class MessageContentResponseDto(
     val isEdited: Boolean,
     val isDeleted: Boolean,
     val urlPreview: UrlPreviewDto? = null,
+)
+
+/**
+ * 메시지 내 실제 컨텐츠 객체 DTO
+ */
+data class MessageMetadataResponseDto(
+    val tempId: String? = null,
+    val needsUrlPreview: Boolean = false,
+    val previewUrl: String? = null,
+    val urlPreview: UrlPreview? = null,
+    var readAt: Instant? = null
 )
 
 /**

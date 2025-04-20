@@ -9,6 +9,6 @@ data class MessageContent(
     val isDeleted: Boolean = false,
 
     // 필요한 경우에만 남길 선택적 필드
-    val metadata: MessageMetadata? = null,
+    val metadata: ChatMessageMetadata? = null,
     val attachments: List<Attachment> = emptyList()
 )

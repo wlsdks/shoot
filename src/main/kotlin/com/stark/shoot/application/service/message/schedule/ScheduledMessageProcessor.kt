@@ -1,7 +1,5 @@
 package com.stark.shoot.application.service.message.schedule
 
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
-import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
 import com.stark.shoot.application.port.out.message.ScheduledMessagePort
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.infrastructure.enumerate.ScheduledMessageStatus
@@ -45,7 +43,6 @@ class ScheduledMessageProcessor(
     private fun processMessage(message: ScheduledMessage) {
         try {
             // 메시지 전송
-            val chatMessageRequest = createChatMessageRequest(message)
             // todo: 메시지 전송 필요 (저장 후 웹소켓으로 전달?)
 
             // 상태 업데이트
@@ -57,23 +54,6 @@ class ScheduledMessageProcessor(
             logger.error(e) { "예약 메시지 전송 실패: ${message.id}" }
             // 실패한 메시지 처리 방안 (재시도 로직 등) 구현 필요
         }
-    }
-
-    /**
-     * ScheduledMessage를 ChatMessageRequest로 변환
-     */
-    private fun createChatMessageRequest(message: ScheduledMessage): ChatMessageRequest {
-        // 필요한 매핑 로직 구현
-        // 예시 코드이므로 실제 구현시 적절하게 변환해야 함
-        return ChatMessageRequest(
-            roomId = message.roomId,
-            senderId = message.senderId,
-            content = MessageContentRequest(
-                text = message.content.text,
-                type = message.content.type.name
-            ),
-            metadata = mutableMapOf("scheduledMessageId" to (message.id ?: ""))
-        )
     }
 
 }

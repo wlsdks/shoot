@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.`in`.kafka
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
@@ -10,9 +9,8 @@ import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.MessageMetadata
+import com.stark.shoot.domain.chat.message.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.UrlPreview
-import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.springframework.kafka.annotation.KafkaListener
@@ -27,9 +25,7 @@ class MessageKafkaConsumer(
     private val loadUrlContentPort: LoadUrlContentPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
     private val messagingTemplate: SimpMessagingTemplate,
-    private val chatMessageMapper: ChatMessageMapper,
-    private val objectMapper: ObjectMapper,
-    private val appCoroutineScope: ApplicationCoroutineScope
+    private val chatMessageMapper: ChatMessageMapper
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -40,7 +36,7 @@ class MessageKafkaConsumer(
             runBlocking {
                 try {
                     // 메시지 내부의 임시 ID, 채팅방 ID 추출
-                    val tempId = event.data.metadata["tempId"] as? String ?: return@runBlocking
+                    val tempId = event.data.metadata.tempId!!
                     val roomId = event.data.roomId
 
                     // MongoDB 저장 전 처리 중 상태 업데이트
@@ -53,10 +49,10 @@ class MessageKafkaConsumer(
                     sendStatusUpdate(roomId, tempId, MessageStatus.SAVED.name, savedMessage.id)
 
                     // URL 미리보기 처리 필요 여부 확인
-                    if (savedMessage.metadata.containsKey("needsUrlPreview") &&
-                        savedMessage.metadata.containsKey("previewUrl")
+                    if (savedMessage.metadata.needsUrlPreview &&
+                        savedMessage.metadata.previewUrl != null
                     ) {
-                        val previewUrl = savedMessage.metadata["previewUrl"] as String
+                        val previewUrl = savedMessage.metadata.previewUrl!!
 
                         // URL 미리보기 비동기 처리
                         try {
@@ -68,7 +64,7 @@ class MessageKafkaConsumer(
                                 // 메시지 업데이트
                                 val updatedMessage = updateMessageWithPreview(savedMessage, preview)
 
-                                // 업데이트된 메시지 전송
+                                // 업데이트된 메시지 전송 (URL 정보가 저장되면 화면에 실시간 업데이트)
                                 sendMessageUpdate(updatedMessage)
                             }
                         } catch (e: Exception) {
@@ -121,7 +117,7 @@ class MessageKafkaConsumer(
         event: ChatEvent,
         e: Exception
     ) {
-        val tempId = event.data.metadata["tempId"] as? String
+        val tempId = event.data.metadata.tempId
 
         if (tempId != null) {
             sendStatusUpdate(
@@ -147,16 +143,9 @@ class MessageKafkaConsumer(
         message: ChatMessage,
         preview: UrlPreview
     ): ChatMessage {
-        // 메시지 복사 및 미리보기 추가
-        val updatedMetadata = message.metadata.toMutableMap().apply {
-            remove("needsUrlPreview")
-            remove("previewUrl")
-            put("urlPreview", objectMapper.writeValueAsString(preview))
-        }
-
-        // 메시지 내용에도 미리보기 추가 (MessageContent.metadata.urlPreview)
+        val updatedMetadata = message.metadata
         val currentContent = message.content
-        val currentMetadata = currentContent.metadata ?: MessageMetadata()
+        val currentMetadata = currentContent.metadata ?: ChatMessageMetadata()
         val updatedContentMetadata = currentMetadata.copy(urlPreview = preview)
         val updatedContent = currentContent.copy(metadata = updatedContentMetadata)
 
@@ -169,6 +158,7 @@ class MessageKafkaConsumer(
 
     /**
      * 수정된 메시지를 WebSocket으로 전송합니다.
+     * 이 메서드는 url 추출이 시간이 조금 걸리니 사용자 화면에 추출이 완료되면 업데이트 하기 위해 사용합니다.
      *
      * @param message 수정된 메시지
      */

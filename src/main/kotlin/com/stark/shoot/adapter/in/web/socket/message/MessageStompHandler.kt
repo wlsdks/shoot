@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
+import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
@@ -55,14 +56,14 @@ class MessageStompHandler(
         try {
             // 1. 메시지에 임시 ID 추가
             val tempId = UUID.randomUUID().toString()
+
             message.apply {
                 this.tempId = tempId
-                this.status = MessageStatus.SENDING.name
-                this.metadata["tempId"] = tempId
+                this.status = MessageStatus.SENDING
             }
 
             // 2. URL 미리보기 처리 (캐시 확인만)
-            if (message.content.type == "TEXT") {
+            if (message.content.type == MessageType.TEXT) {
                 val urls = extractUrlPort.extractUrls(message.content.text)
                 if (urls.isNotEmpty()) {
                     val url = urls.first()
@@ -70,11 +71,11 @@ class MessageStompHandler(
 
                     // 캐시된 미리보기가 있으면 메시지에 추가
                     if (cachedPreview != null) {
-                        message.metadata["urlPreview"] = objectMapper.writeValueAsString(cachedPreview)
+                        message.metadata.urlPreview = cachedPreview
                     } else {
                         // 캐시 미스인 경우 처리 필요 표시
-                        message.metadata["needsUrlPreview"] = "true"
-                        message.metadata["previewUrl"] = url
+                        message.metadata.needsUrlPreview = true
+                        message.metadata.previewUrl = url
                     }
                 }
             }

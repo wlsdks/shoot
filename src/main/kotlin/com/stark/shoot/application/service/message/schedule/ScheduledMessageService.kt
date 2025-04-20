@@ -192,9 +192,9 @@ class ScheduledMessageService(
             senderId = scheduledMessage.senderId,
             content = MessageContentRequest(
                 text = scheduledMessage.content.text,
-                type = scheduledMessage.content.type.name
+                type = scheduledMessage.content.type
             ),
-            metadata = mutableMapOf("scheduledMessageId" to scheduledMessage.id!!)
+            metadata = scheduledMessage.metadata.toRequestDto()
         )
     }
 

@@ -16,7 +16,7 @@ data class ChatMessage(
     val updatedAt: Instant? = null,
     val isDeleted: Boolean = false,
     val readBy: MutableMap<Long, Boolean> = mutableMapOf(),
-    var metadata: MutableMap<String, Any> = mutableMapOf(),
+    var metadata: ChatMessageMetadata = ChatMessageMetadata(),
 
     // 메시지 고정기능
     val isPinned: Boolean = false,

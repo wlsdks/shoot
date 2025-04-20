@@ -20,15 +20,11 @@ data class ChatMessageDocument(
     val content: MessageContentDocument,                    // 메시지 내용
     val status: MessageStatus = MessageStatus.SAVED,        // 메시지 상태 (e.g., SENT, READ 등)
     val readBy: MutableMap<Long, Boolean> = mutableMapOf(), // 읽음 상태 추가
-
-    // 필요시 유지할 필드
-    val replyToMessageId: ObjectId? = null,             // 답장할 메시지 ID
-    val reactions: Map<String, Set<Long>> = emptyMap(), // 이모티콘 ID to 사용자 ID 목록
-    val mentions: Set<Long> = emptySet(),               // 멘션된 사용자 ID 목록
-    val isPinned: Boolean = false,   // 고정 여부
-    val pinnedBy: Long? = null,      // 고정한 사용자 ID
-    val pinnedAt: Instant? = null,   // 고정 시간
-
-    var metadata: MutableMap<String, Any> = mutableMapOf(),   // 메타데이터 필드 추가
-    val isDeleted: Boolean = false,                           // 삭제 여부
+    val replyToMessageId: ObjectId? = null,                 // 답장할 메시지 ID
+    val reactions: Map<String, Set<Long>> = emptyMap(),     // 이모티콘 ID to 사용자 ID 목록
+    val mentions: Set<Long> = emptySet(),                   // 멘션된 사용자 ID 목록
+    val isPinned: Boolean = false,                          // 고정 여부
+    val pinnedBy: Long? = null,                             // 고정한 사용자 ID
+    val pinnedAt: Instant? = null,                          // 고정 시간
+    val isDeleted: Boolean = false,                         // 삭제 여부
 ) : BaseMongoDocument()

@@ -80,8 +80,8 @@ class SendMessageService(
         chatMessage: ChatMessage
     ): ChatEvent {
         // 메타데이터 복사 (tempId와 status 포함)
-        if (requestMessage.metadata.isNotEmpty()) {
-            chatMessage.metadata = requestMessage.metadata
+        if (requestMessage.metadata != null) {
+            chatMessage.metadata = chatMessage.metadata.requestToDomain(requestMessage.metadata)
         }
 
         // ChatEvent 생성

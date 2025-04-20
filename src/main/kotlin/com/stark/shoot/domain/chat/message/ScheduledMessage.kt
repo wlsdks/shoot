@@ -11,5 +11,5 @@ data class ScheduledMessage(
     val scheduledAt: Instant,
     val createdAt: Instant = Instant.now(),
     val status: ScheduledMessageStatus = ScheduledMessageStatus.PENDING,
-    val metadata: MutableMap<String, Any> = mutableMapOf()
+    val metadata: ChatMessageMetadata = ChatMessageMetadata()
 )

@@ -14,9 +14,7 @@ import org.springframework.stereotype.Component
  * ScheduledMessage 도메인과 ScheduledMessageDocument 간의 변환을 담당하는 매퍼
  */
 @Component
-class ScheduledMessageMapper(
-    private val chatMessageMapper: ChatMessageMapper // 기존 MessageContent 변환용
-) {
+class ScheduledMessageMapper() {
     /**
      * 도메인 모델을 문서로 변환
      */
@@ -27,9 +25,9 @@ class ScheduledMessageMapper(
             content = toMessageContentDocument(domain.content),
             scheduledAt = domain.scheduledAt,
             status = domain.status.name,
-            metadata = domain.metadata
+            metadata = domain.metadata.toMessageMetadataDocument(),
         ).apply {
-            id = domain.id?.let { it.toObjectId() }
+            id = domain.id?.toObjectId()
             createdAt = domain.createdAt
         }
     }
@@ -46,7 +44,7 @@ class ScheduledMessageMapper(
             scheduledAt = document.scheduledAt,
             createdAt = document.createdAt ?: document.scheduledAt.minusSeconds(1),
             status = ScheduledMessageStatus.valueOf(document.status),
-            metadata = document.metadata.toMutableMap()
+            metadata = document.metadata.toMessageMetadata(),
         )
     }
 
@@ -93,7 +91,7 @@ class ScheduledMessageMapper(
             scheduledAt = domain.scheduledAt,
             createdAt = domain.createdAt,
             status = domain.status,
-            metadata = domain.metadata
+            metadata = domain.metadata.toMessageMetadataResponseDto()
         )
     }
 

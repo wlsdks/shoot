@@ -7,7 +7,7 @@ import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.MessageMetadata
+import com.stark.shoot.domain.chat.message.ChatMessageMetadata
 import org.springframework.stereotype.Component
 
 @Component
@@ -47,7 +47,7 @@ class UrlPreviewFilter(
         // 미리보기 정보가 있으면 메시지에 추가
         if (preview != null) {
             // 현재 메타데이터가 있으면 재사용, 없으면 새로 생성
-            val metadata = message.content.metadata ?: MessageMetadata()
+            val metadata = message.content.metadata ?: ChatMessageMetadata()
 
             // URL 미리보기 설정
             val updatedMetadata = metadata.copy(urlPreview = preview)

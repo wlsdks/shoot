@@ -104,13 +104,13 @@ class MessageSyncService(
     private fun mapToSyncInfoDto(message: ChatMessage): MessageSyncInfoDto {
         return MessageSyncInfoDto(
             id = message.id ?: "",
-            tempId = message.metadata["tempId"] as? String,
+            tempId = message.metadata.tempId,
             timestamp = message.createdAt ?: Instant.now(),
             senderId = message.senderId,
             status = message.status.name,
             content = MessageContentRequest(
                 text = message.content.text,
-                type = message.content.type.name,
+                type = message.content.type,
                 attachments = listOf(),
                 isEdited = message.content.isEdited,
                 isDeleted = message.content.isDeleted

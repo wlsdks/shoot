@@ -8,7 +8,6 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.ChatMess
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.AttachmentDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageMetadataDocument
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.UrlPreviewDocument
 import com.stark.shoot.domain.chat.message.*
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
@@ -29,7 +28,6 @@ class ChatMessageMapper {
             mentions = domain.mentions.map { it }.toSet(),
             isDeleted = domain.isDeleted,
             readBy = domain.readBy.toMutableMap(),
-            metadata = domain.metadata.toMutableMap(),
             isPinned = domain.isPinned,
             pinnedBy = domain.pinnedBy,
             pinnedAt = domain.pinnedAt
@@ -55,7 +53,6 @@ class ChatMessageMapper {
             updatedAt = document.updatedAt,
             isDeleted = document.isDeleted,
             readBy = document.readBy.toMutableMap(),
-            metadata = document.metadata.toMutableMap() ?: mutableMapOf(),
             isPinned = document.isPinned,
             pinnedBy = document.pinnedBy,
             pinnedAt = document.pinnedAt
@@ -85,17 +82,17 @@ class ChatMessageMapper {
         )
     }
 
-    // MessageMetadata <-> MessageMetadataDocument 변환
-    private fun toMessageMetadataDocument(domain: MessageMetadata): MessageMetadataDocument {
+    // ChatMessageMetadata <-> MessageMetadataDocument 변환
+    private fun toMessageMetadataDocument(domain: ChatMessageMetadata): MessageMetadataDocument {
         return MessageMetadataDocument(
-            urlPreview = domain.urlPreview?.let { toUrlPreviewDocument(it) },
+            urlPreview = domain.urlPreview,
             readAt = domain.readAt
         )
     }
 
-    private fun toMessageMetadata(document: MessageMetadataDocument): MessageMetadata {
-        return MessageMetadata(
-            urlPreview = document.urlPreview?.let { toUrlPreview(it) },
+    private fun toMessageMetadata(document: MessageMetadataDocument): ChatMessageMetadata {
+        return ChatMessageMetadata(
+            urlPreview = document.urlPreview,
             readAt = document.readAt
         )
     }
@@ -122,29 +119,6 @@ class ChatMessageMapper {
             url = document.url,
             thumbnailUrl = document.thumbnailUrl,
             metadata = document.metadata
-        )
-    }
-
-    // UrlPreview <-> UrlPreviewDocument 변환
-    private fun toUrlPreviewDocument(domain: UrlPreview): UrlPreviewDocument {
-        return UrlPreviewDocument(
-            url = domain.url,
-            title = domain.title,
-            description = domain.description,
-            imageUrl = domain.imageUrl,
-            siteName = domain.siteName,
-            fetchedAt = domain.fetchedAt
-        )
-    }
-
-    private fun toUrlPreview(document: UrlPreviewDocument): UrlPreview {
-        return UrlPreview(
-            url = document.url,
-            title = document.title,
-            description = document.description,
-            imageUrl = document.imageUrl,
-            siteName = document.siteName,
-            fetchedAt = document.fetchedAt
         )
     }
 

@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.document.message
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.common.BaseMongoDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
+import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageMetadataDocument
 import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.index.CompoundIndexes
 import org.springframework.data.mongodb.core.mapping.Document
@@ -21,5 +22,5 @@ data class ScheduledMessageDocument(
     val content: MessageContentDocument,
     val scheduledAt: Instant,
     val status: String, // ScheduledMessageStatus enum 문자열 표현
-    val metadata: MutableMap<String, Any> = mutableMapOf()
+    val metadata: MessageMetadataDocument = MessageMetadataDocument(),
 ) : BaseMongoDocument()

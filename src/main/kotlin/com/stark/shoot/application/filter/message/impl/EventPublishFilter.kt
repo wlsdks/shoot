@@ -27,29 +27,56 @@ class EventPublishFilter(
         val chatRoom = chain.getFromContext<ChatRoom>(CHAT_ROOM_CONTEXT_KEY)
             ?: return chain.proceed(message) // 채팅방 정보가 없으면 다음 필터로 진행
 
-        // 각 참여자의 읽지 않은 메시지 수 계산
-        val unreadCounts = mutableMapOf<Long, Int>()
+        // 채팅방 ID가 null인 경우 처리
+        val roomId = chatRoom.id ?: run {
+            logger.warn { "채팅방 ID가 null입니다. 이벤트를 발행하지 않고 다음 필터로 진행합니다." }
+            return chain.proceed(message)
+        }
 
-        // 메시지를 읽지 않은 참여자 식별
+        // 각 참여자의 읽지 않은 메시지 수 계산
+        val unreadCounts = calculateUnreadCounts(message, chatRoom, roomId)
+
+        // 읽지 않은 메시지 수 이벤트 발행
+        eventPublisher.publish(
+            ChatUnreadCountUpdatedEvent(
+                roomId = roomId,
+                unreadCounts = unreadCounts,
+                lastMessage = message.content.text
+            )
+        )
+
+        return chain.proceed(message)
+    }
+
+    /**
+     * 각 참여자의 읽지 않은 메시지 수를 계산하고 Redis를 업데이트합니다.
+     */
+    private fun calculateUnreadCounts(
+        message: ChatMessage,
+        chatRoom: ChatRoom,
+        roomId: Long
+    ): Map<Long, Int> {
+        val unreadCounts = mutableMapOf<Long, Int>()
+        val operations = redisTemplate.opsForHash<String, String>()
+
+        // 메시지를 읽지 않은 참여자 식별 및 처리
         chatRoom.participants.forEach { userId ->
-            // 메시지를 읽지 않은 경우에만 unreadCounts에 추가
             if (message.readBy[userId] != true) {
                 try {
                     // Redis에서 현재 읽지 않은 메시지 수 조회
-                    val currentUnreadCount = redisTemplate.opsForHash<String, String>()
-                        .get("unread:$userId", chatRoom.id.toString())?.toIntOrNull() ?: 0
+                    val currentUnreadCount = operations
+                        .get("unread:$userId", roomId.toString())?.toIntOrNull() ?: 0
 
                     // 읽지 않은 메시지 수 증가
                     val newUnreadCount = currentUnreadCount + 1
 
                     // Redis 업데이트
-                    redisTemplate.opsForHash<String, String>()
-                        .put("unread:$userId", chatRoom.id.toString(), newUnreadCount.toString())
+                    operations.put("unread:$userId", roomId.toString(), newUnreadCount.toString())
 
                     // 이벤트에 포함할 unreadCounts 맵 업데이트
                     unreadCounts[userId] = newUnreadCount
                 } catch (e: Exception) {
-                    logger.error(e) { "Redis 읽지 않은 메시지 수 업데이트 실패: roomId=${chatRoom.id}, userId=$userId" }
+                    logger.error(e) { "Redis 읽지 않은 메시지 수 업데이트 실패: roomId=$roomId, userId=$userId" }
                     // 오류 발생 시 기본값 사용
                     unreadCounts[userId] = 1
                 }
@@ -59,16 +86,6 @@ class EventPublishFilter(
             }
         }
 
-        // 읽지 않은 메시지 수 이벤트 발행
-        eventPublisher.publish(
-            ChatUnreadCountUpdatedEvent(
-                roomId = chatRoom.id!!,
-                unreadCounts = unreadCounts,
-                lastMessage = message.content.text
-            )
-        )
-
-        return chain.proceed(message)
+        return unreadCounts
     }
-
 }

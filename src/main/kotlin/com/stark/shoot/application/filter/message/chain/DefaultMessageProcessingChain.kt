@@ -12,6 +12,9 @@ class DefaultMessageProcessingChain(
     // 필터 인덱스
     private var index = 0
 
+    // 필터 간 공유 컨텍스트
+    private val context = mutableMapOf<String, Any?>()
+
     override suspend fun proceed(
         message: ChatMessage
     ): ChatMessage {
@@ -27,9 +30,19 @@ class DefaultMessageProcessingChain(
         return filter.process(message, this)
     }
 
+    @Suppress("UNCHECKED_CAST")
+    override fun <T> getFromContext(key: String): T? {
+        return context[key] as? T
+    }
+
+    override fun <T> putInContext(key: String, value: T) {
+        context[key] = value
+    }
+
     // 체인 초기화 (재사용)
     fun reset(): DefaultMessageProcessingChain {
         index = 0
+        context.clear()
         return this
     }
 

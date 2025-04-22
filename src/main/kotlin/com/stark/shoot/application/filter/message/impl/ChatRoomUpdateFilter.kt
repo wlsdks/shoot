@@ -2,16 +2,15 @@ package com.stark.shoot.application.filter.message.impl
 
 import com.stark.shoot.application.filter.common.MessageProcessingFilter
 import com.stark.shoot.application.filter.message.chain.MessageProcessingChain
-import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.filter.message.impl.ChatRoomLoadFilter.Companion.CHAT_ROOM_CONTEXT_KEY
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.chat.room.ChatRoom
 import org.springframework.stereotype.Component
 import java.time.Instant
 
 @Component
 class ChatRoomUpdateFilter(
-    private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort
 ) : MessageProcessingFilter {
 
@@ -19,8 +18,9 @@ class ChatRoomUpdateFilter(
         message: ChatMessage,
         chain: MessageProcessingChain
     ): ChatMessage {
-        val chatRoom = loadChatRoomPort.findById(message.roomId)
-            ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=${message.roomId}")
+        // 컨텍스트에서 채팅방 정보 가져오기
+        val chatRoom = chain.getFromContext<ChatRoom>(CHAT_ROOM_CONTEXT_KEY)
+            ?: return chain.proceed(message) // 채팅방 정보가 없으면 다음 필터로 진행
 
         // 마지막 메시지 ID와 마지막 활동 시간만 업데이트
         val now = Instant.now()

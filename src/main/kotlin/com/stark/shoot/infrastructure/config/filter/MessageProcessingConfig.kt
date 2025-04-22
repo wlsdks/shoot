@@ -11,6 +11,7 @@ class MessageProcessingConfig {
 
     @Bean
     fun messageFilters(
+        chatRoomLoadFilter: ChatRoomLoadFilter,
         urlPreviewFilter: UrlPreviewFilter,
         readStatusInitFilter: ReadStatusInitFilter,
         unreadCountUpdateFilter: UnreadCountUpdateFilter,
@@ -20,10 +21,11 @@ class MessageProcessingConfig {
     ): List<MessageProcessingFilter> {
         // 필터 실행 순서 정의
         return listOf(
+            chatRoomLoadFilter,        // 0. 채팅방 로딩 (다른 필터에서 사용)
             urlPreviewFilter,          // 1. URL 미리보기 처리
-            readStatusInitFilter,      // 2. 읽음 상태 초기화
-            unreadCountUpdateFilter,   // 3. 읽지 않은 메시지 수 업데이트
-            messageSaveFilter,         // 4. 메시지 저장
+            unreadCountUpdateFilter,   // 2. 읽지 않은 메시지 수 업데이트
+            messageSaveFilter,         // 3. 메시지 저장
+            readStatusInitFilter,      // 4. 읽음 상태 초기화 (메시지 ID 필요)
             chatRoomUpdateFilter,      // 5. 채팅방 메타데이터 업데이트
             eventPublishFilter         // 6. 이벤트 발행
         )

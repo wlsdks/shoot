@@ -62,6 +62,8 @@ logging:
     org.springframework.messaging: INFO
     org.springframework.web: INFO
     org.springframework.kafka: INFO
+    org.apache.kafka.clients.consumer.ConsumerConfig: WARN
+    org.apache.kafka.clients.producer.ProducerConfig: WARN
 
 jwt:
   secret: "your-256-bit-secret-key-base64-encoded"

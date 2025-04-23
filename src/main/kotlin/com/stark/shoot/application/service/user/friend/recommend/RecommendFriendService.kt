@@ -161,11 +161,7 @@ class RecommendFriendService(
         cacheKey: String,
         limit: Int
     ): List<User> {
-        logger.info { "친구 추천 목록 계산 시작: userId=$userId" }
-
         val recommendedUsers = recommendFriendPort.recommendFriends(userId, limit * 2)
-
-        logger.info { "친구 추천 목록 계산 완료: userId=$userId, 결과=${recommendedUsers.size}명" }
 
         // Redis 캐시에 JSON 문자열로 저장
         try {

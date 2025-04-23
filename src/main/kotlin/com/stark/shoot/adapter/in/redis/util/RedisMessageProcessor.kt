@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 
 /**
  * Redis 메시지 처리를 위한 공통 유틸리티 클래스
- * 
+ *
  * 이 클래스는 Redis Stream과 Pub/Sub에서 공통으로 사용되는 메시지 처리 로직을 제공합니다.
  */
 @Component
@@ -31,10 +31,14 @@ class RedisMessageProcessor(
      * @return 추출된 채팅방 ID 또는 null
      */
     fun extractRoomIdFromStreamKey(streamKey: String): String? {
-        val roomId = STREAM_ROOM_ID_PATTERN.find(streamKey)?.groupValues?.getOrNull(1)
+        val roomId = STREAM_ROOM_ID_PATTERN.find(streamKey)
+            ?.groupValues
+            ?.getOrNull(1)
+
         if (roomId == null) {
             logger.warn { "Could not extract roomId from stream key: $streamKey" }
         }
+
         return roomId
     }
 
@@ -74,7 +78,7 @@ class RedisMessageProcessor(
 
     /**
      * 메시지 처리 과정을 통합적으로 수행합니다.
-     * 
+     *
      * @param roomId 채팅방 ID
      * @param messageJson JSON 형식의 메시지 문자열
      * @return 처리 성공 여부

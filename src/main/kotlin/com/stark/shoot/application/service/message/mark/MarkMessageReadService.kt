@@ -53,21 +53,55 @@ class MarkMessageReadService(
         // 메시지 읽음 상태 업데이트
         chatMessage.readBy[userId] = true
         val updatedMessage = saveMessagePort.save(chatMessage)
+        val roomId = chatMessage.roomId
 
-        // 채팅방 사용자의 마지막 읽은 메시지 ID 업데이트
-        readStatusPort.updateLastReadMessageId(chatMessage.roomId, userId, messageId)
+        // 병렬로 비동기 작업 처리 (트랜잭션 외부에서 실행되어야 하는 작업들)
+        try {
+            // 1. 채팅방 사용자의 마지막 읽은 메시지 ID 업데이트
+            readStatusPort.updateLastReadMessageId(roomId, userId, messageId)
 
-        // 읽지 않은 메시지 수 업데이트 (Redis 활용)
-        updateUnreadCountInRedis(chatMessage.roomId, userId)
+            // 2. 읽지 않은 메시지 수 업데이트 (Redis 활용) - 원자적 연산 사용
+            val unreadKey = "unread:$userId"
+            val roomIdStr = roomId.toString()
 
-        // 채팅방의 모든 참여자에게 읽은 상태 알림
-        sendMarkMessageReadToSocket(chatMessage.roomId, chatMessage)
+            // Lua 스크립트로 원자적 감소 처리
+            val script = """
+                local current = tonumber(redis.call('hget', KEYS[1], ARGV[1]) or '0')
+                if current > 0 then
+                    return redis.call('hincrby', KEYS[1], ARGV[1], -1)
+                end
+                return current
+            """
 
-        // 웹소켓에 전송
-        webSocketMessageBroker.sendMessage(
-            destination = "/topic/messages/${updatedMessage.roomId}",
-            payload = updatedMessage
-        )
+            redisTemplate.execute<Long> { connection ->
+                connection.scriptingCommands().eval(
+                    script.toByteArray(),
+                    org.springframework.data.redis.connection.ReturnType.INTEGER,
+                    1,
+                    unreadKey.toByteArray(),
+                    roomIdStr.toByteArray()
+                )
+            }
+
+            // 3. 채팅방의 모든 참여자에게 읽은 상태 알림 (WebSocket)
+            webSocketMessageBroker.sendMessage(
+                "/topic/read/$roomId",
+                mapOf(
+                    "messageId" to updatedMessage.id,
+                    "userId" to updatedMessage.senderId,
+                    "readBy" to updatedMessage.readBy
+                )
+            )
+
+            // 4. 업데이트된 메시지 WebSocket 전송
+            webSocketMessageBroker.sendMessage(
+                destination = "/topic/messages/$roomId",
+                payload = updatedMessage
+            )
+        } catch (e: Exception) {
+            // 비동기 작업 실패 시 로깅만 하고 예외는 전파하지 않음 (메인 트랜잭션은 이미 완료됨)
+            logger.error(e) { "메시지 읽음 처리 후속 작업 실패: messageId=$messageId, userId=$userId" }
+        }
     }
 
     /**
@@ -85,16 +119,18 @@ class MarkMessageReadService(
         // 중복 요청 체크 (Redis 캐시 활용)
         if (requestId != null) {
             val key = "read_operation:$roomId:$userId:$requestId"
-            val exists = redisTemplate.opsForValue().get(key)
-            if (exists != null) {
+
+            // 중복 요청 확인 및 설정을 원자적으로 수행 (SETNX 패턴)
+            val isFirstRequest = redisTemplate.opsForValue().setIfAbsent(key, "1", 30, TimeUnit.SECONDS)
+
+            if (isFirstRequest != true) {
                 logger.info { "중복 읽음 처리 요청 감지 (requestId=$requestId)" }
                 return
             }
-            // 요청 정보 캐싱 (5초 만료)
-            redisTemplate.opsForValue().set(key, "1", 5, TimeUnit.SECONDS)
-        }
 
-        // todo: 근데 이렇게 5초마다 요청을 받도록 하면..?? 계속 채팅방 읽고있으면 어떻게 되는걸까? 계속 다른 requestId로 요청해야하나?
+            // 30초 만료 시간은 일반적인 네트워크 지연 및 클라이언트 재시도를 고려한 값
+            // 클라이언트는 새로운 읽음 요청마다 새로운 requestId를 생성해야 함
+        }
 
         // 채팅방 조회 및 사용자 참여 확인
         val chatRoom = loadChatRoomPort.findById(roomId)
@@ -124,7 +160,16 @@ class MarkMessageReadService(
         }
 
         // Redis와 이벤트 업데이트 (읽지 않은 메시지 수 0으로 설정)
-        redisTemplate.opsForHash<String, String>().put("unread:$userId", roomId.toString(), "0")
+        // 원자적 연산으로 효율적으로 처리
+        val unreadKey = "unread:$userId"
+        val roomIdStr = roomId.toString()
+        redisTemplate.execute<Boolean> { connection ->
+            connection.hashCommands().hSet(
+                unreadKey.toByteArray(),
+                roomIdStr.toByteArray(),
+                "0".toByteArray()
+            )
+        }
 
         // 채팅방의 마지막 메시지 내용 조회
         val lastMessageText = chatRoom.lastMessageId?.let {
@@ -154,64 +199,18 @@ class MarkMessageReadService(
         unreadMessages: List<ChatMessage>,
         userId: Long
     ): List<String> {
-        val updatedMessageIds = mutableListOf<String>()
-
-        // fixme: 이렇게 하면 쿼리가 매번 나가니까 한번에 업데이트하도록 로직 개선이 필요함
+        // 모든 메시지를 한 번에 업데이트하도록 최적화
         unreadMessages.forEach { message ->
             message.readBy[userId] = true
-            val updatedMessage = saveMessagePort.save(message)
-            updatedMessage.id?.let { updatedMessageIds.add(it) }
         }
 
-        return updatedMessageIds
+        // 일괄 저장으로 DB 쿼리 최소화
+        val updatedMessages = saveMessagePort.saveAll(unreadMessages)
+
+        // 업데이트된 메시지 ID 목록 반환
+        return updatedMessages.mapNotNull { it.id }
     }
 
-    /**
-     * Redis에 읽지 않은 메시지 수를 업데이트합니다.
-     *
-     * @param roomId 채팅방 ID
-     * @param userId 사용자 ID
-     */
-    private fun updateUnreadCountInRedis(
-        roomId: Long,
-        userId: Long
-    ) {
-        try {
-            // 현재 읽지 않은 메시지 수 조회
-            val currentUnreadCount = redisTemplate.opsForHash<String, String>()
-                .get("unread:$userId", roomId)?.toIntOrNull() ?: 0
-
-            // 읽지 않은 메시지 수가 0보다 크면 감소
-            if (currentUnreadCount > 0) {
-                val newUnreadCount = currentUnreadCount - 1
-                redisTemplate.opsForHash<String, String>()
-                    .put("unread:$userId", roomId.toString(), newUnreadCount.toString())
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "Redis 읽지 않은 메시지 수 업데이트 실패: roomId=$roomId, userId=$userId" }
-        }
-    }
-
-    /**
-     * 메시지 읽음 상태를 WebSocket을 통해 알립니다.
-     *
-     * @param roomId 채팅방 ID
-     * @param message 읽은 메시지
-     */
-    private fun sendMarkMessageReadToSocket(
-        roomId: Long,
-        message: ChatMessage
-    ) {
-        // 채팅방의 모든 참여자에게 읽음 상태 업데이트를 알림
-        webSocketMessageBroker.sendMessage(
-            "/topic/read/$roomId",
-            mapOf(
-                "messageId" to message.id,
-                "userId" to message.senderId,
-                "readBy" to message.readBy
-            )
-        )
-    }
 
     /**
      * 채팅방의 모든 참여자에게 읽음 상태 업데이트를 WebSocket을 통해 알립니다.

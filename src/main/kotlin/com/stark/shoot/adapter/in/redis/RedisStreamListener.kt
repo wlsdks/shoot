@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.`in`.redis
 
+import com.fasterxml.jackson.core.JsonParseException
 import com.stark.shoot.adapter.`in`.redis.util.RedisMessageProcessor
 import com.stark.shoot.adapter.`in`.redis.util.RedisStreamManager
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
@@ -9,6 +10,8 @@ import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.redis.RedisConnectionFailureException
 import org.springframework.data.redis.connection.stream.MapRecord
 import org.springframework.stereotype.Component
 
@@ -21,17 +24,16 @@ import org.springframework.stereotype.Component
 class RedisStreamListener(
     private val redisStreamManager: RedisStreamManager,
     private val redisMessageProcessor: RedisMessageProcessor,
-    private val appCoroutineScope: ApplicationCoroutineScope
+    private val appCoroutineScope: ApplicationCoroutineScope,
+    @Value("\${app.redis-stream.polling-interval-ms:100}") private val pollingIntervalMs: Long = 100,
+    @Value("\${app.redis-stream.error-retry-delay-ms:1000}") private val errorRetryDelayMs: Long = 1000,
+    @Value("\${app.redis-stream.consumer-group:chat-consumers}") private val consumerGroup: String = "chat-consumers",
+    @Value("\${app.redis-stream.stream-key-pattern:stream:chat:room:*}") private val streamKeyPattern: String = "stream:chat:room:*"
 ) {
     private val logger = KotlinLogging.logger {}
 
     // 코루틴 Job 참조 (나중에 취소하기 위함)
     private var pollingJob: Job? = null
-
-    companion object {
-        private const val CONSUMER_GROUP = "chat-consumers"
-        private const val STREAM_KEY_PATTERN = "stream:chat:room:*"
-    }
 
     /**
      * 리스너 초기화 메서드로, 애플리케이션 시작 시 자동으로 실행됩니다.
@@ -40,7 +42,7 @@ class RedisStreamListener(
     @PostConstruct
     fun init() {
         // 소비자 그룹 생성 (없으면)
-        redisStreamManager.createConsumerGroups(STREAM_KEY_PATTERN, CONSUMER_GROUP)
+        redisStreamManager.createConsumerGroups(streamKeyPattern, consumerGroup)
 
         // 코루틴으로 주기적 폴링 시작
         startPolling()
@@ -51,15 +53,18 @@ class RedisStreamListener(
      */
     private fun startPolling() {
         pollingJob = appCoroutineScope.launch {
-            logger.info { "Redis Stream 메시지 폴링 시작" }
+            logger.info { "Redis Stream 메시지 폴링 시작 (간격: ${pollingIntervalMs}ms)" }
 
             while (isActive) {
                 try {
                     pollMessages()
-                    delay(100) // 100ms 간격으로 폴링
+                    delay(pollingIntervalMs)
+                } catch (e: RedisConnectionFailureException) {
+                    logger.error(e) { "Redis 연결 실패, ${errorRetryDelayMs}ms 후 재시도" }
+                    delay(errorRetryDelayMs)
                 } catch (e: Exception) {
-                    logger.error(e) { "Redis Stream 폴링 중 오류 발생" }
-                    delay(1000) // 오류 발생 시 1초 대기 후 재시도
+                    logger.error(e) { "Redis Stream 폴링 중 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
+                    delay(errorRetryDelayMs)
                 }
             }
         }
@@ -69,20 +74,22 @@ class RedisStreamListener(
      * Redis Stream에서 새로운 메시지를 주기적으로 폴링합니다.
      */
     private suspend fun pollMessages() {
-        val streamKeys = redisStreamManager.scanStreamKeys(STREAM_KEY_PATTERN)
+        val streamKeys = redisStreamManager.scanStreamKeys(streamKeyPattern)
         if (streamKeys.isEmpty()) return
 
         // 각 스트림에 대해 순차적으로 처리 (메시지 순서 보장)
         streamKeys.forEach { streamKey ->
-            val messages = redisStreamManager.readMessages(streamKey, CONSUMER_GROUP)
+            val messages = redisStreamManager.readMessages(streamKey, consumerGroup)
 
             // 각 메시지 개별 처리 및 ACK
             messages.forEach { message ->
                 try {
                     processMessage(message)
-                    redisStreamManager.acknowledgeMessage(streamKey, CONSUMER_GROUP, message.id)
+                    redisStreamManager.acknowledgeMessage(streamKey, consumerGroup, message.id)
+                } catch (e: JsonParseException) {
+                    logger.error(e) { "메시지 파싱 오류 (ID: ${message.id}): ${e.message}" }
                 } catch (e: Exception) {
-                    logger.error { "메시지 처리 오류 (ID: ${message.id}): ${e.message}" }
+                    logger.error(e) { "메시지 처리 오류 (ID: ${message.id}, 스트림: $streamKey): ${e.message}" }
                 }
             }
         }
@@ -99,11 +106,21 @@ class RedisStreamListener(
     private fun processMessage(record: MapRecord<*, *, *>) {
         // 안전한 타입 처리를 위해 toString() 사용
         val streamKey = record.stream.toString()
-        val roomId = redisMessageProcessor.extractRoomIdFromStreamKey(streamKey) ?: return
+        val roomId = redisMessageProcessor.extractRoomIdFromStreamKey(streamKey) ?: run {
+            logger.warn { "채팅방 ID를 추출할 수 없음: $streamKey" }
+            return
+        }
 
         // 레코드 값을 안전하게 추출
-        val messageValue = record.value["message"]?.toString() ?: return
-        redisMessageProcessor.processMessage(roomId, messageValue)
+        val messageValue = record.value["message"]?.toString() ?: run {
+            logger.warn { "메시지 값이 없음: ${record.id}" }
+            return
+        }
+
+        val success = redisMessageProcessor.processMessage(roomId, messageValue)
+        if (success) {
+            logger.debug { "메시지 처리 성공: 채팅방=$roomId, 메시지ID=${record.id}" }
+        }
     }
 
     /**

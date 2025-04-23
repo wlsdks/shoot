@@ -1,5 +1,6 @@
 package com.stark.shoot.application.service.user.friend.recommend
 
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
@@ -8,7 +9,9 @@ import com.stark.shoot.application.port.out.user.friend.RecommendFriendPort
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.scheduling.annotation.Scheduled
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -17,7 +20,10 @@ import java.util.concurrent.TimeUnit
 class RecommendFriendService(
     private val recommendFriendPort: RecommendFriendPort,
     private val redisStringTemplate: StringRedisTemplate,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    @Value("\${app.friend-recommend.redis-cache-ttl-minutes:120}") private val redisCacheTtlMinutes: Long = 120,
+    @Value("\${app.friend-recommend.local-cache-ttl-minutes:30}") private val localCacheTtlMinutes: Long = 30,
+    @Value("\${app.friend-recommend.cache-cleanup-interval-minutes:15}") private val cacheCleanupIntervalMinutes: Long = 15
 ) : RecommendFriendsUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -28,18 +34,30 @@ class RecommendFriendService(
     // 현재 계산 중인 사용자 ID 목록 (중복 계산 방지)
     private val inProgressUsers = ConcurrentHashMap.newKeySet<String>()
 
-    // 캐시 키 생성
-    private fun getCacheKey(userId: Long, limit: Int): String {
-        return "friend_recommend:${userId}:$limit"
+    companion object {
+        private const val CACHE_KEY_PREFIX = "friend_recommend"
     }
 
-    // 캐시 유효 시간 (분)
-    private val CACHE_TTL_MINUTES = 120L
+    /**
+     * 캐시 키 생성
+     * 
+     * @param userId 사용자 ID
+     * @param limit 조회 제한 수
+     * @return 캐시 키
+     */
+    private fun getCacheKey(userId: Long, limit: Int): String {
+        return "$CACHE_KEY_PREFIX:$userId:$limit"
+    }
 
     /**
      * 친구 추천 구현
      * - 캐싱 적용
      * - 페이징 지원
+     * 
+     * @param userId 사용자 ID
+     * @param skip 건너뛸 항목 수
+     * @param limit 조회할 항목 수
+     * @return 추천 친구 목록
      */
     override fun getRecommendedFriends(
         userId: Long,
@@ -53,14 +71,14 @@ class RecommendFriendService(
 
         // 2. 캐시 데이터가 있으면 페이징해서 반환
         if (cachedUsers != null) {
-            logger.debug { "캐시에서 추천 친구 목록 조회: $userId (${cachedUsers.size}명)" }
+            logger.debug { "캐시에서 추천 친구 목록 조회: userId=$userId, 결과=${cachedUsers.size}명" }
             return paginateAndConvert(cachedUsers, skip, limit)
         }
 
         // 3. 중복 계산 방지
         val userIdStr = userId.toString()
         if (inProgressUsers.contains(userIdStr)) {
-            logger.info { "이미 추천 목록 계산 중: $userId" }
+            logger.info { "이미 추천 목록 계산 중: userId=$userId" }
             // 빈 목록 반환 (다음 요청에서 캐시된 결과를 받게 됨)
             return emptyList()
         }
@@ -80,6 +98,9 @@ class RecommendFriendService(
 
     /**
      * 캐시에서 추천 목록 조회
+     * 
+     * @param cacheKey 캐시 키
+     * @return 추천 친구 목록 또는 null
      */
     private fun getCachedRecommendations(cacheKey: String): List<User>? {
         // Redis 캐시 조회
@@ -88,6 +109,9 @@ class RecommendFriendService(
             if (json != null) {
                 objectMapper.readValue(json, object : TypeReference<List<User>>() {})
             } else null
+        } catch (e: JsonProcessingException) {
+            logger.warn(e) { "Redis 캐시 JSON 파싱 실패: $cacheKey" }
+            null
         } catch (e: Exception) {
             logger.warn(e) { "Redis 캐시 조회 실패: $cacheKey" }
             null
@@ -102,8 +126,8 @@ class RecommendFriendService(
         val localCached = localCache[cacheKey]
         if (localCached != null) {
             val (users, timestamp) = localCached
-            // 로컬 캐시 유효 시간 (30분)
-            if (System.currentTimeMillis() - timestamp < TimeUnit.MINUTES.toMillis(30)) {
+            // 로컬 캐시 유효 시간 확인
+            if (isLocalCacheValid(timestamp)) {
                 return users
             } else {
                 // 만료된 캐시 제거
@@ -115,23 +139,40 @@ class RecommendFriendService(
     }
 
     /**
+     * 로컬 캐시 유효성 검사
+     * 
+     * @param timestamp 캐시 생성 시간
+     * @return 유효 여부
+     */
+    private fun isLocalCacheValid(timestamp: Long): Boolean {
+        return System.currentTimeMillis() - timestamp < TimeUnit.MINUTES.toMillis(localCacheTtlMinutes)
+    }
+
+    /**
      * 추천 목록 계산 및 캐싱
+     * 
+     * @param userId 사용자 ID
+     * @param cacheKey 캐시 키
+     * @param limit 조회 제한 수
+     * @return 추천 친구 목록
      */
     private fun calculateAndCacheRecommendations(
         userId: Long,
         cacheKey: String,
         limit: Int
     ): List<User> {
-        logger.info { "친구 추천 목록 계산 시작: $userId" }
+        logger.info { "친구 추천 목록 계산 시작: userId=$userId" }
 
         val recommendedUsers = recommendFriendPort.recommendFriends(userId, limit * 2)
 
-        logger.info { "친구 추천 목록 계산 완료: $userId (${recommendedUsers.size}명)" }
+        logger.info { "친구 추천 목록 계산 완료: userId=$userId, 결과=${recommendedUsers.size}명" }
 
         // Redis 캐시에 JSON 문자열로 저장
         try {
             val jsonString = objectMapper.writeValueAsString(recommendedUsers)
-            redisStringTemplate.opsForValue().set(cacheKey, jsonString, Duration.ofMinutes(CACHE_TTL_MINUTES))
+            redisStringTemplate.opsForValue().set(cacheKey, jsonString, Duration.ofMinutes(redisCacheTtlMinutes))
+        } catch (e: JsonProcessingException) {
+            logger.warn(e) { "Redis 캐시 JSON 직렬화 실패: $cacheKey" }
         } catch (e: Exception) {
             logger.warn(e) { "Redis 캐시 저장 실패: $cacheKey" }
         }
@@ -144,6 +185,11 @@ class RecommendFriendService(
 
     /**
      * 페이징 및 응답 DTO 변환
+     * 
+     * @param users 사용자 목록
+     * @param skip 건너뛸 항목 수
+     * @param limit 조회할 항목 수
+     * @return 변환된 친구 응답 목록
      */
     private fun paginateAndConvert(
         users: List<User>,
@@ -163,4 +209,24 @@ class RecommendFriendService(
             }
     }
 
+    /**
+     * 만료된 로컬 캐시 항목 정리
+     * 설정된 간격(기본 15분)마다 실행되며, 설정된 시간(기본 30분) 이상 사용되지 않은 캐시 항목을 삭제합니다.
+     */
+    @Scheduled(fixedRateString = "\${app.friend-recommend.cache-cleanup-interval-minutes:15}", timeUnit = TimeUnit.MINUTES)
+    fun cleanupExpiredCacheEntries() {
+        val beforeSize = localCache.size
+        val currentTime = System.currentTimeMillis()
+        val expirationThreshold = TimeUnit.MINUTES.toMillis(localCacheTtlMinutes)
+
+        // 만료된 항목 제거
+        localCache.entries.removeIf { (_, value) ->
+            currentTime - value.second > expirationThreshold
+        }
+
+        val removedCount = beforeSize - localCache.size
+        if (removedCount > 0) {
+            logger.info { "로컬 캐시 정리 완료: ${removedCount}개 항목 제거됨 (현재 캐시 크기: ${localCache.size})" }
+        }
+    }
 }

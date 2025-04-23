@@ -43,7 +43,7 @@ class RedisStreamManager(
             logger.info { "채팅방 스트림이 없습니다." }
             return
         }
-        
+
         streamKeys.forEach { streamKey ->
             try {
                 ensureStreamExists(streamKey)
@@ -74,6 +74,7 @@ class RedisStreamManager(
 
     /**
      * 지정한 스트림에 대해 소비자 그룹을 생성합니다.
+     * 이미 존재하는 소비자 그룹은 다시 생성하지 않습니다.
      *
      * @param streamKey 스트림 키
      * @param consumerGroup 소비자 그룹 이름
@@ -83,8 +84,16 @@ class RedisStreamManager(
         consumerGroup: String = DEFAULT_CONSUMER_GROUP
     ) {
         try {
-            redisTemplate.opsForStream<Any, Any>().createGroup(streamKey, consumerGroup)
-            logger.info { "Created consumer group for: $streamKey" }
+            // 소비자 그룹이 이미 존재하는지 확인
+            val consumerGroups = redisTemplate.opsForStream<Any, Any>().groups(streamKey)
+            val groupExists = consumerGroups.any { it.groupName() == consumerGroup }
+
+            if (!groupExists) {
+                redisTemplate.opsForStream<Any, Any>().createGroup(streamKey, consumerGroup)
+                logger.info { "Created consumer group for: $streamKey" }
+            } else {
+                logger.debug { "Consumer group already exists for: $streamKey" }
+            }
         } catch (e: Exception) {
             if (e.message?.contains("BUSYGROUP") != true) {
                 logger.warn(e) { "소비자 그룹 생성 오류: $streamKey" }
@@ -138,7 +147,7 @@ class RedisStreamManager(
         return try {
             val messages = redisTemplate.opsForStream<String, Any>()
                 .read(consumerOptions, readOptions, StreamOffset.create(streamKey, ReadOffset.lastConsumed()))
-            
+
             messages?.toList() ?: emptyList()
         } catch (e: Exception) {
             if (e.message?.contains("NOGROUP") == true) {

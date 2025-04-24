@@ -18,11 +18,26 @@ class JwtProvider(
     private val expiration: Long,
 
     @Value("\${jwt.refresh-token.expiration:43200}") // 기본값 30일(43200분)
-    private val refreshExpiration: Long
+    private val refreshExpiration: Long,
+
+    @Value("\${jwt.issuer:shoot-app}") // 기본값 "shoot-app"
+    private val issuer: String,
+
+    @Value("\${jwt.audience:shoot-clients}") // 기본값 "shoot-clients"
+    private val audience: String
 ) {
 
     private val secretKey: SecretKey by lazy {
-        Keys.hmacShaKeyFor(secret.toByteArray())
+        // 시크릿 키가 최소 32바이트(256비트)인지 확인
+        val keyBytes = if (secret.toByteArray().size >= 32) {
+            secret.toByteArray()
+        } else {
+            // 키가 충분히 길지 않으면 해싱하여 32바이트 키 생성
+            secret.toByteArray().let {
+                java.security.MessageDigest.getInstance("SHA-256").digest(it)
+            }
+        }
+        Keys.hmacShaKeyFor(keyBytes)
     }
 
     /**
@@ -30,7 +45,6 @@ class JwtProvider(
      *
      * @param userId   사용자 ID
      * @param username 사용자명
-     * @param expiresInMillis 만료 시간 (밀리초)
      * @return JWT 토큰
      */
     fun generateToken(
@@ -45,6 +59,9 @@ class JwtProvider(
             .claim("username", username) // username 추가
             .issuedAt(Date(now))
             .expiration(Date(expirationTime))
+            .id(UUID.randomUUID().toString()) // JWT ID 추가
+            .issuer(issuer) // 발급자 추가
+            .audience().add(audience).and() // 대상자 추가
             .signWith(secretKey, Jwts.SIG.HS256) // 알고리즘 명시 (HS256)
             .compact()
     }
@@ -54,7 +71,7 @@ class JwtProvider(
      *
      * @param userId     사용자 ID
      * @param username   사용자명
-     * @param expiresInMinutes 만료 시간 (분)
+     * @param expirationMinutes 만료 시간 (분)
      * @return JWT 리프레시 토큰
      */
     fun generateRefreshToken(
@@ -71,6 +88,9 @@ class JwtProvider(
             .claim("tokenType", "refresh") // 리프레시 토큰임을 명시
             .issuedAt(Date(now))
             .expiration(Date(expirationTime))
+            .id(UUID.randomUUID().toString()) // JWT ID 추가
+            .issuer(issuer) // 발급자 추가
+            .audience().add(audience).and() // 대상자 추가
             .signWith(secretKey, Jwts.SIG.HS256) // 알고리즘 명시
             .compact()
     }

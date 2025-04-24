@@ -84,4 +84,16 @@ logging:
     org.apache.kafka.clients.producer.ProducerConfig: WARN
 
 jwt:
-  secret: "your-256-bit-secret-key-base64-encoded"
+  # JWT 시크릿 키 (최소 32바이트 길이의 랜덤 문자열 사용 권장)
+  # 프로덕션 환경에서는 환경 변수나 외부 시크릿 관리 시스템 사용 권장
+  # 예: Base64로 인코딩된 256비트(32바이트) 키
+  secret: "${JWT_SECRET:your-256-bit-secret-key-base64-encoded}"
+  # 액세스 토큰 만료 시간 (분)
+  expiration: 60
+  # JWT 발급자 (issuer)
+  issuer: "shoot-app"
+  # JWT 대상자 (audience)
+  audience: "shoot-clients"
+  refresh-token:
+    # 리프레시 토큰 만료 시간 (분) - 기본값 30일
+    expiration: 43200

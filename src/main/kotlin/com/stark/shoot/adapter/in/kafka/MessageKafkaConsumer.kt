@@ -15,6 +15,7 @@ import com.stark.shoot.domain.chat.message.UrlPreview
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.kafka.support.Acknowledgment
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -30,7 +31,10 @@ class MessageKafkaConsumer(
     private val logger = KotlinLogging.logger {}
 
     @KafkaListener(topics = ["chat-messages"], groupId = "shoot")
-    fun consumeMessage(@Payload event: ChatEvent) {
+    fun consumeMessage(
+        @Payload event: ChatEvent,
+        acknowledgment: Acknowledgment
+    ) {
         if (event.type == EventType.MESSAGE_CREATED) {
             // 코루틴 내부에서 비동기 처리
             runBlocking {
@@ -50,6 +54,9 @@ class MessageKafkaConsumer(
 
                     // URL 미리보기 처리 필요 여부 확인
                     processChatMessageForUrlPreview(savedMessage)
+
+                    // 처리 완료 후 수동 커밋
+                    acknowledgment.acknowledge()
                 } catch (e: Exception) {
                     sendErrorResponse(event, e)
                 }

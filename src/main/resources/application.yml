@@ -40,12 +40,30 @@ spring:
     consumer:
       bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
       group-id: shoot
+      # 컨슈머 동시성 설정
+      concurrency: 1
+      # 컨슈머 추가 설정
+      auto-offset-reset: latest
+      enable-auto-commit: false
+      fetch-min-bytes: 1024
+      fetch-max-wait: 500
+      max-poll-records: 500
     producer:
       bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
     topics:
       chat-messages:
         partitions: 128 # 대용량 처리용
         replicas: 2 # 복제 팩터 (Docker Compose에서 2로 설정됨)
+      chat-notifications:
+        partitions: 32
+        replicas: 2
+      chat-events:
+        partitions: 32
+        replicas: 2
+      dead-letter-topic:
+        partitions: 16
+        replicas: 2
+        retention-ms: 604800000 # 7일 (ms)
 
   # 파일 업로드 설정
   servlet:

@@ -15,6 +15,7 @@ import org.springframework.kafka.listener.DeadLetterPublishingRecoverer
 import org.springframework.kafka.listener.DefaultErrorHandler
 import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.util.backoff.FixedBackOff
+import java.net.InetAddress
 
 @Configuration
 class KafkaConsumerConfig {
@@ -22,18 +23,48 @@ class KafkaConsumerConfig {
     @Value("\${spring.kafka.consumer.bootstrap-servers}")
     private lateinit var bootstrapServers: String
 
+    @Value("\${spring.kafka.consumer.group-id}")
+    private lateinit var groupId: String
+
+    // 컨슈머 동시성 설정 (기본값 3)
+    @Value("\${spring.kafka.consumer.concurrency:1}")
+    private var concurrency: Int = 1
+
     @Bean
     fun consumerFactory(): ConsumerFactory<String, ChatEvent> {
+        // 호스트명을 가져와 인스턴스별 고유 그룹 ID 생성
+        val hostname = try {
+            InetAddress.getLocalHost().hostName
+        } catch (e: Exception) {
+            "unknown-host"
+        }
+
         val configProps = mapOf(
+            // 기본 설정
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
-            ConsumerConfig.GROUP_ID_CONFIG to "shoot-\${random.uuid}", // 인스턴스별 고유 그룹 ID
+            ConsumerConfig.GROUP_ID_CONFIG to "$groupId-$hostname", // 인스턴스별 고유 그룹 ID
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
+
+            // 디시리얼라이저 설정
             JsonDeserializer.TRUSTED_PACKAGES to "com.stark.shoot.domain.chat.event",
             JsonDeserializer.TYPE_MAPPINGS to "chatEvent:com.stark.shoot.domain.chat.event.ChatEvent",
             JsonDeserializer.VALUE_DEFAULT_TYPE to ChatEvent::class.java.name,
-            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest"
+
+            // 오프셋 설정
+            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest",
+            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
+
+            // 성능 관련 설정
+            ConsumerConfig.FETCH_MIN_BYTES_CONFIG to 1024, // 최소 1KB 데이터를 모아서 가져옴
+            ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG to 500, // 최대 500ms 대기
+            ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 500, // 한 번에 최대 500개 레코드 처리
+
+            // 세션 타임아웃 설정
+            ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG to 30000, // 30초
+            ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG to 10000 // 10초
         )
+
         return DefaultKafkaConsumerFactory(
             configProps,
             StringDeserializer(),
@@ -49,16 +80,39 @@ class KafkaConsumerConfig {
         val factory = ConcurrentKafkaListenerContainerFactory<String, ChatEvent>()
         factory.consumerFactory = consumerFactory
         factory.setCommonErrorHandler(errorHandler)
+
+        // 동시성 설정 (여러 스레드로 메시지 처리)
+        factory.setConcurrency(concurrency)
+
+        // 배치 리스너 설정
+        factory.isBatchListener = false
+
+        // 자동 시작 설정
+        factory.setAutoStartup(true)
+
         return factory
     }
 
     @Bean
     fun kafkaErrorHandler(kafkaTemplate: KafkaTemplate<String, ChatEvent>): DefaultErrorHandler {
-        val fixedBackOff = FixedBackOff(1000L, 3) // 3회 재시도, 1초 간격
+        // 재시도 설정: 1초 간격으로 3회 재시도
+        val fixedBackOff = FixedBackOff(1000L, 3)
+
+        // Dead Letter Topic으로 실패한 메시지 전송
         val recoverer = DeadLetterPublishingRecoverer(kafkaTemplate) { record, _ ->
-            TopicPartition("dead-letter-topic", record.partition())
+            TopicPartition(KafkaTopics.DEAD_LETTER_TOPIC, record.partition())
         }
-        return DefaultErrorHandler(recoverer, fixedBackOff)
+
+        // 에러 핸들러 생성 및 설정
+        val errorHandler = DefaultErrorHandler(recoverer, fixedBackOff)
+
+        // 특정 예외는 재시도하지 않도록 설정
+        errorHandler.addNotRetryableExceptions(
+            IllegalArgumentException::class.java,
+            IllegalStateException::class.java
+        )
+
+        return errorHandler
     }
 
 }

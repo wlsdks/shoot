@@ -5,4 +5,5 @@ object KafkaTopics {
     const val CHAT_MESSAGES = "chat-messages"
     const val CHAT_NOTIFICATIONS = "chat-notifications"
     const val CHAT_EVENTS = "chat-events"
+    const val DEAD_LETTER_TOPIC = "dead-letter-topic"
 }

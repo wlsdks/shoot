@@ -1,7 +1,10 @@
 package com.stark.shoot.infrastructure.config.kafka
 
 import com.stark.shoot.domain.chat.event.ChatEvent
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -10,10 +13,12 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 import org.springframework.kafka.listener.KafkaListenerErrorHandler
+import org.springframework.kafka.support.ProducerListener
 import org.springframework.kafka.support.serializer.JsonSerializer
 
 @Configuration
 class KafkaProducerConfig {
+    private val logger = KotlinLogging.logger {}
 
     @Value("\${spring.kafka.producer.bootstrap-servers}")
     private lateinit var bootstrapServers: String
@@ -22,7 +27,28 @@ class KafkaProducerConfig {
     fun kafkaTemplate(
         producerFactory: ProducerFactory<String, ChatEvent>
     ): KafkaTemplate<String, ChatEvent> {
-        return KafkaTemplate(producerFactory)
+        val template = KafkaTemplate(producerFactory)
+
+        // 프로듀서 리스너 설정 (메시지 전송 결과 확인)
+        template.setProducerListener(object : ProducerListener<String, ChatEvent> {
+            override fun onSuccess(
+                producerRecord: ProducerRecord<String, ChatEvent>,
+                recordMetadata: RecordMetadata
+            ) {
+                // 성공 로그는 DEBUG 레벨로 설정 (운영 환경에서는 너무 많은 로그 방지)
+                logger.debug { "메시지 전송 성공: topic=${producerRecord.topic()}, partition=${recordMetadata.partition()}, offset=${recordMetadata.offset()}" }
+            }
+
+            override fun onError(
+                producerRecord: ProducerRecord<String, ChatEvent>,
+                recordMetadata: RecordMetadata?,
+                exception: Exception
+            ) {
+                logger.error(exception) { "메시지 전송 실패: topic=${producerRecord.topic()}, key=${producerRecord.key()}" }
+            }
+        })
+
+        return template
     }
 
     @Bean
@@ -52,9 +78,12 @@ class KafkaProducerConfig {
     // 에러 핸들러 빈 등록
     @Bean
     fun chatMessageErrorHandler(): KafkaListenerErrorHandler {
-        return KafkaListenerErrorHandler { _, exception ->
+        return KafkaListenerErrorHandler { data, exception ->
             // 에러 처리 로직
-            println("Error occurred: $exception")
+            logger.error(exception) { "메시지 처리 중 오류 발생: ${exception.message}" }
+
+            // 에러 처리 후 응답 반환 (필요시 커스텀 응답 객체 반환 가능)
+            "ERROR: ${exception.message}"
         }
     }
 

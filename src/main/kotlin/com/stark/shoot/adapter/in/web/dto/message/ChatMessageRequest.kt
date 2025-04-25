@@ -14,5 +14,5 @@ data class ChatMessageRequest(
     @JsonProperty("content") val content: MessageContentRequest,
     @JsonProperty("status") var status: MessageStatus? = null,
     @JsonProperty("readBy") val readBy: Map<String, Boolean>? = null,
-    @JsonProperty("metadata") var metadata: ChatMessageMetadataRequest
+    @JsonProperty("metadata") var metadata: ChatMessageMetadataRequest = ChatMessageMetadataRequest()
 )

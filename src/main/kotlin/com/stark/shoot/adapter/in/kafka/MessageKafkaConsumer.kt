@@ -30,7 +30,11 @@ class MessageKafkaConsumer(
 ) {
     private val logger = KotlinLogging.logger {}
 
-    @KafkaListener(topics = ["chat-messages"], groupId = "shoot")
+    @KafkaListener(
+        topics = ["chat-messages"],
+        groupId = "\${spring.kafka.consumer.group-id}", // 설정 파일의 값을 사용
+        containerFactory = "kafkaListenerContainerFactory" // 명시적으로 컨테이너 팩토리 지정
+    )
     fun consumeMessage(
         @Payload event: ChatEvent,
         acknowledgment: Acknowledgment

@@ -20,8 +20,8 @@ class FindFriendService(
     override fun getFriends(
         currentUserId: Long
     ): List<FriendResponse> {
-        // 현재 사용자 조회
-        val user = findUserPort.findUserById(currentUserId)
+        // 현재 사용자 조회 (친구 관계 정보 포함)
+        val user = findUserPort.findUserWithFriendshipsById(currentUserId)
             ?: throw ResourceNotFoundException("User not found")
 
         // 친구 목록은 도메인 User 객체의 friendIds 필드로 관리한다고 가정합니다.
@@ -46,8 +46,8 @@ class FindFriendService(
     override fun getIncomingFriendRequests(
         currentUserId: Long
     ): List<FriendResponse> {
-        // 현재 사용자 조회
-        val user = findUserPort.findUserById(currentUserId)
+        // 현재 사용자 조회 (친구 요청 정보 포함)
+        val user = findUserPort.findUserWithFriendRequestsById(currentUserId)
             ?: throw ResourceNotFoundException("User not found")
 
         // incomingFriendRequestIds는 받은 친구 요청 대상 User ID들의 집합으로 가정합니다.
@@ -72,8 +72,8 @@ class FindFriendService(
     override fun getOutgoingFriendRequests(
         currentUserId: Long
     ): List<FriendResponse> {
-        // 현재 사용자 조회
-        val user = findUserPort.findUserById(currentUserId)
+        // 현재 사용자 조회 (친구 요청 정보 포함)
+        val user = findUserPort.findUserWithFriendRequestsById(currentUserId)
             ?: throw ResourceNotFoundException("User not found")
 
         // outgoingFriendRequestIds는 보낸 친구 요청 대상 User ID들의 집합으로 가정합니다.

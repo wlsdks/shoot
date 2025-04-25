@@ -64,32 +64,34 @@ class RecommendFriendService(
         skip: Int,
         limit: Int
     ): List<FriendResponse> {
+        // 캐시 키 생성
         val cacheKey = getCacheKey(userId, limit)
 
-        // 1. 캐시 확인
+        // 캐시 확인
         val cachedUsers = getCachedRecommendations(cacheKey)
 
-        // 2. 캐시 데이터가 있으면 페이징해서 반환
+        // 캐시 데이터가 있으면 페이징해서 반환
         if (cachedUsers != null) {
             logger.debug { "캐시에서 추천 친구 목록 조회: userId=$userId, 결과=${cachedUsers.size}명" }
             return paginateAndConvert(cachedUsers, skip, limit)
         }
 
-        // 3. 중복 계산 방지
+        // 중복 계산 방지
         val userIdStr = userId.toString()
         if (inProgressUsers.contains(userIdStr)) {
-            logger.info { "이미 추천 목록 계산 중: userId=$userId" }
-            // 빈 목록 반환 (다음 요청에서 캐시된 결과를 받게 됨)
-            return emptyList()
+            logger.info { "이미 추천 목록 계산 중: userId=$userId, 랜덤 유저 반환" }
+            // 빈 목록 대신 랜덤 유저 반환
+            val randomRecommendations = recommendFriendPort.recommendFriends(-1, limit)
+            return paginateAndConvert(randomRecommendations, skip, limit)
         }
 
         try {
             inProgressUsers.add(userIdStr)
 
-            // 4. 데이터베이스에서 추천 친구 계산
+            // 데이터베이스에서 추천 친구 계산
             val recommendations = calculateAndCacheRecommendations(userId, cacheKey, limit)
 
-            // 5. 페이징 및 변환
+            // 페이징 및 변환
             return paginateAndConvert(recommendations, skip, limit)
         } finally {
             inProgressUsers.remove(userIdStr)
@@ -161,7 +163,15 @@ class RecommendFriendService(
         cacheKey: String,
         limit: Int
     ): List<User> {
-        val recommendedUsers = recommendFriendPort.recommendFriends(userId, limit * 2)
+        var recommendedUsers = recommendFriendPort.recommendFriends(userId, limit * 2)
+            .filter { it.id != userId } // 본인 제외
+
+        // 추천 결과가 없으면 랜덤 유저로 대체
+        if (recommendedUsers.isEmpty()) {
+            logger.info { "추천 친구가 없음: userId=$userId, 랜덤 유저 반환" }
+            recommendedUsers = recommendFriendPort.recommendFriends(-1, limit * 2)
+                .filter { it.id != userId } // 본인 제외
+        }
 
         // Redis 캐시에 JSON 문자열로 저장
         try {

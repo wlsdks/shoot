@@ -30,6 +30,13 @@ class RecommendFriendJpaAdapter(
         userId: Long,
         limit: Int
     ): List<User> {
+        // 특수 케이스: userId가 -1이면 랜덤 유저만 반환
+        if (userId == -1L) {
+            // 랜덤 유저 조회 시 제외할 ID는 없음 (자기 자신만 제외)
+            val excludeIds = mutableSetOf<Long>()
+            return findRandomUsers(excludeIds, limit)
+        }
+
         // 1. 제외할 사용자 목록 준비 (본인, 친구, 친구 요청)
         val excludeIds = getExcludedUserIds(userId)
 
@@ -38,7 +45,13 @@ class RecommendFriendJpaAdapter(
 
         // 3. 추천 결과가 충분하지 않으면 랜덤 유저로 채움
         if (recommendedUsers.size < limit) {
-            val randomUsers = findRandomUsers(excludeIds, limit - recommendedUsers.size)
+            // 이미 추천된 사용자들의 ID를 제외 목록에 추가
+            val updatedExcludeIds = excludeIds.toMutableSet()
+            recommendedUsers.forEach { user -> 
+                user.id?.let { updatedExcludeIds.add(it) }
+            }
+
+            val randomUsers = findRandomUsers(updatedExcludeIds, limit - recommendedUsers.size)
             recommendedUsers.addAll(randomUsers)
         }
 
@@ -96,9 +109,10 @@ class RecommendFriendJpaAdapter(
         val directFriends = friendshipMappingRepository.findAllByUserId(userId)
             .map { it.friend.id!! }
 
-        // 친구가 없으면 빈 리스트 반환
+        // 친구가 없으면 빈 리스트 반환하지 않고 랜덤 유저 추천
         if (directFriends.isEmpty()) {
-            return mutableListOf()
+            val randomUsers = findRandomUsers(excludeIds, limit)
+            return randomUsers.toMutableList()
         }
 
         // 직접 친구들을 방문 처리하고 큐에 추가

@@ -128,7 +128,7 @@ class MarkMessageReadService(
     override fun markAllMessagesAsRead(
         roomId: Long,
         userId: Long,
-        requestId: Long?
+        requestId: String?
     ) {
         // 중복 요청 체크 (Redis 캐시 활용)
         if (requestId != null) {
@@ -314,7 +314,7 @@ class MarkMessageReadService(
      * @param requestId 요청 ID
      * @return Redis 키
      */
-    private fun createReadOperationKey(roomId: Long, userId: Long, requestId: Long): String =
+    private fun createReadOperationKey(roomId: Long, userId: Long, requestId: String): String =
         "$READ_OPERATION_KEY_PREFIX$roomId:$userId:$requestId"
 
 }

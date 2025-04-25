@@ -3,12 +3,14 @@ package com.stark.shoot.adapter.`in`.event.listener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener
 import org.springframework.data.redis.connection.RedisConnection
+import org.springframework.data.redis.core.ScanOptions
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.messaging.SessionConnectEvent
 import org.springframework.web.socket.messaging.SessionDisconnectEvent
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 @Component
 class WebSocketEventListener(
@@ -21,7 +23,12 @@ class WebSocketEventListener(
     private val connectionsByUser = ConcurrentHashMap<String, AtomicInteger>()
 
     // 마지막 로그 시간 (초당 로그 제한용)
-    private var lastLogTime = System.currentTimeMillis()
+    private val lastLogTime = AtomicLong(System.currentTimeMillis())
+
+    // 상수로 키 프리픽스 정의
+    companion object {
+        private const val ACTIVE_KEY_PREFIX = "active:"
+    }
 
     /**
      * WebSocket 연결 이벤트 처리
@@ -41,9 +48,12 @@ class WebSocketEventListener(
 
         // 로깅 제한 (1초에 한 번만)
         val currentTime = System.currentTimeMillis()
-        if (currentTime - lastLogTime > 1000) {
-            lastLogTime = currentTime
-            logger.info { "Active WebSocket connections: ${activeConnections.get()} (users: ${connectionsByUser.size})" }
+        val lastTime = lastLogTime.get()
+        if (currentTime - lastTime > 1000) {
+            // CAS(Compare-And-Swap) 패턴 사용으로 스레드 안전성 확보
+            if (lastLogTime.compareAndSet(lastTime, currentTime)) {
+                logger.info { "Active WebSocket connections: ${activeConnections.get()} (users: ${connectionsByUser.size})" }
+            }
         }
     }
 
@@ -68,11 +78,17 @@ class WebSocketEventListener(
             }
         }
 
-        logger.info { "User disconnected: $userId (reason: ${event.closeStatus?.reason ?: "unknown"})" }
+        logger.info { "User disconnected: $userId (reason: ${event.closeStatus.reason ?: "unknown"})" }
 
-        // Redis 파이프라인을 사용하여 모든 active key를 한 번에 false로 설정
+        // Redis 스캔을 사용하여 사용자 키를 찾고 파이프라인으로 업데이트
         try {
-            val activeKeys = redisTemplate.keys("active:$userId:*")
+            val activeKeyPattern = "$ACTIVE_KEY_PREFIX$userId:*"
+            val scanOptions = ScanOptions.scanOptions().match(activeKeyPattern).count(100).build()
+            val activeKeys = mutableListOf<String>()
+
+            // 키 스캔 - 대량의 키가 있어도 효율적으로 작동
+            redisTemplate.scan(scanOptions).forEach { activeKeys.add(it) }
+
             if (activeKeys.isNotEmpty()) {
                 redisTemplate.executePipelined { connection: RedisConnection ->
                     for (key in activeKeys) {
@@ -89,4 +105,5 @@ class WebSocketEventListener(
             logger.error(e) { "Failed to update Redis active keys for user: $userId" }
         }
     }
+
 }

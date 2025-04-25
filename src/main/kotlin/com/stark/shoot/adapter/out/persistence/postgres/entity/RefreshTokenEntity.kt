@@ -10,7 +10,7 @@ class RefreshTokenEntity(
     @JoinColumn(name = "user_id")
     val user: UserEntity,
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 512)
     val token: String,
 
     @Column(nullable = false)

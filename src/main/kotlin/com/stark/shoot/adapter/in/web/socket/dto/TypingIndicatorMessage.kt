@@ -8,8 +8,8 @@ package com.stark.shoot.adapter.`in`.web.socket.dto
  * isTyping: true이면 타이핑 시작, false이면 타이핑 종료를 의미
  */
 data class TypingIndicatorMessage(
-    val roomId: String,
-    val userId: String,
+    val roomId: Long,
+    val userId: Long,
     val username: String? = null, // nullable로 변경
     val isTyping: Boolean
 )

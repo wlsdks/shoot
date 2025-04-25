@@ -158,7 +158,7 @@ class RedisStreamManager(
                     logger.error { "소비자 그룹 재생성 실패: $streamKey - ${ex.message}" }
                 }
             } else {
-                logger.error { "스트림 처리 오류: $streamKey - ${e.message}" }
+                logger.error(e) { "스트림 처리 오류: $streamKey - Error in execution" }
             }
             emptyList()
         }

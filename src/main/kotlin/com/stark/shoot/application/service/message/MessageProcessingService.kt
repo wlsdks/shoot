@@ -17,15 +17,15 @@ class MessageProcessingService(
 
     private val logger = KotlinLogging.logger {}
 
-    @Transactional  // 코루틴과 함께 사용 가능한 Spring의 트랜잭션 어노테이션
-    override suspend fun processMessageCreate(message: ChatMessage): ChatMessage {
+    @Transactional
+    override fun processMessageCreate(message: ChatMessage): ChatMessage {
         // 분산 락 키 생성 (채팅방별로 락을 걸기 위해 사용)
         val lockKey = "chatroom:${message.roomId}"
         val ownerId = "processor-${UUID.randomUUID()}"
 
         try {
-            // 이미 트랜잭션 컨텍스트 내에 있으므로 suspend 함수 직접 호출 가능
-            return redisLockManager.withLockSuspend(lockKey, ownerId) {
+            // 일반 함수 호출로 변경
+            return redisLockManager.withLock(lockKey, ownerId) {
                 messageProcessingChain.reset().proceed(message)
             }
         } catch (e: Exception) {

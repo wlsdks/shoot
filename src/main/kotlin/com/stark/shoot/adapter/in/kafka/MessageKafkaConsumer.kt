@@ -13,7 +13,6 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.UrlPreview
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.runBlocking
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.messaging.handler.annotation.Payload
@@ -40,30 +39,27 @@ class MessageKafkaConsumer(
         acknowledgment: Acknowledgment
     ) {
         if (event.type == EventType.MESSAGE_CREATED) {
-            // 코루틴 내부에서 비동기 처리
-            runBlocking {
-                try {
-                    // 메시지 내부의 임시 ID, 채팅방 ID 추출
-                    val tempId = event.data.metadata.tempId!!
-                    val roomId = event.data.roomId
+            try {
+                // 메시지 내부의 임시 ID, 채팅방 ID 추출
+                val tempId = event.data.metadata.tempId!!
+                val roomId = event.data.roomId
 
-                    // MongoDB 저장 전 처리 중 상태 업데이트
-                    sendStatusUpdate(roomId, tempId, MessageStatus.PROCESSING.name, null)
+                // MongoDB 저장 전 처리 중 상태 업데이트
+                sendStatusUpdate(roomId, tempId, MessageStatus.PROCESSING.name, null)
 
-                    // 메시지 저장
-                    val savedMessage = processMessageUseCase.processMessageCreate(event.data)
+                // 메시지 저장
+                val savedMessage = processMessageUseCase.processMessageCreate(event.data)
 
-                    // 저장 성공 상태 업데이트
-                    sendStatusUpdate(roomId, tempId, MessageStatus.SAVED.name, savedMessage.id)
+                // 저장 성공 상태 업데이트
+                sendStatusUpdate(roomId, tempId, MessageStatus.SAVED.name, savedMessage.id)
 
-                    // URL 미리보기 처리 필요 여부 확인
-                    processChatMessageForUrlPreview(savedMessage)
+                // URL 미리보기 처리 필요 여부 확인
+                processChatMessageForUrlPreview(savedMessage)
 
-                    // 처리 완료 후 수동 커밋
-                    acknowledgment.acknowledge()
-                } catch (e: Exception) {
-                    sendErrorResponse(event, e)
-                }
+                // 처리 완료 후 수동 커밋
+                acknowledgment.acknowledge()
+            } catch (e: Exception) {
+                sendErrorResponse(event, e)
             }
         }
     }

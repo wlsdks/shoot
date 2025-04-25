@@ -9,7 +9,7 @@ interface MessageProcessingChain {
      * @param message 처리할 메시지
      * @return 처리된 메시지
      */
-    suspend fun proceed(message: ChatMessage): ChatMessage
+    fun proceed(message: ChatMessage): ChatMessage
 
     /**
      * 필터 간 공유 컨텍스트에서 값을 가져옵니다.

@@ -7,13 +7,15 @@ import com.stark.shoot.application.port.out.chatroom.ReadStatusPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.room.ChatRoom
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class ReadStatusInitFilter(
     private val readStatusPort: ReadStatusPort
 ) : MessageProcessingFilter {
 
-    override suspend fun process(
+    @Transactional
+    override fun process(
         message: ChatMessage,
         chain: MessageProcessingChain
     ): ChatMessage {

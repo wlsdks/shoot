@@ -14,7 +14,7 @@ class ChatRoomUpdateFilter(
     private val saveChatRoomPort: SaveChatRoomPort
 ) : MessageProcessingFilter {
 
-    override suspend fun process(
+    override fun process(
         message: ChatMessage,
         chain: MessageProcessingChain
     ): ChatMessage {

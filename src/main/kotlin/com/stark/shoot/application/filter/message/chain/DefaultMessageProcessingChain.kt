@@ -15,7 +15,7 @@ class DefaultMessageProcessingChain(
     // 필터 간 공유 컨텍스트
     private val context = mutableMapOf<String, Any?>()
 
-    override suspend fun proceed(
+    override fun proceed(
         message: ChatMessage
     ): ChatMessage {
         // 모든 필터 실행 완료

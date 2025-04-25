@@ -23,7 +23,7 @@ interface ChatRoomUserRepository : JpaRepository<ChatRoomUserEntity, Long> {
     fun updateLastReadMessageId(
         @Param("roomId") roomId: Long,
         @Param("userId") userId: Long,
-        @Param("messageId") messageId: String  // 타입 선언 변경
+        @Param("messageId") messageId: String
     )
 
     @Query(

@@ -4,5 +4,5 @@ import com.stark.shoot.application.filter.message.chain.MessageProcessingChain
 import com.stark.shoot.domain.chat.message.ChatMessage
 
 interface MessageProcessingFilter {
-    suspend fun process(message: ChatMessage, chain: MessageProcessingChain): ChatMessage
+    fun process(message: ChatMessage, chain: MessageProcessingChain): ChatMessage
 }

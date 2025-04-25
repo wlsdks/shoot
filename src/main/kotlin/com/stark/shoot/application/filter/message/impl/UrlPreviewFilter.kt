@@ -17,7 +17,7 @@ class UrlPreviewFilter(
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
 ) : MessageProcessingFilter {
 
-    override suspend fun process(
+    override fun process(
         message: ChatMessage,
         chain: MessageProcessingChain
     ): ChatMessage {

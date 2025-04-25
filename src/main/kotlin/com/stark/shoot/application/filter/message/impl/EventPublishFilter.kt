@@ -19,7 +19,7 @@ class EventPublishFilter(
 
     private val logger = KotlinLogging.logger {}
 
-    override suspend fun process(
+    override fun process(
         message: ChatMessage,
         chain: MessageProcessingChain
     ): ChatMessage {

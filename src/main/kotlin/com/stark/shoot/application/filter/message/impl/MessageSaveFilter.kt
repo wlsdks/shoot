@@ -11,7 +11,7 @@ class MessageSaveFilter(
     private val saveMessagePort: SaveMessagePort
 ) : MessageProcessingFilter {
 
-    override suspend fun process(
+    override fun process(
         message: ChatMessage,
         chain: MessageProcessingChain
     ): ChatMessage {

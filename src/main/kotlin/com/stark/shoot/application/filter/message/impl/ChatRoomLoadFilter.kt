@@ -23,7 +23,7 @@ class ChatRoomLoadFilter(
         const val CHAT_ROOM_CONTEXT_KEY = "chatRoom"
     }
 
-    override suspend fun process(
+    override fun process(
         message: ChatMessage,
         chain: MessageProcessingChain
     ): ChatMessage {

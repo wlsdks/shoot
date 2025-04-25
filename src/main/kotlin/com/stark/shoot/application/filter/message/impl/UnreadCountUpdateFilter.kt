@@ -11,7 +11,7 @@ class UnreadCountUpdateFilter(
     private val redisTemplate: StringRedisTemplate
 ) : MessageProcessingFilter {
 
-    override suspend fun process(
+    override fun process(
         message: ChatMessage,
         chain: MessageProcessingChain
     ): ChatMessage {

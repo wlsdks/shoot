@@ -81,7 +81,7 @@ class ExceptionHandlingAspect {
                     ApiException(e.message ?: "리소스 잠금 실패", ErrorCode.LOCK_ACQUIRE_FAILED, e)
 
                 else -> ApiException(
-                    "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+                    "${e.message}",
                     ErrorCode.EXTERNAL_SERVICE_ERROR,
                     e
                 )

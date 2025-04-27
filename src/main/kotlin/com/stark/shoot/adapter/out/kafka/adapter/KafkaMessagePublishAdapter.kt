@@ -43,7 +43,7 @@ class KafkaMessagePublishAdapter(
         topic: String,
         key: String,
         event: ChatEvent
-    ) = withContext(Dispatchers.IO) {
+    ) {
         try {
             val result = kafkaTemplate.send(topic, key, event).await()
 //            logger.info { "Message sent to topic: $topic, key: $key, offset: ${result.recordMetadata.offset()}" }

@@ -110,13 +110,13 @@ class FriendRequestService(
         requesterId: Long
     ) {
         // 친구 요청 존재 여부 확인
-        if (!findUserPort.checkIncomingFriendRequest(currentUserId, requesterId)) {
+        if (!findUserPort.checkOutgoingFriendRequest(currentUserId, requesterId)) {
             throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
         }
 
         // 친구 요청 제거
-        updateFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
-        updateFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
+        updateFriendPort.removeIncomingFriendRequest(requesterId, currentUserId)
+        updateFriendPort.removeOutgoingFriendRequest(currentUserId, requesterId)
 
         // 캐시 무효화
         invalidateRecommendationCache(currentUserId)

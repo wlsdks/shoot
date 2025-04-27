@@ -111,26 +111,24 @@ class SendMessageService(
     private suspend fun publishToRedisSuspend(
         message: ChatMessageRequest
     ) {
-        withContext(Dispatchers.IO) {
-            val streamKey = "stream:chat:room:${message.roomId}"
-            try {
-                val messageJson = objectMapper.writeValueAsString(message)
-                val map = mapOf("message" to messageJson)
+        val streamKey = "stream:chat:room:${message.roomId}"
+        try {
+            val messageJson = objectMapper.writeValueAsString(message)
+            val map = mapOf("message" to messageJson)
 
-                // StreamRecords 사용
-                val record = StreamRecords.newRecord()
-                    .ofMap(map)
-                    .withStreamKey(streamKey)
+            // StreamRecords 사용
+            val record = StreamRecords.newRecord()
+                .ofMap(map)
+                .withStreamKey(streamKey)
 
-                // Stream 추가
-                val messageId = redisTemplate.opsForStream<String, String>()
-                    .add(record)
+            // Stream 추가
+            val messageId = redisTemplate.opsForStream<String, String>()
+                .add(record)
 
-                logger.debug { "Redis Stream에 메시지 발행: $streamKey, id: $messageId, tempId: ${message.tempId}" }
-            } catch (e: Exception) {
-                logger.error(e) { "Redis 발행 실패: ${e.message}" }
-                throw e
-            }
+            logger.debug { "Redis Stream에 메시지 발행: $streamKey, id: $messageId, tempId: ${message.tempId}" }
+        } catch (e: Exception) {
+            logger.error(e) { "Redis 발행 실패: ${e.message}" }
+            throw e
         }
     }
 
@@ -141,7 +139,7 @@ class SendMessageService(
      */
     private suspend fun sendToKafkaSuspend(
         message: ChatMessageRequest
-    ) = withContext(Dispatchers.IO) {
+    ) {
         val tempId = message.tempId ?: ""
 
         try {
@@ -272,14 +270,14 @@ class SendMessageService(
         requestMessage: ChatMessageRequest,
         chatEvent: ChatEvent,
         tempId: String?
-    ): String? = withContext(Dispatchers.IO) {
+    ): String? {
         try {
             kafkaMessagePublishPort.publishChatEventSuspend(
                 topic = "chat-messages",
                 key = requestMessage.roomId.toString(),
                 event = chatEvent
             )
-            tempId
+            return tempId
         } catch (e: Exception) {
             // 에러 로깅
             logger.error(e) { "Kafka 발행 실패: ${requestMessage.roomId}" }

@@ -63,21 +63,29 @@ class UpdateChatRoomFavoriteService(
         pinnedRooms: List<ChatRoom>
     ): MutableSet<Long> {
         val currentPinned = chatRoom.pinnedParticipants.toMutableSet()
-        if (isFavorite) {
-            // 아직 핀 처리되지 않은 경우
-            if (!currentPinned.contains(userId)) {
-                if (pinnedRooms.size >= MAX_PINNED) {
-                    throw ApiException(
-                        "최대 핀 채팅방 개수를 초과했습니다. (MAX_PINNED=$MAX_PINNED)",
-                        ErrorCode.FAVORITE_LIMIT_EXCEEDED
-                    )
-                }
-                currentPinned.add(userId)
+
+        // 이미 즐겨찾기된 채팅방인지 확인
+        val isAlreadyPinned = currentPinned.contains(userId)
+
+        // 이미 즐겨찾기된 채팅방을 다시 즐겨찾기하려고 하면 제거 (토글 동작)
+        if (isFavorite && isAlreadyPinned) {
+            currentPinned.remove(userId)
+        } 
+        // 즐겨찾기 추가 요청이고 아직 즐겨찾기되지 않은 경우
+        else if (isFavorite && !isAlreadyPinned) {
+            if (pinnedRooms.size >= MAX_PINNED) {
+                throw ApiException(
+                    "최대 핀 채팅방 개수를 초과했습니다. (MAX_PINNED=$MAX_PINNED)",
+                    ErrorCode.FAVORITE_LIMIT_EXCEEDED
+                )
             }
-        } else {
-            // 즐겨찾기 해제: 이미 핀 처리된 경우 제거
+            currentPinned.add(userId)
+        } 
+        // 즐겨찾기 해제 요청
+        else if (!isFavorite) {
             currentPinned.remove(userId)
         }
+
         return currentPinned
     }
 

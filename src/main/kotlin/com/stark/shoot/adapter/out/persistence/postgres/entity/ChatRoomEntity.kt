@@ -33,4 +33,18 @@ class ChatRoomEntity(
     var lastActiveAt: Instant = lastActiveAt
         protected set
 
+    fun update(
+        title: String? = this.title,
+        type: ChatRoomType = this.type,
+        announcement: String? = this.announcement,
+        lastMessageId: Long? = this.lastMessageId,
+        lastActiveAt: Instant = this.lastActiveAt
+    ) {
+        this.title = title
+        this.type = type
+        this.announcement = announcement
+        this.lastMessageId = lastMessageId
+        this.lastActiveAt = lastActiveAt
+    }
+
 }

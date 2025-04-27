@@ -25,8 +25,40 @@ class SaveChatRoomPersistenceAdapter(
      */
     override fun save(chatRoom: ChatRoom): ChatRoom {
         // 1. 채팅방 엔티티로 변환 및 저장
-        val chatRoomEntity = chatRoomMapper.toEntity(chatRoom)
-        val savedChatRoomEntity = chatRoomRepository.save(chatRoomEntity)
+        val savedChatRoomEntity = if (chatRoom.id != null) {
+            // 기존 채팅방 업데이트
+            val existingEntity = chatRoomRepository.findById(chatRoom.id).orElseThrow {
+                IllegalStateException("채팅방을 찾을 수 없습니다. id=${chatRoom.id}")
+            }
+
+            // 도메인 객체에서 업데이트 로직 수행
+            val existingChatRoom = chatRoomMapper.toDomain(existingEntity, 
+                chatRoomUserRepository.findByChatRoomId(existingEntity.id))
+
+            // 도메인 객체 업데이트
+            val updatedChatRoom = existingChatRoom.update(
+                title = chatRoom.title,
+                type = chatRoom.type,
+                announcement = chatRoom.announcement,
+                lastMessageId = chatRoom.lastMessageId,
+                lastActiveAt = chatRoom.lastActiveAt
+            )
+
+            // 업데이트된 도메인 객체를 사용하여 엔티티 업데이트
+            existingEntity.update(
+                title = updatedChatRoom.title,
+                type = updatedChatRoom.type,
+                announcement = updatedChatRoom.announcement,
+                lastMessageId = updatedChatRoom.lastMessageId?.toLongOrNull(),
+                lastActiveAt = updatedChatRoom.lastActiveAt
+            )
+
+            chatRoomRepository.save(existingEntity)
+        } else {
+            // 새 채팅방 생성
+            val chatRoomEntity = chatRoomMapper.toEntity(chatRoom)
+            chatRoomRepository.save(chatRoomEntity)
+        }
 
         // 2. 기존 채팅방 참여자 조회 (ID 있는 경우 업데이트 시나리오)
         val existingParticipants = if (chatRoom.id != null) {

@@ -16,4 +16,26 @@ data class ChatRoom(
     val announcement: String? = null,
     val pinnedParticipants: MutableSet<Long> = mutableSetOf(),
     val updatedAt: Instant? = null
-)
+) {
+    /**
+     * 채팅방 정보 업데이트
+     */
+    fun update(
+        id: Long? = this.id,
+        title: String? = this.title,
+        type: ChatRoomType = this.type,
+        announcement: String? = this.announcement,
+        lastMessageId: String? = this.lastMessageId,
+        lastActiveAt: Instant = this.lastActiveAt
+    ): ChatRoom {
+        return this.copy(
+            id = id,
+            title = title,
+            type = type,
+            announcement = announcement,
+            lastMessageId = lastMessageId,
+            lastActiveAt = lastActiveAt,
+            updatedAt = Instant.now()
+        )
+    }
+}

@@ -1,5 +1,7 @@
 package com.stark.shoot.domain.chat.room
 
+import com.stark.shoot.adapter.`in`.web.dto.ApiException
+import com.stark.shoot.adapter.`in`.web.dto.ErrorCode
 import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomType
 import java.time.Instant
 
@@ -17,6 +19,37 @@ data class ChatRoom(
     val pinnedParticipants: MutableSet<Long> = mutableSetOf(),
     val updatedAt: Instant? = null
 ) {
+    companion object {
+        private const val MAX_PINNED = 5
+
+        /**
+         * 1:1 채팅방 생성
+         *
+         * @param userId 사용자 ID
+         * @param friendId 친구 ID
+         * @param friendName 친구 이름 (채팅방 제목용)
+         * @return 새로운 1:1 채팅방
+         */
+        fun createDirectChat(
+            userId: Long,
+            friendId: Long,
+            friendName: String
+        ): ChatRoom {
+            val title = "${friendName}님과의 대화"
+
+            return ChatRoom(
+                title = title,
+                type = ChatRoomType.INDIVIDUAL,
+                announcement = null,
+                participants = mutableSetOf(userId, friendId),
+                pinnedParticipants = mutableSetOf(),
+                lastMessageId = null,
+                lastActiveAt = Instant.now(),
+                createdAt = Instant.now()
+            )
+        }
+    }
+
     /**
      * 채팅방 정보 업데이트
      */
@@ -37,5 +70,185 @@ data class ChatRoom(
             lastActiveAt = lastActiveAt,
             updatedAt = Instant.now()
         )
+    }
+
+    /**
+     * 참여자 추가
+     * 
+     * @param userId 추가할 사용자 ID
+     * @return 업데이트된 ChatRoom 객체 (이미 참여 중인 경우 현재 객체 반환)
+     */
+    fun addParticipant(userId: Long): ChatRoom {
+        // 이미 참여 중인지 확인
+        if (participants.contains(userId)) {
+            return this
+        }
+
+        val updatedParticipants = this.participants.toMutableSet()
+        updatedParticipants.add(userId)
+        return this.copy(
+            participants = updatedParticipants,
+            updatedAt = Instant.now()
+        )
+    }
+
+    /**
+     * 참여자 제거
+     * 
+     * @param userId 제거할 사용자 ID
+     * @return 업데이트된 ChatRoom 객체 (참여자가 아닌 경우 현재 객체 반환)
+     */
+    fun removeParticipant(userId: Long): ChatRoom {
+        // 참여자가 아닌 경우
+        if (!participants.contains(userId)) {
+            return this
+        }
+
+        val updatedParticipants = this.participants.toMutableSet()
+        updatedParticipants.remove(userId)
+        return this.copy(
+            participants = updatedParticipants,
+            updatedAt = Instant.now()
+        )
+    }
+
+    /**
+     * 여러 참여자 추가
+     */
+    fun addParticipants(userIds: Collection<Long>): ChatRoom {
+        val updatedParticipants = this.participants.toMutableSet()
+        updatedParticipants.addAll(userIds)
+        return this.copy(participants = updatedParticipants)
+    }
+
+    /**
+     * 여러 참여자 제거
+     */
+    fun removeParticipants(userIds: Collection<Long>): ChatRoom {
+        val updatedParticipants = this.participants.toMutableSet()
+        updatedParticipants.removeAll(userIds.toSet())
+        return this.copy(participants = updatedParticipants)
+    }
+
+    /**
+     * 참여자 목록 업데이트 (기존 참여자 유지하고 새 참여자 추가, 제외된 참여자 제거)
+     */
+    fun updateParticipants(newParticipants: Collection<Long>): ChatRoom {
+        val newParticipantsSet = newParticipants.toSet()
+        val participantsToAdd = newParticipantsSet - this.participants
+        val participantsToRemove = this.participants - newParticipantsSet
+
+        var updatedChatRoom = this
+
+        if (participantsToAdd.isNotEmpty()) {
+            updatedChatRoom = updatedChatRoom.addParticipants(participantsToAdd)
+        }
+
+        if (participantsToRemove.isNotEmpty()) {
+            updatedChatRoom = updatedChatRoom.removeParticipants(participantsToRemove)
+        }
+
+        return updatedChatRoom
+    }
+
+    /**
+     * 즐겨찾기(핀) 상태 업데이트
+     * 
+     * @param userId 사용자 ID
+     * @param isFavorite 즐겨찾기 여부
+     * @param userPinnedRoomsCount 사용자가 현재 핀한 채팅방 수
+     * @return 업데이트된 ChatRoom 객체
+     */
+    fun updateFavoriteStatus(
+        userId: Long, 
+        isFavorite: Boolean,
+        userPinnedRoomsCount: Int
+    ): ChatRoom {
+        val updatedPinned = updatePinnedParticipants(userId, isFavorite, userPinnedRoomsCount)
+        return this.copy(pinnedParticipants = updatedPinned)
+    }
+
+    /**
+     * 고정 참여자 목록 업데이트
+     * 
+     * @param userId 사용자 ID
+     * @param isFavorite 즐겨찾기 여부
+     * @param userPinnedRoomsCount 사용자가 현재 핀한 채팅방 수 (현재 채팅방 제외)
+     * @return 업데이트된 고정 참여자 목록
+     */
+    private fun updatePinnedParticipants(
+        userId: Long,
+        isFavorite: Boolean,
+        userPinnedRoomsCount: Int
+    ): MutableSet<Long> {
+        val currentPinned = this.pinnedParticipants.toMutableSet()
+        val isAlreadyPinned = currentPinned.contains(userId)
+
+        // 이미 즐겨찾기된 채팅방을 다시 즐겨찾기하려고 하면 제거 (토글 동작)
+        if (isFavorite && isAlreadyPinned) {
+            currentPinned.remove(userId)
+        } 
+        // 즐겨찾기 추가 요청이고 아직 즐겨찾기되지 않은 경우
+        else if (isFavorite && !isAlreadyPinned) {
+            if (userPinnedRoomsCount >= MAX_PINNED) {
+                throw ApiException(
+                    "최대 핀 채팅방 개수를 초과했습니다. (MAX_PINNED=$MAX_PINNED)",
+                    ErrorCode.FAVORITE_LIMIT_EXCEEDED
+                )
+            }
+            currentPinned.add(userId)
+        } 
+        // 즐겨찾기 해제 요청
+        else if (!isFavorite) {
+            currentPinned.remove(userId)
+        }
+
+        return currentPinned
+    }
+
+    /**
+     * 채팅방 공지사항 업데이트
+     *
+     * @param announcement 새 공지사항 (null인 경우 공지사항 삭제)
+     * @return 업데이트된 ChatRoom 객체
+     */
+    fun updateAnnouncement(announcement: String?): ChatRoom {
+        return this.copy(
+            announcement = announcement,
+            updatedAt = Instant.now()
+        )
+    }
+
+    /**
+     * 채팅방이 비어있는지 확인 (참여자가 없는지)
+     *
+     * @return 채팅방이 비어있으면 true, 아니면 false
+     */
+    fun isEmpty(): Boolean {
+        return participants.isEmpty()
+    }
+
+    /**
+     * 채팅방이 특정 사용자들만 포함하는지 확인
+     *
+     * @param userIds 확인할 사용자 ID 목록
+     * @return 채팅방이 정확히 해당 사용자들만 포함하면 true, 아니면 false
+     */
+    fun containsExactlyUsers(userIds: Collection<Long>): Boolean {
+        return participants.size == userIds.size && participants.containsAll(userIds)
+    }
+
+    /**
+     * 1:1 채팅방인지 확인하고 특정 두 사용자만 포함하는지 확인
+     *
+     * @param userId1 첫 번째 사용자 ID
+     * @param userId2 두 번째 사용자 ID
+     * @return 1:1 채팅방이고 정확히 해당 두 사용자만 포함하면 true, 아니면 false
+     */
+    fun isDirectChatBetween(userId1: Long, userId2: Long): Boolean {
+        return type == ChatRoomType.INDIVIDUAL && 
+               participants.size == 2 && 
+               participants.contains(userId1) && 
+               participants.contains(userId2)
     }
 }

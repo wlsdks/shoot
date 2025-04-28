@@ -63,5 +63,4 @@ data class ChatMessageMetadata(
             }
         )
     }
-
 }

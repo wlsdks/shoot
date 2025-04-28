@@ -1,11 +1,13 @@
 package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
+import com.stark.shoot.application.port.out.chatroom.DeleteChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 
 @Transactional
@@ -13,8 +15,11 @@ import org.springframework.transaction.annotation.Transactional
 class ManageChatRoomService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
+    private val deleteChatRoomPort: DeleteChatRoomPort,
     private val findUserPort: FindUserPort
 ) : ManageChatRoomUseCase {
+
+    private val logger = KotlinLogging.logger {}
 
     /**
      *
@@ -33,19 +38,14 @@ class ManageChatRoomService(
         // 사용자 존재 여부 확인
         if (!findUserPort.existsById(userId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
-
         }
 
-        // 이미 참여 중인지 확인
-        if (chatRoom.participants.contains(userId)) {
-            return true // 이미 참여 중이면 true 반환
-        }
-
-        // 참여자 추가
-        chatRoom.participants.add(userId)
+        // 참여자 추가 (도메인 객체의 메서드 사용)
+        // 도메인 메서드 내부에서 이미 참여 중인지 확인하는 로직 처리
+        val updatedChatRoom = chatRoom.addParticipant(userId)
 
         // 변경사항 저장
-        saveChatRoomPort.save(chatRoom)
+        saveChatRoomPort.save(updatedChatRoom)
 
         return true
     }
@@ -64,25 +64,27 @@ class ManageChatRoomService(
         val chatRoom = loadChatRoomPort.findById(roomId)
             ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다.")
 
-        // 참여자가 아닌 경우
-        if (!chatRoom.participants.contains(userId)) {
+        // 참여자 제거 (도메인 객체의 메서드 사용)
+        // 도메인 메서드 내부에서 참여자가 아닌 경우 처리
+        val updatedChatRoom = chatRoom.removeParticipant(userId)
+
+        // 참여자가 아니었으면 변경이 없으므로 원래 객체와 동일
+        if (updatedChatRoom === chatRoom) {
             return false
         }
 
-        // 참여자 제거
-        chatRoom.participants.remove(userId)
-
-        // 고정된 참여자 목록에서도 제거
-        if (chatRoom.pinnedParticipants.contains(userId)) {
-            chatRoom.pinnedParticipants.remove(userId)
-        }
-
         // 변경사항 저장
-        saveChatRoomPort.save(chatRoom)
+        saveChatRoomPort.save(updatedChatRoom)
 
-        // 채팅방에 참여자가 없으면 추가 처리 가능 (예: 채팅방 삭제)
-        if (chatRoom.participants.isEmpty()) {
-            // 채팅방 삭제 로직 (필요시 구현)
+        // 채팅방에 참여자가 없으면 채팅방 삭제
+        if (updatedChatRoom.isEmpty()) {
+            logger.info { "빈 채팅방 삭제 시도: roomId=$roomId" }
+            val deleted = deleteChatRoomPort.deleteById(roomId)
+            if (deleted) {
+                logger.info { "빈 채팅방 삭제 완료: roomId=$roomId" }
+            } else {
+                logger.warn { "빈 채팅방 삭제 실패: roomId=$roomId" }
+            }
         }
 
         return true
@@ -102,8 +104,8 @@ class ManageChatRoomService(
         val chatRoom = loadChatRoomPort.findById(roomId)
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다: $roomId")
 
-        // 공지사항 업데이트
-        val updatedRoom = chatRoom.copy(announcement = announcement)
+        // 공지사항 업데이트 (도메인 객체의 메서드 사용)
+        val updatedRoom = chatRoom.updateAnnouncement(announcement)
 
         // 변경사항 저장
         saveChatRoomPort.save(updatedRoom)

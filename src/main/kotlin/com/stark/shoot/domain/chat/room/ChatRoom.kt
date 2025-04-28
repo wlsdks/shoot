@@ -1,8 +1,6 @@
 package com.stark.shoot.domain.chat.room
 
-import com.stark.shoot.adapter.`in`.web.dto.ApiException
-import com.stark.shoot.adapter.`in`.web.dto.ErrorCode
-import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomType
+import com.stark.shoot.domain.exception.FavoriteLimitExceededException
 import java.time.Instant
 
 data class ChatRoom(
@@ -191,10 +189,7 @@ data class ChatRoom(
         // 즐겨찾기 추가 요청이고 아직 즐겨찾기되지 않은 경우
         else if (isFavorite && !isAlreadyPinned) {
             if (userPinnedRoomsCount >= MAX_PINNED) {
-                throw ApiException(
-                    "최대 핀 채팅방 개수를 초과했습니다. (MAX_PINNED=$MAX_PINNED)",
-                    ErrorCode.FAVORITE_LIMIT_EXCEEDED
-                )
+                throw FavoriteLimitExceededException("최대 핀 채팅방 개수를 초과했습니다. (MAX_PINNED=$MAX_PINNED)")
             }
             currentPinned.add(userId)
         } 

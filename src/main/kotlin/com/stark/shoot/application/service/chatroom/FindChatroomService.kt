@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
-import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomType
+import com.stark.shoot.domain.chat.room.ChatRoomType
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom

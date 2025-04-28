@@ -1,12 +1,14 @@
 package com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomUserEntity
+import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomType as PersistenceChatRoomType
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.domain.chat.room.ChatRoomType as DomainChatRoomType
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
@@ -44,10 +46,16 @@ class SaveChatRoomPersistenceAdapter(
                 lastActiveAt = chatRoom.lastActiveAt
             )
 
+            // 도메인 타입에서 영속성 타입으로 변환
+            val persistenceType = when (updatedChatRoom.type) {
+                DomainChatRoomType.INDIVIDUAL -> PersistenceChatRoomType.INDIVIDUAL
+                DomainChatRoomType.GROUP -> PersistenceChatRoomType.GROUP
+            }
+
             // 업데이트된 도메인 객체를 사용하여 엔티티 업데이트
             existingEntity.update(
                 title = updatedChatRoom.title,
-                type = updatedChatRoom.type,
+                type = persistenceType,
                 announcement = updatedChatRoom.announcement,
                 lastMessageId = updatedChatRoom.lastMessageId?.toLongOrNull(),
                 lastActiveAt = updatedChatRoom.lastActiveAt

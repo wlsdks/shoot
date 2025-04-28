@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.dto.chatroom
 
-import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomType
+import com.stark.shoot.domain.chat.room.ChatRoomType
 import com.stark.shoot.domain.chat.room.ChatRoom
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

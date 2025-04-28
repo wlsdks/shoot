@@ -70,9 +70,8 @@ class MarkMessageReadService(
             return
         }
 
-        // 메시지 읽음 상태 업데이트
-        chatMessage.readBy[userId] = true
-        val updatedMessage = saveMessagePort.save(chatMessage)
+        // 도메인 객체의 메서드를 사용하여 메시지 읽음 상태 업데이트
+        val updatedMessage = saveMessagePort.save(chatMessage.markAsRead(userId))
         val roomId = chatMessage.roomId
 
         // 병렬로 비동기 작업 처리 (트랜잭션 외부에서 실행되어야 하는 작업들)
@@ -228,13 +227,13 @@ class MarkMessageReadService(
             return emptyList()
         }
 
-        // 모든 메시지를 한 번에 업데이트하도록 최적화
-        unreadMessages.forEach { message ->
-            message.readBy[userId] = true
+        // 도메인 객체의 메서드를 사용하여 모든 메시지를 한 번에 업데이트하도록 최적화
+        val markedMessages = unreadMessages.map { message ->
+            message.markAsRead(userId)
         }
 
         // 일괄 저장으로 DB 쿼리 최소화
-        return saveMessagePort.saveAll(unreadMessages)
+        return saveMessagePort.saveAll(markedMessages)
             .mapNotNull { it.id }
             .also { messageIds ->
                 logger.debug { "일괄 읽음 처리 완료: ${messageIds.size}개 메시지, userId=$userId" }

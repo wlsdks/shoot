@@ -39,31 +39,20 @@ class CreateChatRoomService(
         val friend = findUserPort.findUserById(friendId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $friendId")
 
-        // 2. 이미 존재하는 1:1 채팅방이 있는지 확인 (1:1 채팅방의 경우 두 사용자만 참여자로 있는 채팅방을 찾습니다)
+        // 2. 이미 존재하는 1:1 채팅방이 있는지 확인
         val existingRooms = loadChatRoomPort.findByParticipantId(userId)
-            .filter { chatRoom ->
-                chatRoom.type == ChatRoomType.INDIVIDUAL &&
-                        chatRoom.participants.size == 2 &&
-                        chatRoom.participants.contains(friendId)
-            }
+            .filter { chatRoom -> chatRoom.isDirectChatBetween(userId, friendId) }
 
         // 이미 존재하는 채팅방이 있으면 반환
         if (existingRooms.isNotEmpty()) {
             return existingRooms.first()
         }
 
-        // 3. 새 1:1 채팅방 생성
-        val title = "${friend.nickname}님과의 대화" // 또는 null로 설정 가능
-
-        val newChatRoom = ChatRoom(
-            title = title,
-            type = ChatRoomType.INDIVIDUAL,
-            announcement = null,
-            participants = mutableSetOf(userId, friendId),
-            pinnedParticipants = mutableSetOf(), // 처음에는 고정된 참여자 없음
-            lastMessageId = null, // 새 채팅방은 메시지가 없음
-            lastActiveAt = Instant.now(),
-            createdAt = Instant.now()
+        // 3. 새 1:1 채팅방 생성 (도메인 객체의 팩토리 메서드 사용)
+        val newChatRoom = ChatRoom.createDirectChat(
+            userId = userId,
+            friendId = friendId,
+            friendName = friend.nickname
         )
 
         // 4. 채팅방 저장

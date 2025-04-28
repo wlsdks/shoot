@@ -35,7 +35,7 @@ class SaveChatRoomPersistenceAdapter(
             val existingChatRoom = chatRoomMapper.toDomain(existingEntity, 
                 chatRoomUserRepository.findByChatRoomId(existingEntity.id))
 
-            // 도메인 객체 업데이트
+            // 도메인 객체 업데이트 (비즈니스 로직은 도메인 객체 내부에서 처리)
             val updatedChatRoom = existingChatRoom.update(
                 title = chatRoom.title,
                 type = chatRoom.type,
@@ -68,43 +68,53 @@ class SaveChatRoomPersistenceAdapter(
             emptyMap()
         }
 
-        // 3. 참여자 정보 업데이트/추가
+        // 3. 참여자 정보 처리를 위한 사용자 조회
         val allUsers = userRepository.findAllById(chatRoom.participants)
         val userMap = allUsers.associateBy { it.id }
 
-        // 4. 도메인 모델의 참여자 정보 처리
-        chatRoom.participants.forEach { participantId ->
+        // 4. 참여자 정보 처리
+        // 현재 참여자 ID 목록
+        val currentParticipantIds = existingParticipants.keys
+
+        // 추가할 참여자 (새로운 참여자)
+        val participantsToAdd = chatRoom.participants - currentParticipantIds
+
+        // 제거할 참여자 (더 이상 참여하지 않는 사용자)
+        val participantsToRemove = currentParticipantIds - chatRoom.participants.toSet()
+
+        // 새 참여자 추가
+        participantsToAdd.forEach { participantId ->
             val user = userMap[participantId] ?: return@forEach // 사용자가 없으면 건너뜀
-
             val isPinned = chatRoom.pinnedParticipants.contains(participantId)
-            val existingUser = existingParticipants[participantId]
 
-            if (existingUser == null) {
-                // 새 참여자 추가
-                val chatRoomUser = ChatRoomUserEntity(
-                    chatRoom = savedChatRoomEntity,
-                    user = user,
-                    isPinned = isPinned
-                )
-                chatRoomUserRepository.save(chatRoomUser)
-            } else if (existingUser.isPinned != isPinned) {
-                // 고정 상태만 변경
+            val chatRoomUser = ChatRoomUserEntity(
+                chatRoom = savedChatRoomEntity,
+                user = user,
+                isPinned = isPinned
+            )
+            chatRoomUserRepository.save(chatRoomUser)
+        }
+
+        // 기존 참여자 중 핀 상태가 변경된 경우 업데이트
+        (currentParticipantIds - participantsToRemove).forEach { participantId ->
+            val existingUser = existingParticipants[participantId] ?: return@forEach
+            val isPinned = chatRoom.pinnedParticipants.contains(participantId)
+
+            if (existingUser.isPinned != isPinned) {
                 existingUser.isPinned = isPinned
                 chatRoomUserRepository.save(existingUser)
             }
         }
 
-        // 5. 도메인 모델에서 제외된 참여자 삭제 (선택적)
-        val participantsToRemove = existingParticipants.keys - chatRoom.participants.toSet()
+        // 참여자 제거
         if (participantsToRemove.isNotEmpty()) {
             chatRoomUserRepository.deleteAllByIdInBatch(
                 existingParticipants.filterKeys { it in participantsToRemove }.values.map { it.id }
             )
         }
 
-        // 6. 업데이트된 참여자 정보와 함께 도메인 객체 반환
+        // 5. 업데이트된 참여자 정보와 함께 도메인 객체 반환
         val updatedParticipants = chatRoomUserRepository.findByChatRoomId(savedChatRoomEntity.id)
         return chatRoomMapper.toDomain(savedChatRoomEntity, updatedParticipants)
     }
-
 }

@@ -135,25 +135,8 @@ class MessageReactionService(
         type: ReactionType,
         userId: Long
     ): ChatMessage {
-        // 기존 반응 맵을 복사
-        val updatedReactions = message.reactions.toMutableMap()
-
-        // 해당 반응 타입에 대한 사용자 목록 가져오기 또는 새로 생성
-        val usersForReaction = updatedReactions.getOrDefault(type.code, emptySet()).toMutableSet()
-
-        // 사용자 추가
-        usersForReaction.add(userId)
-
-        // 업데이트된 사용자 목록을 맵에 설정
-        updatedReactions[type.code] = usersForReaction
-
-        // 메시지 복사본 만들기 (불변성 유지)
-        val updatedMessage = message.copy(
-            reactions = updatedReactions,
-            updatedAt = Instant.now()
-        )
-
-        return updatedMessage
+        // 도메인 객체의 메서드를 사용하여 리액션 추가
+        return message.addReaction(userId, type.code)
     }
 
     /**
@@ -169,28 +152,8 @@ class MessageReactionService(
         type: ReactionType,
         userId: Long
     ): ChatMessage {
-        // 기존 반응을 수정할 수 있도록 복사
-        val updatedReactions = message.reactions.toMutableMap()
-
-        // 해당 반응 타입에 대한 사용자 목록이 있으면 제거
-        if (updatedReactions.containsKey(type.code)) {
-            val usersForReaction = updatedReactions[type.code]!!.toMutableSet()
-            usersForReaction.remove(userId)
-
-            if (usersForReaction.isEmpty()) {
-                updatedReactions.remove(type.code)
-            } else {
-                updatedReactions[type.code] = usersForReaction
-            }
-        }
-
-        // 메시지 복사본 만들기 (불변성 유지)
-        val updatedMessage = message.copy(
-            reactions = updatedReactions,
-            updatedAt = Instant.now()
-        )
-
-        return updatedMessage
+        // 도메인 객체의 메서드를 사용하여 리액션 제거
+        return message.removeReaction(userId, type.code)
     }
 
     /**

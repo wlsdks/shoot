@@ -78,13 +78,8 @@ class MessagePinService(
             return message
         }
 
-        // 메시지 업데이트
-        val updatedMessage = message.copy(
-            isPinned = false,
-            pinnedBy = null,
-            pinnedAt = null,
-            updatedAt = Instant.now()
-        )
+        // 도메인 객체의 메서드를 사용하여 메시지 고정 상태 업데이트
+        val updatedMessage = message.updatePinStatus(false)
 
         // 메시지 저장
         val savedMessage = saveMessagePort.save(updatedMessage)
@@ -128,13 +123,8 @@ class MessagePinService(
         userId: Long
     ) {
         currentPinnedMessage?.let { pinnedMessage ->
-            // 이미 고정된 메시지 해제
-            val unpinnedMessage = pinnedMessage.copy(
-                isPinned = false,
-                pinnedBy = null,
-                pinnedAt = null,
-                updatedAt = Instant.now()
-            )
+            // 도메인 객체의 메서드를 사용하여 이미 고정된 메시지 해제
+            val unpinnedMessage = pinnedMessage.updatePinStatus(false)
             val savedUnpinnedMessage = saveMessagePort.save(unpinnedMessage)
 
             // 고정 해제 이벤트 발행
@@ -156,13 +146,8 @@ class MessagePinService(
         message: ChatMessage,
         userId: Long
     ): ChatMessage {
-        // 메시지 업데이트
-        val updatedMessage = message.copy(
-            isPinned = true,
-            pinnedBy = userId,
-            pinnedAt = Instant.now(),
-            updatedAt = Instant.now()
-        )
+        // 도메인 객체의 메서드를 사용하여 메시지 고정 상태 업데이트
+        val updatedMessage = message.updatePinStatus(true, userId)
 
         // 메시지 저장
         val savedMessage = saveMessagePort.save(updatedMessage)

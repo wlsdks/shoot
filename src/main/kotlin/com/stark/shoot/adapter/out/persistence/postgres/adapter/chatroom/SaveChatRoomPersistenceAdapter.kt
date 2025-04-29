@@ -33,32 +33,19 @@ class SaveChatRoomPersistenceAdapter(
                 IllegalStateException("채팅방을 찾을 수 없습니다. id=${chatRoom.id}")
             }
 
-            // 도메인 객체에서 업데이트 로직 수행
-            val existingChatRoom = chatRoomMapper.toDomain(existingEntity, 
-                chatRoomUserRepository.findByChatRoomId(existingEntity.id))
-
-            // 도메인 객체 업데이트 (비즈니스 로직은 도메인 객체 내부에서 처리)
-            val updatedChatRoom = existingChatRoom.update(
-                title = chatRoom.title,
-                type = chatRoom.type,
-                announcement = chatRoom.announcement,
-                lastMessageId = chatRoom.lastMessageId,
-                lastActiveAt = chatRoom.lastActiveAt
-            )
-
             // 도메인 타입에서 영속성 타입으로 변환
-            val persistenceType = when (updatedChatRoom.type) {
+            val persistenceType = when (chatRoom.type) {
                 DomainChatRoomType.INDIVIDUAL -> PersistenceChatRoomType.INDIVIDUAL
                 DomainChatRoomType.GROUP -> PersistenceChatRoomType.GROUP
             }
 
             // 업데이트된 도메인 객체를 사용하여 엔티티 업데이트
             existingEntity.update(
-                title = updatedChatRoom.title,
+                title = chatRoom.title,
                 type = persistenceType,
-                announcement = updatedChatRoom.announcement,
-                lastMessageId = updatedChatRoom.lastMessageId?.toLongOrNull(),
-                lastActiveAt = updatedChatRoom.lastActiveAt
+                announcement = chatRoom.announcement,
+                lastMessageId = chatRoom.lastMessageId?.toLongOrNull(),
+                lastActiveAt = chatRoom.lastActiveAt
             )
 
             chatRoomRepository.save(existingEntity)
@@ -84,14 +71,25 @@ class SaveChatRoomPersistenceAdapter(
         // 현재 참여자 ID 목록
         val currentParticipantIds = existingParticipants.keys
 
-        // 추가할 참여자 (새로운 참여자)
-        val participantsToAdd = chatRoom.participants - currentParticipantIds
+        // 도메인 객체를 사용하여 참여자 변경 사항 계산
+        val existingChatRoom = ChatRoom(
+            id = savedChatRoomEntity.id,
+            title = savedChatRoomEntity.title,
+            type = when (savedChatRoomEntity.type) {
+                PersistenceChatRoomType.INDIVIDUAL -> DomainChatRoomType.INDIVIDUAL
+                PersistenceChatRoomType.GROUP -> DomainChatRoomType.GROUP
+            },
+            participants = currentParticipantIds.toMutableSet(),
+            pinnedParticipants = existingParticipants.filter { it.value.isPinned }.keys.toMutableSet()
+        )
 
-        // 제거할 참여자 (더 이상 참여하지 않는 사용자)
-        val participantsToRemove = currentParticipantIds - chatRoom.participants.toSet()
+        val participantChanges = existingChatRoom.calculateParticipantChanges(
+            newParticipants = chatRoom.participants,
+            newPinnedParticipants = chatRoom.pinnedParticipants
+        )
 
         // 새 참여자 추가
-        participantsToAdd.forEach { participantId ->
+        participantChanges.participantsToAdd.forEach { participantId ->
             val user = userMap[participantId] ?: return@forEach // 사용자가 없으면 건너뜀
             val isPinned = chatRoom.pinnedParticipants.contains(participantId)
 
@@ -104,9 +102,8 @@ class SaveChatRoomPersistenceAdapter(
         }
 
         // 기존 참여자 중 핀 상태가 변경된 경우 업데이트
-        (currentParticipantIds - participantsToRemove).forEach { participantId ->
+        participantChanges.pinnedStatusChanges.forEach { (participantId, isPinned) ->
             val existingUser = existingParticipants[participantId] ?: return@forEach
-            val isPinned = chatRoom.pinnedParticipants.contains(participantId)
 
             if (existingUser.isPinned != isPinned) {
                 existingUser.isPinned = isPinned
@@ -115,9 +112,9 @@ class SaveChatRoomPersistenceAdapter(
         }
 
         // 참여자 제거
-        if (participantsToRemove.isNotEmpty()) {
+        if (participantChanges.participantsToRemove.isNotEmpty()) {
             chatRoomUserRepository.deleteAllByIdInBatch(
-                existingParticipants.filterKeys { it in participantsToRemove }.values.map { it.id }
+                existingParticipants.filterKeys { it in participantChanges.participantsToRemove }.values.map { it.id }
             )
         }
 

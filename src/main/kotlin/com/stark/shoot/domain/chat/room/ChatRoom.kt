@@ -17,6 +17,64 @@ data class ChatRoom(
     val pinnedParticipants: MutableSet<Long> = mutableSetOf(),
     val updatedAt: Instant? = null
 ) {
+    /**
+     * 참여자 변경 정보를 담는 데이터 클래스
+     */
+    data class ParticipantChanges(
+        val participantsToAdd: Set<Long> = emptySet(),
+        val participantsToRemove: Set<Long> = emptySet(),
+        val pinnedStatusChanges: Map<Long, Boolean> = emptyMap()
+    ) {
+        fun isEmpty(): Boolean {
+            return participantsToAdd.isEmpty() && 
+                   participantsToRemove.isEmpty() && 
+                   pinnedStatusChanges.isEmpty()
+        }
+    }
+
+    /**
+     * 현재 참여자 목록과 새 참여자 목록을 비교하여 변경 사항을 계산
+     * 
+     * @param newParticipants 새 참여자 목록
+     * @param newPinnedParticipants 새 고정 참여자 목록
+     * @return 참여자 변경 정보
+     */
+    fun calculateParticipantChanges(
+        newParticipants: Set<Long>,
+        newPinnedParticipants: Set<Long> = this.pinnedParticipants
+    ): ParticipantChanges {
+        // 추가할 참여자 (새로운 참여자)
+        val participantsToAdd = newParticipants - this.participants.toSet()
+
+        // 제거할 참여자 (더 이상 참여하지 않는 사용자)
+        val participantsToRemove = this.participants.toSet() - newParticipants
+
+        // 핀 상태가 변경된 참여자
+        val pinnedStatusChanges = mutableMapOf<Long, Boolean>()
+
+        // 새 참여자 중 핀 상태 확인
+        (this.participants.toSet() intersect newParticipants).forEach { participantId ->
+            val wasPinned = this.pinnedParticipants.contains(participantId)
+            val isPinned = newPinnedParticipants.contains(participantId)
+
+            if (wasPinned != isPinned) {
+                pinnedStatusChanges[participantId] = isPinned
+            }
+        }
+
+        // 새로 추가되는 참여자 중 핀 상태인 참여자 추가
+        participantsToAdd.forEach { participantId ->
+            if (newPinnedParticipants.contains(participantId)) {
+                pinnedStatusChanges[participantId] = true
+            }
+        }
+
+        return ParticipantChanges(
+            participantsToAdd = participantsToAdd,
+            participantsToRemove = participantsToRemove,
+            pinnedStatusChanges = pinnedStatusChanges
+        )
+    }
     companion object {
         private const val MAX_PINNED = 5
 

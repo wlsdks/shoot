@@ -48,14 +48,11 @@ class SendMessageService(
      */
     override fun sendMessage(message: ChatMessageRequest) {
         try {
-            // 1. 메시지에 임시 ID 추가
-            val tempId = UUID.randomUUID().toString()
+            // 1. 도메인 객체의 메서드를 사용하여 메시지 전송 준비 (임시 ID와 상태 설정)
+            ChatMessage.prepareForSending(message)
 
-            // 2. 메시지에 임시 ID와 상태 추가
-            message.apply {
-                this.tempId = tempId
-                this.status = MessageStatus.SENDING
-            }
+            // 임시 ID 변수 (에러 처리용)
+            val tempId = message.tempId ?: UUID.randomUUID().toString()
 
             // 3. URL 미리보기 처리 (캐시 확인만)
             getCachedUrlPreview(message)

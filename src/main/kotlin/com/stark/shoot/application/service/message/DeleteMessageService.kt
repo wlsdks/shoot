@@ -23,19 +23,11 @@ class DeleteMessageService(
         val existingMessage = loadMessagePort.findById(messageId.toObjectId())
             ?: throw IllegalArgumentException("메시지를 찾을 수 없습니다. messageId=$messageId")
 
-        // 삭제 상태로 변경 (isDeleted 플래그 설정)
-        val updatedContent = existingMessage.content.copy(
-            isDeleted = true
-        )
-
-        // 업데이트된 메시지 생성
-        val updatedMessage = existingMessage.copy(
-            content = updatedContent,
-            updatedAt = Instant.now()
-        )
+        // 도메인 객체의 메서드를 사용하여 메시지 삭제 상태로 변경
+        val deletedMessage = existingMessage.markAsDeleted()
 
         // 업데이트된 메시지 저장 후 반환
-        return saveMessagePort.save(updatedMessage)
+        return saveMessagePort.save(deletedMessage)
     }
 
 }

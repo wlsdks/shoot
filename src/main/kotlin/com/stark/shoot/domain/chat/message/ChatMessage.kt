@@ -120,6 +120,61 @@ data class ChatMessage(
         }
     }
 
+    /**
+     * 메시지 내용을 수정합니다.
+     * 텍스트 타입의 메시지만 수정 가능합니다.
+     *
+     * @param newContent 새로운 메시지 내용
+     * @return 업데이트된 ChatMessage 객체
+     * @throws IllegalArgumentException 메시지 내용이 비어있거나, 이미 삭제된 메시지이거나, 텍스트 타입이 아닌 경우
+     */
+    fun editMessage(newContent: String): ChatMessage {
+        // 내용 유효성 검사
+        if (newContent.isBlank()) {
+            throw IllegalArgumentException("메시지 내용은 비어있을 수 없습니다.")
+        }
+
+        // 삭제된 메시지 확인
+        if (this.content.isDeleted) {
+            throw IllegalArgumentException("삭제된 메시지는 수정할 수 없습니다.")
+        }
+
+        // 메시지 타입 확인 (TEXT 타입만 수정 가능)
+        if (this.content.type != MessageType.TEXT) {
+            throw IllegalArgumentException("텍스트 타입의 메시지만 수정할 수 있습니다.")
+        }
+
+        // 내용 업데이트 및 편집 여부 설정
+        val updatedContent = this.content.copy(
+            text = newContent,
+            isEdited = true
+        )
+
+        // 업데이트된 메시지 생성
+        return this.copy(
+            content = updatedContent,
+            updatedAt = Instant.now()
+        )
+    }
+
+    /**
+     * 메시지를 삭제 상태로 변경합니다.
+     *
+     * @return 업데이트된 ChatMessage 객체
+     */
+    fun markAsDeleted(): ChatMessage {
+        // 삭제 상태로 변경 (isDeleted 플래그 설정)
+        val updatedContent = this.content.copy(
+            isDeleted = true
+        )
+
+        // 업데이트된 메시지 생성
+        return this.copy(
+            content = updatedContent,
+            updatedAt = Instant.now()
+        )
+    }
+
     companion object {
         /**
          * ChatMessageRequest로부터 ChatMessage 객체를 생성합니다.
@@ -145,6 +200,24 @@ data class ChatMessage(
             }
 
             return chatMessage
+        }
+
+        /**
+         * 메시지 전송을 위해 준비합니다.
+         * 임시 ID와 상태를 설정합니다.
+         *
+         * @param request 메시지 요청
+         * @return 업데이트된 메시지 요청
+         */
+        fun prepareForSending(request: ChatMessageRequest): ChatMessageRequest {
+            // 임시 ID 생성
+            val tempId = java.util.UUID.randomUUID().toString()
+
+            // 메시지에 임시 ID와 상태 추가
+            return request.apply {
+                this.tempId = tempId
+                this.status = MessageStatus.SENDING
+            }
         }
 
         /**

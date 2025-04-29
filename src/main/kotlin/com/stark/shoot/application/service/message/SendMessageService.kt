@@ -79,28 +79,14 @@ class SendMessageService(
     }
 
     /**
-     * URL 미리보기를 캐시에서 가져옵니다.
-     * 메시지의 content가 TEXT 타입일 때만 URL을 추출합니다.
+     * URL 미리보기를 처리합니다.
+     * 도메인 계층의 메서드를 사용하여 URL 추출 및 미리보기 처리를 수행합니다.
      *
      * @param message 메시지
      */
     private fun getCachedUrlPreview(message: ChatMessageRequest) {
-        if (message.content.type == MessageType.TEXT) {
-            val urls = extractUrlPort.extractUrls(message.content.text)
-            if (urls.isNotEmpty()) {
-                val url = urls.first()
-                val cachedPreview = cacheUrlPreviewPort.getCachedUrlPreview(url)
-
-                // 캐시된 미리보기가 있으면 메시지에 추가
-                if (cachedPreview != null) {
-                    message.metadata.urlPreview = cachedPreview
-                } else {
-                    // 캐시 미스인 경우 처리 필요 표시
-                    message.metadata.needsUrlPreview = true
-                    message.metadata.previewUrl = url
-                }
-            }
-        }
+        // 도메인 계층의 메서드를 사용하여 URL 미리보기 처리
+        ChatMessage.processUrlPreview(message, extractUrlPort, cacheUrlPreviewPort)
     }
 
     /**
@@ -206,65 +192,16 @@ class SendMessageService(
     private suspend fun handleMessageSuspend(
         requestMessage: ChatMessageRequest
     ): String? {
-        // ChatMessage 생성
-        val chatMessage = createChatMessage(requestMessage)
-
-        // ChatEvent 생성
-        val chatEvent = createChatEvent(requestMessage, chatMessage)
+        // 도메인 계층의 팩토리 메서드를 사용하여 ChatEvent 생성
+        val chatEvent = ChatEvent.fromRequest(requestMessage)
 
         // Kafka로 이벤트 발행 (코루틴 방식)
         return publishKafkaMessageSuspend(requestMessage, chatEvent, requestMessage.tempId)
     }
 
 
-    /**
-     * ChatMessage 객체 생성
-     *
-     * @param message ChatMessageRequest
-     * @return ChatMessage
-     */
-    private fun createChatMessage(
-        message: ChatMessageRequest
-    ): ChatMessage {
-        val chatMessage = ChatMessage(
-            roomId = message.roomId,
-            senderId = message.senderId,
-            content = MessageContent(
-                text = message.content.text,
-                type = MessageType.TEXT
-            ),
-            status = MessageStatus.SAVED,
-            createdAt = Instant.now()
-        )
-
-        return chatMessage
-    }
-
-    /**
-     * ChatEvent 객체 생성
-     * kafka에 전송할 이벤트 객체를 생성합니다.
-     *
-     * @param requestMessage ChatMessageRequest
-     * @param chatMessage ChatMessage
-     * @return ChatEvent
-     */
-    private fun createChatEvent(
-        requestMessage: ChatMessageRequest,
-        chatMessage: ChatMessage
-    ): ChatEvent {
-        // 메타데이터 복사 (tempId와 status 포함)
-        if (requestMessage.metadata != null) {
-            chatMessage.metadata = chatMessage.metadata.requestToDomain(requestMessage.metadata)
-        }
-
-        // ChatEvent 생성
-        val chatEvent = ChatEvent(
-            type = EventType.MESSAGE_CREATED,
-            data = chatMessage
-        )
-
-        return chatEvent
-    }
+    // createChatMessage와 createChatEvent 메서드는 도메인 계층으로 이동되었습니다.
+    // ChatMessage.fromRequest와 ChatEvent.fromRequest/fromMessage 메서드를 사용하세요.
 
     private suspend fun publishKafkaMessageSuspend(
         requestMessage: ChatMessageRequest,

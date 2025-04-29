@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.chat.message
 
+import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
 import java.time.Instant
@@ -116,6 +117,67 @@ data class ChatMessage(
                 pinnedAt = null,
                 updatedAt = Instant.now()
             )
+        }
+    }
+
+    companion object {
+        /**
+         * ChatMessageRequest로부터 ChatMessage 객체를 생성합니다.
+         *
+         * @param request ChatMessageRequest
+         * @return ChatMessage
+         */
+        fun fromRequest(request: ChatMessageRequest): ChatMessage {
+            val chatMessage = ChatMessage(
+                roomId = request.roomId,
+                senderId = request.senderId,
+                content = MessageContent(
+                    text = request.content.text,
+                    type = MessageType.TEXT
+                ),
+                status = MessageStatus.SAVED,
+                createdAt = Instant.now()
+            )
+
+            // 메타데이터 복사 (tempId와 status 포함)
+            if (request.metadata != null) {
+                chatMessage.metadata = chatMessage.metadata.requestToDomain(request.metadata)
+            }
+
+            return chatMessage
+        }
+
+        /**
+         * URL 미리보기를 처리합니다.
+         * 메시지의 content가 TEXT 타입일 때만 URL을 추출합니다.
+         *
+         * @param request 메시지 요청
+         * @param extractUrlPort URL 추출 포트
+         * @param cacheUrlPreviewPort URL 미리보기 캐시 포트
+         * @return 업데이트된 메시지 요청
+         */
+        fun processUrlPreview(
+            request: ChatMessageRequest,
+            extractUrlPort: com.stark.shoot.application.port.out.message.preview.ExtractUrlPort,
+            cacheUrlPreviewPort: com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
+        ): ChatMessageRequest {
+            if (request.content.type == MessageType.TEXT) {
+                val urls = extractUrlPort.extractUrls(request.content.text)
+                if (urls.isNotEmpty()) {
+                    val url = urls.first()
+                    val cachedPreview = cacheUrlPreviewPort.getCachedUrlPreview(url)
+
+                    // 캐시된 미리보기가 있으면 메시지에 추가
+                    if (cachedPreview != null) {
+                        request.metadata.urlPreview = cachedPreview
+                    } else {
+                        // 캐시 미스인 경우 처리 필요 표시
+                        request.metadata.needsUrlPreview = true
+                        request.metadata.previewUrl = url
+                    }
+                }
+            }
+            return request
         }
     }
 }

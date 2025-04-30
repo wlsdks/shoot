@@ -59,24 +59,16 @@ class CreateChatRoomService(
         val savedRoom = saveChatRoomPort.save(newChatRoom)
 
         // 5. 이벤트 발행 (채팅방 생성 알림)
-        publishChatRoomCreatedEvent(savedRoom)
+        // 각 참여자에게 이벤트 전송
+        savedRoom.participants.forEach { participantId ->
+            val event = ChatRoomCreatedEvent(
+                roomId = savedRoom.id ?: 0L,
+                userId = participantId
+            )
+            eventPublisher.publish(event)
+        }
 
         return savedRoom
-    }
-
-    /**
-     * 채팅방 생성 이벤트 발행
-     */
-    private fun publishChatRoomCreatedEvent(chatRoom: ChatRoom) {
-        // 각 참여자에게 이벤트 전송
-        chatRoom.participants.forEach { participantId ->
-            eventPublisher.publish(
-                ChatRoomCreatedEvent(
-                    roomId = chatRoom.id ?: 0L,
-                    userId = participantId
-                )
-            )
-        }
     }
 
 }

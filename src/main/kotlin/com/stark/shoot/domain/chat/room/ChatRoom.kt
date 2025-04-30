@@ -26,15 +26,15 @@ data class ChatRoom(
         val pinnedStatusChanges: Map<Long, Boolean> = emptyMap()
     ) {
         fun isEmpty(): Boolean {
-            return participantsToAdd.isEmpty() && 
-                   participantsToRemove.isEmpty() && 
-                   pinnedStatusChanges.isEmpty()
+            return participantsToAdd.isEmpty() &&
+                    participantsToRemove.isEmpty() &&
+                    pinnedStatusChanges.isEmpty()
         }
     }
 
     /**
      * 현재 참여자 목록과 새 참여자 목록을 비교하여 변경 사항을 계산
-     * 
+     *
      * @param newParticipants 새 참여자 목록
      * @param newPinnedParticipants 새 고정 참여자 목록
      * @return 참여자 변경 정보
@@ -75,6 +75,7 @@ data class ChatRoom(
             pinnedStatusChanges = pinnedStatusChanges
         )
     }
+
     companion object {
         private const val MAX_PINNED = 5
 
@@ -130,7 +131,7 @@ data class ChatRoom(
 
     /**
      * 참여자 추가
-     * 
+     *
      * @param userId 추가할 사용자 ID
      * @return 업데이트된 ChatRoom 객체 (이미 참여 중인 경우 현재 객체 반환)
      */
@@ -150,7 +151,7 @@ data class ChatRoom(
 
     /**
      * 참여자 제거
-     * 
+     *
      * @param userId 제거할 사용자 ID
      * @return 업데이트된 ChatRoom 객체 (참여자가 아닌 경우 현재 객체 반환)
      */
@@ -209,14 +210,14 @@ data class ChatRoom(
 
     /**
      * 즐겨찾기(핀) 상태 업데이트
-     * 
+     *
      * @param userId 사용자 ID
      * @param isFavorite 즐겨찾기 여부
      * @param userPinnedRoomsCount 사용자가 현재 핀한 채팅방 수
      * @return 업데이트된 ChatRoom 객체
      */
     fun updateFavoriteStatus(
-        userId: Long, 
+        userId: Long,
         isFavorite: Boolean,
         userPinnedRoomsCount: Int
     ): ChatRoom {
@@ -226,7 +227,7 @@ data class ChatRoom(
 
     /**
      * 고정 참여자 목록 업데이트
-     * 
+     *
      * @param userId 사용자 ID
      * @param isFavorite 즐겨찾기 여부
      * @param userPinnedRoomsCount 사용자가 현재 핀한 채팅방 수 (현재 채팅방 제외)
@@ -243,14 +244,14 @@ data class ChatRoom(
         // 이미 즐겨찾기된 채팅방을 다시 즐겨찾기하려고 하면 제거 (토글 동작)
         if (isFavorite && isAlreadyPinned) {
             currentPinned.remove(userId)
-        } 
+        }
         // 즐겨찾기 추가 요청이고 아직 즐겨찾기되지 않은 경우
         else if (isFavorite && !isAlreadyPinned) {
             if (userPinnedRoomsCount >= MAX_PINNED) {
                 throw FavoriteLimitExceededException("최대 핀 채팅방 개수를 초과했습니다. (MAX_PINNED=$MAX_PINNED)")
             }
             currentPinned.add(userId)
-        } 
+        }
         // 즐겨찾기 해제 요청
         else if (!isFavorite) {
             currentPinned.remove(userId)
@@ -299,9 +300,10 @@ data class ChatRoom(
      * @return 1:1 채팅방이고 정확히 해당 두 사용자만 포함하면 true, 아니면 false
      */
     fun isDirectChatBetween(userId1: Long, userId2: Long): Boolean {
-        return type == ChatRoomType.INDIVIDUAL && 
-               participants.size == 2 && 
-               participants.contains(userId1) && 
-               participants.contains(userId2)
+        return type == ChatRoomType.INDIVIDUAL &&
+                participants.size == 2 &&
+                participants.contains(userId1) &&
+                participants.contains(userId2)
     }
+
 }

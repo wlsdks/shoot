@@ -77,18 +77,25 @@ class FriendRequestService(
         currentUserId: Long,
         requesterId: Long
     ) {
+        // 사용자 조회
+        val currentUser = findUserPort.findUserById(currentUserId)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
+
+        val requester = findUserPort.findUserById(requesterId)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $requesterId")
+
         // 친구 요청 존재 여부 확인
-        if (!findUserPort.checkIncomingFriendRequest(currentUserId, requesterId)) {
+        if (!currentUser.incomingFriendRequestIds.contains(requesterId)) {
             throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
         }
 
-        // 요청 목록에서 제거
-        updateFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
-        updateFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
+        // 도메인 객체의 메서드를 사용하여 친구 요청 수락
+        val updatedCurrentUser = currentUser.acceptFriendRequest(requesterId)
+        updateFriendPort.updateFriends(updatedCurrentUser)
 
-        // 양방향 친구 관계 추가
-        updateFriendPort.addFriendRelation(currentUserId, requesterId)
-        updateFriendPort.addFriendRelation(requesterId, currentUserId)
+        // 요청자의 친구 목록에도 추가
+        val updatedRequester = requester.addFriend(currentUserId)
+        updateFriendPort.updateFriends(updatedRequester)
 
         // 이벤트 발행 (양쪽 사용자에게 친구 추가 알림)
         eventPublisher.publish(FriendAddedEvent(userId = currentUserId, friendId = requesterId))
@@ -109,14 +116,25 @@ class FriendRequestService(
         currentUserId: Long,
         requesterId: Long
     ) {
+        // 사용자 조회
+        val currentUser = findUserPort.findUserById(currentUserId)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
+
+        val requester = findUserPort.findUserById(requesterId)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $requesterId")
+
         // 친구 요청 존재 여부 확인
-        if (!findUserPort.checkOutgoingFriendRequest(currentUserId, requesterId)) {
+        if (!currentUser.incomingFriendRequestIds.contains(requesterId)) {
             throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
         }
 
-        // 친구 요청 제거
-        updateFriendPort.removeIncomingFriendRequest(requesterId, currentUserId)
-        updateFriendPort.removeOutgoingFriendRequest(currentUserId, requesterId)
+        // 도메인 객체의 메서드를 사용하여 친구 요청 거절
+        val updatedCurrentUser = currentUser.rejectFriendRequest(requesterId)
+        updateFriendPort.updateFriends(updatedCurrentUser)
+
+        // 요청자의 발신 요청 목록에서도 제거
+        val updatedRequester = requester.cancelFriendRequest(currentUserId)
+        updateFriendPort.updateFriends(updatedRequester)
 
         // 캐시 무효화
         invalidateRecommendationCache(currentUserId)

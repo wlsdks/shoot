@@ -48,8 +48,8 @@ class SendMessageService(
      */
     override fun sendMessage(message: ChatMessageRequest) {
         try {
-            // 1. 도메인 객체의 메서드를 사용하여 메시지 전송 준비 (임시 ID와 상태 설정)
-            ChatMessage.prepareForSending(message)
+            // 1. 메시지 전송 준비 (임시 ID와 상태 설정)
+            prepareForSending(message)
 
             // 임시 ID 변수 (에러 처리용)
             val tempId = message.tempId ?: UUID.randomUUID().toString()
@@ -76,14 +76,72 @@ class SendMessageService(
     }
 
     /**
+     * 메시지 전송을 위해 준비합니다.
+     * 임시 ID와 상태를 설정합니다.
+     *
+     * @param request 메시지 요청
+     * @return 업데이트된 메시지 요청
+     */
+    private fun prepareForSending(request: ChatMessageRequest): ChatMessageRequest {
+        // 임시 ID 생성
+        val tempId = java.util.UUID.randomUUID().toString()
+
+        // 메시지에 임시 ID와 상태 추가
+        return request.apply {
+            this.tempId = tempId
+            this.status = MessageStatus.SENDING
+        }
+    }
+
+    /**
+     * ChatMessageRequest로부터 ChatMessage 객체를 생성합니다.
+     *
+     * @param request ChatMessageRequest
+     * @return ChatMessage
+     */
+    fun fromRequest(request: ChatMessageRequest): ChatMessage {
+        val chatMessage = ChatMessage(
+            roomId = request.roomId,
+            senderId = request.senderId,
+            content = MessageContent(
+                text = request.content.text,
+                type = MessageType.TEXT
+            ),
+            status = MessageStatus.SAVED,
+            createdAt = Instant.now()
+        )
+
+        // 메타데이터 복사 (tempId와 status 포함)
+        if (request.metadata != null) {
+            chatMessage.metadata = chatMessage.metadata.requestToDomain(request.metadata)
+        }
+
+        return chatMessage
+    }
+
+    /**
      * URL 미리보기를 처리합니다.
-     * 도메인 계층의 메서드를 사용하여 URL 추출 및 미리보기 처리를 수행합니다.
+     * URL 추출 및 미리보기 처리를 수행합니다.
      *
      * @param message 메시지
      */
     private fun getCachedUrlPreview(message: ChatMessageRequest) {
-        // 도메인 계층의 메서드를 사용하여 URL 미리보기 처리
-        ChatMessage.processUrlPreview(message, extractUrlPort, cacheUrlPreviewPort)
+        if (message.content.type == MessageType.TEXT) {
+            val urls = extractUrlPort.extractUrls(message.content.text)
+            if (urls.isNotEmpty()) {
+                val url = urls.first()
+                val cachedPreview = cacheUrlPreviewPort.getCachedUrlPreview(url)
+
+                // 캐시된 미리보기가 있으면 메시지에 추가
+                if (cachedPreview != null) {
+                    message.metadata.urlPreview = cachedPreview
+                } else {
+                    // 캐시 미스인 경우 처리 필요 표시
+                    message.metadata.needsUrlPreview = true
+                    message.metadata.previewUrl = url
+                }
+            }
+        }
     }
 
     /**
@@ -189,16 +247,17 @@ class SendMessageService(
     private suspend fun handleMessageSuspend(
         requestMessage: ChatMessageRequest
     ): String? {
-        // 도메인 계층의 팩토리 메서드를 사용하여 ChatEvent 생성
-        val chatEvent = ChatEvent.fromRequest(requestMessage)
+        // ChatMessageRequest로부터 ChatMessage 생성 후 ChatEvent 생성
+        val chatMessage = fromRequest(requestMessage)
+        val chatEvent = ChatEvent.fromMessage(chatMessage, EventType.MESSAGE_CREATED)
 
         // Kafka로 이벤트 발행 (코루틴 방식)
         return publishKafkaMessageSuspend(requestMessage, chatEvent, requestMessage.tempId)
     }
 
 
-    // createChatMessage와 createChatEvent 메서드는 도메인 계층으로 이동되었습니다.
-    // ChatMessage.fromRequest와 ChatEvent.fromRequest/fromMessage 메서드를 사용하세요.
+    // createChatMessage와 createChatEvent 메서드는 이제 이 서비스에 구현되어 있습니다.
+    // fromRequest 메서드와 ChatEvent.fromMessage 메서드를 사용하세요.
 
     private suspend fun publishKafkaMessageSuspend(
         requestMessage: ChatMessageRequest,

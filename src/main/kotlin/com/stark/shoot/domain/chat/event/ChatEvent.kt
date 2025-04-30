@@ -1,6 +1,5 @@
 package com.stark.shoot.domain.chat.event
 
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.domain.chat.message.ChatMessage
 import java.time.Instant
 
@@ -19,28 +18,13 @@ data class ChatEvent(
          * @return ChatEvent
          */
         fun fromMessage(
-            message: ChatMessage, 
+            message: ChatMessage,
             eventType: EventType = EventType.MESSAGE_CREATED
         ): ChatEvent {
             return ChatEvent(
                 type = eventType,
                 data = message
             )
-        }
-
-        /**
-         * ChatMessageRequest로부터 ChatEvent 객체를 생성합니다.
-         *
-         * @param request ChatMessageRequest
-         * @param eventType 이벤트 타입 (기본값: MESSAGE_CREATED)
-         * @return ChatEvent
-         */
-        fun fromRequest(
-            request: ChatMessageRequest,
-            eventType: EventType = EventType.MESSAGE_CREATED
-        ): ChatEvent {
-            val chatMessage = ChatMessage.fromRequest(request)
-            return fromMessage(chatMessage, eventType)
         }
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.domain.chat.message.UrlPreview
 import com.stark.shoot.infrastructure.annotation.Adapter
+import com.stark.shoot.infrastructure.config.redis.RedisUtilService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
 import java.time.Duration
@@ -11,7 +12,8 @@ import java.time.Duration
 @Adapter
 class RedisUrlPreviewCacheAdapter(
     private val redisTemplate: StringRedisTemplate,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val redisUtilService: RedisUtilService
 ) : CacheUrlPreviewPort {
 
     private val logger = KotlinLogging.logger {}
@@ -63,6 +65,7 @@ class RedisUrlPreviewCacheAdapter(
 
     /**
      * URL에 대한 캐시 키를 생성합니다.
+     * RedisUtilService의 createHashKey 메서드를 사용하여 해시 기반 키를 생성합니다.
      * 기본적으로 같은 문자열에 대해 Kotlin(Java)의 hashCode() 메서드는 항상 동일한 해시 값을 반환합니다.
      * 이론상 해시 충돌이 있을수도 있지만 거의 없다고 보는게 좋습니다.
      *
@@ -72,7 +75,7 @@ class RedisUrlPreviewCacheAdapter(
     private fun generateKey(
         url: String
     ): String {
-        return "$CACHE_PREFIX${url.hashCode()}"
+        return redisUtilService.createHashKey(CACHE_PREFIX, url)
     }
 
 }

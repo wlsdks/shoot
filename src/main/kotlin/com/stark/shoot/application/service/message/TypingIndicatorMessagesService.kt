@@ -31,18 +31,20 @@ class TypingIndicatorMessagesService(
 
     /**
      * Redis 키 생성 유틸리티 메서드
+     * RedisUtilService의 createKey 메서드를 사용하여 키를 생성합니다.
      */
     private fun createRedisKey(
         userId: Long,
         roomId: Long
-    ): String = "$REDIS_KEY_PREFIX$userId:$roomId"
+    ): String = redisUtilService.createKey(REDIS_KEY_PREFIX, userId, roomId)
 
     /**
      * Redis 상태 키 생성 유틸리티 메서드
+     * RedisUtilService의 createStateKey 메서드를 사용하여 상태 키를 생성합니다.
      */
     private fun createRedisStateKey(
         redisKey: String
-    ): String = "$redisKey:state"
+    ): String = redisUtilService.createStateKey(redisKey)
 
 
     /**

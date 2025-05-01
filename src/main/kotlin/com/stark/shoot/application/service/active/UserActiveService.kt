@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.active.ChatActivity
 import com.stark.shoot.application.port.`in`.active.UserActiveUseCase
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.config.redis.RedisUtilService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeUnit
 class UserActiveService(
     private val redisTemplate: StringRedisTemplate,
     private val objectMapper: ObjectMapper,
+    private val redisUtilService: RedisUtilService,
     @Value("\${app.user-active.debounce-time-ms:30000}") private val debounceTimeMs: Long = 30000,
     @Value("\${app.user-active.redis-ttl-seconds:45}") private val redisTtlSeconds: Long = 45,
     @Value("\${app.user-active.cleanup-interval-ms:3600000}") private val cleanupIntervalMs: Long = 3600000,
@@ -78,13 +80,14 @@ class UserActiveService(
 
     /**
      * Redis 키를 생성합니다.
+     * RedisUtilService의 createKey 메서드를 사용하여 키를 생성합니다.
      *
      * @param userId 사용자 ID
      * @param roomId 채팅방 ID
      * @return 생성된 Redis 키
      */
     private fun generateRedisKey(userId: String, roomId: String): String {
-        return "$REDIS_KEY_PREFIX:$userId:$roomId"
+        return redisUtilService.createKey(REDIS_KEY_PREFIX, userId, roomId)
     }
 
     /**

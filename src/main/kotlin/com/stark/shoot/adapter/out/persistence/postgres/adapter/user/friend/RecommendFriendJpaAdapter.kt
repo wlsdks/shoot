@@ -55,7 +55,14 @@ class RecommendFriendJpaAdapter(
             recommendedUsers.addAll(randomUsers)
         }
 
-        return recommendedUsers
+        // 4. 최종 결과에서 현재 친구인 사용자 제외 (추가 검증)
+        val friendIds = friendshipMappingRepository.findAllByUserId(userId)
+            .map { it.friend.id!! }
+            .toSet()
+
+        return recommendedUsers.filter { user -> 
+            user.id?.let { !friendIds.contains(it) } ?: true 
+        }
     }
 
     /**

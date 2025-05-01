@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
+import com.stark.shoot.application.service.user.friend.recommend.RecommendFriendService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -14,7 +15,8 @@ import org.springframework.transaction.annotation.Transactional
 class FriendRequestService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
-    private val redisTemplate: StringRedisTemplate
+    private val redisTemplate: StringRedisTemplate,
+    private val recommendFriendService: RecommendFriendService
 ) : FriendRequestUseCase {
 
     /**
@@ -59,9 +61,13 @@ class FriendRequestService(
         // 친구 요청 추가
         updateFriendPort.addOutgoingFriendRequest(currentUserId, targetUserId)
 
-        // 추천 친구 캐시 무효화
+        // 추천 친구 캐시 무효화 (Redis 및 로컬 캐시)
         invalidateRecommendationCache(currentUserId)
         invalidateRecommendationCache(targetUserId)
+
+        // 로컬 캐시도 무효화
+        recommendFriendService.invalidateUserCache(currentUserId)
+        recommendFriendService.invalidateUserCache(targetUserId)
     }
 
     /**
@@ -97,9 +103,13 @@ class FriendRequestService(
         // 실제 친구 요청 데이터 삭제
         updateFriendPort.removeOutgoingFriendRequest(currentUserId, targetUserId)
 
-        // 캐시 무효화
+        // 캐시 무효화 (Redis 및 로컬 캐시)
         invalidateRecommendationCache(currentUserId)
         invalidateRecommendationCache(targetUserId)
+
+        // 로컬 캐시도 무효화
+        recommendFriendService.invalidateUserCache(currentUserId)
+        recommendFriendService.invalidateUserCache(targetUserId)
     }
 
     /**

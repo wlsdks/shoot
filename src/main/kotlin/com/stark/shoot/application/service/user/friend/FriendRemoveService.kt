@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendRemoveUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
+import com.stark.shoot.application.service.user.friend.recommend.RecommendFriendService
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -14,7 +15,8 @@ import org.springframework.transaction.annotation.Transactional
 class FriendRemoveService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
-    private val redisStringTemplate: StringRedisTemplate
+    private val redisStringTemplate: StringRedisTemplate,
+    private val recommendFriendService: RecommendFriendService
 ) : FriendRemoveUseCase {
 
     private val maxPinnedFriends = 5
@@ -53,11 +55,23 @@ class FriendRemoveService(
      * 추천 캐시 무효화
      */
     private fun invalidateRecommendationCache(userId: Long) {
-        val cacheKey = "friend_recommend:$userId:$maxPinnedFriends"
         try {
-            redisStringTemplate.delete(cacheKey)
+            // 추천 친구 캐시 키 패턴
+            val cacheKeyPattern = "friend_recommend:$userId:*"
+
+            // 해당 패턴의 모든 키 조회
+            val keys = redisStringTemplate.keys(cacheKeyPattern)
+
+            // 키가 있으면 삭제
+            if (!keys.isNullOrEmpty()) {
+                redisStringTemplate.delete(keys)
+            }
+
+            // 로컬 캐시도 무효화
+            recommendFriendService.invalidateUserCache(userId)
         } catch (e: Exception) {
-            println("캐시 삭제 실패: $cacheKey, error: ${e.message}")
+            // 캐시 삭제 실패는 치명적인 오류가 아니므로 로깅만 하고 계속 진행
+            println("캐시 삭제 실패: userId=$userId, error: ${e.message}")
         }
     }
 }

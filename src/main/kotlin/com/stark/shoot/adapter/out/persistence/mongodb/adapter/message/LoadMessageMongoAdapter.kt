@@ -99,17 +99,24 @@ class LoadMessageMongoAdapter(
     }
 
     /**
-     * 채팅방 ID와 사용자 ID로 읽지 않은 메시지 조회
+     * 채팅방 ID와 사용자 ID로 읽지 않은 메시지 조회 (페이지네이션 적용)
      *
      * @param roomId 채팅방 ID
      * @param userId 사용자 ID
+     * @param limit 한 번에 조회할 최대 메시지 수 (기본값: 100)
      * @return 읽지 않은 메시지 목록
      */
     override fun findUnreadByRoomId(
         roomId: Long,
-        userId: Long
+        userId: Long,
+        limit: Int
     ): List<ChatMessage> {
-        val notReadMessage = chatMessageRepository.findUnreadMessages(roomId, userId)
+        val pageable = PageRequest.of(
+            0,
+            limit,
+            Sort.by(Sort.Direction.DESC, "createdAt") // 최신순 정렬
+        )
+        val notReadMessage = chatMessageRepository.findUnreadMessages(roomId, userId, pageable)
         return notReadMessage.map(chatMessageMapper::toDomain)
     }
 

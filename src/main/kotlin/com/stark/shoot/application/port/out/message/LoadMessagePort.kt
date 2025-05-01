@@ -9,7 +9,15 @@ interface LoadMessagePort {
     fun findByRoomId(roomId: Long, limit: Int): List<ChatMessage>
     fun findByRoomIdAndBeforeId(roomId: Long, lastId: ObjectId, limit: Int): List<ChatMessage>
     fun findByRoomIdAndAfterId(roomId: Long, lastId: ObjectId, limit: Int): List<ChatMessage> // 추가
-    fun findUnreadByRoomId(roomId: Long, userId: Long): List<ChatMessage>
+    /**
+     * 채팅방 ID와 사용자 ID로 읽지 않은 메시지 조회 (페이지네이션 적용)
+     *
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @param limit 한 번에 조회할 최대 메시지 수 (기본값: 100)
+     * @return 읽지 않은 메시지 목록
+     */
+    fun findUnreadByRoomId(roomId: Long, userId: Long, limit: Int = 100): List<ChatMessage>
     fun findPinnedMessagesByRoomId(roomId: Long, limit: Int): List<ChatMessage>
 
     fun findByRoomIdFlow(roomId: Long, limit: Int): Flow<ChatMessage>

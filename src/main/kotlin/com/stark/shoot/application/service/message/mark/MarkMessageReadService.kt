@@ -99,7 +99,7 @@ class MarkMessageReadService(
                 "/topic/read/$roomId",
                 mapOf(
                     "messageId" to updatedMessage.id,
-                    "userId" to updatedMessage.senderId,
+                    "userId" to userId,
                     "readBy" to updatedMessage.readBy
                 )
             )
@@ -155,23 +155,57 @@ class MarkMessageReadService(
                 throw IllegalArgumentException("참여하지 않은 채팅방입니다. userId=$userId, roomId=$roomId")
             }
 
-            // 읽지 않은 메시지 조회 (내가 보낸 메시지 제외)
-            val unreadMessages = loadMessagePort.findUnreadByRoomId(roomId, userId)
-                .filter { it.senderId != userId }
+            // 읽지 않은 메시지를 배치 단위로 처리 (성능 최적화)
+            val batchSize = 100
+            var processedCount = 0
+            val allUpdatedMessageIds = mutableListOf<String>()
+            var lastMessage: ChatMessage? = null
+
+            while (true) {
+                // 읽지 않은 메시지 조회 (내가 보낸 메시지 제외)
+                val unreadMessages = loadMessagePort.findUnreadByRoomId(roomId, userId, batchSize)
+                    .filter { it.senderId != userId }
+
+                // 더 이상 처리할 메시지가 없으면 종료
+                if (unreadMessages.isEmpty()) {
+                    break
+                }
+
+                // 모든 메시지 읽음 처리
+                val updatedMessageIds = processUnreadMessages(unreadMessages, userId)
+                allUpdatedMessageIds.addAll(updatedMessageIds)
+
+                // 마지막 메시지 업데이트 (가장 최신 메시지를 찾기 위해)
+                val batchLastMessage = unreadMessages.maxByOrNull { it.createdAt ?: java.time.Instant.MIN }
+                if (batchLastMessage != null) {
+                    if (lastMessage == null || 
+                        (batchLastMessage.createdAt ?: java.time.Instant.MIN) > (lastMessage.createdAt ?: java.time.Instant.MIN)) {
+                        lastMessage = batchLastMessage
+                    }
+                }
+
+                processedCount += unreadMessages.size
+
+                logger.debug { "배치 처리 완료: $processedCount 메시지 처리됨, roomId=$roomId, userId=$userId" }
+
+                // 더 이상 처리할 메시지가 없으면 종료
+                if (unreadMessages.size < batchSize) {
+                    break
+                }
+            }
 
             // 읽지 않은 메시지가 없으면 불필요한 작업 방지
-            if (unreadMessages.isEmpty()) {
+            if (allUpdatedMessageIds.isEmpty()) {
                 logger.info { "읽지 않은 메시지가 없습니다. roomId=$roomId, userId=$userId" }
                 return
             }
 
-            // 모든 메시지 읽음 처리
-            val updatedMessageIds = processUnreadMessages(unreadMessages, userId)
-
             // 마지막으로 읽은 메시지 ID 업데이트
-            unreadMessages.maxByOrNull { it.createdAt ?: java.time.Instant.MIN }?.id?.let { lastMessageId ->
+            lastMessage?.id?.let { lastMessageId ->
                 readStatusPort.updateLastReadMessageId(roomId, userId, lastMessageId)
             }
+
+            val updatedMessageIds = allUpdatedMessageIds
 
             // Redis와 이벤트 업데이트 (읽지 않은 메시지 수 0으로 설정)
             // 원자적 연산으로 효율적으로 처리

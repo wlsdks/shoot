@@ -31,22 +31,38 @@ class MessageSyncService(
     override fun chatMessagesFlow(
         request: SyncRequestDto
     ): Flow<MessageSyncInfoDto> = flow {
+        val messageFlow = getMessageFlowByDirection(request)
+
+        // 메시지를 DTOs로 변환
+        messageFlow.collect { message ->
+            emit(mapToSyncInfoDto(message))
+        }
+    }
+
+    /**
+     * 동기화 방향에 따라 적절한 메시지 Flow를 반환합니다.
+     *
+     * @param request 동기화 요청 정보
+     * @return 메시지 Flow
+     */
+    private fun getMessageFlowByDirection(request: SyncRequestDto): Flow<ChatMessage> {
         val roomObjectId = request.roomId
 
-        val messageFlow = when (request.direction) {
+        // lastMessageId가 null이 아닌 경우에만 ObjectId로 변환
+        val lastMessageObjectId = request.lastMessageId?.let { ObjectId(it) }
+
+        return when (request.direction) {
             // 초기 로드 시 메시지 동기화
             SyncDirection.INITIAL -> {
-                if (request.lastMessageId == null) {
+                if (lastMessageObjectId == null) {
                     loadMessagePort.findByRoomIdFlow(roomObjectId, 50)
                 } else {
-                    val lastMessageObjectId = ObjectId(request.lastMessageId)
                     loadMessagePort.findByRoomIdAndAfterIdFlow(roomObjectId, lastMessageObjectId, 30)
                 }
             }
             // 이전 메시지 동기화
             SyncDirection.BEFORE -> {
-                if (request.lastMessageId != null) {
-                    val lastMessageObjectId = ObjectId(request.lastMessageId)
+                if (lastMessageObjectId != null) {
                     loadMessagePort.findByRoomIdAndBeforeIdFlow(roomObjectId, lastMessageObjectId, 30)
                 } else {
                     emptyFlow()
@@ -54,18 +70,12 @@ class MessageSyncService(
             }
             // 이후 메시지 동기화
             SyncDirection.AFTER -> {
-                if (request.lastMessageId != null) {
-                    val lastMessageObjectId = ObjectId(request.lastMessageId)
+                if (lastMessageObjectId != null) {
                     loadMessagePort.findByRoomIdAndAfterIdFlow(roomObjectId, lastMessageObjectId, 30)
                 } else {
                     emptyFlow()
                 }
             }
-        }
-
-        // 메시지를 DTOs로 변환
-        messageFlow.collect { message ->
-            emit(mapToSyncInfoDto(message))
         }
     }
 

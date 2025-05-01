@@ -3,8 +3,8 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendReceiveUseCase
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.friend.FriendCachePort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
-import com.stark.shoot.application.service.user.friend.recommend.RecommendFriendService
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
@@ -19,7 +19,7 @@ class FriendReceiveService(
     private val updateFriendPort: UpdateFriendPort,
     private val eventPublisher: EventPublisher,
     private val redisTemplate: StringRedisTemplate,
-    private val recommendFriendService: RecommendFriendService
+    private val friendCachePort: FriendCachePort
 ) : FriendReceiveUseCase {
 
     /**
@@ -60,9 +60,9 @@ class FriendReceiveService(
         invalidateRecommendationCache(currentUserId)
         invalidateRecommendationCache(requesterId)
 
-        // 로컬 캐시도 무효화
-        recommendFriendService.invalidateUserCache(currentUserId)
-        recommendFriendService.invalidateUserCache(requesterId)
+        // 친구 추천 캐시 무효화
+        friendCachePort.invalidateUserCache(currentUserId)
+        friendCachePort.invalidateUserCache(requesterId)
     }
 
     /**
@@ -99,9 +99,9 @@ class FriendReceiveService(
         invalidateRecommendationCache(currentUserId)
         invalidateRecommendationCache(requesterId)
 
-        // 로컬 캐시도 무효화
-        recommendFriendService.invalidateUserCache(currentUserId)
-        recommendFriendService.invalidateUserCache(requesterId)
+        // 친구 추천 캐시 무효화
+        friendCachePort.invalidateUserCache(currentUserId)
+        friendCachePort.invalidateUserCache(requesterId)
     }
 
     /**

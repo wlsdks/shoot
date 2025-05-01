@@ -2,8 +2,8 @@ package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendRemoveUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.friend.FriendCachePort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
-import com.stark.shoot.application.service.user.friend.recommend.RecommendFriendService
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -16,7 +16,7 @@ class FriendRemoveService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
     private val redisStringTemplate: StringRedisTemplate,
-    private val recommendFriendService: RecommendFriendService
+    private val friendCachePort: FriendCachePort
 ) : FriendRemoveUseCase {
 
     private val maxPinnedFriends = 5
@@ -67,8 +67,8 @@ class FriendRemoveService(
                 redisStringTemplate.delete(keys)
             }
 
-            // 로컬 캐시도 무효화
-            recommendFriendService.invalidateUserCache(userId)
+            // 친구 추천 캐시 무효화
+            friendCachePort.invalidateUserCache(userId)
         } catch (e: Exception) {
             // 캐시 삭제 실패는 치명적인 오류가 아니므로 로깅만 하고 계속 진행
             println("캐시 삭제 실패: userId=$userId, error: ${e.message}")

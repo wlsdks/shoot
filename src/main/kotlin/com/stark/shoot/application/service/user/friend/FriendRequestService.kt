@@ -2,8 +2,8 @@ package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.friend.FriendCachePort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
-import com.stark.shoot.application.service.user.friend.recommend.RecommendFriendService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -16,7 +16,7 @@ class FriendRequestService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
     private val redisTemplate: StringRedisTemplate,
-    private val recommendFriendService: RecommendFriendService
+    private val friendCachePort: FriendCachePort
 ) : FriendRequestUseCase {
 
     /**
@@ -65,9 +65,9 @@ class FriendRequestService(
         invalidateRecommendationCache(currentUserId)
         invalidateRecommendationCache(targetUserId)
 
-        // 로컬 캐시도 무효화
-        recommendFriendService.invalidateUserCache(currentUserId)
-        recommendFriendService.invalidateUserCache(targetUserId)
+        // 친구 추천 캐시 무효화
+        friendCachePort.invalidateUserCache(currentUserId)
+        friendCachePort.invalidateUserCache(targetUserId)
     }
 
     /**
@@ -107,9 +107,9 @@ class FriendRequestService(
         invalidateRecommendationCache(currentUserId)
         invalidateRecommendationCache(targetUserId)
 
-        // 로컬 캐시도 무효화
-        recommendFriendService.invalidateUserCache(currentUserId)
-        recommendFriendService.invalidateUserCache(targetUserId)
+        // 친구 추천 캐시 무효화
+        friendCachePort.invalidateUserCache(currentUserId)
+        friendCachePort.invalidateUserCache(targetUserId)
     }
 
     /**

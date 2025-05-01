@@ -79,6 +79,12 @@ class RedisStreamListener(
 
         // 각 스트림에 대해 순차적으로 처리 (메시지 순서 보장)
         streamKeys.forEach { streamKey ->
+            // 스트림이 존재하는지 확인하고 없으면 생성
+            redisStreamManager.ensureStreamExists(streamKey)
+
+            // 소비자 그룹이 존재하는지 확인하고 없으면 생성
+            redisStreamManager.createConsumerGroup(streamKey, consumerGroup)
+
             val messages = redisStreamManager.readMessages(streamKey, consumerGroup)
 
             // 각 메시지 개별 처리 및 ACK

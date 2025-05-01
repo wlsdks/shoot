@@ -138,6 +138,28 @@ class RedisStreamManager(
         count: Long = 10,
         blockTime: Duration = Duration.ofMillis(100)
     ): List<MapRecord<String, String, Any>> {
+        // 스트림이 존재하는지 먼저 확인
+        if (!redisTemplate.hasKey(streamKey)) {
+            logger.warn { "스트림이 존재하지 않음: $streamKey - 생성 시도" }
+            ensureStreamExists(streamKey)
+            createConsumerGroup(streamKey, consumerGroup)
+        } else {
+            // 스트림은 존재하지만 소비자 그룹이 존재하는지 확인
+            try {
+                val consumerGroups = redisTemplate.opsForStream<Any, Any>().groups(streamKey)
+                val groupExists = consumerGroups.any { it.groupName() == consumerGroup }
+
+                if (!groupExists) {
+                    logger.warn { "소비자 그룹이 존재하지 않음: $streamKey - 생성 시도" }
+                    createConsumerGroup(streamKey, consumerGroup)
+                }
+            } catch (e: Exception) {
+                logger.warn(e) { "소비자 그룹 확인 중 오류: $streamKey" }
+                // 오류 발생 시 소비자 그룹 생성 시도
+                createConsumerGroup(streamKey, consumerGroup)
+            }
+        }
+
         val readOptions = StreamReadOptions.empty()
             .count(count)
             .block(blockTime)
@@ -153,9 +175,23 @@ class RedisStreamManager(
             if (e.message?.contains("NOGROUP") == true) {
                 logger.warn { "소비자 그룹이 없음: $streamKey - 재생성 시도" }
                 try {
+                    // 스트림이 존재하는지 확인하고 없으면 생성
+                    ensureStreamExists(streamKey)
+                    // 소비자 그룹 생성
                     createConsumerGroup(streamKey, consumerGroup)
+
+                    // 스트림과 소비자 그룹이 생성된 후 다시 메시지 읽기 시도
+                    return try {
+                        val retryMessages = redisTemplate.opsForStream<String, Any>()
+                            .read(consumerOptions, readOptions, StreamOffset.create(streamKey, ReadOffset.lastConsumed()))
+
+                        retryMessages?.toList() ?: emptyList()
+                    } catch (retryEx: Exception) {
+                        logger.error(retryEx) { "재시도 후에도 스트림 처리 오류: $streamKey" }
+                        emptyList()
+                    }
                 } catch (ex: Exception) {
-                    logger.error { "소비자 그룹 재생성 실패: $streamKey - ${ex.message}" }
+                    logger.error(ex) { "소비자 그룹 재생성 실패: $streamKey - ${ex.message}" }
                 }
             } else {
                 logger.error(e) { "스트림 처리 오류: $streamKey - Error in execution" }

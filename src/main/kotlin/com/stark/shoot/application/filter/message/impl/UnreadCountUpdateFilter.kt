@@ -15,9 +15,12 @@ class UnreadCountUpdateFilter(
         message: ChatMessage,
         chain: MessageProcessingChain
     ): ChatMessage {
+        // 읽음 상태를 업데이트하기 위한 새로운 맵 생성
+        val updatedReadBy = message.readBy.toMutableMap()
+
         // 읽음 상태 초기화 - 발신자는 항상 읽음 처리
-        if (!message.readBy.containsKey(message.senderId)) {
-            message.readBy[message.senderId] = true
+        if (!updatedReadBy.containsKey(message.senderId)) {
+            updatedReadBy[message.senderId] = true
         }
 
         // Redis에 활성 사용자 상태 조회는 한 번만 수행
@@ -33,12 +36,15 @@ class UnreadCountUpdateFilter(
 
         // 이미 읽은 사용자 및 활성 사용자는 readBy에 추가
         activeUserIds.forEach { userId ->
-            if (userId != message.senderId && !message.readBy.containsKey(userId)) {
-                message.readBy[userId] = true
+            if (userId != message.senderId && !updatedReadBy.containsKey(userId)) {
+                updatedReadBy[userId] = true
             }
         }
 
-        return chain.proceed(message)
+        // 업데이트된 readBy 맵으로 새 메시지 객체 생성
+        val updatedMessage = message.copy(readBy = updatedReadBy)
+
+        return chain.proceed(updatedMessage)
     }
 
 }

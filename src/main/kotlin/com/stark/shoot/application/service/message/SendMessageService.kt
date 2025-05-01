@@ -100,6 +100,7 @@ class SendMessageService(
      * @return ChatMessage
      */
     fun fromRequest(request: ChatMessageRequest): ChatMessage {
+        // 기본 메시지 생성
         val chatMessage = ChatMessage(
             roomId = request.roomId,
             senderId = request.senderId,
@@ -112,11 +113,13 @@ class SendMessageService(
         )
 
         // 메타데이터 복사 (tempId와 status 포함)
-        if (request.metadata != null) {
-            chatMessage.metadata = chatMessage.metadata.requestToDomain(request.metadata)
+        return if (request.metadata != null) {
+            // 불변 객체이므로 새 메타데이터로 새 객체 생성
+            val updatedMetadata = chatMessage.metadata.requestToDomain(request.metadata)
+            chatMessage.copy(metadata = updatedMetadata)
+        } else {
+            chatMessage
         }
-
-        return chatMessage
     }
 
     /**

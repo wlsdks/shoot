@@ -74,13 +74,7 @@ class TypingIndicatorMessagesService(
             if (message.isTyping != previousTypingState || now - lastSent > RATE_LIMIT_MS) {
                 logger.debug { "타이핑 인디케이터 전송: 사용자=${message.userId}, 채팅방=${message.roomId}, 상태=${message.isTyping}" }
 
-                webSocketMessageBroker.sendMessage(
-                    "/topic/typing/${message.roomId}",
-                    message
-                ).exceptionally { throwable ->
-                    logger.error(throwable) { "타이핑 인디케이터 전송 실패: ${throwable.message}" }
-                    null
-                }
+                sendTypingMessage("/topic/typing/${message.roomId}", message)
 
                 // Redis에 마지막 전송 시간과 상태 저장
                 val timeUpdated =
@@ -199,6 +193,22 @@ class TypingIndicatorMessagesService(
     }
 
     /**
+     * 타이핑 메시지를 WebSocket을 통해 전송하는 유틸리티 메서드
+     * 
+     * @param destination WebSocket 목적지 경로
+     * @param message 전송할 타이핑 인디케이터 메시지
+     */
+    private fun sendTypingMessage(destination: String, message: TypingIndicatorMessage) {
+        webSocketMessageBroker.sendMessage(
+            destination,
+            message
+        ).exceptionally { throwable ->
+            logger.error(throwable) { "타이핑 메시지 전송 실패: ${throwable.message}" }
+            null
+        }
+    }
+
+    /**
      * 타이핑 중지 메시지를 전송하는 메서드
      */
     private fun sendTypingStoppedMessage(userId: Long, roomId: Long, inactiveTime: Long) {
@@ -211,12 +221,6 @@ class TypingIndicatorMessagesService(
 
         logger.debug { "타이핑 중지 감지: 사용자=$userId, 채팅방=$roomId (${inactiveTime}ms 동안 타이핑 없음)" }
 
-        webSocketMessageBroker.sendMessage(
-            "/topic/typing/$roomId",
-            stoppedMessage
-        ).exceptionally { throwable ->
-            logger.error(throwable) { "타이핑 중지 메시지 전송 실패: ${throwable.message}" }
-            null
-        }
+        sendTypingMessage("/topic/typing/$roomId", stoppedMessage)
     }
 }

@@ -86,13 +86,52 @@ class FriendPersistenceAdapter(
         val userEntity = userRepository.findById(user.id!!)
             .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${user.id}") }
 
-        // 2. User 도메인 객체의 기본 필드를 엔티티에 업데이트
-        // (필요에 따라 구현 - 현재는 친구 관계만 처리)
+        // 2. 현재 데이터베이스에 저장된 친구 관계 조회
+        val currentFriendships = friendshipMappingRepository.findAllByUserId(user.id)
+        val currentFriendIds = currentFriendships.map { it.friend.id!! }.toSet()
 
-        // 3. User 엔티티 저장
+        // 3. 도메인 모델의 친구 ID와 비교하여 추가/삭제할 친구 관계 파악
+        val friendIdsToAdd = user.friendIds.filter { !currentFriendIds.contains(it) }
+        val friendIdsToRemove = currentFriendIds.filter { !user.friendIds.contains(it) }
+
+        // 4. 새로운 친구 관계 추가
+        friendIdsToAdd.forEach { friendId ->
+            addFriendRelation(user.id, friendId)
+        }
+
+        // 5. 제거할 친구 관계 삭제
+        friendIdsToRemove.forEach { friendId ->
+            removeFriendRelation(user.id, friendId)
+        }
+
+        // 6. 현재 데이터베이스에 저장된 받은 친구 요청 조회
+        val currentIncomingRequests = friendRequestRepository.findAllByReceiverId(user.id)
+        val currentIncomingRequestIds = currentIncomingRequests.map { it.sender.id!! }.toSet()
+
+        // 7. 도메인 모델의 받은 친구 요청 ID와 비교하여 제거할 요청 파악
+        val incomingRequestIdsToRemove = currentIncomingRequestIds.filter { !user.incomingFriendRequestIds.contains(it) }
+
+        // 8. 제거할 받은 친구 요청 삭제
+        incomingRequestIdsToRemove.forEach { senderId ->
+            removeIncomingFriendRequest(user.id, senderId)
+        }
+
+        // 9. 현재 데이터베이스에 저장된 보낸 친구 요청 조회
+        val currentOutgoingRequests = friendRequestRepository.findAllBySenderId(user.id)
+        val currentOutgoingRequestIds = currentOutgoingRequests.map { it.receiver.id!! }.toSet()
+
+        // 10. 도메인 모델의 보낸 친구 요청 ID와 비교하여 제거할 요청 파악
+        val outgoingRequestIdsToRemove = currentOutgoingRequestIds.filter { !user.outgoingFriendRequestIds.contains(it) }
+
+        // 11. 제거할 보낸 친구 요청 삭제
+        outgoingRequestIdsToRemove.forEach { receiverId ->
+            removeOutgoingFriendRequest(user.id, receiverId)
+        }
+
+        // 12. User 엔티티 저장
         userRepository.save(userEntity)
 
-        // 4. 친구 관계 및 요청 갱신을 위해 도메인 객체를 다시 조회하여 반환
+        // 13. 친구 관계 및 요청 갱신을 위해 도메인 객체를 다시 조회하여 반환
         return loadUserWithRelationships(userEntity.id!!)
     }
 
@@ -121,12 +160,20 @@ class FriendPersistenceAdapter(
         // 2. 기본 User 도메인 객체 생성
         val user = userMapper.toDomain(userEntity)
 
-        // 3. 친구 목록 로드 (양방향 관계이므로 User가 시작한 관계만 조회)
-        val friendIds = mutableSetOf<Long>()
+        // 3. 친구 목록 로드 (양방향 관계 모두 조회)
+        val outgoingFriendIds = mutableSetOf<Long>()
+        val incomingFriendIds = mutableSetOf<Long>()
 
-        // 사용자가 추가한 친구들
+        // 사용자가 추가한 친구들 (정방향 친구 관계)
         friendshipMappingRepository.findAllByUserId(userId)
-            .forEach { friendship -> friendIds.add(friendship.friend.id!!) }
+            .forEach { friendship -> outgoingFriendIds.add(friendship.friend.id!!) }
+
+        // 사용자를 친구로 추가한 사용자들 (역방향 친구 관계)
+        friendshipMappingRepository.findAllByFriendId(userId)
+            .forEach { friendship -> incomingFriendIds.add(friendship.user.id!!) }
+
+        // 양방향 친구 관계를 합쳐서 전체 친구 목록 생성
+        val allFriendIds = outgoingFriendIds.union(incomingFriendIds)
 
         // 4. 받은 친구 요청 로드
         val incomingRequestIds = mutableSetOf<Long>()
@@ -139,7 +186,7 @@ class FriendPersistenceAdapter(
             .forEach { request -> outgoingRequestIds.add(request.receiver.id!!) }
 
         // 6. 관계 정보를 도메인 객체에 설정
-        user.friendIds = friendIds
+        user.friendIds = allFriendIds
         user.incomingFriendRequestIds = incomingRequestIds
         user.outgoingFriendRequestIds = outgoingRequestIds
 

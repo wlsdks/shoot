@@ -102,8 +102,13 @@ class RecommendFriendService(
             // 데이터베이스에서 추천 친구 계산
             val recommendations = calculateAndCacheRecommendations(userId, cacheKey, limit)
 
+            // 이미 친구인 사용자와 친구 요청을 보낸 사용자 제외
+            val filteredRecommendations = filterExistingRelationships(userId, recommendations)
+
+            logger.debug { "새로 계산된 결과 필터링 완료: userId=$userId, 필터링 전=${recommendations.size}명, 필터링 후=${filteredRecommendations.size}명" }
+
             // 페이징 및 변환
-            return paginateAndConvert(recommendations, skip, limit)
+            return paginateAndConvert(filteredRecommendations, skip, limit)
         } finally {
             inProgressUsers.remove(userIdStr)
         }
@@ -274,7 +279,7 @@ class RecommendFriendService(
         // 필터링된 목록 반환
         return users.filter { user ->
             user.id?.let { id ->
-                !friendIds.contains(id) && !outgoingRequestIds.contains(id)
+                !friendIds.contains(id) && !outgoingRequestIds.contains(id) && !incomingRequestIds.contains(id)
             } ?: true
         }
     }

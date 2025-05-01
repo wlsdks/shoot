@@ -55,13 +55,22 @@ class RecommendFriendJpaAdapter(
             recommendedUsers.addAll(randomUsers)
         }
 
-        // 4. 최종 결과에서 현재 친구인 사용자 제외 (추가 검증)
-        val friendIds = friendshipMappingRepository.findAllByUserId(userId)
+        // 4. 최종 결과에서 현재 친구인 사용자 제외 (추가 검증, 양방향 관계 모두 확인)
+        // 4.1 사용자가 추가한 친구들 (정방향 친구 관계)
+        val outgoingFriendIds = friendshipMappingRepository.findAllByUserId(userId)
             .map { it.friend.id!! }
             .toSet()
 
+        // 4.2 사용자를 친구로 추가한 사용자들 (역방향 친구 관계)
+        val incomingFriendIds = friendshipMappingRepository.findAllByFriendId(userId)
+            .map { it.user.id!! }
+            .toSet()
+
+        // 양방향 친구 관계를 합쳐서 전체 친구 목록 생성
+        val allFriendIds = outgoingFriendIds.union(incomingFriendIds)
+
         return recommendedUsers.filter { user -> 
-            user.id?.let { !friendIds.contains(it) } ?: true 
+            user.id?.let { !allFriendIds.contains(it) } ?: true 
         }
     }
 
@@ -74,10 +83,16 @@ class RecommendFriendJpaAdapter(
     private fun getExcludedUserIds(userId: Long): Set<Long> {
         val excludeIds = mutableSetOf(userId)
 
-        // 친구 목록 추가
-        val friendIds = friendshipMappingRepository.findAllByUserId(userId)
+        // 친구 목록 추가 (양방향 관계 모두 조회)
+        // 1. 사용자가 추가한 친구들 (정방향 친구 관계)
+        val outgoingFriendIds = friendshipMappingRepository.findAllByUserId(userId)
             .map { it.friend.id!! }
-        excludeIds.addAll(friendIds)
+        excludeIds.addAll(outgoingFriendIds)
+
+        // 2. 사용자를 친구로 추가한 사용자들 (역방향 친구 관계)
+        val incomingFriendIds = friendshipMappingRepository.findAllByFriendId(userId)
+            .map { it.user.id!! }
+        excludeIds.addAll(incomingFriendIds)
 
         // 보낸 친구 요청 추가
         val outgoingRequestIds = friendRequestRepository.findAllBySenderId(userId)

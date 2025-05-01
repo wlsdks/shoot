@@ -109,13 +109,21 @@ class FindUserPersistenceAdapter(
         val userEntity = userRepository.findById(userId).orElse(null) ?: return null
         val user = userMapper.toDomain(userEntity)
 
-        // 친구 목록 조회
-        val friendIds = friendshipMappingRepository.findAllByUserId(userId)
+        // 내가 친구로 추가한 사용자들 (정방향 친구 관계)
+        val outgoingFriendIds = friendshipMappingRepository.findAllByUserId(userId)
             .map { it.friend.id!! }
             .toSet()
 
+        // 나를 친구로 추가한 사용자들 (역방향 친구 관계)
+        val incomingFriendIds = friendshipMappingRepository.findAllByFriendId(userId)
+            .map { it.user.id!! }
+            .toSet()
+
+        // 양방향 친구 관계를 합쳐서 전체 친구 목록 생성
+        val allFriendIds = outgoingFriendIds.union(incomingFriendIds)
+
         // 도메인 객체에 친구 ID 설정
-        user.friendIds = friendIds
+        user.friendIds = allFriendIds
 
         return user
     }
@@ -151,10 +159,18 @@ class FindUserPersistenceAdapter(
         val userEntity = userRepository.findById(userId).orElse(null) ?: return null
         val user = userMapper.toDomain(userEntity)
 
-        // 친구 목록 조회
-        val friendIds = friendshipMappingRepository.findAllByUserId(userId)
+        // 내가 친구로 추가한 사용자들 (정방향 친구 관계)
+        val outgoingFriendIds = friendshipMappingRepository.findAllByUserId(userId)
             .map { it.friend.id!! }
             .toSet()
+
+        // 나를 친구로 추가한 사용자들 (역방향 친구 관계)
+        val incomingFriendIds = friendshipMappingRepository.findAllByFriendId(userId)
+            .map { it.user.id!! }
+            .toSet()
+
+        // 양방향 친구 관계를 합쳐서 전체 친구 목록 생성
+        val allFriendIds = outgoingFriendIds.union(incomingFriendIds)
 
         // 받은 친구 요청 조회
         val incomingRequestIds = friendRequestRepository.findAllByReceiverId(userId)
@@ -167,7 +183,7 @@ class FindUserPersistenceAdapter(
             .toSet()
 
         // 도메인 객체에 관계 정보 설정
-        user.friendIds = friendIds
+        user.friendIds = allFriendIds
         user.incomingFriendRequestIds = incomingRequestIds
         user.outgoingFriendRequestIds = outgoingRequestIds
 
@@ -175,13 +191,20 @@ class FindUserPersistenceAdapter(
     }
 
     /**
-     * 친구 관계 확인
+     * 친구 관계 확인 (양방향 모두 확인)
      */
     override fun checkFriendship(
         userId: Long,
         friendId: Long
     ): Boolean {
-        return friendshipMappingRepository.existsByUserIdAndFriendId(userId, friendId)
+        // 정방향 친구 관계 확인 (내가 상대방을 친구로 추가한 경우)
+        val outgoingFriendship = friendshipMappingRepository.existsByUserIdAndFriendId(userId, friendId)
+
+        // 역방향 친구 관계 확인 (상대방이 나를 친구로 추가한 경우)
+        val incomingFriendship = friendshipMappingRepository.existsByUserIdAndFriendId(friendId, userId)
+
+        // 어느 한쪽이라도 친구 관계가 있으면 true 반환
+        return outgoingFriendship || incomingFriendship
     }
 
     /**

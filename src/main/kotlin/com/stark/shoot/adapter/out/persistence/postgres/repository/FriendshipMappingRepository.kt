@@ -8,6 +8,10 @@ import org.springframework.data.repository.query.Param
 
 interface FriendshipMappingRepository : JpaRepository<FriendshipMappingEntity, Long> {
     fun findAllByUserId(userId: Long): List<FriendshipMappingEntity>
+
+    // 사용자가 친구로 등록된 관계 조회 (역방향 친구 관계)
+    fun findAllByFriendId(friendId: Long): List<FriendshipMappingEntity>
+
     fun existsByUserIdAndFriendId(userId: Long, friendId: Long): Boolean
 
     @Modifying

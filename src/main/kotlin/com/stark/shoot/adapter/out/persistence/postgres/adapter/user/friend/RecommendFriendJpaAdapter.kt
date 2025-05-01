@@ -157,18 +157,21 @@ class RecommendFriendJpaAdapter(
                 if (!visited.contains(nextId)) {
                     visited.add(nextId)
 
-                    // 다음 거리의 사용자는 큐에 추가
-                    queue.add(Pair(nextId, distance + 1))
+                    // 이미 친구인 사용자는 큐에 추가하지 않음
+                    if (!excludeIds.contains(nextId)) {
+                        // 다음 거리의 사용자는 큐에 추가
+                        queue.add(Pair(nextId, distance + 1))
 
-                    // 현재 거리의 사용자는 추천 후보로 추가
-                    if (distance == currentDistance && !excludeIds.contains(nextId)) {
-                        // 상호 친구 수 계산
-                        val mutualFriendCount = countMutualFriends(userId, nextId)
+                        // 현재 거리의 사용자는 추천 후보로 추가
+                        if (distance == currentDistance) {
+                            // 상호 친구 수 계산
+                            val mutualFriendCount = countMutualFriends(userId, nextId)
 
-                        // 사용자 엔티티 조회
-                        val userEntity = entityManager.find(UserEntity::class.java, nextId)
-                        if (userEntity != null) {
-                            currentLevelCandidates.add(Pair(userEntity, mutualFriendCount))
+                            // 사용자 엔티티 조회
+                            val userEntity = entityManager.find(UserEntity::class.java, nextId)
+                            if (userEntity != null) {
+                                currentLevelCandidates.add(Pair(userEntity, mutualFriendCount))
+                            }
                         }
                     }
                 }

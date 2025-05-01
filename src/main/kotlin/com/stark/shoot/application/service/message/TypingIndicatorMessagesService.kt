@@ -4,8 +4,8 @@ import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.`in`.web.socket.dto.TypingIndicatorMessage
 import com.stark.shoot.application.port.`in`.message.TypingIndicatorMessageUseCase
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.config.redis.RedisUtilService
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 @UseCase
 class TypingIndicatorMessagesService(
     private val webSocketMessageBroker: WebSocketMessageBroker,
-    private val redisTemplate: StringRedisTemplate,
+    private val redisUtilService: RedisUtilService,
 ) : TypingIndicatorMessageUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -44,37 +44,6 @@ class TypingIndicatorMessagesService(
         redisKey: String
     ): String = "$redisKey:state"
 
-    /**
-     * Redis에서 값을 안전하게 가져오는 유틸리티 메서드
-     */
-    private fun getRedisValueSafely(
-        key: String,
-        defaultValue: String = "0"
-    ): String {
-        return try {
-            redisTemplate.opsForValue().get(key) ?: defaultValue
-        } catch (e: Exception) {
-            logger.warn(e) { "Redis에서 값 조회 실패: $key" }
-            defaultValue
-        }
-    }
-
-    /**
-     * Redis에 값을 안전하게 설정하는 유틸리티 메서드
-     */
-    private fun setRedisValueSafely(
-        key: String,
-        value: String,
-        expiry: Duration = Duration.ofMillis(ENTRY_EXPIRY_MS)
-    ): Boolean {
-        return try {
-            redisTemplate.opsForValue().set(key, value, expiry)
-            true
-        } catch (e: Exception) {
-            logger.warn(e) { "Redis에 값 저장 실패: $key" }
-            false
-        }
-    }
 
     /**
      * 타이핑 인디케이터 메시지를 전송합니다.
@@ -91,11 +60,12 @@ class TypingIndicatorMessagesService(
             val now = System.currentTimeMillis()
 
             // Redis에서 마지막 전송 시간 조회 (없으면 0)
-            val lastSentStr = getRedisValueSafely(redisKey, localTypingCache.getOrDefault(key, 0L).toString())
+            val lastSentStr =
+                redisUtilService.getValueSafely(redisKey, localTypingCache.getOrDefault(key, 0L).toString())
             val lastSent = lastSentStr.toLongOrNull() ?: 0L
 
             // 이전 타이핑 상태 확인
-            val previousTypingStateStr = getRedisValueSafely(stateKey, "false")
+            val previousTypingStateStr = redisUtilService.getValueSafely(stateKey, "false")
             val previousTypingState = previousTypingStateStr.toBoolean()
 
             // 타이핑 상태가 변경되었거나 제한 시간이 지났으면 메시지 전송
@@ -111,8 +81,13 @@ class TypingIndicatorMessagesService(
                 }
 
                 // Redis에 마지막 전송 시간과 상태 저장
-                val timeUpdated = setRedisValueSafely(redisKey, now.toString())
-                val stateUpdated = setRedisValueSafely(stateKey, message.isTyping.toString())
+                val timeUpdated =
+                    redisUtilService.setValueSafely(redisKey, now.toString(), Duration.ofMillis(ENTRY_EXPIRY_MS))
+                val stateUpdated = redisUtilService.setValueSafely(
+                    stateKey,
+                    message.isTyping.toString(),
+                    Duration.ofMillis(ENTRY_EXPIRY_MS)
+                )
 
                 // Redis 저장 실패 시 로컬 캐시 사용
                 if (!timeUpdated) {
@@ -174,12 +149,7 @@ class TypingIndicatorMessagesService(
             val pattern = "$REDIS_KEY_PREFIX*"
 
             // Redis에서 모든 타이핑 키 조회
-            val keys = try {
-                redisTemplate.keys(pattern)
-            } catch (e: Exception) {
-                logger.warn(e) { "Redis에서 타이핑 키 조회 실패" }
-                emptySet<String>()
-            }
+            val keys = redisUtilService.getKeysByPattern(pattern)
 
             // 각 키에 대해 타이핑 중지 상태 확인
             for (redisKey in keys) {
@@ -200,11 +170,11 @@ class TypingIndicatorMessagesService(
             val stateKey = createRedisStateKey(redisKey)
 
             // 마지막 타이핑 시간 조회
-            val lastTypingStr = getRedisValueSafely(redisKey)
+            val lastTypingStr = redisUtilService.getValueSafely(redisKey, "0")
             val lastTyping = lastTypingStr.toLongOrNull() ?: return
 
             // 타이핑 상태 확인
-            val isTypingStr = getRedisValueSafely(stateKey, "false")
+            val isTypingStr = redisUtilService.getValueSafely(stateKey, "false")
             val isTyping = isTypingStr.toBoolean()
 
             // 타이핑 중이고 마지막 타이핑 이후 일정 시간이 지났으면 중지 이벤트 발생
@@ -218,7 +188,7 @@ class TypingIndicatorMessagesService(
                     sendTypingStoppedMessage(userId, roomId, now - lastTyping)
 
                     // 상태 업데이트
-                    setRedisValueSafely(stateKey, "false")
+                    redisUtilService.setValueSafely(stateKey, "false", Duration.ofMillis(ENTRY_EXPIRY_MS))
                 }
             }
         } catch (e: Exception) {

@@ -10,7 +10,9 @@ import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.enumerate.SyncDirection
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import org.bson.types.ObjectId
@@ -22,6 +24,8 @@ class MessageSyncService(
     private val loadMessagePort: LoadMessagePort,
     private val messagingTemplate: SimpMessagingTemplate
 ) : SendSyncMessagesToUserUseCase, GetMessageSyncFlowUseCase {
+
+    private val logger = KotlinLogging.logger {}
 
     companion object {
         private const val INITIAL_LOAD_LIMIT = 50
@@ -36,12 +40,19 @@ class MessageSyncService(
     override fun chatMessagesFlow(
         request: SyncRequestDto
     ): Flow<MessageSyncInfoDto> = flow {
+        logger.debug { "메시지 동기화 요청: roomId=${request.roomId}, userId=${request.userId}, direction=${request.direction}" }
+
         val messageFlow = getMessageFlowByDirection(request)
 
         // 메시지를 DTOs로 변환
-        messageFlow.collect { message ->
-            emit(mapToSyncInfoDto(message))
-        }
+        messageFlow
+            .catch { e ->
+                logger.error(e) { "메시지 동기화 중 오류 발생: roomId=${request.roomId}, userId=${request.userId}" }
+                throw e
+            }
+            .collect { message ->
+                emit(mapToSyncInfoDto(message))
+            }
     }
 
     /**
@@ -117,6 +128,11 @@ class MessageSyncService(
      * @return MessageSyncInfoDto 객체
      */
     private fun mapToSyncInfoDto(message: ChatMessage): MessageSyncInfoDto {
+        logger.trace { "메시지 변환: messageId=${message.id}, senderId=${message.senderId}" }
+
+        // 도메인 Attachment 객체를 ID 문자열로 변환
+        val attachmentIds = message.content.attachments.map { it.id }
+
         return MessageSyncInfoDto(
             id = message.id ?: "",
             tempId = message.metadata.tempId,
@@ -126,7 +142,7 @@ class MessageSyncService(
             content = MessageContentRequest(
                 text = message.content.text,
                 type = message.content.type,
-                attachments = listOf(),
+                attachments = attachmentIds,
                 isEdited = message.content.isEdited,
                 isDeleted = message.content.isDeleted
             ),

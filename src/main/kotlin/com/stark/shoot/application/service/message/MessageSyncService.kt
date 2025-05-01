@@ -23,6 +23,11 @@ class MessageSyncService(
     private val messagingTemplate: SimpMessagingTemplate
 ) : SendSyncMessagesToUserUseCase, GetMessageSyncFlowUseCase {
 
+    companion object {
+        private const val INITIAL_LOAD_LIMIT = 50
+        private const val SYNC_LOAD_LIMIT = 30
+    }
+
     /**
      * 클라이언트 재연결 시 메시지 동기화
      *
@@ -55,15 +60,15 @@ class MessageSyncService(
             // 초기 로드 시 메시지 동기화
             SyncDirection.INITIAL -> {
                 if (lastMessageObjectId == null) {
-                    loadMessagePort.findByRoomIdFlow(roomObjectId, 50)
+                    loadMessagePort.findByRoomIdFlow(roomObjectId, INITIAL_LOAD_LIMIT)
                 } else {
-                    loadMessagePort.findByRoomIdAndAfterIdFlow(roomObjectId, lastMessageObjectId, 30)
+                    loadMessagePort.findByRoomIdAndAfterIdFlow(roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT)
                 }
             }
             // 이전 메시지 동기화
             SyncDirection.BEFORE -> {
                 if (lastMessageObjectId != null) {
-                    loadMessagePort.findByRoomIdAndBeforeIdFlow(roomObjectId, lastMessageObjectId, 30)
+                    loadMessagePort.findByRoomIdAndBeforeIdFlow(roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT)
                 } else {
                     emptyFlow()
                 }
@@ -71,7 +76,7 @@ class MessageSyncService(
             // 이후 메시지 동기화
             SyncDirection.AFTER -> {
                 if (lastMessageObjectId != null) {
-                    loadMessagePort.findByRoomIdAndAfterIdFlow(roomObjectId, lastMessageObjectId, 30)
+                    loadMessagePort.findByRoomIdAndAfterIdFlow(roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT)
                 } else {
                     emptyFlow()
                 }

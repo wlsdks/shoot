@@ -21,6 +21,10 @@ class ForwardMessageService(
     private val saveChatRoomPort: SaveChatRoomPort
 ) : ForwardMessageUseCase {
 
+    companion object {
+        private const val FORWARDED_PREFIX = "[Forwarded] "
+    }
+
     /**
      * 메시지를 전달합니다. (메시지 복사 후 대상 채팅방에 저장)
      */
@@ -33,9 +37,9 @@ class ForwardMessageService(
         val originalMessage = (loadMessagePort.findById(originalMessageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$originalMessageId"))
 
-        // 2. 메시지 내용을 복사 (전달임을 표시하기 위해 텍스트 앞에 "[Forwarded]"를 추가)
+        // 2. 메시지 내용을 복사 (전달임을 표시하기 위해 텍스트 앞에 접두사를 추가)
         val forwardedContent = originalMessage.content.copy(
-            text = "[Forwarded] ${originalMessage.content.text}"
+            text = "$FORWARDED_PREFIX${originalMessage.content.text}"
         )
 
         // 3. 대상 채팅방에 새 메시지 저장 (도메인 객체로 반환)

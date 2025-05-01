@@ -19,6 +19,11 @@ class RedisUtilService(
 ) {
     private val logger = KotlinLogging.logger {}
 
+    companion object {
+        // 로컬 캐시 최대 보관 시간 (밀리초)
+        private const val DEFAULT_CACHE_MAX_AGE_MS = 30_000L
+    }
+
     // 로컬 캐시 (Redis 장애 시 폴백으로 사용)
     private val localCache = ConcurrentHashMap<String, CacheEntry>()
 
@@ -91,20 +96,29 @@ class RedisUtilService(
             }
 
             // 로컬 캐시 업데이트
-            if (useLocalCache) {
-                localCache[key] = CacheEntry(value, System.currentTimeMillis())
-            }
+            updateLocalCache(key, value, useLocalCache)
 
             true
         } catch (e: Exception) {
             logger.warn(e) { "Redis에 값 저장 실패: $key" }
 
             // 오류 발생 시 로컬 캐시에만 저장
-            if (useLocalCache) {
-                localCache[key] = CacheEntry(value, System.currentTimeMillis())
-            }
+            updateLocalCache(key, value, useLocalCache)
 
             false
+        }
+    }
+
+    /**
+     * 로컬 캐시를 업데이트하는 private 메서드
+     * 
+     * @param key 캐시 키
+     * @param value 저장할 값
+     * @param useLocalCache 로컬 캐시 사용 여부
+     */
+    private fun updateLocalCache(key: String, value: String, useLocalCache: Boolean) {
+        if (useLocalCache) {
+            localCache[key] = CacheEntry(value, System.currentTimeMillis())
         }
     }
 
@@ -157,7 +171,7 @@ class RedisUtilService(
      *
      * @param maxAgeMs 최대 보관 시간 (밀리초)
      */
-    fun cleanupLocalCache(maxAgeMs: Long = 30_000L) {
+    fun cleanupLocalCache(maxAgeMs: Long = DEFAULT_CACHE_MAX_AGE_MS) {
         try {
             val now = System.currentTimeMillis()
             val expiredKeys = localCache.entries
@@ -199,7 +213,10 @@ class RedisUtilService(
      * @return 생성된 Redis 키
      */
     fun createHashKey(prefix: String, value: String): String {
-        return "$prefix${value.hashCode()}"
+        return buildString {
+            append(prefix)
+            append(value.hashCode())
+        }
     }
 
     /**
@@ -210,7 +227,11 @@ class RedisUtilService(
      * @return 생성된 상태 키
      */
     fun createStateKey(baseKey: String, stateSuffix: String = "state"): String {
-        return "$baseKey:$stateSuffix"
+        return buildString {
+            append(baseKey)
+            append(":")
+            append(stateSuffix)
+        }
     }
 
     /**

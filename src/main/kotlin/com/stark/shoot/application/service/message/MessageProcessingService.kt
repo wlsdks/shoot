@@ -17,11 +17,16 @@ class MessageProcessingService(
 
     private val logger = KotlinLogging.logger {}
 
+    companion object {
+        private const val LOCK_KEY_PREFIX = "chatroom:"
+        private const val OWNER_ID_PREFIX = "processor-"
+    }
+
     @Transactional
     override fun processMessageCreate(message: ChatMessage): ChatMessage {
         // 분산 락 키 생성 (채팅방별로 락을 걸기 위해 사용)
-        val lockKey = "chatroom:${message.roomId}"
-        val ownerId = "processor-${UUID.randomUUID()}"
+        val lockKey = "$LOCK_KEY_PREFIX${message.roomId}"
+        val ownerId = "$OWNER_ID_PREFIX${UUID.randomUUID()}"
 
         try {
             return processMessageWithLock(message, lockKey, ownerId)

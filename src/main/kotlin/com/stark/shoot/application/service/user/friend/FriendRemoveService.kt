@@ -1,7 +1,6 @@
 package com.stark.shoot.application.service.user.friend
 
-import com.stark.shoot.application.port.`in`.user.friend.RemoveFriendUseCase
-import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.`in`.user.friend.FriendRemoveUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
 import com.stark.shoot.domain.chat.user.User
@@ -12,11 +11,11 @@ import org.springframework.transaction.annotation.Transactional
 
 @Transactional
 @UseCase
-class RemoveFriendService(
+class FriendRemoveService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
     private val redisStringTemplate: StringRedisTemplate
-) : RemoveFriendUseCase {
+) : FriendRemoveUseCase {
 
     private val maxPinnedFriends = 5
 

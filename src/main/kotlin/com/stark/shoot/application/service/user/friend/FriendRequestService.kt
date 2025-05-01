@@ -1,10 +1,8 @@
 package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
-import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
-import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -16,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional
 class FriendRequestService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
-    private val eventPublisher: EventPublisher,
     private val redisTemplate: StringRedisTemplate
 ) : FriendRequestUseCase {
 
@@ -68,77 +65,41 @@ class FriendRequestService(
     }
 
     /**
-     * 친구 요청을 수락합니다.
+     * 친구 요청을 취소합니다.
      *
      * @param currentUserId 현재 사용자 ID
-     * @param requesterId 친구 요청을 보낸 사용자 ID
+     * @param targetUserId 친구 요청을 받은 사용자 ID
      */
-    override fun acceptFriendRequest(
+    override fun cancelFriendRequest(
         currentUserId: Long,
-        requesterId: Long
+        targetUserId: Long
     ) {
-        // 사용자 조회
-        val currentUser = findUserPort.findUserById(currentUserId)
+        // 사용자 조회 (친구 요청 정보 포함)
+        val currentUser = findUserPort.findUserWithFriendRequestsById(currentUserId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
 
-        val requester = findUserPort.findUserById(requesterId)
-            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $requesterId")
+        val targetUser = findUserPort.findUserById(targetUserId)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId")
 
         // 친구 요청 존재 여부 확인
-        if (!currentUser.incomingFriendRequestIds.contains(requesterId)) {
+        if (!findUserPort.checkOutgoingFriendRequest(currentUserId, targetUserId)) {
             throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
         }
 
-        // 도메인 객체의 메서드를 사용하여 친구 요청 수락
-        val updatedCurrentUser = currentUser.acceptFriendRequest(requesterId)
+        // 도메인 객체의 메서드를 사용하여 친구 요청 취소
+        val updatedCurrentUser = currentUser.cancelFriendRequest(targetUserId)
         updateFriendPort.updateFriends(updatedCurrentUser)
 
-        // 요청자의 친구 목록에도 추가
-        val updatedRequester = requester.addFriend(currentUserId)
-        updateFriendPort.updateFriends(updatedRequester)
+        // 대상 사용자의 수신 요청 목록에서도 제거
+        val updatedTargetUser = targetUser.rejectFriendRequest(currentUserId)
+        updateFriendPort.updateFriends(updatedTargetUser)
 
-        // 이벤트 발행 (양쪽 사용자에게 친구 추가 알림)
-        eventPublisher.publish(FriendAddedEvent(userId = currentUserId, friendId = requesterId))
-        eventPublisher.publish(FriendAddedEvent(userId = requesterId, friendId = currentUserId))
+        // 실제 친구 요청 데이터 삭제
+        updateFriendPort.removeOutgoingFriendRequest(currentUserId, targetUserId)
 
         // 캐시 무효화
         invalidateRecommendationCache(currentUserId)
-        invalidateRecommendationCache(requesterId)
-    }
-
-    /**
-     * 친구 요청을 거절합니다.
-     *
-     * @param currentUserId 현재 사용자 ID
-     * @param requesterId 친구 요청을 보낸 사용자 ID
-     */
-    override fun rejectFriendRequest(
-        currentUserId: Long,
-        requesterId: Long
-    ) {
-        // 사용자 조회
-        val currentUser = findUserPort.findUserById(currentUserId)
-            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
-
-        val requester = findUserPort.findUserById(requesterId)
-            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $requesterId")
-
-        // 친구 요청 존재 여부 확인
-        if (!currentUser.incomingFriendRequestIds.contains(requesterId)) {
-            throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
-        }
-
-        // 도메인 객체의 메서드를 사용하여 친구 요청 거절
-        val updatedCurrentUser = currentUser.rejectFriendRequest(requesterId)
-        updateFriendPort.updateFriends(updatedCurrentUser)
-
-        // 요청자의 발신 요청 목록에서도 제거
-        val updatedRequester = requester.cancelFriendRequest(currentUserId)
-        updateFriendPort.updateFriends(updatedRequester)
-
-        // 캐시 무효화
-        invalidateRecommendationCache(currentUserId)
-        invalidateRecommendationCache(requesterId)
+        invalidateRecommendationCache(targetUserId)
     }
 
     /**

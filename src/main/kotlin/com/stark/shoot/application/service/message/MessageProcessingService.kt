@@ -24,13 +24,24 @@ class MessageProcessingService(
         val ownerId = "processor-${UUID.randomUUID()}"
 
         try {
-            // 일반 함수 호출로 변경
-            return redisLockManager.withLock(lockKey, ownerId) {
-                messageProcessingChain.reset().proceed(message)
-            }
+            return processMessageWithLock(message, lockKey, ownerId)
         } catch (e: Exception) {
             logger.error(e) { "메시지 처리 오류: ${message.id}" }
             throw e
+        }
+    }
+
+    /**
+     * 분산 락을 사용하여 메시지를 처리합니다.
+     * 
+     * @param message 처리할 메시지
+     * @param lockKey 분산 락 키
+     * @param ownerId 락 소유자 ID
+     * @return 처리된 메시지
+     */
+    private fun processMessageWithLock(message: ChatMessage, lockKey: String, ownerId: String): ChatMessage {
+        return redisLockManager.withLock(lockKey, ownerId) {
+            messageProcessingChain.reset().proceed(message)
         }
     }
 

@@ -20,6 +20,17 @@ class UserCodeController(
     private val friendRequestUseCase: FriendRequestUseCase
 ) {
 
+    @Operation(summary = "내 유저 코드 조회", description = "사용자 ID로 본인의 유저 코드를 조회합니다.")
+    @GetMapping("/{userId}/code")
+    fun getUserCode(
+        @PathVariable userId: Long
+    ): ResponseDto<UserResponse> {
+        val user = findUserUseCase.findById(userId)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
+
+        return ResponseDto.success(user.toResponse(), "유저 코드를 성공적으로 조회했습니다.")
+    }
+
     @Operation(summary = "유저 코드 등록/수정", description = "유저가 본인의 userCode를 새로 설정 또는 수정합니다.")
     @PostMapping("/code")
     fun updateUserCode(

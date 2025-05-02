@@ -43,7 +43,7 @@ class ManageUserCodeService(
         }
 
         // 유저 코드 업데이트
-        val updatedUser = user.copy(userCode = newCode)
+        val updatedUser = user.copy(id = user.id, userCode = newCode)
         updateUserCodePort.updateUserCode(updatedUser)
     }
 
@@ -63,7 +63,7 @@ class ManageUserCodeService(
         val randomCode = generateRandomUserCode()
 
         // 유저 코드 업데이트
-        val updatedUser = user.copy(userCode = randomCode)
+        val updatedUser = user.copy(id = user.id, userCode = randomCode)
         userUpdatePort.updateUser(updatedUser)
     }
 

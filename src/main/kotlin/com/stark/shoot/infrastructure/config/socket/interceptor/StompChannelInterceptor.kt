@@ -15,10 +15,8 @@ import org.springframework.messaging.support.ChannelInterceptor
 import org.springframework.security.core.Authentication
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 /**
@@ -164,8 +162,8 @@ class StompChannelInterceptor(
                         validateMessage(parsedMessage)
                     }
 
-                    "/app/active", "/app/typing" -> {
-                        // active/typing 메시지는 파싱만 확인 (최적화: 간소화된 검증)
+                    // 기타 경로 처리 (최소화된 검증)
+                    "/app/active", "/app/typing", "/app/read-all", "/app/sync" -> {
                         getRawPayload(message)
                     }
 
@@ -199,7 +197,7 @@ class StompChannelInterceptor(
         if (currentTime - lastMetricLogTime > 1000) {
             val messageCount = messageCounter.get()
             val errorCount = errorCounter.get()
-            val avgProcessingTime = if (messageCount > 0) 
+            val avgProcessingTime = if (messageCount > 0)
                 processingTimeNanos.get() / messageCount / 1_000_000.0 else 0.0
 
             logger.debug { "WebSocket metrics: messages=$messageCount, errors=$errorCount, avg_time=${avgProcessingTime}ms" }
@@ -228,7 +226,7 @@ class StompChannelInterceptor(
         val payload = message.payload ?: return null
 
         return when (payload) {
-            is String -> if (payload.isBlank()) null else payload
+            is String -> payload.ifBlank { null }
             is ByteArray -> if (payload.isEmpty()) null else String(payload)
             else -> throw WebSocketException("Unsupported message payload type: ${payload.javaClass.simpleName}")
         }

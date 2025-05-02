@@ -97,12 +97,12 @@ class WebSocketConfig(
         val maxPoolSize = availableProcessors * 4
 
         registration.taskExecutor()
-            .corePoolSize(corePoolSize)    // CPU 코어 수 + 1
-            .maxPoolSize(maxPoolSize)      // CPU 코어 수 * 4
-            .queueCapacity(500)            // 큐 크기 증가
-            .keepAliveSeconds(60)          // 유휴 스레드 유지 시간
+            .corePoolSize(corePoolSize * 2)    // CPU 코어 수 * 2
+            .maxPoolSize(maxPoolSize * 2)      // CPU 코어 수 * 8
+            .queueCapacity(2000)               // 큐 크기 대폭 증가
+            .keepAliveSeconds(60)              // 유휴 스레드 유지 시간
 
-        logger.info { "WebSocket 인바운드 채널 스레드 풀 설정: core=$corePoolSize, max=$maxPoolSize, queue=500" }
+        logger.info { "WebSocket 인바운드 채널 스레드 풀 설정: core=${corePoolSize * 2}, max=${maxPoolSize * 2}, queue=2000" }
     }
 
     /**
@@ -116,12 +116,12 @@ class WebSocketConfig(
         val maxPoolSize = availableProcessors * 3
 
         registration.taskExecutor()
-            .corePoolSize(corePoolSize)    // CPU 코어 수
-            .maxPoolSize(maxPoolSize)      // CPU 코어 수 * 3
-            .queueCapacity(1000)           // 큐 크기 증가
-            .keepAliveSeconds(60)          // 유휴 스레드 유지 시간
+            .corePoolSize(corePoolSize * 2)    // CPU 코어 수 * 2
+            .maxPoolSize(maxPoolSize * 2)      // CPU 코어 수 * 6
+            .queueCapacity(3000)               // 큐 크기 대폭 증가
+            .keepAliveSeconds(60)              // 유휴 스레드 유지 시간
 
-        logger.info { "WebSocket 아웃바운드 채널 스레드 풀 설정: core=$corePoolSize, max=$maxPoolSize, queue=1000" }
+        logger.info { "WebSocket 아웃바운드 채널 스레드 풀 설정: core=${corePoolSize * 2}, max=${maxPoolSize * 2}, queue=3000" }
     }
 
     /**
@@ -130,7 +130,7 @@ class WebSocketConfig(
     @Bean
     fun heartbeatScheduler(): TaskScheduler {
         return ThreadPoolTaskScheduler().apply {
-            poolSize = 4 // heartbeat 처리용 스레드 풀 증가
+            poolSize = 8 // heartbeat 처리용 스레드 풀 대폭 증가
             setThreadNamePrefix("ws-heartbeat-")
             setAwaitTerminationSeconds(5)
             setWaitForTasksToCompleteOnShutdown(true)
@@ -145,10 +145,10 @@ class WebSocketConfig(
     @Bean
     fun createWebSocketContainer(): ServletServerContainerFactoryBean {
         return ServletServerContainerFactoryBean().apply {
-            setMaxTextMessageBufferSize(64 * 1024) // 64KB
-            setMaxBinaryMessageBufferSize(64 * 1024) // 64KB
-            setMaxSessionIdleTimeout(TimeUnit.MINUTES.toMillis(10)) // 10분
-            setAsyncSendTimeout(5000) // 5초
+            setMaxTextMessageBufferSize(128 * 1024) // 128KB로 증가
+            setMaxBinaryMessageBufferSize(128 * 1024) // 128KB로 증가
+            setMaxSessionIdleTimeout(TimeUnit.MINUTES.toMillis(20)) // 20분으로 증가
+            setAsyncSendTimeout(10000) // 10초로 증가
         }
     }
 }

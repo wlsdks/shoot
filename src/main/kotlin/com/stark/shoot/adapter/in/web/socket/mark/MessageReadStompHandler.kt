@@ -1,14 +1,14 @@
 package com.stark.shoot.adapter.`in`.web.socket.mark
 
 import com.stark.shoot.adapter.`in`.web.dto.message.read.ChatReadRequest
-import com.stark.shoot.application.port.`in`.message.read.ReadStatusUseCase
+import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
 
 @Controller
-class ReadStatusStompHandler(
-    private val readStatusUseCase: ReadStatusUseCase
+class MessageReadStompHandler(
+    private val messageReadUseCase: MessageReadUseCase
 ) {
 
     @Operation(
@@ -20,7 +20,7 @@ class ReadStatusStompHandler(
     )
     @MessageMapping("/read-all")
     fun handleReadAll(request: ChatReadRequest) {
-        readStatusUseCase.markAllMessagesAsRead(
+        messageReadUseCase.markAllMessagesAsRead(
             roomId = request.roomId,
             userId = request.userId,
             requestId = request.requestId

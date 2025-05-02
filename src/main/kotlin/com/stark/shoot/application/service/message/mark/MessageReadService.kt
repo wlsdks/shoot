@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.message.mark
 
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
-import com.stark.shoot.application.port.`in`.message.mark.MarkMessageReadUseCase
+import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.ReadStatusPort
 import com.stark.shoot.application.port.out.event.EventPublisher
@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 
 @Transactional
 @UseCase
-class MarkMessageReadService(
+class MessageReadService(
     private val saveMessagePort: SaveMessagePort,
     private val loadChatRoomPort: LoadChatRoomPort,
     private val readStatusPort: ReadStatusPort,
@@ -29,7 +29,7 @@ class MarkMessageReadService(
     private val loadMessagePort: LoadMessagePort,
     private val redisTemplate: StringRedisTemplate,
     private val webSocketMessageBroker: WebSocketMessageBroker
-) : MarkMessageReadUseCase {
+) : MessageReadUseCase {
     private val logger = KotlinLogging.logger {}
 
     companion object {
@@ -178,8 +178,10 @@ class MarkMessageReadService(
                 // 마지막 메시지 업데이트 (가장 최신 메시지를 찾기 위해)
                 val batchLastMessage = unreadMessages.maxByOrNull { it.createdAt ?: java.time.Instant.MIN }
                 if (batchLastMessage != null) {
-                    if (lastMessage == null || 
-                        (batchLastMessage.createdAt ?: java.time.Instant.MIN) > (lastMessage.createdAt ?: java.time.Instant.MIN)) {
+                    if (lastMessage == null ||
+                        (batchLastMessage.createdAt ?: java.time.Instant.MIN) > (lastMessage.createdAt
+                            ?: java.time.Instant.MIN)
+                    ) {
                         lastMessage = batchLastMessage
                     }
                 }

@@ -54,7 +54,14 @@ class UserCodeController(
         }
     }
 
-    @Operation(summary = "유저 코드 삭제", description = "유저가 본인의 userCode를 제거합니다.")
+    @Operation(
+        summary = "유저 코드 삭제(초기화)",
+        description = """
+            유저가 본인의 userCode를 초기화합니다.
+            - 유저 코드가 초기화 되면 '랜덤 코드'로 대체됩니다. (삭제 x)
+            - 랜덤 코드는 UUID를 기반으로 생성됩니다.
+        """
+    )
     @DeleteMapping("/code")
     fun removeUserCode(
         @RequestParam userId: Long

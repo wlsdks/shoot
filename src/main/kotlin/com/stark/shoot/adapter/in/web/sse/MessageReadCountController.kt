@@ -30,4 +30,20 @@ class MessageReadCountController(
         return ResponseDto.success(Unit, "모든 메시지가 읽음으로 처리되었습니다.")
     }
 
-} 
+    @Operation(
+        summary = "단일 메시지 읽음 처리",
+        description = """
+            - 특정 메시지를 읽음 처리합니다.
+            - SSE를 통해 실시간으로 읽음 상태를 업데이트합니다.
+        """
+    )
+    @PostMapping("/messages/{messageId}/read")
+    fun markMessageAsRead(
+        @PathVariable messageId: String,
+        @RequestParam userId: Long
+    ): ResponseDto<Unit> {
+        messageReadUseCase.markMessageAsRead(messageId, userId)
+        return ResponseDto.success(Unit, "메시지가 읽음으로 처리되었습니다.")
+    }
+
+}

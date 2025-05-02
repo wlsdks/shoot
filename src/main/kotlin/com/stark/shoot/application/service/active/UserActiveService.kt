@@ -86,8 +86,8 @@ class UserActiveService(
      * @param roomId 채팅방 ID
      * @return 생성된 Redis 키
      */
-    private fun generateRedisKey(userId: String, roomId: String): String {
-        return redisUtilService.createKey(REDIS_KEY_PREFIX, userId, roomId)
+    private fun generateRedisKey(userId: Long, roomId: Long): String {
+        return redisUtilService.createKey(REDIS_KEY_PREFIX, userId.toString(), roomId.toString())
     }
 
     /**

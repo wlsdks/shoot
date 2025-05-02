@@ -222,9 +222,28 @@ class MessageReadService(
             }
 
             // 채팅방의 마지막 메시지 내용 조회
-            val lastMessageText = chatRoom.lastMessageId?.let {
-                // 실제 구현시 메시지 내용 조회 로직 추가
-                "최근 메시지"
+            val lastMessageText = chatRoom.lastMessageId?.let { lastMessageId ->
+                try {
+                    // 실제 메시지 내용 조회
+                    val lastMessage = loadMessagePort.findById(lastMessageId.toObjectId())
+                    when {
+                        lastMessage == null -> "메시지를 찾을 수 없습니다"
+                        lastMessage.content.isDeleted -> "삭제된 메시지입니다"
+                        lastMessage.content.text.isNotBlank() -> {
+                            // 긴 메시지는 요약
+                            if (lastMessage.content.text.length > 30) {
+                                "${lastMessage.content.text.take(30)}..."
+                            } else {
+                                lastMessage.content.text
+                            }
+                        }
+                        lastMessage.content.attachments.isNotEmpty() -> "첨부파일이 포함된 메시지"
+                        else -> "내용 없는 메시지"
+                    }
+                } catch (e: Exception) {
+                    logger.warn(e) { "마지막 메시지 조회 실패: $lastMessageId" }
+                    "최근 메시지"
+                }
             } ?: "메시지가 없습니다"
 
             if (updatedMessageIds.isNotEmpty()) {
@@ -335,11 +354,22 @@ class MessageReadService(
 
     /**
      * 사용자의 읽지 않은 메시지 카운트를 저장하는 Redis 키를 생성합니다.
+     * 생성된 키에 만료 시간을 설정합니다.
      *
      * @param userId 사용자 ID
      * @return Redis 키
      */
-    private fun createUnreadKey(userId: Long): String = "$UNREAD_KEY_PREFIX$userId"
+    private fun createUnreadKey(userId: Long): String {
+        val key = "$UNREAD_KEY_PREFIX$userId"
+
+        // 키가 존재하지 않는 경우에만 만료 시간 설정 (기존 데이터 유지)
+        if (!redisTemplate.hasKey(key)) {
+            // 사용자 활동이 없는 경우를 대비해 7일 만료 시간 설정
+            redisTemplate.expire(key, 7, TimeUnit.DAYS)
+        }
+
+        return key
+    }
 
     /**
      * 중복 읽기 요청을 방지하기 위한 Redis 키를 생성합니다.

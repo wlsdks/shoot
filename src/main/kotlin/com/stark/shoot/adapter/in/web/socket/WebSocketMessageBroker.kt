@@ -25,14 +25,29 @@ class WebSocketMessageBroker(
     // 메시지 배치 처리를 위한 버퍼 (스레드 안전)
     private val messageBuffer = ConcurrentHashMap<String, ConcurrentLinkedQueue<Any>>()
 
+    // 버퍼 크기 제한 및 만료 시간 설정
+    private val MAX_DESTINATIONS = 1000 // 최대 대상 수
+    private val MAX_MESSAGES_PER_DESTINATION = 10000 // 대상당 최대 메시지 수
+    private val destinationLastAccess = ConcurrentHashMap<String, Long>() // 대상별 마지막 접근 시간
+    private val DESTINATION_EXPIRY_MS = 30 * 60 * 1000L // 30분 만료
+
     // 배치 처리를 위한 스케줄러
     private val scheduler: ScheduledExecutorService =
         Executors.newScheduledThreadPool(2).apply {
+            // 메시지 버퍼 플러시 (50ms 간격)
             scheduleAtFixedRate(
                 ::flushMessageBuffer,
                 50,
                 50,
                 TimeUnit.MILLISECONDS
+            )
+
+            // 버퍼 정리 (1분 간격)
+            scheduleAtFixedRate(
+                ::cleanupMessageBuffer,
+                1,
+                1,
+                TimeUnit.MINUTES
             )
         }
 
@@ -143,6 +158,8 @@ class WebSocketMessageBroker(
             val destinations = messageBuffer.keys.toList()
             for (destination in destinations) {
                 flushDestinationBuffer(destination)
+                // 대상 접근 시간 업데이트
+                destinationLastAccess[destination] = System.currentTimeMillis()
             }
 
             // 주기적으로 메트릭 로깅
@@ -153,6 +170,61 @@ class WebSocketMessageBroker(
             }
         } catch (e: Exception) {
             logger.error(e) { "메시지 버퍼 플러시 중 오류 발생" }
+        }
+    }
+
+    /**
+     * 메시지 버퍼를 정리합니다.
+     * 1. 오래된 대상 제거 (30분 이상 접근 없음)
+     * 2. 버퍼 크기 제한 (최대 대상 수, 대상당 최대 메시지 수)
+     */
+    private fun cleanupMessageBuffer() {
+        try {
+            val now = System.currentTimeMillis()
+            var removedDestinations = 0
+            var oversizedQueues = 0
+
+            // 1. 오래된 대상 제거
+            val expiredDestinations = destinationLastAccess.entries
+                .filter { now - it.value > DESTINATION_EXPIRY_MS }
+                .map { it.key }
+
+            for (destination in expiredDestinations) {
+                messageBuffer.remove(destination)
+                destinationLastAccess.remove(destination)
+                removedDestinations++
+            }
+
+            // 2. 버퍼 크기 제한 - 대상 수 제한
+            if (messageBuffer.size > MAX_DESTINATIONS) {
+                // 가장 오래된 대상부터 제거
+                val oldestDestinations = destinationLastAccess.entries
+                    .sortedBy { it.value }
+                    .take(messageBuffer.size - MAX_DESTINATIONS)
+                    .map { it.key }
+
+                for (destination in oldestDestinations) {
+                    messageBuffer.remove(destination)
+                    destinationLastAccess.remove(destination)
+                    removedDestinations++
+                }
+            }
+
+            // 3. 대상당 메시지 수 제한
+            for ((destination, queue) in messageBuffer) {
+                if (queue.size > MAX_MESSAGES_PER_DESTINATION) {
+                    // 큐 크기를 제한하기 위해 가장 오래된 메시지부터 제거
+                    val toRemove = queue.size - MAX_MESSAGES_PER_DESTINATION
+                    repeat(toRemove) { queue.poll() }
+                    oversizedQueues++
+                }
+            }
+
+            if (removedDestinations > 0 || oversizedQueues > 0) {
+                logger.info { "메시지 버퍼 정리 완료: 제거된 대상=$removedDestinations, 크기 조정된 큐=$oversizedQueues" }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "메시지 버퍼 정리 중 오류 발생" }
         }
     }
 
@@ -183,16 +255,14 @@ class WebSocketMessageBroker(
                     }
                     success = true
                     messagesSent.addAndGet(messages.size)
-                } catch (e: TimeoutCancellationException) {
-                    attempt++
-                    logger.error(e) { "WebSocket 메시지 전송 타임아웃: $destination, 메시지 수: ${messages.size}, 시도 횟수: $attempt" }
-                    if (attempt < retryCount) {
-                        // 지수 백오프 - 비차단 방식 (코루틴 delay 사용)
-                        kotlinx.coroutines.delay(100 * (1L shl attempt))
-                    }
                 } catch (e: Exception) {
                     attempt++
-                    logger.error(e) { "WebSocket 메시지 전송 실패: $destination, 메시지 수: ${messages.size}, 시도 횟수: $attempt" }
+                    val errorMessage = when (e) {
+                        is TimeoutCancellationException -> "WebSocket 메시지 전송 타임아웃"
+                        else -> "WebSocket 메시지 전송 실패"
+                    }
+                    logger.error(e) { "$errorMessage: $destination, 메시지 수: ${messages.size}, 시도 횟수: $attempt" }
+
                     if (attempt < retryCount) {
                         // 지수 백오프 - 비차단 방식 (코루틴 delay 사용)
                         kotlinx.coroutines.delay(100 * (1L shl attempt))
@@ -204,16 +274,29 @@ class WebSocketMessageBroker(
                 messagesFailed.addAndGet(messages.size)
                 // 최대 재시도 횟수 초과 시 Redis에 메시지 저장 (파이프라인 사용)
                 try {
-                    redisTemplate.executePipelined { connection ->
-                        for (payload in messages) {
-                            val key = when (payload) {
-                                is MessageStatusResponse -> "failed-message-tempId:${payload.tempId}"
-                                else -> "failed-message:${System.currentTimeMillis()}"
+                    // 대용량 메시지 처리를 위한 배치 크기 제한
+                    val MAX_BATCH_SIZE = 100
+
+                    // 메시지를 배치로 나누어 처리
+                    messages.chunked(MAX_BATCH_SIZE).forEach { batch ->
+                        redisTemplate.executePipelined { connection ->
+                            for (payload in batch) {
+                                val key = when (payload) {
+                                    is MessageStatusResponse -> "failed-message-tempId:${payload.tempId}"
+                                    else -> "failed-message:${System.currentTimeMillis()}"
+                                }
+                                val value = objectMapper.writeValueAsString(payload)
+
+                                // 키에 TTL 설정 (24시간 후 만료)
+                                val expireTimeSeconds = 24 * 60 * 60L
+                                connection.stringCommands().setEx(
+                                    key.toByteArray(),
+                                    expireTimeSeconds,
+                                    value.toByteArray()
+                                )
                             }
-                            val value = objectMapper.writeValueAsString(payload)
-                            connection.stringCommands().set(key.toByteArray(), value.toByteArray())
+                            null
                         }
-                        null
                     }
                 } catch (e: Exception) {
                     logger.error(e) { "Redis에 실패한 메시지 저장 중 오류 발생" }

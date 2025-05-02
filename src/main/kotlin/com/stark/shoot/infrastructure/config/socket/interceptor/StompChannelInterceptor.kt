@@ -12,6 +12,7 @@ import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.simp.stomp.StompCommand
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor
 import org.springframework.messaging.support.ChannelInterceptor
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.core.Authentication
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -69,16 +70,27 @@ class StompChannelInterceptor(
         this[key] = CacheEntry(value, expiry)
     }
 
-    // 주기적으로 만료된 캐시 항목 정리
-    private fun cleanupCaches() {
+    // 주기적으로 만료된 캐시 항목 정리 (5분마다 실행)
+    @Scheduled(fixedRate = 300000) // 5분(300,000ms)마다 실행
+    fun cleanupCaches() {
         val now = Instant.now()
+        var userRemoved = 0
+        var roomRemoved = 0
 
         userCacheLock.write {
+            val sizeBefore = userCache.size
             userCache.entries.removeIf { it.value.expiry.isBefore(now) }
+            userRemoved = sizeBefore - userCache.size
         }
 
         roomCacheLock.write {
+            val sizeBefore = roomCache.size
             roomCache.entries.removeIf { it.value.expiry.isBefore(now) }
+            roomRemoved = sizeBefore - roomCache.size
+        }
+
+        if (userRemoved > 0 || roomRemoved > 0) {
+            logger.debug { "캐시 정리 완료: 사용자 캐시 ${userRemoved}개, 채팅방 캐시 ${roomRemoved}개 항목 제거됨" }
         }
     }
 
@@ -234,14 +246,39 @@ class StompChannelInterceptor(
 
     /**
      * ChatMessageRequest 유효성 검사 (최적화: 검증 로직 개선)
+     * 메시지의 유효성을 검사하고 잘못된 형식이나 내용이 있으면 예외를 발생시킵니다.
      */
     private fun validateMessage(message: ChatMessageRequest) {
+        // 필수 필드 검증
+        if (message.roomId <= 0) {
+            throw WebSocketException("Invalid roomId: ${message.roomId}")
+        }
+
+        if (message.senderId <= 0) {
+            throw WebSocketException("Invalid senderId: ${message.senderId}")
+        }
+
         // 텍스트 길이 검증
         val textLength = message.content.text.length
         if (textLength > 1000) {
             throw WebSocketException("Message content too long: $textLength characters (max: 1000)")
         }
 
-        // 추가 검증 로직 (필요시 구현)
+        // 메시지 내용 검증 (텍스트나 첨부파일 중 하나는 있어야 함)
+        if (textLength == 0 && message.content.attachments.isEmpty()) {
+            throw WebSocketException("Message cannot be empty (no text and no attachments)")
+        }
+
+        // URL 미리보기 검증 (있는 경우)
+        message.content.urlPreview?.let { preview ->
+            if (preview.url.isBlank() && (preview.title.isNullOrBlank() || preview.title.isBlank())) {
+                throw WebSocketException("URL preview must have at least a valid URL or title")
+            }
+        }
+
+        // 메타데이터 검증
+        if (message.metadata.needsUrlPreview && message.metadata.previewUrl.isNullOrBlank()) {
+            throw WebSocketException("Preview URL is required when needsUrlPreview is true")
+        }
     }
 }

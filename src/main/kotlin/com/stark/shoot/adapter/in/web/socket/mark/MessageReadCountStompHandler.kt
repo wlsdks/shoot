@@ -27,4 +27,21 @@ class MessageReadCountStompHandler(
         )
     }
 
-} 
+    @Operation(
+        summary = "단일 메시지 읽음 처리 (WebSocket)",
+        description = """
+            - 특정 메시지를 읽음 처리합니다.
+            - WebSocket을 통해 실시간으로 읽음 상태를 업데이트합니다.
+        """
+    )
+    @MessageMapping("/read")
+    fun handleRead(request: ChatReadRequest) {
+        request.messageId?.let { messageId ->
+            messageReadUseCase.markMessageAsRead(
+                messageId = messageId,
+                userId = request.userId
+            )
+        }
+    }
+
+}

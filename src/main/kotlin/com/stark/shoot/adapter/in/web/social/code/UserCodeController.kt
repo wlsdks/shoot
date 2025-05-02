@@ -21,9 +21,9 @@ class UserCodeController(
 ) {
 
     @Operation(summary = "유저 코드 등록/수정", description = "유저가 본인의 userCode를 새로 설정 또는 수정합니다.")
-    @PostMapping("/{userId}/code") // todo: 이거 path에서 제거해야할듯 파람인데 이상하게 구성됨
+    @PostMapping("/code")
     fun updateUserCode(
-        @PathVariable userId: Long,
+        @RequestParam userId: Long,
         @RequestParam code: String
     ): ResponseDto<Unit> {
         manageUserCodeUseCase.updateUserCode(userId, code)
@@ -44,9 +44,9 @@ class UserCodeController(
     }
 
     @Operation(summary = "유저 코드 삭제", description = "유저가 본인의 userCode를 제거합니다.")
-    @DeleteMapping("/{userId}/code")
+    @DeleteMapping("/code")
     fun removeUserCode(
-        @PathVariable userId: Long
+        @RequestParam userId: Long
     ): ResponseDto<Unit> {
         manageUserCodeUseCase.removeUserCode(userId)
         return ResponseDto.success(Unit, "유저 코드가 삭제되었습니다.")

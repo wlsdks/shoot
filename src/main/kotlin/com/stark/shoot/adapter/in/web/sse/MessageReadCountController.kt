@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*
 @Tag(name = "읽음 상태", description = "메시지 읽음 상태 관련 API")
 @RequestMapping("/api/v1/read-status")
 @RestController
-class MessageReadController(
+class MessageReadCountController(
     private val messageReadUseCase: MessageReadUseCase
 ) {
 

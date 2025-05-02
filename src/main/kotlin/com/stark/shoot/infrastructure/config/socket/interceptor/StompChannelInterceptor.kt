@@ -202,7 +202,7 @@ class StompChannelInterceptor(
             val avgProcessingTime = if (messageCount > 0) 
                 processingTimeNanos.get() / messageCount / 1_000_000.0 else 0.0
 
-            logger.info { "WebSocket metrics: messages=$messageCount, errors=$errorCount, avg_time=${avgProcessingTime}ms" }
+            logger.debug { "WebSocket metrics: messages=$messageCount, errors=$errorCount, avg_time=${avgProcessingTime}ms" }
             lastMetricLogTime = currentTime
         }
     }

@@ -59,7 +59,7 @@ class UserActiveService(
             // Redis에 사용자 활동 상태 저장
             updateRedisStatus(key, activity.active)
 
-            logger.info { "User activity updated: userId=${activity.userId}, roomId=${activity.roomId}, active=${activity.active}" }
+            logger.debug { "User activity updated: userId=${activity.userId}, roomId=${activity.roomId}, active=${activity.active}" }
         } catch (e: JsonProcessingException) {
             logger.error(e) { "Failed to parse chat activity message: $message" }
         } catch (e: Exception) {

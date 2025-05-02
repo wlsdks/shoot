@@ -147,7 +147,7 @@ class WebSocketMessageBroker(
 
             // 주기적으로 메트릭 로깅
             if (messagesSent.get() > 0 || messagesFailed.get() > 0) {
-                logger.info { "WebSocket 메시지 통계: 성공=${messagesSent.get()}, 실패=${messagesFailed.get()}" }
+                logger.debug { "WebSocket 메시지 통계: 성공=${messagesSent.get()}, 실패=${messagesFailed.get()}" }
                 messagesSent.set(0)
                 messagesFailed.set(0)
             }

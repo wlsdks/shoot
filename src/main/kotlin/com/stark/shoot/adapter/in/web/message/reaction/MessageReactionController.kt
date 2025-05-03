@@ -18,35 +18,6 @@ class MessageReactionController(
     private val messageReactionUseCase: MessageReactionUseCase
 ) {
 
-    @Operation(
-        summary = "메시지에 반응 추가",
-        description = "메시지에 이모지 등의 반응을 추가합니다."
-    )
-    @PostMapping("/{messageId}/reactions")
-    fun addReaction(
-        @PathVariable messageId: String,
-        @RequestBody request: ReactionRequest,
-        authentication: Authentication
-    ): ResponseDto<ReactionResponse> {
-        val userId = authentication.name.toLong()
-        val response = messageReactionUseCase.addReaction(messageId, userId, request.reactionType)
-        return ResponseDto.success(response, "반응이 추가되었습니다.")
-    }
-
-    @Operation(
-        summary = "메시지 반응 제거",
-        description = "메시지에서 특정 반응을 제거합니다."
-    )
-    @DeleteMapping("/{messageId}/reactions/{reactionType}")
-    fun removeReaction(
-        @PathVariable messageId: String,
-        @PathVariable reactionType: String,
-        authentication: Authentication
-    ): ResponseDto<ReactionResponse> {
-        val userId = authentication.name.toLong()
-        val response = messageReactionUseCase.removeReaction(messageId, userId, reactionType)
-        return ResponseDto.success(response, "반응이 제거되었습니다.")
-    }
 
     @Operation(
         summary = "메시지 반응 조회",
@@ -79,4 +50,18 @@ class MessageReactionController(
         return ResponseDto.success(reactionTypes)
     }
 
+    @Operation(
+        summary = "메시지 반응 토글",
+        description = "메시지에 반응을 토글합니다. 같은 반응을 선택하면 제거하고, 다른 반응을 선택하면 기존 반응을 제거하고 새 반응을 추가합니다."
+    )
+    @PutMapping("/{messageId}/reactions")
+    fun toggleReaction(
+        @PathVariable messageId: String,
+        @RequestBody request: ReactionRequest,
+        authentication: Authentication
+    ): ResponseDto<ReactionResponse> {
+        val userId = authentication.name.toLong()
+        val response = messageReactionUseCase.toggleReaction(messageId, userId, request.reactionType)
+        return ResponseDto.success(response, "반응이 토글되었습니다.")
+    }
 }

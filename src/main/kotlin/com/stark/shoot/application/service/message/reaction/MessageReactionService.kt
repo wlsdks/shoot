@@ -23,106 +23,6 @@ class MessageReactionService(
 
     private val logger = KotlinLogging.logger {}
 
-    /**
-     * 메시지에 리액션을 추가합니다.
-     *
-     * @param messageId 메시지 ID
-     * @param userId 사용자 ID
-     * @param reactionType 리액션 타입
-     * @return 업데이트된 메시지
-     */
-    override fun addReaction(
-        messageId: String,
-        userId: Long,
-        reactionType: String
-    ): ReactionResponse {
-        // 리액션 타입 검증
-        val type = ReactionType.fromCode(reactionType)
-            ?: throw InvalidInputException("지원하지 않는 리액션 타입입니다: $reactionType")
-
-        // 메시지 조회 (없으면 예외 발생)
-        val message = loadMessagePort.findById(messageId.toObjectId())
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
-
-        // 이미 해당 리액션을 추가했는지 확인
-        val usersWithReaction = message.reactions[type.code] ?: emptySet()
-        if (userId in usersWithReaction) {
-            logger.debug { "사용자가 이미 해당 리액션을 추가했습니다: userId=$userId, messageId=$messageId, reactionType=${type.code}" }
-
-            // 이미 추가된 경우 기존 메시지 반환
-            return ReactionResponse.from(
-                messageId = message.id ?: messageId,
-                reactions = message.reactions,
-                updatedAt = message.updatedAt?.toString() ?: ""
-            )
-        }
-
-        val addReactionMessage = processAddReactionMessage(message, type, userId)
-
-        // 저장 및 반환
-        val savedMessage = saveMessagePort.save(addReactionMessage)
-
-        // WebSocket으로 실시간 업데이트 전송
-        notifyReactionUpdate(messageId, message.roomId, userId, type.code, true)
-
-        // 응답 생성
-        return ReactionResponse.from(
-            messageId = savedMessage.id ?: messageId,
-            reactions = savedMessage.reactions,
-            updatedAt = savedMessage.updatedAt?.toString() ?: ""
-        )
-    }
-
-    /**
-     * 메시지에서 리액션을 제거합니다.
-     *
-     * @param messageId 메시지 ID
-     * @param userId 사용자 ID
-     * @param reactionType 리액션 타입
-     * @return 업데이트된 메시지
-     */
-    override fun removeReaction(
-        messageId: String,
-        userId: Long,
-        reactionType: String
-    ): ReactionResponse {
-        // 리액션 타입 검증
-        val type = ReactionType.fromCode(reactionType)
-            ?: throw InvalidInputException("지원하지 않는 리액션 타입입니다: $reactionType")
-
-        // 메시지 조회 (없으면 예외 발생)
-        val message = loadMessagePort.findById(messageId.toObjectId())
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
-
-        // 해당 리액션을 추가한 적이 있는지 확인
-        val usersWithReaction = message.reactions[type.code] ?: emptySet()
-        if (userId !in usersWithReaction) {
-            logger.debug { "사용자가 해당 리액션을 추가한 적이 없습니다: userId=$userId, messageId=$messageId, reactionType=${type.code}" }
-
-            // 이미 제거되었거나 추가된 적이 없는 경우 기존 메시지 반환
-            return ReactionResponse.from(
-                messageId = message.id ?: messageId,
-                reactions = message.reactions,
-                updatedAt = message.updatedAt?.toString() ?: ""
-            )
-        }
-
-        // 리액션 제거
-        val removedReactionMessage = processRemoveReaction(message, type, userId)
-
-        // 저장 및 반환
-        val savedMessage = saveMessagePort.save(removedReactionMessage)
-
-        // WebSocket으로 실시간 업데이트 전송
-        notifyReactionUpdate(messageId, message.roomId, userId, type.code, false)
-
-        // 응답 생성
-        return ReactionResponse.from(
-            messageId = savedMessage.id ?: messageId,
-            reactions = savedMessage.reactions,
-            updatedAt = savedMessage.updatedAt?.toString() ?: ""
-        )
-    }
 
     /**
      * 메시지의 모든 리액션을 가져옵니다.
@@ -147,6 +47,88 @@ class MessageReactionService(
      */
     override fun getSupportedReactionTypes(): List<ReactionType> {
         return ReactionType.entries
+    }
+
+    /**
+     * 메시지에 리액션을 토글합니다.
+     * 같은 리액션을 선택하면 제거하고, 다른 리액션을 선택하면 기존 리액션을 제거하고 새 리액션을 추가합니다.
+     *
+     * @param messageId 메시지 ID
+     * @param userId 사용자 ID
+     * @param reactionType 리액션 타입
+     * @return 업데이트된 메시지의 리액션 정보
+     */
+    override fun toggleReaction(
+        messageId: String,
+        userId: Long,
+        reactionType: String
+    ): ReactionResponse {
+        // 리액션 타입 검증
+        val type = ReactionType.fromCode(reactionType)
+            ?: throw InvalidInputException("지원하지 않는 리액션 타입입니다: $reactionType")
+
+        // 메시지 조회 (없으면 예외 발생)
+        val message = loadMessagePort.findById(messageId.toObjectId())
+            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
+
+        // 사용자가 이미 추가한 리액션 타입 찾기
+        val userExistingReactionType = message.reactions.entries.find { (_, users) -> userId in users }?.key
+
+        // 토글 처리
+        val updatedMessage = when {
+            // 1. 같은 리액션을 선택한 경우: 제거
+            userExistingReactionType == type.code -> {
+                logger.debug { "같은 리액션을 선택했으므로 제거합니다: userId=$userId, messageId=$messageId, reactionType=${type.code}" }
+                val removedReactionMessage = processRemoveReaction(message, type, userId)
+
+                // WebSocket으로 실시간 업데이트 전송 (제거)
+                notifyReactionUpdate(messageId, message.roomId, userId, type.code, false)
+
+                removedReactionMessage
+            }
+
+            // 2. 다른 리액션이 이미 있는 경우: 기존 리액션 제거 후 새 리액션 추가
+            userExistingReactionType != null -> {
+                logger.debug { "다른 리액션이 있으므로 기존 리액션(${userExistingReactionType})을 제거하고 새 리액션(${type.code})을 추가합니다: userId=$userId, messageId=$messageId" }
+
+                // 기존 리액션 제거
+                val existingType = ReactionType.fromCode(userExistingReactionType)
+                    ?: throw InvalidInputException("지원하지 않는 리액션 타입입니다: $userExistingReactionType")
+                val removedOldReactionMessage = processRemoveReaction(message, existingType, userId)
+
+                // WebSocket으로 실시간 업데이트 전송 (기존 리액션 제거)
+                notifyReactionUpdate(messageId, message.roomId, userId, existingType.code, false)
+
+                // 새 리액션 추가
+                val addedNewReactionMessage = processAddReactionMessage(removedOldReactionMessage, type, userId)
+
+                // WebSocket으로 실시간 업데이트 전송 (새 리액션 추가)
+                notifyReactionUpdate(messageId, message.roomId, userId, type.code, true)
+
+                addedNewReactionMessage
+            }
+
+            // 3. 리액션이 없는 경우: 새 리액션 추가
+            else -> {
+                logger.debug { "리액션이 없으므로 새 리액션을 추가합니다: userId=$userId, messageId=$messageId, reactionType=${type.code}" }
+                val addReactionMessage = processAddReactionMessage(message, type, userId)
+
+                // WebSocket으로 실시간 업데이트 전송 (추가)
+                notifyReactionUpdate(messageId, message.roomId, userId, type.code, true)
+
+                addReactionMessage
+            }
+        }
+
+        // 저장 및 반환
+        val savedMessage = saveMessagePort.save(updatedMessage)
+
+        // 응답 생성
+        return ReactionResponse.from(
+            messageId = savedMessage.id ?: messageId,
+            reactions = savedMessage.reactions,
+            updatedAt = savedMessage.updatedAt?.toString() ?: ""
+        )
     }
 
     /**

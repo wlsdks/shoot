@@ -2,8 +2,10 @@ package com.stark.shoot.application.service.message
 
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
 import com.stark.shoot.adapter.`in`.web.socket.dto.MessageSyncInfoDto
+import com.stark.shoot.adapter.`in`.web.socket.dto.ReactionDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncResponseDto
+import com.stark.shoot.infrastructure.enumerate.ReactionType
 import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
@@ -131,6 +133,18 @@ class PaginationMessageSyncService(
         // 도메인 Attachment 객체를 ID 문자열로 변환
         val attachmentIds = message.content.attachments.map { it.id }
 
+        // 리액션 맵을 ReactionDto 리스트로 변환
+        val reactionDtos = message.reactions.map { (reactionType, userIds) ->
+            val reaction = ReactionType.fromCode(reactionType)
+            ReactionDto(
+                reactionType = reactionType,
+                emoji = reaction?.emoji ?: "",
+                description = reaction?.description ?: "",
+                userIds = userIds.toList(),
+                count = userIds.size
+            )
+        }
+
         return MessageSyncInfoDto(
             id = message.id ?: "",
             tempId = message.metadata.tempId,
@@ -144,7 +158,8 @@ class PaginationMessageSyncService(
                 isEdited = message.content.isEdited,
                 isDeleted = message.content.isDeleted
             ),
-            readBy = message.readBy
+            readBy = message.readBy,
+            reactions = reactionDtos
         )
     }
 

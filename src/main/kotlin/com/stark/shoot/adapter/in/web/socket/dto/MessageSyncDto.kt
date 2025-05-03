@@ -28,5 +28,14 @@ data class MessageSyncInfoDto(
     val senderId: Long,
     val status: String,
     val content: MessageContentRequest? = null,  // 추가
-    val readBy: Map<Long, Boolean>? = null  // 추가
+    val readBy: Map<Long, Boolean>? = null,  // 추가
+    val reactions: List<ReactionDto> = emptyList()  // 리액션 추가
+)
+
+data class ReactionDto(
+    val reactionType: String,
+    val emoji: String,
+    val description: String,
+    val userIds: List<Long>,
+    val count: Int
 )

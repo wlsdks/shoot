@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
 import com.stark.shoot.adapter.`in`.web.socket.dto.MessageSyncInfoDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncResponseDto
-import com.stark.shoot.application.port.`in`.message.GetMessageSyncFlowUseCase
+import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -20,10 +20,10 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.time.Instant
 
 @UseCase
-class MessageSyncService(
+class PaginationMessageSyncService(
     private val loadMessagePort: LoadMessagePort,
     private val messagingTemplate: SimpMessagingTemplate
-) : SendSyncMessagesToUserUseCase, GetMessageSyncFlowUseCase {
+) : SendSyncMessagesToUserUseCase, GetPaginationMessageUseCase {
 
     private val logger = KotlinLogging.logger {}
 
@@ -33,15 +33,13 @@ class MessageSyncService(
     }
 
     /**
-     * 클라이언트 재연결 시 메시지 동기화
+     * 웹소켓을 통해 메시지(이전, 이후)를 페이징해서 조회한다.
      *
      * @param request SyncRequestDto 객체
      */
-    override fun chatMessagesFlow(
+    override fun getChatMessagesFlow(
         request: SyncRequestDto
     ): Flow<MessageSyncInfoDto> = flow {
-        logger.debug { "메시지 동기화 요청: roomId=${request.roomId}, userId=${request.userId}, direction=${request.direction}" }
-
         val messageFlow = getMessageFlowByDirection(request)
 
         // 메시지를 DTOs로 변환

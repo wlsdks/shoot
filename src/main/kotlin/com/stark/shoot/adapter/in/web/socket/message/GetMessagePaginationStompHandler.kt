@@ -1,7 +1,7 @@
-package com.stark.shoot.adapter.`in`.web.socket.sync
+package com.stark.shoot.adapter.`in`.web.socket.message
 
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
-import com.stark.shoot.application.port.`in`.message.GetMessageSyncFlowUseCase
+import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
@@ -15,19 +15,26 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class MessageSyncController(
-    private val getMessageSyncFlowUseCase: GetMessageSyncFlowUseCase,
+class GetMessagePaginationStompHandler(
+    private val getPaginationMessageUseCase: GetPaginationMessageUseCase,
     private val sendSyncMessagesToUserUseCase: SendSyncMessagesToUserUseCase,
     private val appCoroutineScope: ApplicationCoroutineScope,
     private val messagingTemplate: SimpMessagingTemplate
 ) {
     private val logger = KotlinLogging.logger {}
 
-    @Operation(summary = "클라이언트 재연결 시 메시지 동기화")
+    @Operation(
+        summary = "메시지 조회",
+        description = """
+            요청 타입에 따라 '초기, 이전, 다음' 메시지를 페이징해서 조회한다.
+            - 요청에 담긴 SyncDirection (INITIAL, BEFORE, AFTER)에 따라 메시지를 조회합니다.
+            - API 호출 대신 WebSocket을 통해 실시간으로 메시지를 조회합니다.
+        """,
+    )
     @MessageMapping("/sync")
     fun syncMessages(@Payload request: SyncRequestDto) {
-        // Flow 반환 메서드 호출
-        val messagesFlow = getMessageSyncFlowUseCase.chatMessagesFlow(request)
+        // Flow 반환 메서드 호출 (메시지 조회)
+        val messagesFlow = getPaginationMessageUseCase.getChatMessagesFlow(request)
 
         // 코루틴 시작
         appCoroutineScope.launch {

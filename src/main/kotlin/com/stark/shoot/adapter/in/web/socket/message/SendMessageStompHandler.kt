@@ -7,7 +7,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
 
 @Controller
-class MessageStompHandler(
+class SendMessageStompHandler(
     private val sendMessageUseCase: SendMessageUseCase
 ) {
 

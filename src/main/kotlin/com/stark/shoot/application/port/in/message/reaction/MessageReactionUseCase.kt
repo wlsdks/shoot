@@ -16,6 +16,7 @@ interface MessageReactionUseCase {
         reactionType: String
     ): ReactionResponse
 
+
     fun getReactions(messageId: String): Map<String, Set<Long>>
     fun getSupportedReactionTypes(): List<ReactionType>
 }

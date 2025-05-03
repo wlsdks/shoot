@@ -61,13 +61,21 @@ class MessageReactionController(
         return ResponseDto.success(response)
     }
 
+
     @Operation(
         summary = "지원하는 반응 타입 조회",
         description = "시스템에서 지원하는 모든 반응 타입을 조회합니다."
     )
     @GetMapping("/reactions/types")
     fun getReactionTypes(): ResponseDto<List<Map<String, String>>> {
-        val reactionTypes = ReactionType.getAllReactionTypes()
+        val reactionTypes = messageReactionUseCase.getSupportedReactionTypes()
+            .map { type ->
+                mapOf(
+                    "code" to type.code,
+                    "emoji" to type.emoji,
+                    "description" to type.description
+                )
+            }
         return ResponseDto.success(reactionTypes)
     }
 

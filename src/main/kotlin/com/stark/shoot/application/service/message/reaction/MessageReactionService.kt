@@ -44,6 +44,19 @@ class MessageReactionService(
         val message = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
+        // 이미 해당 리액션을 추가했는지 확인
+        val usersWithReaction = message.reactions[type.code] ?: emptySet()
+        if (userId in usersWithReaction) {
+            logger.debug { "사용자가 이미 해당 리액션을 추가했습니다: userId=$userId, messageId=$messageId, reactionType=${type.code}" }
+
+            // 이미 추가된 경우 기존 메시지 반환
+            return ReactionResponse.from(
+                messageId = message.id ?: messageId,
+                reactions = message.reactions,
+                updatedAt = message.updatedAt?.toString() ?: ""
+            )
+        }
+
         val addReactionMessage = processAddReactionMessage(message, type, userId)
 
         // 저장 및 반환
@@ -81,6 +94,19 @@ class MessageReactionService(
         val message = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
+        // 해당 리액션을 추가한 적이 있는지 확인
+        val usersWithReaction = message.reactions[type.code] ?: emptySet()
+        if (userId !in usersWithReaction) {
+            logger.debug { "사용자가 해당 리액션을 추가한 적이 없습니다: userId=$userId, messageId=$messageId, reactionType=${type.code}" }
+
+            // 이미 제거되었거나 추가된 적이 없는 경우 기존 메시지 반환
+            return ReactionResponse.from(
+                messageId = message.id ?: messageId,
+                reactions = message.reactions,
+                updatedAt = message.updatedAt?.toString() ?: ""
+            )
+        }
+
         // 리액션 제거
         val removedReactionMessage = processRemoveReaction(message, type, userId)
 
@@ -112,6 +138,7 @@ class MessageReactionService(
 
         return message.reactions
     }
+
 
     /**
      * 지원하는 리액션 타입 목록을 가져옵니다.

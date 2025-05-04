@@ -5,7 +5,6 @@ import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionListRespons
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionResponse
 import com.stark.shoot.application.port.`in`.message.reaction.MessageReactionUseCase
-import com.stark.shoot.infrastructure.enumerate.ReactionType
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.Authentication
@@ -18,6 +17,25 @@ class MessageReactionController(
     private val messageReactionUseCase: MessageReactionUseCase
 ) {
 
+    @Operation(
+        summary = "메시지 반응 토글",
+        description = """
+            메시지에 반응을 토글합니다. (3가지 상태)
+            - 최초 반응 선택: 반응 추가
+            - 추가된 반응을 선택: 반응 제거
+            - 선택된 상태에서 다른 반응 선택: 기존 반응을 제거하고 새 반응을 추가
+        """
+    )
+    @PutMapping("/{messageId}/reactions")
+    fun toggleReaction(
+        @PathVariable messageId: String,
+        @RequestBody request: ReactionRequest,
+        authentication: Authentication
+    ): ResponseDto<ReactionResponse> {
+        val userId = authentication.name.toLong()
+        val response = messageReactionUseCase.toggleReaction(messageId, userId, request.reactionType)
+        return ResponseDto.success(response, "반응이 토글되었습니다.")
+    }
 
     @Operation(
         summary = "메시지 반응 조회",
@@ -50,18 +68,4 @@ class MessageReactionController(
         return ResponseDto.success(reactionTypes)
     }
 
-    @Operation(
-        summary = "메시지 반응 토글",
-        description = "메시지에 반응을 토글합니다. 같은 반응을 선택하면 제거하고, 다른 반응을 선택하면 기존 반응을 제거하고 새 반응을 추가합니다."
-    )
-    @PutMapping("/{messageId}/reactions")
-    fun toggleReaction(
-        @PathVariable messageId: String,
-        @RequestBody request: ReactionRequest,
-        authentication: Authentication
-    ): ResponseDto<ReactionResponse> {
-        val userId = authentication.name.toLong()
-        val response = messageReactionUseCase.toggleReaction(messageId, userId, request.reactionType)
-        return ResponseDto.success(response, "반응이 토글되었습니다.")
-    }
 }

@@ -12,7 +12,6 @@ import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.messaging.simp.SimpMessagingTemplate
-import java.time.Instant
 
 @UseCase
 class MessageReactionService(
@@ -72,13 +71,15 @@ class MessageReactionService(
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
         // 사용자가 이미 추가한 리액션 타입 찾기
-        val userExistingReactionType = message.reactions.entries.find { (_, users) -> userId in users }?.key
+        val userExistingReactionType = message.reactions.entries // (리액션 타입, 사용자 집합) 쌍을 하나씩 꺼내요.
+            .find { (_, users) ->                                // 각 쌍에서 users라는 이름으로 Set<Long>을 바인딩
+                userId in users                                  // “users 안에 내가 전달한 userId가 있는지”를 검사합니다.
+            }?.key                                               // 찾은 쌍이 있으면 그 key(리액션 타입)를, 없으면 null
 
         // 토글 처리
         val updatedMessage = when {
             // 1. 같은 리액션을 선택한 경우: 제거
             userExistingReactionType == type.code -> {
-                logger.debug { "같은 리액션을 선택했으므로 제거합니다: userId=$userId, messageId=$messageId, reactionType=${type.code}" }
                 val removedReactionMessage = processRemoveReaction(message, type, userId)
 
                 // WebSocket으로 실시간 업데이트 전송 (제거)
@@ -89,11 +90,10 @@ class MessageReactionService(
 
             // 2. 다른 리액션이 이미 있는 경우: 기존 리액션 제거 후 새 리액션 추가
             userExistingReactionType != null -> {
-                logger.debug { "다른 리액션이 있으므로 기존 리액션(${userExistingReactionType})을 제거하고 새 리액션(${type.code})을 추가합니다: userId=$userId, messageId=$messageId" }
-
                 // 기존 리액션 제거
                 val existingType = ReactionType.fromCode(userExistingReactionType)
                     ?: throw InvalidInputException("지원하지 않는 리액션 타입입니다: $userExistingReactionType")
+
                 val removedOldReactionMessage = processRemoveReaction(message, existingType, userId)
 
                 // WebSocket으로 실시간 업데이트 전송 (기존 리액션 제거)
@@ -110,7 +110,6 @@ class MessageReactionService(
 
             // 3. 리액션이 없는 경우: 새 리액션 추가
             else -> {
-                logger.debug { "리액션이 없으므로 새 리액션을 추가합니다: userId=$userId, messageId=$messageId, reactionType=${type.code}" }
                 val addReactionMessage = processAddReactionMessage(message, type, userId)
 
                 // WebSocket으로 실시간 업데이트 전송 (추가)

@@ -111,4 +111,27 @@ class ManageChatRoomService(
         saveChatRoomPort.save(updatedRoom)
     }
 
+    /**
+     * 채팅방 제목을 업데이트합니다.
+     *
+     * @param roomId 채팅방 ID
+     * @param title 새로운 채팅방 제목
+     * @return 업데이트 성공 여부
+     */
+    override fun updateTitle(
+        roomId: Long,
+        title: String
+    ): Boolean {
+        // 채팅방 조회
+        val chatRoom = loadChatRoomPort.findById(roomId)
+            ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다: $roomId")
+
+        // 제목 업데이트 (도메인 객체의 update 메서드 사용)
+        val updatedRoom = chatRoom.update(title = title)
+
+        // 변경사항 저장
+        saveChatRoomPort.save(updatedRoom)
+
+        return true
+    }
 }

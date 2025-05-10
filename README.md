@@ -18,21 +18,35 @@
    - [SSE를 이용한 실시간 채팅방 목록 업데이트](#sse를-이용한-실시간-채팅방-목록-업데이트)
    - [타이핑 인디케이터 기능](#타이핑-인디케이터-기능)
    - [BFS 기반 친구 추천 시스템](#bfs-기반-친구-추천-시스템)
-5. [메시지 흐름 처리 과정](#메시지-흐름-처리-과정)
+   - [메시지 전달 확인 및 상태 추적](#메시지-전달-확인-및-상태-추적)
+   - [메시지 포워딩 및 공유](#메시지-포워딩-및-공유)
+   - [메시지 핀 기능](#메시지-핀-기능)
+   - [이모티콘 반응 시스템](#이모티콘-반응-시스템)
+   - [URL 미리보기](#url-미리보기)
+   - [예약 메시지 전송](#예약-메시지-전송)
+5. [API 엔드포인트](#api-엔드포인트)
+   - [사용자 관련 API](#사용자-관련-api)
+   - [채팅방 관련 API](#채팅방-관련-api)
+   - [메시지 관련 API](#메시지-관련-api)
+   - [WebSocket 엔드포인트](#websocket-엔드포인트)
+   - [SSE 엔드포인트](#sse-엔드포인트)
+6. [메시지 흐름 처리 과정](#메시지-흐름-처리-과정)
    - [메시지 송신 프로세스](#메시지-송신-프로세스)
    - [메시지 수신 프로세스](#메시지-수신-프로세스)
    - [메시지 상태 관리](#메시지-상태-관리)
-6. [확장성 및 고가용성](#확장성-및-고가용성)
+7. [확장성 및 고가용성](#확장성-및-고가용성)
    - [분산 시스템 설계](#분산-시스템-설계)
    - [성능 최적화](#성능-최적화)
-7. [메시지 처리 전체 흐름 및 상태 변화](#메시지-처리-전체-흐름-및-상태-변화)
-8. [상태별 메시지 흐름 상세 설명](#상태별-메시지-흐름-상세-설명)
+8. [메시지 처리 전체 흐름 및 상태 변화](#메시지-처리-전체-흐름-및-상태-변화)
+9. [상태별 메시지 흐름 상세 설명](#상태별-메시지-흐름-상세-설명)
    - [메시지 전송 단계 (클라이언트 → 서버)](#메시지-전송-단계-클라이언트--서버)
    - [실시간 전달 단계 (Redis Stream)](#실시간-전달-단계-redis-stream)
    - [영구 저장 단계 (Kafka → MongoDB)](#영구-저장-단계-kafka--mongodb)
    - [클라이언트 표시 단계](#클라이언트-표시-단계)
-9. [오류 처리 흐름](#오류-처리-흐름)
-10. [여러 서버 인스턴스의 Redis Stream 소비자 그룹 흐름](#여러-서버-인스턴스의-redis-stream-소비자-그룹-흐름)
+10. [오류 처리 흐름](#오류-처리-흐름)
+11. [여러 서버 인스턴스의 Redis Stream 소비자 그룹 흐름](#여러-서버-인스턴스의-redis-stream-소비자-그룹-흐름)
+12. [보안 및 개인정보 보호](#보안-및-개인정보-보호)
+13. [배포 및 운영](#배포-및-운영)
 
 ## 프로젝트 개요
 
@@ -53,7 +67,8 @@ Shoot은 Spring Boot(Kotlin)과 WebSocket 기술을 활용한 실시간 채팅 �
 - **Spring Boot 3.4.3 (Kotlin 1.9.25)** - 애플리케이션 서버
 - **Spring WebSocket** - 양방향 실시간 통신
 - **Spring Security** - JWT 기반 인증 및 권한 관리
-- **MongoDB** - 주 데이터베이스 (사용자, 채팅방, 메시지 저장)
+- **MongoDB** - 주 데이터베이스 (채팅방, 메시지 저장)
+- **PostgreSQL** - 관계형 데이터베이스 (사용자, 친구 관계 저장)
 - **Redis Stream** - 메시지 브로드캐스팅
 - **Redis Cache** - 캐싱 및 실시간 상태 관리
 - **Kafka** - 메시지 영구 저장 및 비동기 처리
@@ -81,13 +96,17 @@ com.stark.shoot
 │   │   ├── event           # 이벤트 리스너
 │   │   ├── kafka           # Kafka 소비자
 │   │   ├── redis           # Redis Stream 리스너
-│   │   ├── web             # REST API 컨트롤러
-│   │   └── socket          # WebSocket 핸들러
+│   │   └── web             # REST API 컨트롤러
+│   │       ├── socket      # WebSocket 핸들러
+│   │       └── sse         # SSE 컨트롤러
 │   └── out                 # 아웃바운드 어댑터 (레포지토리, 이벤트 발행자 등)
+│       ├── cache           # 캐시 어댑터
 │       ├── event           # 이벤트 발행 어댑터
 │       ├── kafka           # Kafka 프로듀서
-│       └── persistence     # 데이터베이스 어댑터 (MongoDB)
+│       ├── message         # 메시지 관련 어댑터
+│       └── persistence     # 데이터베이스 어댑터 (MongoDB, PostgreSQL)
 ├── application             # 애플리케이션 로직
+│   ├── filter              # 필터 및 인터셉터
 │   ├── port                # 포트 정의 (인터페이스)
 │   │   ├── in              # 인바운드 포트 (서비스 인터페이스)
 │   │   └── out             # 아웃바운드 포트 (저장소, 메시징 인터페이스)
@@ -97,9 +116,13 @@ com.stark.shoot
 │   │   ├── event           # 도메인 이벤트
 │   │   ├── message         # 메시지 모델
 │   │   ├── room            # 채팅방 모델
+│   │   ├── service         # 도메인 서비스
 │   │   └── user            # 사용자 모델
-│   └── common              # 공통 도메인 모델
+│   ├── common              # 공통 도메인 모델
+│   └── exception           # 도메인 예외
 └── infrastructure          # 공통 인프라 설정
+    ├── annotation          # 커스텀 어노테이션
+    ├── aop                 # 관점 지향 프로그래밍 (AOP)
     ├── config              # 스프링 설정 (보안, 웹소켓, Kafka, Redis 등)
     ├── exception           # 예외 처리
     ├── util                # 유틸리티 클래스
@@ -227,7 +250,7 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer {
         registry.enableSimpleBroker("/topic", "/queue")
             .setHeartbeatValue(longArrayOf(10000, 10000))
             .setTaskScheduler(heartbeatScheduler())
-        
+
         registry.setApplicationDestinationPrefixes("/app")
     }
 }
@@ -376,7 +399,7 @@ override fun processMessageCreate(message: ChatMessage): ChatMessage {
 fun handleRead(request: ChatReadRequest) {
     // 메시지 읽음 처리
     val updatedMessage = markMessageReadUseCase.markMessageAsRead(request.messageId, request.userId)
-    
+
     // 웹소켓으로 읽음 상태 업데이트 전송
     messagingTemplate.convertAndSend("/topic/messages/${updatedMessage.roomId}", updatedMessage)
 }
@@ -486,7 +509,7 @@ override fun findBFSRecommendedUsers(
             listOf("\$_id")
         )))
         .build()
-    
+
     // 4) 필터링, 상호 친구 수 계산, 정렬 및 페이징 단계
     // ...
 
@@ -497,6 +520,303 @@ override fun findBFSRecommendedUsers(
 ```
 
 성능 최적화를 위해 Redis를 활용한 캐싱, 주기적 사전 계산, 결과 페이징 등의 기법을 적용했습니다.
+
+### 메시지 전달 확인 및 상태 추적
+
+메시지가 전송되고 처리되는 전체 과정을 추적하여 사용자에게 현재 상태를 실시간으로 제공합니다. 각 메시지는 고유한 임시 ID를 가지고 있어 클라이언트에서 서버까지의 전체 여정을 추적할 수 있습니다.
+
+```kotlin
+// 메시지 상태 업데이트 전송
+private fun sendStatusUpdate(
+    roomId: String,
+    tempId: String,
+    status: String,
+    persistedId: String?,
+    errorMessage: String? = null
+) {
+    val statusUpdate = MessageStatusResponse(
+        tempId = tempId,
+        status = status,
+        persistedId = persistedId,
+        errorMessage = errorMessage
+    )
+    messagingTemplate.convertAndSend("/topic/message/status/$roomId", statusUpdate)
+}
+```
+
+메시지 상태는 다음과 같은 단계로 추적됩니다:
+1. **SENDING**: 클라이언트에서 서버로 전송 중
+2. **SENT_TO_KAFKA**: Redis Stream을 통해 전달되고 Kafka로 발행됨
+3. **PROCESSING**: Kafka 소비자가 메시지 처리 중
+4. **SAVED**: MongoDB에 영구 저장됨
+5. **FAILED**: 처리 중 오류 발생
+
+### 메시지 포워딩 및 공유
+
+사용자가 메시지를 다른 채팅방으로 전달하거나 여러 채팅방에 동시에 공유할 수 있는 기능을 제공합니다.
+
+```kotlin
+@PostMapping("/forward")
+fun forwardMessage(
+    @RequestBody request: MessageForwardRequest,
+    authentication: Authentication
+): ResponseDto<List<MessageResponse>> {
+    val userId = authentication.name.toLong()
+    val forwardedMessages = messageForwardUseCase.forwardMessage(
+        userId = userId,
+        messageId = request.messageId,
+        targetRoomIds = request.targetRoomIds,
+        additionalContent = request.additionalContent
+    )
+    return ResponseDto.success(forwardedMessages.map { it.toResponse() })
+}
+```
+
+메시지 포워딩 시 원본 메시지의 참조를 유지하여 출처를 추적할 수 있으며, 추가 코멘트를 포함할 수 있습니다.
+
+### 메시지 핀 기능
+
+중요한 메시지를 채팅방 상단에 고정할 수 있는 핀 기능을 제공합니다. 공지사항, 중요 정보, 자주 참조하는 메시지 등을 쉽게 접근할 수 있도록 합니다.
+
+```kotlin
+@PostMapping("/pin")
+fun pinMessage(
+    @RequestBody request: PinMessageRequest,
+    authentication: Authentication
+): ResponseDto<MessageResponse> {
+    val userId = authentication.name.toLong()
+    val pinnedMessage = messagePinUseCase.pinMessage(
+        messageId = request.messageId,
+        roomId = request.roomId,
+        userId = userId
+    )
+    return ResponseDto.success(pinnedMessage.toResponse())
+}
+```
+
+핀 기능은 다음과 같은 특징을 가집니다:
+- 채팅방별로 최대 3개까지 메시지 고정 가능
+- 메시지를 고정한 사용자 정보 및 시간 기록
+- 관리자 권한이 있는 사용자만 핀/언핀 가능
+- 실시간으로 모든 참여자에게 핀 상태 변경 알림
+
+### 이모티콘 반응 시스템
+
+메시지에 다양한 이모티콘으로 반응할 수 있는 기능을 제공합니다. 텍스트 응답 없이도 감정이나 의견을 빠르게 표현할 수 있습니다.
+
+```kotlin
+@PostMapping("/reaction")
+fun addReaction(
+    @RequestBody request: AddReactionRequest,
+    authentication: Authentication
+): ResponseDto<MessageResponse> {
+    val userId = authentication.name.toLong()
+    val updatedMessage = messageReactionUseCase.addReaction(
+        messageId = request.messageId,
+        userId = userId,
+        reaction = request.reaction
+    )
+    return ResponseDto.success(updatedMessage.toResponse())
+}
+```
+
+이모티콘 반응 시스템의 특징:
+- 메시지당 다양한 이모티콘 지원
+- 각 이모티콘별 반응한 사용자 목록 제공
+- 실시간 업데이트로 모든 참여자에게 반응 상태 공유
+- 반응 추가/제거 기능
+
+### URL 미리보기
+
+메시지에 포함된 URL을 자동으로 감지하여 해당 웹페이지의 미리보기를 생성합니다. 제목, 설명, 대표 이미지 등을 추출하여 메시지와 함께 표시합니다.
+
+```kotlin
+// URL 미리보기 생성
+private fun generateUrlPreview(url: String): UrlPreview {
+    return try {
+        val document = Jsoup.connect(url)
+            .userAgent("Mozilla/5.0")
+            .timeout(5000)
+            .get()
+
+        val title = document.select("meta[property=og:title]").attr("content") 
+            ?: document.title()
+        val description = document.select("meta[property=og:description]").attr("content") 
+            ?: document.select("meta[name=description]").attr("content")
+        val imageUrl = document.select("meta[property=og:image]").attr("content")
+
+        UrlPreview(url, title, description, imageUrl)
+    } catch (e: Exception) {
+        logger.error(e) { "URL 미리보기 생성 실패: $url" }
+        UrlPreview(url, url, null, null)
+    }
+}
+```
+
+URL 미리보기 기능의 특징:
+- 메시지 전송 시 URL 자동 감지
+- Open Graph 태그 및 메타 태그를 활용한 정보 추출
+- 캐싱을 통한 성능 최적화
+- 다양한 웹사이트 지원
+
+### 예약 메시지 전송
+
+특정 시간에 자동으로 전송되는 예약 메시지 기능을 제공합니다. 중요한 알림, 기념일 축하, 정기 공지 등을 미리 작성하여 예약할 수 있습니다.
+
+```kotlin
+@PostMapping("/schedule")
+fun scheduleMessage(
+    @RequestBody request: ScheduleMessageRequest,
+    authentication: Authentication
+): ResponseDto<ScheduledMessageResponse> {
+    val userId = authentication.name.toLong()
+    val scheduledMessage = scheduleMessageUseCase.scheduleMessage(
+        userId = userId,
+        roomId = request.roomId,
+        content = request.content,
+        scheduledAt = request.scheduledAt
+    )
+    return ResponseDto.success(scheduledMessage.toResponse())
+}
+```
+
+예약 메시지 기능의 특징:
+- 정확한 시간에 메시지 전송 보장
+- 예약 메시지 목록 조회 및 관리
+- 예약 취소 및 수정 기능
+- 반복 예약 지원 (매일, 매주, 매월)
+
+## API 엔드포인트
+
+### 사용자 관련 API
+
+| 엔드포인트 | 메소드 | 설명 | 인증 필요 |
+|------------|--------|------|-----------|
+| `/api/v1/auth/signup` | POST | 회원가입 | 아니오 |
+| `/api/v1/auth/login` | POST | 로그인 | 아니오 |
+| `/api/v1/auth/refresh` | POST | 토큰 갱신 | 아니오 |
+| `/api/v1/users/me` | GET | 내 프로필 조회 | 예 |
+| `/api/v1/users/me` | PUT | 프로필 수정 | 예 |
+| `/api/v1/users/me/profile-image` | PUT | 프로필 이미지 설정 | 예 |
+| `/api/v1/users/me/background-image` | PUT | 배경 이미지 설정 | 예 |
+| `/api/v1/users/{userId}` | GET | 특정 사용자 프로필 조회 | 예 |
+| `/api/v1/users/status` | PUT | 상태 업데이트 | 예 |
+| `/api/v1/users/search` | GET | 사용자 검색 | 예 |
+| `/api/v1/users/friends` | GET | 친구 목록 조회 | 예 |
+| `/api/v1/users/friends/requests` | GET | 친구 요청 목록 조회 | 예 |
+| `/api/v1/users/friends/requests` | POST | 친구 요청 보내기 | 예 |
+| `/api/v1/users/friends/requests/{requestId}/accept` | POST | 친구 요청 수락 | 예 |
+| `/api/v1/users/friends/requests/{requestId}/reject` | POST | 친구 요청 거절 | 예 |
+| `/api/v1/users/friends/{friendId}` | DELETE | 친구 삭제 | 예 |
+| `/api/v1/users/recommendations` | GET | 친구 추천 목록 | 예 |
+
+### 채팅방 관련 API
+
+| 엔드포인트 | 메소드 | 설명 | 인증 필요 |
+|------------|--------|------|-----------|
+| `/api/v1/chatrooms` | GET | 채팅방 목록 조회 | 예 |
+| `/api/v1/chatrooms` | POST | 채팅방 생성 | 예 |
+| `/api/v1/chatrooms/{roomId}` | GET | 채팅방 상세 조회 | 예 |
+| `/api/v1/chatrooms/{roomId}` | PUT | 채팅방 정보 수정 | 예 |
+| `/api/v1/chatrooms/{roomId}` | DELETE | 채팅방 나가기/삭제 | 예 |
+| `/api/v1/chatrooms/{roomId}/participants` | GET | 참여자 목록 조회 | 예 |
+| `/api/v1/chatrooms/{roomId}/participants` | POST | 참여자 추가 | 예 |
+| `/api/v1/chatrooms/{roomId}/participants/{userId}` | DELETE | 참여자 제거 | 예 |
+| `/api/v1/chatrooms/{roomId}/notice` | GET | 공지사항 조회 | 예 |
+| `/api/v1/chatrooms/{roomId}/notice` | POST | 공지사항 등록 | 예 |
+| `/api/v1/chatrooms/favorites` | GET | 즐겨찾기 채팅방 목록 | 예 |
+| `/api/v1/chatrooms/{roomId}/favorite` | POST | 즐겨찾기 추가 | 예 |
+| `/api/v1/chatrooms/{roomId}/favorite` | DELETE | 즐겨찾기 제거 | 예 |
+| `/api/v1/chatrooms/search` | GET | 채팅방 검색 | 예 |
+| `/api/v1/chatrooms/multiple` | POST | 다중 채팅방 생성 | 예 |
+
+### 메시지 관련 API
+
+| 엔드포인트 | 메소드 | 설명 | 인증 필요 |
+|------------|--------|------|-----------|
+| `/api/v1/messages/{roomId}` | GET | 메시지 목록 조회 | 예 |
+| `/api/v1/messages/{messageId}` | GET | 메시지 상세 조회 | 예 |
+| `/api/v1/messages/{messageId}` | PUT | 메시지 수정 | 예 |
+| `/api/v1/messages/{messageId}` | DELETE | 메시지 삭제 | 예 |
+| `/api/v1/messages/mark-read` | POST | 메시지 읽음 처리 | 예 |
+| `/api/v1/messages/forward` | POST | 메시지 전달 | 예 |
+| `/api/v1/messages/pin` | POST | 메시지 고정 | 예 |
+| `/api/v1/messages/pin/{messageId}` | DELETE | 메시지 고정 해제 | 예 |
+| `/api/v1/messages/pins/{roomId}` | GET | 고정된 메시지 목록 | 예 |
+| `/api/v1/messages/reaction` | POST | 이모티콘 반응 추가 | 예 |
+| `/api/v1/messages/reaction` | DELETE | 이모티콘 반응 제거 | 예 |
+| `/api/v1/messages/schedule` | POST | 메시지 예약 | 예 |
+| `/api/v1/messages/schedule` | GET | 예약 메시지 목록 | 예 |
+| `/api/v1/messages/schedule/{scheduleId}` | DELETE | 예약 메시지 취소 | 예 |
+
+### WebSocket 엔드포인트
+
+| 엔드포인트 | 설명 |
+|------------|------|
+| `/ws/chat` | WebSocket 연결 엔드포인트 |
+| `/app/chat` | 메시지 전송 |
+| `/app/typing` | 타이핑 인디케이터 |
+| `/app/read` | 메시지 읽음 처리 |
+| `/topic/messages/{roomId}` | 채팅방 메시지 구독 |
+| `/topic/message/status/{roomId}` | 메시지 상태 업데이트 구독 |
+| `/topic/typing/{roomId}` | 타이핑 인디케이터 구독 |
+| `/topic/active/{roomId}` | 활성 사용자 상태 구독 |
+
+### SSE 엔드포인트
+
+| 엔드포인트 | 설명 |
+|------------|------|
+| `/api/v1/sse/updates/{userId}` | 채팅방 목록 업데이트 스트림 |
+| `/api/v1/sse/unread/{userId}` | 안읽은 메시지 카운트 스트림 |
+| `/api/v1/sse/read-count/{roomId}/{messageId}` | 메시지 읽음 카운트 스트림 |
+
+## 보안 및 개인정보 보호
+
+Shoot은 사용자 데이터 보호와 시스템 보안을 위해 다양한 보안 메커니즘을 구현하고 있습니다:
+
+### 인증 및 권한 관리
+- JWT 기반 토큰 인증으로 안전한 API 접근 제어
+- 토큰 만료 및 갱신 메커니즘으로 보안 강화
+- 역할 기반 접근 제어(RBAC)로 권한별 기능 제한
+- WebSocket 및 SSE 연결에 대한 인증 적용
+
+### 데이터 보안
+- 비밀번호 bcrypt 해싱으로 안전하게 저장
+- 민감한 정보 전송 시 암호화 적용
+- 개인식별정보(PII) 접근 제한 및 로깅
+- 메시지 내용 저장 시 암호화 옵션 제공
+
+### 보안 모니터링 및 대응
+- 로그인 시도 제한으로 무차별 대입 공격 방지
+- 비정상 접근 패턴 감지 및 차단
+- 보안 이벤트 로깅 및 모니터링
+- 취약점 정기 점검 및 패치 적용
+
+## 배포 및 운영
+
+### 배포 환경
+- Docker 컨테이너화로 일관된 환경 제공
+- Kubernetes 기반 오케스트레이션으로 확장성 확보
+- CI/CD 파이프라인을 통한 자동화된 빌드 및 배포
+- 멀티 리전 배포로 지역별 지연 시간 최소화
+
+### 모니터링 및 로깅
+- Prometheus와 Grafana를 활용한 실시간 모니터링
+- ELK 스택으로 중앙화된 로그 관리
+- 알림 시스템으로 이상 징후 즉시 감지
+- 성능 지표 수집 및 분석
+
+### 장애 대응
+- 자동 복구 메커니즘 구현
+- 데이터 백업 및 복구 전략
+- 장애 시나리오별 대응 절차 문서화
+- 정기적인 재해 복구 훈련
+
+### 확장 전략
+- 수평적 확장을 통한 부하 분산
+- 데이터베이스 샤딩 및 레플리케이션
+- 캐싱 계층 최적화
+- 리소스 사용량 기반 자동 스케일링
 
 ## 메시지 흐름 처리 과정
 

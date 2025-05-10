@@ -1,25 +1,21 @@
 package com.stark.shoot.adapter.`in`.web.user
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.user.SetBackgroundImageRequest
-import com.stark.shoot.adapter.`in`.web.dto.user.SetProfileImageRequest
-import com.stark.shoot.adapter.`in`.web.dto.user.UpdateProfileRequest
-import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
-import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
+import com.stark.shoot.adapter.`in`.web.dto.user.*
+import com.stark.shoot.application.port.`in`.user.FindUserUseCase
 import com.stark.shoot.application.port.`in`.user.profile.UserUpdateProfileUseCase
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.Authentication
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @Tag(name = "사용자", description = "사용자 관련 API")
 @RequestMapping("/api/v1/users")
 @RestController
 class UserProfileController(
-    private val userUpdateProfileUseCase: UserUpdateProfileUseCase
+    private val userUpdateProfileUseCase: UserUpdateProfileUseCase,
+    private val findUserUseCase: FindUserUseCase
 ) {
 
     @Operation(
@@ -63,4 +59,18 @@ class UserProfileController(
         val user = userUpdateProfileUseCase.setBackgroundImage(userId, request)
         return ResponseDto.success(user.toResponse(), "배경 이미지가 성공적으로 설정되었습니다.")
     }
+
+    @Operation(
+        summary = "친구 프로필 조회",
+        description = "친구의 프로필 정보를 조회합니다."
+    )
+    @GetMapping("/{userId}")
+    fun getUserProfile(
+        @PathVariable userId: Long
+    ): ResponseDto<UserResponse> {
+        val user = findUserUseCase.findById(userId)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
+        return ResponseDto.success(user.toResponse(), "프로필 정보를 성공적으로 조회했습니다.")
+    }
+
 }

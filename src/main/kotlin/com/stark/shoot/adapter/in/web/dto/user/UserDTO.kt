@@ -18,7 +18,9 @@ data class CreateUserRequest(
 )
 
 data class LoginRequest(val username: String, val password: String)
-data class UpdateProfileRequest(val nickname: String?, val profileImageUrl: String?, val bio: String?)
+data class UpdateProfileRequest(val nickname: String?, val profileImageUrl: String?, val backgroundImageUrl: String?, val bio: String?)
+data class SetProfileImageRequest(val profileImageUrl: String)
+data class SetBackgroundImageRequest(val backgroundImageUrl: String)
 data class FindUserRequest(val query: String) // username 또는 userCode로 검색
 data class FriendRequest(val targetUserId: String)
 
@@ -39,6 +41,7 @@ data class UserResponse(
     val nickname: String,
     val status: UserStatus,
     val profileImageUrl: String?,
+    val backgroundImageUrl: String?,
     val bio: String?,
     val userCode: String,
     val lastSeenAt: Instant?
@@ -51,6 +54,7 @@ fun User.toResponse() = UserResponse(
     nickname = nickname,
     status = status,
     profileImageUrl = profileImageUrl,
+    backgroundImageUrl = backgroundImageUrl,
     bio = bio,
     userCode = userCode,
     lastSeenAt = lastSeenAt

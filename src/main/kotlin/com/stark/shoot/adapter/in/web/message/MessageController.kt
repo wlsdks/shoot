@@ -18,6 +18,7 @@ class MessageController(
     private val deleteMessageUseCase: DeleteMessageUseCase
 ) {
 
+    // todo: 도메인 모델은 외부에서 사용하면 안된다.
     @Operation(
         summary = "메시지 편집",
         description = "메시지 내용을 수정합니다."

@@ -3,9 +3,10 @@ package com.stark.shoot.adapter.`in`.web.message
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.DeleteMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.EditMessageRequest
+import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
+import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.DeleteMessageUseCase
 import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
-import com.stark.shoot.domain.chat.message.ChatMessage
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
@@ -15,10 +16,10 @@ import org.springframework.web.bind.annotation.*
 @RestController
 class MessageController(
     private val editMessageUseCase: EditMessageUseCase,
-    private val deleteMessageUseCase: DeleteMessageUseCase
+    private val deleteMessageUseCase: DeleteMessageUseCase,
+    private val chatMessageMapper: ChatMessageMapper
 ) {
 
-    // todo: 도메인 모델은 외부에서 사용하면 안된다.
     @Operation(
         summary = "메시지 편집",
         description = "메시지 내용을 수정합니다."
@@ -26,9 +27,9 @@ class MessageController(
     @PutMapping("/edit")
     fun editMessage(
         @RequestBody request: EditMessageRequest
-    ): ResponseDto<ChatMessage> {
+    ): ResponseDto<MessageResponseDto> {
         val updatedMessage = editMessageUseCase.editMessage(request.messageId, request.newContent)
-        return ResponseDto.success(updatedMessage, "메시지가 수정되었습니다.")
+        return ResponseDto.success(chatMessageMapper.toDto(updatedMessage), "메시지가 수정되었습니다.")
     }
 
     @Operation(
@@ -38,9 +39,9 @@ class MessageController(
     @DeleteMapping("/delete")
     fun deleteMessage(
         @RequestBody request: DeleteMessageRequest
-    ): ResponseDto<ChatMessage> {
+    ): ResponseDto<MessageResponseDto> {
         val deletedMessage = deleteMessageUseCase.deleteMessage(request.messageId)
-        return ResponseDto.success(deletedMessage, "메시지가 삭제되었습니다.")
+        return ResponseDto.success(chatMessageMapper.toDto(deletedMessage), "메시지가 삭제되었습니다.")
     }
 
 }

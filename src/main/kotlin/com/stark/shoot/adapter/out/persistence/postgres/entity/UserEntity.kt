@@ -29,6 +29,9 @@ class UserEntity(
     var profileImageUrl: String? = null
         protected set
 
+    var backgroundImageUrl: String? = null
+        protected set
+
     var lastSeenAt: Instant? = null
         protected set
 
@@ -49,12 +52,14 @@ class UserEntity(
         status: UserStatus,
         userCode: String,
         profileImageUrl: String?,
+        backgroundImageUrl: String?,
         lastSeenAt: Instant?,
         bio: String?,
         passwordHash: String?,
         isDeleted: Boolean,
     ) : this(username, nickname, status, userCode) {
         this.profileImageUrl = profileImageUrl
+        this.backgroundImageUrl = backgroundImageUrl
         this.lastSeenAt = lastSeenAt
         this.bio = bio
         this.passwordHash = passwordHash

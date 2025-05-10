@@ -14,6 +14,7 @@ data class User(
 
     // 필요한 경우에만 남길 선택적 필드
     var profileImageUrl: String? = null,
+    var backgroundImageUrl: String? = null,
     var lastSeenAt: Instant? = null,
     var bio: String? = null,
     var isDeleted: Boolean = false,
@@ -38,17 +39,20 @@ data class User(
      *
      * @param nickname 새 닉네임 (null이면 변경 안함)
      * @param profileImageUrl 새 프로필 이미지 URL (null이면 변경 안함)
+     * @param backgroundImageUrl 새 배경 이미지 URL (null이면 변경 안함)
      * @param bio 새 자기소개 (null이면 변경 안함)
      * @return 업데이트된 User 객체
      */
     fun updateProfile(
         nickname: String? = null,
         profileImageUrl: String? = null,
+        backgroundImageUrl: String? = null,
         bio: String? = null
     ): User {
         return this.copy(
             nickname = nickname ?: this.nickname,
             profileImageUrl = profileImageUrl ?: this.profileImageUrl,
+            backgroundImageUrl = backgroundImageUrl ?: this.backgroundImageUrl,
             bio = bio ?: this.bio,
             updatedAt = Instant.now()
         )

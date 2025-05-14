@@ -10,7 +10,7 @@ class NewMessageEvent(
     val senderId: Long,
     val senderName: String,
     val messageContent: String,
-    val recipients: Set<Long>,
+    val recipientIds: Set<Long>,
     timestamp: Instant = Instant.now(),
     metadata: Map<String, Any> = emptyMap()
 ) : NotificationEvent(
@@ -22,7 +22,7 @@ class NewMessageEvent(
     metadata = metadata
 ) {
 
-    override fun getRecipients(): Set<Long> = recipients
+    override fun getRecipients(): Set<Long> = recipientIds
 
     override fun getTitle(): String = "New message from $senderName"
 

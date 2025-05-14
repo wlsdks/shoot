@@ -49,7 +49,7 @@ class ChatEventNotificationListener(
                         senderId = message.senderId,
                         senderName = "User", // We don't have the sender name in the message
                         messageContent = "Mentioned you in a message: ${message.content.text.take(50)}${if (message.content.text.length > 50) "..." else ""}",
-                        recipients = mentionedUsers
+                        recipientIds = mentionedUsers
                     )
 
                     sendNotificationUseCase.processNotificationEvent(notificationEvent)
@@ -62,7 +62,7 @@ class ChatEventNotificationListener(
                 senderId = message.senderId,
                 senderName = "User", // 지금은 메시지에서 발신자 이름을 알 수 없습니다.
                 messageContent = message.content.text.take(50) + if (message.content.text.length > 50) "..." else "",
-                recipients = recipients
+                recipientIds = recipients
             )
 
             sendNotificationUseCase.processNotificationEvent(notificationEvent)

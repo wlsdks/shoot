@@ -1,0 +1,106 @@
+package com.stark.shoot.adapter.out.persistence.mongodb.adapter.notification
+
+import com.stark.shoot.adapter.out.persistence.mongodb.repository.NotificationMongoRepository
+import com.stark.shoot.application.port.out.notification.DeleteNotificationPort
+import com.stark.shoot.infrastructure.annotation.Adapter
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.isEqualTo
+
+@Adapter
+class DeleteNotificationMongoAdapter(
+    private val notificationMongoRepository: NotificationMongoRepository,
+    private val mongoTemplate: MongoTemplate
+) : DeleteNotificationPort {
+
+    private val logger = KotlinLogging.logger {}
+
+    /**
+     * 특정 알림을 삭제합니다.
+     *
+     * @param notificationId 알림 ID
+     * @return 삭제 성공 여부
+     */
+    override fun deleteNotification(notificationId: String): Boolean {
+        try {
+            if (notificationMongoRepository.existsById(notificationId)) {
+                notificationMongoRepository.deleteById(notificationId)
+                return true
+            } else {
+                return false
+            }
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+    /**
+     * 사용자의 모든 알림을 삭제합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 삭제된 알림 개수
+     */
+    override fun deleteAllNotificationsForUser(userId: Long): Int {
+        try {
+            val query = Query(Criteria.where("userId").isEqualTo(userId))
+            val count = mongoTemplate.count(query, "notifications")
+            val result = notificationMongoRepository.deleteByUserId(userId)
+
+            return result
+        } catch (e: Exception) {
+            return 0
+        }
+    }
+
+    /**
+     * 사용자의 특정 타입의 알림을 삭제합니다.
+     *
+     * @param userId 사용자 ID
+     * @param type 알림 타입
+     * @return 삭제된 알림 개수
+     */
+    override fun deleteNotificationsByType(userId: Long, type: String): Int {
+        try {
+            val query = Query.query(
+                Criteria.where("userId").isEqualTo(userId)
+                    .and("type").isEqualTo(type)
+            )
+
+            val count = mongoTemplate.count(query, "notifications")
+            val result = mongoTemplate.remove(query, "notifications")
+
+            return result.deletedCount.toInt()
+        } catch (e: Exception) {
+            return 0
+        }
+    }
+
+    /**
+     * 사용자의 특정 소스의 알림을 삭제합니다.
+     *
+     * @param userId 사용자 ID
+     * @param sourceType 소스 타입
+     * @param sourceId 소스 ID (null일 경우 모든 소스 ID에 대해 삭제)
+     * @return 삭제된 알림 개수
+     */
+    override fun deleteNotificationsBySource(userId: Long, sourceType: String, sourceId: String?): Int {
+        try {
+            val criteria = Criteria.where("userId").isEqualTo(userId)
+                .and("sourceType").isEqualTo(sourceType)
+
+            if (sourceId != null) {
+                criteria.and("sourceId").isEqualTo(sourceId)
+            }
+
+            val query = Query.query(criteria)
+            val count = mongoTemplate.count(query, "notifications")
+            val result = mongoTemplate.remove(query, "notifications")
+
+            return result.deletedCount.toInt()
+        } catch (e: Exception) {
+            return 0
+        }
+    }
+}

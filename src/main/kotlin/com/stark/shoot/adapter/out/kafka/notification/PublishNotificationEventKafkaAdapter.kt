@@ -29,22 +29,16 @@ class PublishNotificationEventKafkaAdapter(
         try {
             // JSON 문자열로 변환
             val eventJson = objectMapper.writeValueAsString(event)
-            logger.debug { "Publishing notification event: $eventJson" }
 
             // Kafka에 알림 이벤트 발행
             val future = kafkaTemplate.send(NOTIFICATION_EVENTS_TOPIC, event.sourceId, eventJson)
 
             future.whenComplete { result, ex ->
-                if (ex != null) {
-                    logger.error(ex) { "Failed to publish notification event: ${event.id}" }
-                } else {
-                    logger.debug { "Successfully published notification event: ${event.id}, offset: ${result.recordMetadata.offset()}" }
-                }
+                // No logging, just handle the completion
             }
 
             return true
         } catch (e: Exception) {
-            logger.error(e) { "Error publishing notification event: ${event.id}" }
             return false
         }
     }

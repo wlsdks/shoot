@@ -32,16 +32,13 @@ class SendNotificationRedisAdapter(
         try {
             // JSON 문자열로 변환
             val notificationJson = objectMapper.writeValueAsString(notification)
-            logger.debug { "Sending notification to user ${notification.userId}: $notificationJson" }
 
             // Redis 채널에 알림 전송
             val userChannel = "$NOTIFICATION_CHANNEL_PREFIX${notification.userId}"
             val receiverCount = redisTemplate.convertAndSend(userChannel, notificationJson)
 
-            logger.debug { "Notification sent to user ${notification.userId}, received by $receiverCount subscribers" }
             return true
         } catch (e: Exception) {
-            logger.error(e) { "Error sending notification to user ${notification.userId}: ${notification.id}" }
             return false
         }
     }
@@ -57,8 +54,6 @@ class SendNotificationRedisAdapter(
             return 0
         }
 
-        logger.debug { "Sending ${notifications.size} notifications" }
-
         // 사용자별로 알림 그룹화
         val notificationsByUser = notifications.groupBy { it.userId }
         val successCount = ConcurrentHashMap<Long, Int>()
@@ -72,18 +67,16 @@ class SendNotificationRedisAdapter(
                     val batchJson = objectMapper.writeValueAsString(batch)
 
                     val receiverCount = redisTemplate.convertAndSend(userChannel, batchJson)
-                    logger.debug { "Batch of ${batch.size} notifications sent to user $userId, received by $receiverCount subscribers" }
 
                     // 성공 카운트 증가
                     successCount.compute(userId) { _, count -> (count ?: 0) + batch.size }
                 } catch (e: Exception) {
-                    logger.error(e) { "Error sending batch of notifications to user $userId" }
+                    // Just catch the exception, no logging
                 }
             }
         }
 
         val totalSuccess = successCount.values.sum()
-        logger.debug { "Successfully sent $totalSuccess out of ${notifications.size} notifications" }
         return totalSuccess
     }
 
@@ -97,15 +90,12 @@ class SendNotificationRedisAdapter(
         try {
             // JSON 문자열로 변환
             val notificationJson = objectMapper.writeValueAsString(notification)
-            logger.debug { "Broadcasting notification: $notificationJson" }
 
             // Redis 채널에 알림 전송
             val receiverCount = redisTemplate.convertAndSend(NOTIFICATION_BROADCAST_CHANNEL, notificationJson)
 
-            logger.debug { "Notification broadcast, received by $receiverCount subscribers" }
             return true
         } catch (e: Exception) {
-            logger.error(e) { "Error broadcasting notification: ${notification.id}" }
             return false
         }
     }

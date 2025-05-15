@@ -1,11 +1,13 @@
 package com.stark.shoot.application.service.notification
 
 import com.stark.shoot.application.port.`in`.notification.NotificationManagementUseCase
+import com.stark.shoot.application.port.out.notification.DeleteNotificationPort
 import com.stark.shoot.application.port.out.notification.LoadNotificationPort
 import com.stark.shoot.application.port.out.notification.SaveNotificationPort
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -13,8 +15,11 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class NotificationManagementService(
     private val loadNotificationPort: LoadNotificationPort,
-    private val saveNotificationPort: SaveNotificationPort
+    private val saveNotificationPort: SaveNotificationPort,
+    private val deleteNotificationPort: DeleteNotificationPort
 ) : NotificationManagementUseCase {
+
+    private val logger = KotlinLogging.logger {}
 
     /**
      * 특정 알림을 읽음 처리합니다.
@@ -22,24 +27,39 @@ class NotificationManagementService(
      * @param notificationId 알림 ID
      * @param userId 사용자 ID
      * @return 읽음 처리된 알림 객체
+     * @throws IllegalArgumentException 알림이 존재하지 않거나 해당 유저의 것이 아닌 경우
      */
     override fun markAsRead(
         notificationId: String,
         userId: Long
     ): Notification {
-        val notification = loadNotificationPort.loadNotificationById(notificationId)
-            ?: throw IllegalArgumentException("Notification not found with ID: $notificationId")
+        try {
+            val notification = loadNotificationPort.loadNotificationById(notificationId)
+                ?: run {
+                    throw IllegalArgumentException("Notification not found with ID: $notificationId")
+                }
 
-        // 유저 ID와 알림 ID를 비교하여 알림이 해당 유저의 것인지 확인합니다.
-        if (notification.userId != userId) {
-            throw IllegalArgumentException("Notification does not belong to user with ID: $userId")
+            // 유저 ID와 알림 ID를 비교하여 알림이 해당 유저의 것인지 확인합니다.
+            if (notification.userId != userId) {
+                throw IllegalArgumentException("Notification does not belong to user with ID: $userId")
+            }
+
+            // 이미 읽은 알림인 경우 바로 반환
+            if (notification.isRead) {
+                return notification
+            }
+
+            // 읽음 처리합니다.
+            val updatedNotification = notification.markAsRead()
+
+            // 저장합니다.
+            val savedNotification = saveNotificationPort.saveNotification(updatedNotification)
+
+            return savedNotification
+        } catch (e: Exception) {
+            if (e is IllegalArgumentException) throw e
+            throw e
         }
-
-        // 읽음 처리합니다.
-        val updatedNotification = notification.markAsRead()
-
-        // 저장합니다.
-        return saveNotificationPort.saveNotification(updatedNotification)
     }
 
     /**
@@ -49,15 +69,23 @@ class NotificationManagementService(
      * @return 읽음 처리된 알림 개수
      */
     override fun markAllAsRead(userId: Long): Int {
-        val notifications = loadNotificationPort.loadUnreadNotificationsForUser(userId, Int.MAX_VALUE, 0)
+        try {
+            val notifications = loadNotificationPort.loadUnreadNotificationsForUser(userId, Int.MAX_VALUE, 0)
 
-        // 모든 읽지 않은 알림을 읽음 처리합니다.
-        val updatedNotifications = notifications.map { it.markAsRead() }
+            if (notifications.isEmpty()) {
+                return 0
+            }
 
-        // 저장합니다.
-        saveNotificationPort.saveNotifications(updatedNotifications)
+            // 모든 읽지 않은 알림을 읽음 처리합니다.
+            val updatedNotifications = notifications.map { it.markAsRead() }
 
-        return updatedNotifications.size
+            // 저장합니다.
+            saveNotificationPort.saveNotifications(updatedNotifications)
+
+            return updatedNotifications.size
+        } catch (e: Exception) {
+            throw e
+        }
     }
 
     /**
@@ -71,16 +99,24 @@ class NotificationManagementService(
         userId: Long,
         type: NotificationType
     ): Int {
-        val notifications = loadNotificationPort.loadNotificationsByType(userId, type, Int.MAX_VALUE, 0)
-            .filter { !it.isRead }
+        try {
+            val notifications = loadNotificationPort.loadNotificationsByType(userId, type, Int.MAX_VALUE, 0)
+                .filter { !it.isRead }
 
-        // 모든 읽지 않은 알림을 읽음 처리합니다.
-        val updatedNotifications = notifications.map { it.markAsRead() }
+            if (notifications.isEmpty()) {
+                return 0
+            }
 
-        // 저장합니다.
-        saveNotificationPort.saveNotifications(updatedNotifications)
+            // 모든 읽지 않은 알림을 읽음 처리합니다.
+            val updatedNotifications = notifications.map { it.markAsRead() }
 
-        return updatedNotifications.size
+            // 저장합니다.
+            saveNotificationPort.saveNotifications(updatedNotifications)
+
+            return updatedNotifications.size
+        } catch (e: Exception) {
+            throw e
+        }
     }
 
     /**
@@ -96,17 +132,25 @@ class NotificationManagementService(
         sourceType: SourceType,
         sourceId: String?
     ): Int {
-        val notifications =
-            loadNotificationPort.loadNotificationsBySource(userId, sourceType, sourceId, Int.MAX_VALUE, 0)
-                .filter { !it.isRead }
+        try {
+            val notifications =
+                loadNotificationPort.loadNotificationsBySource(userId, sourceType, sourceId, Int.MAX_VALUE, 0)
+                    .filter { !it.isRead }
 
-        // 모든 읽지 않은 알림을 읽음 처리합니다.
-        val updatedNotifications = notifications.map { it.markAsRead() }
+            if (notifications.isEmpty()) {
+                return 0
+            }
 
-        // 저장합니다.
-        saveNotificationPort.saveNotifications(updatedNotifications)
+            // 모든 읽지 않은 알림을 읽음 처리합니다.
+            val updatedNotifications = notifications.map { it.markAsRead() }
 
-        return updatedNotifications.size
+            // 저장합니다.
+            saveNotificationPort.saveNotifications(updatedNotifications)
+
+            return updatedNotifications.size
+        } catch (e: Exception) {
+            throw e
+        }
     }
 
     /**
@@ -120,17 +164,24 @@ class NotificationManagementService(
         notificationId: String,
         userId: Long
     ): Boolean {
-        val notification = loadNotificationPort.loadNotificationById(notificationId)
-            ?: return false
+        try {
+            val notification = loadNotificationPort.loadNotificationById(notificationId)
+            if (notification == null) {
+                return false
+            }
 
-        // 유저 ID와 알림 ID를 비교하여 알림이 해당 유저의 것인지 확인합니다.
-        if (notification.userId != userId) {
+            // 유저 ID와 알림 ID를 비교하여 알림이 해당 유저의 것인지 확인합니다.
+            if (notification.userId != userId) {
+                return false
+            }
+
+            // 알림을 삭제합니다.
+            val result = deleteNotificationPort.deleteNotification(notificationId)
+
+            return result
+        } catch (e: Exception) {
             return false
         }
-
-        // 읽음 처리된 알림을 삭제합니다. (로직 추가 필요)
-
-        return true
     }
 
     /**
@@ -140,9 +191,14 @@ class NotificationManagementService(
      * @return 삭제된 알림 개수
      */
     override fun deleteAllNotifications(userId: Long): Int {
-        // 모든 알림을 삭제합니다. (로직 추가 필요)
+        try {
+            // 사용자의 모든 알림을 삭제합니다.
+            val count = deleteNotificationPort.deleteAllNotificationsForUser(userId)
 
-        return 0
+            return count
+        } catch (e: Exception) {
+            return 0
+        }
     }
 
 }

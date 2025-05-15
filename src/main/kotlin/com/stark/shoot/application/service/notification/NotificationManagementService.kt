@@ -7,6 +7,8 @@ import com.stark.shoot.application.port.out.notification.SaveNotificationPort
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
+import com.stark.shoot.infrastructure.exception.web.MongoOperationException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -159,29 +161,25 @@ class NotificationManagementService(
      * @param notificationId 알림 ID
      * @param userId 사용자 ID
      * @return 삭제 성공 여부
+     * @throws ResourceNotFoundException 알림을 찾을 수 없거나 해당 사용자의 알림이 아닌 경우
+     * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
     override fun deleteNotification(
         notificationId: String,
         userId: Long
     ): Boolean {
-        try {
-            val notification = loadNotificationPort.loadNotificationById(notificationId)
-            if (notification == null) {
-                return false
-            }
+        val notification = loadNotificationPort.loadNotificationById(notificationId)
+            ?: throw ResourceNotFoundException("알림을 찾을 수 없습니다: $notificationId")
 
-            // 유저 ID와 알림 ID를 비교하여 알림이 해당 유저의 것인지 확인합니다.
-            if (notification.userId != userId) {
-                return false
-            }
-
-            // 알림을 삭제합니다.
-            val result = deleteNotificationPort.deleteNotification(notificationId)
-
-            return result
-        } catch (e: Exception) {
-            return false
+        // 유저 ID와 알림 ID를 비교하여 알림이 해당 유저의 것인지 확인합니다.
+        if (notification.userId != userId) {
+            throw ResourceNotFoundException("해당 사용자의 알림이 아닙니다: $notificationId")
         }
+
+        // 알림을 삭제합니다.
+        deleteNotificationPort.deleteNotification(notificationId)
+
+        return true
     }
 
     /**
@@ -189,16 +187,11 @@ class NotificationManagementService(
      *
      * @param userId 사용자 ID
      * @return 삭제된 알림 개수
+     * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
     override fun deleteAllNotifications(userId: Long): Int {
-        try {
-            // 사용자의 모든 알림을 삭제합니다.
-            val count = deleteNotificationPort.deleteAllNotificationsForUser(userId)
-
-            return count
-        } catch (e: Exception) {
-            return 0
-        }
+        // 사용자의 모든 알림을 삭제합니다.
+        return deleteNotificationPort.deleteAllNotificationsForUser(userId)
     }
 
 }

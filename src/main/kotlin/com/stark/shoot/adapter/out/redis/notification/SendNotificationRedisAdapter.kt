@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.infrastructure.annotation.Adapter
+import com.stark.shoot.infrastructure.exception.web.RedisOperationException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.RedisTemplate
-import java.util.concurrent.ConcurrentHashMap
 
 @Adapter
 class SendNotificationRedisAdapter(
@@ -26,20 +26,18 @@ class SendNotificationRedisAdapter(
      * 알림 전송
      *
      * @param notification 알림 객체
-     * @return 성공 여부
+     * @throws RedisOperationException 알림 전송 실패 시 발생
      */
-    override fun sendNotification(notification: Notification): Boolean {
+    override fun sendNotification(notification: Notification) {
         try {
             // JSON 문자열로 변환
             val notificationJson = objectMapper.writeValueAsString(notification)
 
             // Redis 채널에 알림 전송
             val userChannel = "$NOTIFICATION_CHANNEL_PREFIX${notification.userId}"
-            val receiverCount = redisTemplate.convertAndSend(userChannel, notificationJson)
-
-            return true
+            redisTemplate.convertAndSend(userChannel, notificationJson)
         } catch (e: Exception) {
-            return false
+            throw RedisOperationException("Failed to send notification: ${e.message}", e)
         }
     }
 
@@ -47,16 +45,16 @@ class SendNotificationRedisAdapter(
      * 알림 목록 전송 - 배치 처리 최적화
      *
      * @param notifications 알림 객체 목록
-     * @return 성공한 알림 개수
+     * @throws RedisOperationException 모든 알림 전송 실패 시 발생
      */
-    override fun sendNotifications(notifications: List<Notification>): Int {
+    override fun sendNotifications(notifications: List<Notification>) {
         if (notifications.isEmpty()) {
-            return 0
+            return
         }
 
         // 사용자별로 알림 그룹화
         val notificationsByUser = notifications.groupBy { it.userId }
-        val successCount = ConcurrentHashMap<Long, Int>()
+        val failedBatches = mutableListOf<String>()
 
         // 각 사용자별로 알림 처리
         notificationsByUser.forEach { (userId, userNotifications) ->
@@ -66,37 +64,35 @@ class SendNotificationRedisAdapter(
                     val userChannel = "$NOTIFICATION_CHANNEL_PREFIX$userId"
                     val batchJson = objectMapper.writeValueAsString(batch)
 
-                    val receiverCount = redisTemplate.convertAndSend(userChannel, batchJson)
-
-                    // 성공 카운트 증가
-                    successCount.compute(userId) { _, count -> (count ?: 0) + batch.size }
+                    redisTemplate.convertAndSend(userChannel, batchJson)
                 } catch (e: Exception) {
-                    // Just catch the exception, no logging
+                    failedBatches.add("User $userId, batch size ${batch.size}")
+                    logger.error(e) { "Failed to send notification batch to user $userId" }
                 }
             }
         }
 
-        val totalSuccess = successCount.values.sum()
-        return totalSuccess
+        // 모든 배치가 실패한 경우에만 예외 발생
+        if (failedBatches.size == notificationsByUser.values.sumOf { it.chunked(BATCH_SIZE).size }) {
+            throw RedisOperationException("Failed to send all notification batches")
+        }
     }
 
     /**
      * 알림을 브로드캐스트합니다.
      *
      * @param notification 알림 객체
-     * @return 성공 여부
+     * @throws RedisOperationException 알림 브로드캐스트 실패 시 발생
      */
-    fun broadcastNotification(notification: Notification): Boolean {
+    fun broadcastNotification(notification: Notification) {
         try {
             // JSON 문자열로 변환
             val notificationJson = objectMapper.writeValueAsString(notification)
 
             // Redis 채널에 알림 전송
-            val receiverCount = redisTemplate.convertAndSend(NOTIFICATION_BROADCAST_CHANNEL, notificationJson)
-
-            return true
+            redisTemplate.convertAndSend(NOTIFICATION_BROADCAST_CHANNEL, notificationJson)
         } catch (e: Exception) {
-            return false
+            throw RedisOperationException("Failed to broadcast notification: ${e.message}", e)
         }
     }
 

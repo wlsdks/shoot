@@ -51,7 +51,9 @@ class RefreshTokenPersistenceAdapter(
     /**
      * 토큰 문자열로 리프레시 토큰 조회
      */
-    override fun findByToken(token: String): RefreshToken? {
+    override fun findByToken(
+        token: String
+    ): RefreshToken? {
         return refreshTokenRepository.findByToken(token)?.let {
             refreshTokenMapper.toDomain(it)
         }
@@ -60,7 +62,9 @@ class RefreshTokenPersistenceAdapter(
     /**
      * 리프레시 토큰 사용 시간 업데이트
      */
-    override fun updateTokenUsage(token: String): RefreshToken? {
+    override fun updateTokenUsage(
+        token: String
+    ): RefreshToken? {
         val tokenEntity = refreshTokenRepository.findByToken(token) ?: return null
 
         // 사용 시간 업데이트
@@ -73,7 +77,9 @@ class RefreshTokenPersistenceAdapter(
     /**
      * 리프레시 토큰 취소
      */
-    override fun revokeToken(token: String): Boolean {
+    override fun revokeToken(
+        token: String
+    ): Boolean {
         val tokenEntity = refreshTokenRepository.findByToken(token) ?: return false
 
         // 토큰 취소 처리
@@ -86,14 +92,18 @@ class RefreshTokenPersistenceAdapter(
     /**
      * 사용자의 모든 리프레시 토큰 취소
      */
-    override fun revokeAllUserTokens(userId: Long): Int {
+    override fun revokeAllUserTokens(
+        userId: Long
+    ): Int {
         return refreshTokenRepository.revokeAllByUserId(userId)
     }
 
     /**
      * 만료된 리프레시 토큰 정리
      */
-    override fun cleanupExpiredTokens(before: Instant): Int {
+    override fun cleanupExpiredTokens(
+        before: Instant
+    ): Int {
         return refreshTokenRepository.deleteAllByExpirationDateBeforeOrIsRevokedTrue(before)
     }
 

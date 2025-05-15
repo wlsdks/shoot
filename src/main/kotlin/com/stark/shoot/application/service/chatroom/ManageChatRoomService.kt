@@ -7,7 +7,6 @@ import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 
 @Transactional
@@ -18,8 +17,6 @@ class ManageChatRoomService(
     private val deleteChatRoomPort: DeleteChatRoomPort,
     private val findUserPort: FindUserPort
 ) : ManageChatRoomUseCase {
-
-    private val logger = KotlinLogging.logger {}
 
     /**
      *
@@ -78,13 +75,7 @@ class ManageChatRoomService(
 
         // 채팅방에 참여자가 없으면 채팅방 삭제
         if (updatedChatRoom.isEmpty()) {
-            logger.info { "빈 채팅방 삭제 시도: roomId=$roomId" }
             val deleted = deleteChatRoomPort.deleteById(roomId)
-            if (deleted) {
-                logger.info { "빈 채팅방 삭제 완료: roomId=$roomId" }
-            } else {
-                logger.warn { "빈 채팅방 삭제 실패: roomId=$roomId" }
-            }
         }
 
         return true
@@ -134,4 +125,5 @@ class ManageChatRoomService(
 
         return true
     }
+
 }

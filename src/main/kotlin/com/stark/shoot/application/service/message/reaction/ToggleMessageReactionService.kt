@@ -2,8 +2,10 @@ package com.stark.shoot.application.service.message.reaction
 
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionResponse
 import com.stark.shoot.application.port.`in`.message.reaction.ToggleMessageReactionUseCase
+import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
+import com.stark.shoot.domain.chat.event.MessageReactionEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.enumerate.ReactionType
@@ -16,7 +18,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 class ToggleMessageReactionService(
     private val loadMessagePort: LoadMessagePort,
     private val saveMessagePort: SaveMessagePort,
-    private val messagingTemplate: SimpMessagingTemplate
+    private val messagingTemplate: SimpMessagingTemplate,
+    private val eventPublisher: EventPublisher
 ) : ToggleMessageReactionUseCase {
 
     /**
@@ -104,6 +107,9 @@ class ToggleMessageReactionService(
         // WebSocket으로 실시간 업데이트 전송 (제거)
         notifyReactionUpdate(messageId, message.roomId, userId, type.code, false)
 
+        // 도메인 이벤트 발행 (리액션 제거)
+        publishReactionEvent(messageId, message.roomId, userId, type.code, false)
+
         return updatedMessage
     }
 
@@ -139,6 +145,10 @@ class ToggleMessageReactionService(
         // WebSocket으로 실시간 업데이트 전송 (새 리액션 추가)
         notifyReactionUpdate(messageId, message.roomId, userId, newType.code, true)
 
+        // 도메인 이벤트 발행 (리액션 교체)
+        // 교체 작업에 대해 하나의 이벤트만 발행 (최종 상태인 추가 이벤트)
+        publishReactionEvent(messageId, message.roomId, userId, newType.code, isAdded = true, isReplacement = true)
+
         return messageAfterAdd
     }
 
@@ -161,6 +171,9 @@ class ToggleMessageReactionService(
 
         // WebSocket으로 실시간 업데이트 전송 (추가)
         notifyReactionUpdate(messageId, message.roomId, userId, type.code, true)
+
+        // 도메인 이벤트 발행 (리액션 추가)
+        publishReactionEvent(messageId, message.roomId, userId, type.code, true)
 
         return updatedMessage
     }
@@ -228,6 +241,36 @@ class ToggleMessageReactionService(
                 "isAdded" to isAdded
             )
         )
+    }
+
+    /**
+     * 메시지 반응 이벤트를 발행합니다.
+     *
+     * @param messageId 메시지 ID
+     * @param roomId 채팅방 ID
+     * @param userId 사용자 ID
+     * @param reactionType 리액션 타입
+     * @param isAdded 추가 여부
+     * @param isReplacement 리액션 교체의 일부 여부
+     */
+    private fun publishReactionEvent(
+        messageId: String,
+        roomId: Long,
+        userId: Long,
+        reactionType: String,
+        isAdded: Boolean,
+        isReplacement: Boolean = false
+    ) {
+        val event = MessageReactionEvent(
+            messageId = messageId,
+            roomId = roomId.toString(),
+            userId = userId.toString(),
+            reactionType = reactionType,
+            isAdded = isAdded,
+            isReplacement = isReplacement
+        )
+
+        eventPublisher.publish(event)
     }
 
 }

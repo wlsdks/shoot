@@ -4,9 +4,7 @@ import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.infrastructure.exception.web.KafkaPublishException
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.withContext
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 import java.util.concurrent.CompletableFuture

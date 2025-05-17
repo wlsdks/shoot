@@ -4,73 +4,79 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.infrastructure.annotation.Adapter
+import com.stark.shoot.infrastructure.exception.web.RedisOperationException
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.RedisTemplate
 
 @Adapter
 class SendNotificationRedisAdapter(
-    private val redisTemplate: RedisTemplate<String, Any>,
+    private val redisTemplate: StringRedisTemplate,
     private val objectMapper: ObjectMapper
 ) : SendNotificationPort {
 
+    private val logger = KotlinLogging.logger {}
+
     companion object {
-        private const val NOTIFICATION_CHANNEL_PREFIX = "notification:"
-        private const val NOTIFICATION_BROADCAST_CHANNEL = "notification:broadcast"
+        private const val NOTIFICATION_CHANNEL_PREFIX = "notification:user:"
     }
 
-
     /**
-     * 알림 전송
+     * 알림을 Redis를 통해 전송합니다.
+     * 사용자별 채널에 알림을 발행하여 실시간으로 전달합니다.
      *
      * @param notification 알림 객체
-     * @return 성공 여부
+     * @throws RedisOperationException 알림 전송 실패 시 발생
      */
-    override fun sendNotification(notification: Notification): Boolean {
+    override fun sendNotification(notification: Notification) {
         try {
-            // Convert the notification to a JSON string
+            val channel = "$NOTIFICATION_CHANNEL_PREFIX${notification.userId}"
             val notificationJson = objectMapper.writeValueAsString(notification)
-
-            // Publish the notification to the user's channel
-            val userChannel = "$NOTIFICATION_CHANNEL_PREFIX${notification.userId}"
-            redisTemplate.convertAndSend(userChannel, notificationJson)
-
-            return true
+            
+            // Redis pub/sub 채널에 알림 발행
+            val result = redisTemplate.convertAndSend(channel, notificationJson)
+            
+            logger.info { "알림이 Redis 채널에 발행되었습니다: userId=${notification.userId}, type=${notification.type}, result=$result" }
         } catch (e: Exception) {
-            // Log the error
-            println("Error sending notification: ${e.message}")
-            return false
+            val errorMessage = "Redis를 통한 알림 전송 중 오류가 발생했습니다: ${e.message}"
+            logger.error(e) { errorMessage }
+            throw RedisOperationException(errorMessage, e)
         }
     }
 
     /**
-     * 알림 목록 전송
+     * 여러 알림을 Redis를 통해 전송합니다.
+     * 각 사용자별 채널에 알림을 발행하여 실시간으로 전달합니다.
      *
      * @param notifications 알림 객체 목록
-     * @return 성공한 알림 개수
+     * @throws RedisOperationException 알림 전송 실패 시 발생
      */
-    override fun sendNotifications(notifications: List<Notification>): Int {
-        return notifications.count { sendNotification(it) }
-    }
-
-    /**
-     * 알림을 브로드캐스트합니다.
-     *
-     * @param notification 알림 객체
-     * @return 성공 여부
-     */
-    fun broadcastNotification(notification: Notification): Boolean {
+    override fun sendNotifications(notifications: List<Notification>) {
+        if (notifications.isEmpty()) {
+            logger.info { "전송할 알림이 없습니다." }
+            return
+        }
+        
         try {
-            // Convert the notification to a JSON string
-            val notificationJson = objectMapper.writeValueAsString(notification)
-
-            // Publish the notification to the broadcast channel
-            redisTemplate.convertAndSend(NOTIFICATION_BROADCAST_CHANNEL, notificationJson)
-
-            return true
+            // 사용자별로 알림 그룹화
+            val notificationsByUser = notifications.groupBy { it.userId }
+            
+            // 각 사용자별로 알림 전송
+            notificationsByUser.forEach { (userId, userNotifications) ->
+                val channel = "$NOTIFICATION_CHANNEL_PREFIX$userId"
+                
+                // 각 알림을 개별적으로 발행
+                userNotifications.forEach { notification ->
+                    val notificationJson = objectMapper.writeValueAsString(notification)
+                    redisTemplate.convertAndSend(channel, notificationJson)
+                }
+                
+                logger.info { "사용자($userId)에게 ${userNotifications.size}개의 알림이 Redis 채널에 발행되었습니다." }
+            }
         } catch (e: Exception) {
-            // Log the error
-            println("Error broadcasting notification: ${e.message}")
-            return false
+            val errorMessage = "Redis를 통한 다중 알림 전송 중 오류가 발생했습니다: ${e.message}"
+            logger.error(e) { errorMessage }
+            throw RedisOperationException(errorMessage, e)
         }
     }
-
 }

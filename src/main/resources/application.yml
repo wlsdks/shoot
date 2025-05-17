@@ -71,6 +71,13 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+# 알림 설정
+notification:
+  # 알림 전송 방식 (redis 또는 kafka)
+  transport: redis
+
+# 파일 업로드 설정은 spring 섹션에 있음
+
 # 로깅 설정
 logging:
   level:

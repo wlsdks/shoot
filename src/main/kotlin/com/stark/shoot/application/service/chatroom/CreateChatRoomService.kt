@@ -1,6 +1,5 @@
 package com.stark.shoot.application.service.chatroom
 
-import com.stark.shoot.domain.chat.room.ChatRoomType
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
@@ -11,7 +10,6 @@ import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 
 @Transactional
 @UseCase
@@ -39,13 +37,13 @@ class CreateChatRoomService(
         val friend = findUserPort.findUserById(friendId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $friendId")
 
-        // 2. 이미 존재하는 1:1 채팅방이 있는지 확인
+        // 2. 이미 존재하는 1:1 채팅방이 있는지 확인 (도메인 객체의 정적 메서드 사용)
         val existingRooms = loadChatRoomPort.findByParticipantId(userId)
-            .filter { chatRoom -> chatRoom.isDirectChatBetween(userId, friendId) }
+        val existingRoom = ChatRoom.findDirectChatBetween(existingRooms, userId, friendId)
 
         // 이미 존재하는 채팅방이 있으면 반환
-        if (existingRooms.isNotEmpty()) {
-            return existingRooms.first()
+        if (existingRoom != null) {
+            return existingRoom
         }
 
         // 3. 새 1:1 채팅방 생성 (도메인 객체의 팩토리 메서드 사용)
@@ -58,7 +56,7 @@ class CreateChatRoomService(
         // 4. 채팅방 저장
         val savedRoom = saveChatRoomPort.save(newChatRoom)
 
-        // 5. 이벤트 발행 (채팅방 생성 알림)
+        // 5. 채팅방 생성 이벤트 발행 (서비스 레이어에서 직접 처리)
         // 각 참여자에게 이벤트 전송
         savedRoom.participants.forEach { participantId ->
             val event = ChatRoomCreatedEvent(

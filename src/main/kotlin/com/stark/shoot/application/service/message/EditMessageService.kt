@@ -1,6 +1,5 @@
 package com.stark.shoot.application.service.message
 
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
 import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort

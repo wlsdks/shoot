@@ -9,6 +9,7 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageMetadataDocument
 import com.stark.shoot.domain.chat.message.*
+import com.stark.shoot.domain.chat.reaction.MessageReactions
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 
@@ -45,9 +46,9 @@ class ChatMessageMapper {
             content = toMessageContent(document.content),
             status = document.status,
             replyToMessageId = document.replyToMessageId?.toString(),
-            reactions = document.reactions.mapValues { (_, userIds) ->
+            messageReactions = MessageReactions(document.reactions.mapValues { (_, userIds) ->
                 userIds.map { it }.toSet()
-            },
+            }),
             mentions = document.mentions.map { it }.toSet(),
             createdAt = document.createdAt,
             updatedAt = document.updatedAt,

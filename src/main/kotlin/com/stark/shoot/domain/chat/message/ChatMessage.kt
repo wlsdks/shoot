@@ -3,6 +3,8 @@ package com.stark.shoot.domain.chat.message
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.reaction.MessageReactions
+import com.stark.shoot.domain.chat.reaction.ReactionType
 import java.time.Instant
 
 data class ChatMessage(
@@ -12,7 +14,7 @@ data class ChatMessage(
     val content: MessageContent,
     val status: MessageStatus,
     val replyToMessageId: String? = null,
-    val reactions: Map<String, Set<Long>> = emptyMap(),
+    val messageReactions: MessageReactions = MessageReactions(),
     val mentions: Set<Long> = emptySet(),
     val createdAt: Instant? = Instant.now(),
     val updatedAt: Instant? = null,
@@ -25,6 +27,13 @@ data class ChatMessage(
     val pinnedBy: Long? = null,
     val pinnedAt: Instant? = null
 ) {
+    /**
+     * 메시지의 반응 맵을 반환합니다.
+     * 이는 하위 호환성을 위한 속성입니다.
+     */
+    val reactions: Map<String, Set<Long>>
+        get() = messageReactions.reactions
+
     /**
      * 메시지 읽음 상태 업데이트
      *
@@ -42,67 +51,16 @@ data class ChatMessage(
     }
 
     /**
-     * 메시지에 반응 추가
-     *
-     * @param userId 사용자 ID
-     * @param reactionType 반응 타입 (예: "like", "heart", "laugh")
-     * @return 업데이트된 ChatMessage 객체
-     */
-    fun addReaction(userId: Long, reactionType: String): ChatMessage {
-        val updatedReactions = this.reactions.toMutableMap()
-
-        // 해당 반응 타입에 대한 사용자 목록 가져오기 또는 새로 생성
-        val usersWithReaction = updatedReactions[reactionType]?.toMutableSet() ?: mutableSetOf()
-
-        // 사용자 ID 추가
-        usersWithReaction.add(userId)
-
-        // 업데이트된 사용자 목록 저장
-        updatedReactions[reactionType] = usersWithReaction
-
-        return this.copy(
-            reactions = updatedReactions,
-            updatedAt = Instant.now()
-        )
-    }
-
-    /**
-     * 메시지에서 반응 제거
-     *
-     * @param userId 사용자 ID
-     * @param reactionType 반응 타입 (예: "like", "heart", "laugh")
-     * @return 업데이트된 ChatMessage 객체
-     */
-    fun removeReaction(userId: Long, reactionType: String): ChatMessage {
-        val updatedReactions = this.reactions.toMutableMap()
-
-        // 해당 반응 타입에 대한 사용자 목록이 없으면 변경 없음
-        val usersWithReaction = updatedReactions[reactionType]?.toMutableSet() ?: return this
-
-        // 사용자 ID 제거
-        usersWithReaction.remove(userId)
-
-        // 사용자 목록이 비어있으면 해당 반응 타입 자체를 제거
-        if (usersWithReaction.isEmpty()) {
-            updatedReactions.remove(reactionType)
-        } else {
-            updatedReactions[reactionType] = usersWithReaction
-        }
-
-        return this.copy(
-            reactions = updatedReactions,
-            updatedAt = Instant.now()
-        )
-    }
-
-    /**
      * 메시지 고정 상태 변경
      *
      * @param isPinned 고정 여부
      * @param userId 고정/해제한 사용자 ID (고정 시에만 사용)
      * @return 업데이트된 ChatMessage 객체
      */
-    fun updatePinStatus(isPinned: Boolean, userId: Long? = null): ChatMessage {
+    fun updatePinStatus(
+        isPinned: Boolean,
+        userId: Long? = null
+    ): ChatMessage {
         return if (isPinned) {
             this.copy(
                 isPinned = true,
@@ -118,6 +76,32 @@ data class ChatMessage(
                 updatedAt = Instant.now()
             )
         }
+    }
+
+    /**
+     * 채팅방에서 메시지를 고정합니다.
+     * 이 메서드는 도메인 규칙 "한 채팅방에는 최대 하나의 고정 메시지만 존재할 수 있다"를 강제합니다.
+     *
+     * @param userId 고정한 사용자 ID
+     * @param currentPinnedMessage 채팅방에 현재 고정된 메시지 (있는 경우)
+     * @return 고정 작업 결과 (고정할 메시지와 해제할 메시지)
+     */
+    fun pinMessageInRoom(
+        userId: Long,
+        currentPinnedMessage: ChatMessage?
+    ): PinMessageResult {
+        // 이미 고정된 메시지인지 확인
+        if (this.isPinned) {
+            return PinMessageResult(this, null)
+        }
+
+        // 새 메시지 고정
+        val pinnedMessage = this.updatePinStatus(true, userId)
+
+        // 기존 고정 메시지가 있으면 해제 정보 반환
+        val messageToUnpin = currentPinnedMessage?.updatePinStatus(false)
+
+        return PinMessageResult(pinnedMessage, messageToUnpin)
     }
 
     /**
@@ -175,8 +159,182 @@ data class ChatMessage(
         )
     }
 
+    /**
+     * 메시지에 리액션을 토글합니다.
+     * 같은 리액션을 선택하면 제거하고, 다른 리액션을 선택하면 기존 리액션을 제거하고 새 리액션을 추가합니다.
+     *
+     * @param userId 사용자 ID
+     * @param reactionType 리액션 타입
+     * @return 토글 결과 (메시지, 기존 리액션 타입, 추가 여부)
+     */
+    fun toggleReaction(
+        userId: Long,
+        reactionType: ReactionType
+    ): ReactionToggleResult {
+        // 사용자가 이미 추가한 리액션 타입 찾기
+        val userExistingReactionType = messageReactions.findUserExistingReactionType(userId)
+
+        // 토글 처리 결과 변수
+        val updatedReactions: MessageReactions
+        val isAdded: Boolean
+        val previousReactionType: String?
+        val isReplacement: Boolean
+
+        // 토글 처리
+        when {
+            // 1. 같은 리액션을 선택한 경우: 제거
+            userExistingReactionType == reactionType.code -> {
+                updatedReactions = messageReactions.removeReaction(userId, reactionType.code)
+                isAdded = false
+                previousReactionType = null
+                isReplacement = false
+            }
+
+            // 2. 다른 리액션이 이미 있는 경우: 기존 리액션 제거 후 새 리액션 추가
+            userExistingReactionType != null -> {
+                val reactionsAfterRemove = messageReactions.removeReaction(userId, userExistingReactionType)
+                updatedReactions = reactionsAfterRemove.addReaction(userId, reactionType.code)
+                isAdded = true
+                previousReactionType = userExistingReactionType
+                isReplacement = true
+            }
+
+            // 3. 리액션이 없는 경우: 새 리액션 추가
+            else -> {
+                updatedReactions = messageReactions.addReaction(userId, reactionType.code)
+                isAdded = true
+                previousReactionType = null
+                isReplacement = false
+            }
+        }
+
+        // 업데이트된 메시지 생성
+        val updatedMessage = this.copy(
+            messageReactions = updatedReactions,
+            updatedAt = Instant.now()
+        )
+
+        // ReactionToggleResult 반환
+        return ReactionToggleResult(
+            reactions = updatedReactions,
+            message = updatedMessage,
+            userId = userId,
+            reactionType = reactionType.code,
+            isAdded = isAdded,
+            previousReactionType = previousReactionType,
+            isReplacement = isReplacement
+        )
+    }
+
+    /**
+     * URL 미리보기 정보를 설정합니다.
+     *
+     * @param urlPreview URL 미리보기 정보
+     * @return 업데이트된 ChatMessage 객체
+     */
+    fun setUrlPreview(urlPreview: UrlPreview): ChatMessage {
+        val updatedMetadata = this.metadata.copy(
+            urlPreview = urlPreview,
+            needsUrlPreview = false
+        )
+
+        return this.copy(
+            metadata = updatedMetadata,
+            updatedAt = Instant.now()
+        )
+    }
+
+    /**
+     * URL 미리보기가 필요함을 표시합니다.
+     *
+     * @param url 미리보기가 필요한 URL
+     * @return 업데이트된 ChatMessage 객체
+     */
+    fun markNeedsUrlPreview(url: String): ChatMessage {
+        val updatedMetadata = this.metadata.copy(
+            needsUrlPreview = true,
+            previewUrl = url
+        )
+
+        return this.copy(
+            metadata = updatedMetadata,
+            updatedAt = Instant.now()
+        )
+    }
+
     companion object {
-        // 도메인 로직을 위한 상수나 유틸리티 메서드가 필요하면 여기에 추가
+
+        /**
+         * 새 메시지를 생성합니다.
+         *
+         * @param roomId 채팅방 ID
+         * @param senderId 발신자 ID
+         * @param text 메시지 텍스트
+         * @param type 메시지 타입
+         * @param tempId 임시 ID (선택)
+         * @return 생성된 ChatMessage 객체
+         */
+        fun create(
+            roomId: Long,
+            senderId: Long,
+            text: String,
+            type: MessageType = MessageType.TEXT,
+            tempId: String? = null
+        ): ChatMessage {
+            val content = MessageContent(
+                text = text,
+                type = type
+            )
+
+            val metadata = ChatMessageMetadata(
+                tempId = tempId
+            )
+
+            return ChatMessage(
+                roomId = roomId,
+                senderId = senderId,
+                content = content,
+                status = MessageStatus.SENDING,
+                metadata = metadata
+            )
+        }
+
+        /**
+         * 메시지에서 URL을 추출하고 미리보기 정보를 설정합니다.
+         *
+         * @param message 메시지
+         * @param extractUrls URL 추출 함수
+         * @param getCachedPreview 캐시된 미리보기 조회 함수
+         * @return 업데이트된 ChatMessage 객체
+         */
+        fun processUrlPreview(
+            message: ChatMessage,
+            extractUrls: (String) -> List<String>,
+            getCachedPreview: (String) -> UrlPreview?
+        ): ChatMessage {
+            // 텍스트 메시지가 아니면 처리하지 않음
+            if (message.content.type != MessageType.TEXT) {
+                return message
+            }
+
+            // URL 추출
+            val urls = extractUrls(message.content.text)
+            if (urls.isEmpty()) {
+                return message
+            }
+
+            // 첫 번째 URL에 대한 미리보기 처리
+            val url = urls.first()
+            val cachedPreview = getCachedPreview(url)
+
+            return if (cachedPreview != null) {
+                // 캐시된 미리보기가 있으면 설정
+                message.setUrlPreview(cachedPreview)
+            } else {
+                // 캐시된 미리보기가 없으면 필요함을 표시
+                message.markNeedsUrlPreview(url)
+            }
+        }
 
         /**
          * ChatMessageRequest로부터 ChatMessage 객체를 생성합니다.
@@ -212,4 +370,5 @@ data class ChatMessage(
             )
         }
     }
+
 }

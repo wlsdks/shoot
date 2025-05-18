@@ -1,11 +1,9 @@
 package com.stark.shoot.application.service.message
 
-import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
 import com.stark.shoot.adapter.`in`.web.socket.dto.MessageSyncInfoDto
-import com.stark.shoot.adapter.`in`.web.socket.dto.ReactionDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncResponseDto
-import com.stark.shoot.infrastructure.enumerate.ReactionType
+import com.stark.shoot.adapter.`in`.web.socket.mapper.MessageSyncMapper
 import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
@@ -21,10 +19,14 @@ import org.bson.types.ObjectId
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.time.Instant
 
+/**
+ * 페이지네이션 방식으로 메시지를 동기화하는 서비스
+ */
 @UseCase
 class PaginationMessageSyncService(
     private val loadMessagePort: LoadMessagePort,
-    private val messagingTemplate: SimpMessagingTemplate
+    private val messagingTemplate: SimpMessagingTemplate,
+    private val messageSyncMapper: MessageSyncMapper
 ) : SendSyncMessagesToUserUseCase, GetPaginationMessageUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -51,7 +53,7 @@ class PaginationMessageSyncService(
                 throw e
             }
             .collect { message ->
-                emit(mapToSyncInfoDto(message))
+                emit(messageSyncMapper.toSyncInfoDto(message))
             }
     }
 
@@ -61,7 +63,9 @@ class PaginationMessageSyncService(
      * @param request 동기화 요청 정보
      * @return 메시지 Flow
      */
-    private fun getMessageFlowByDirection(request: SyncRequestDto): Flow<ChatMessage> {
+    private fun getMessageFlowByDirection(
+        request: SyncRequestDto
+    ): Flow<ChatMessage> {
         val roomObjectId = request.roomId
 
         // lastMessageId가 null이 아닌 경우에만 ObjectId로 변환
@@ -73,13 +77,17 @@ class PaginationMessageSyncService(
                 if (lastMessageObjectId == null) {
                     loadMessagePort.findByRoomIdFlow(roomObjectId, INITIAL_LOAD_LIMIT)
                 } else {
-                    loadMessagePort.findByRoomIdAndAfterIdFlow(roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT)
+                    loadMessagePort.findByRoomIdAndAfterIdFlow(
+                        roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
+                    )
                 }
             }
             // 이전 메시지 동기화
             SyncDirection.BEFORE -> {
                 if (lastMessageObjectId != null) {
-                    loadMessagePort.findByRoomIdAndBeforeIdFlow(roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT)
+                    loadMessagePort.findByRoomIdAndBeforeIdFlow(
+                        roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
+                    )
                 } else {
                     emptyFlow()
                 }
@@ -87,7 +95,9 @@ class PaginationMessageSyncService(
             // 이후 메시지 동기화
             SyncDirection.AFTER -> {
                 if (lastMessageObjectId != null) {
-                    loadMessagePort.findByRoomIdAndAfterIdFlow(roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT)
+                    loadMessagePort.findByRoomIdAndAfterIdFlow(
+                        roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
+                    )
                 } else {
                     emptyFlow()
                 }
@@ -102,7 +112,10 @@ class PaginationMessageSyncService(
      * @param request 동기화 요청 정보
      * @param messages 전송할 메시지 목록
      */
-    override fun sendMessagesToUser(request: SyncRequestDto, messages: List<MessageSyncInfoDto>) {
+    override fun sendMessagesToUser(
+        request: SyncRequestDto,
+        messages: List<MessageSyncInfoDto>
+    ) {
         val response = SyncResponseDto(
             roomId = request.roomId,
             userId = request.userId,
@@ -117,49 +130,6 @@ class PaginationMessageSyncService(
             request.userId.toString(),
             "/queue/sync",
             response
-        )
-    }
-
-
-    /**
-     * ChatMessage를 MessageSyncInfoDto로 변환
-     *
-     * @param message ChatMessage 객체
-     * @return MessageSyncInfoDto 객체
-     */
-    private fun mapToSyncInfoDto(message: ChatMessage): MessageSyncInfoDto {
-        logger.trace { "메시지 변환: messageId=${message.id}, senderId=${message.senderId}" }
-
-        // 도메인 Attachment 객체를 ID 문자열로 변환
-        val attachmentIds = message.content.attachments.map { it.id }
-
-        // 리액션 맵을 ReactionDto 리스트로 변환
-        val reactionDtos = message.reactions.map { (reactionType, userIds) ->
-            val reaction = ReactionType.fromCode(reactionType)
-            ReactionDto(
-                reactionType = reactionType,
-                emoji = reaction?.emoji ?: "",
-                description = reaction?.description ?: "",
-                userIds = userIds.toList(),
-                count = userIds.size
-            )
-        }
-
-        return MessageSyncInfoDto(
-            id = message.id ?: "",
-            tempId = message.metadata.tempId,
-            timestamp = message.createdAt ?: Instant.now(),
-            senderId = message.senderId,
-            status = message.status.name,
-            content = MessageContentRequest(
-                text = message.content.text,
-                type = message.content.type,
-                attachments = attachmentIds,
-                isEdited = message.content.isEdited,
-                isDeleted = message.content.isDeleted
-            ),
-            readBy = message.readBy,
-            reactions = reactionDtos
         )
     }
 

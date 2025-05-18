@@ -2,6 +2,8 @@ package com.stark.shoot.domain.chat.room
 
 import com.stark.shoot.domain.exception.FavoriteLimitExceededException
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 data class ChatRoom(
     val id: Long? = null,
@@ -15,7 +17,7 @@ data class ChatRoom(
     // 필요한 경우에만 남길 선택적 필드
     val announcement: String? = null,
     val pinnedParticipants: MutableSet<Long> = mutableSetOf(),
-    val updatedAt: Instant? = null
+    val updatedAt: Instant? = null,
 ) {
     /**
      * 참여자 변경 정보를 담는 데이터 클래스
@@ -79,6 +81,9 @@ data class ChatRoom(
     companion object {
         private const val MAX_PINNED = 5
 
+        // 타임스탬프 포맷터 (예: "오후 3:15")
+        private val formatter = DateTimeFormatter.ofPattern("a h:mm")
+
         /**
          * 1:1 채팅방 생성
          *
@@ -104,6 +109,24 @@ data class ChatRoom(
                 lastActiveAt = Instant.now(),
                 createdAt = Instant.now()
             )
+        }
+
+        /**
+         * 기존 채팅방 목록에서 두 사용자 간의 1:1 채팅방 찾기
+         *
+         * @param chatRooms 검색할 채팅방 목록
+         * @param userId 사용자 ID
+         * @param friendId 친구 ID
+         * @return 찾은 채팅방 또는 null
+         */
+        fun findDirectChatBetween(
+            chatRooms: List<ChatRoom>,
+            userId: Long,
+            friendId: Long
+        ): ChatRoom? {
+            return chatRooms.firstOrNull { chatRoom ->
+                chatRoom.isDirectChatBetween(userId, friendId)
+            }
         }
     }
 
@@ -283,13 +306,14 @@ data class ChatRoom(
     }
 
     /**
-     * 채팅방이 특정 사용자들만 포함하는지 확인
+     * 채팅방이 삭제되어야 하는지 확인
+     * 현재는 참여자가 없는 경우에만 삭제 대상으로 판단하지만,
+     * 추후 다른 비즈니스 규칙이 추가될 수 있음
      *
-     * @param userIds 확인할 사용자 ID 목록
-     * @return 채팅방이 정확히 해당 사용자들만 포함하면 true, 아니면 false
+     * @return 삭제되어야 하면 true, 아니면 false
      */
-    fun containsExactlyUsers(userIds: Collection<Long>): Boolean {
-        return participants.size == userIds.size && participants.containsAll(userIds)
+    fun shouldBeDeleted(): Boolean {
+        return isEmpty()
     }
 
     /**
@@ -304,6 +328,56 @@ data class ChatRoom(
                 participants.size == 2 &&
                 participants.contains(userId1) &&
                 participants.contains(userId2)
+    }
+
+    /**
+     * 채팅방 제목 생성
+     *
+     * @param userId 사용자 ID
+     * @return 채팅방 제목
+     */
+    fun createChatRoomTitle(userId: Long): String {
+        return if (ChatRoomType.INDIVIDUAL == type) {
+            // 1:1 채팅인 경우, 상대방 사용자의 이름을 제목으로 설정
+            val otherParticipantId = participants.find { it != userId }
+            if (otherParticipantId != null) {
+                // 실제 구현에서는 사용자 정보 조회 서비스를 통해 닉네임 가져오기
+                title ?: "1:1 채팅방"
+            } else {
+                title ?: "1:1 채팅방"
+            }
+        } else {
+            // 그룹 채팅의 경우 정해진 제목 사용
+            title ?: "그룹 채팅방"
+        }
+    }
+
+    /**
+     * 마지막 메시지 텍스트 생성
+     *
+     * @return 마지막 메시지 텍스트
+     */
+    fun createLastMessageText(): String {
+        return if (lastMessageId != null) {
+            try {
+                // 마지막 메시지 ID가 있는 경우, 해당 메시지 내용 조회
+                // 실제 구현에서는 메시지 저장소에서 해당 ID의 메시지 조회
+                "최근 메시지" // 실제 구현시 메시지 조회 후 내용 반환
+            } catch (e: Exception) {
+                "메시지 조회 실패"
+            }
+        } else {
+            "최근 메시지가 없습니다."
+        }
+    }
+
+    /**
+     * 채팅방의 타임스탬프 포맷팅
+     *
+     * @return 포맷팅된 타임스탬프
+     */
+    fun formatTimestamp(): String {
+        return lastActiveAt.atZone(ZoneId.systemDefault()).format(formatter)
     }
 
 }

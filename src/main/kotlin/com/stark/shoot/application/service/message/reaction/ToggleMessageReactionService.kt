@@ -6,9 +6,9 @@ import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.event.MessageReactionEvent
-import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.domain.chat.message.ReactionToggleResult
 import com.stark.shoot.domain.chat.reaction.ReactionType
+import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
@@ -70,7 +70,7 @@ class ToggleMessageReactionService(
      */
     private fun handleNotificationsAndEvents(
         messageId: String,
-        result: ChatMessage.ReactionToggleResult
+        result: ReactionToggleResult
     ) {
         val message = result.message
         val userId = result.userId // 리액션을 토글한 사용자 ID

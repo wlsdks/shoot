@@ -51,45 +51,16 @@ data class ChatMessage(
     }
 
     /**
-     * 메시지에 반응 추가
-     *
-     * @param userId 사용자 ID
-     * @param reactionType 반응 타입 (예: "like", "heart", "laugh")
-     * @return 업데이트된 ChatMessage 객체
-     */
-    fun addReaction(userId: Long, reactionType: String): ChatMessage {
-        val updatedReactions = this.messageReactions.addReaction(userId, reactionType)
-
-        return this.copy(
-            messageReactions = updatedReactions,
-            updatedAt = Instant.now()
-        )
-    }
-
-    /**
-     * 메시지에서 반응 제거
-     *
-     * @param userId 사용자 ID
-     * @param reactionType 반응 타입 (예: "like", "heart", "laugh")
-     * @return 업데이트된 ChatMessage 객체
-     */
-    fun removeReaction(userId: Long, reactionType: String): ChatMessage {
-        val updatedReactions = this.messageReactions.removeReaction(userId, reactionType)
-
-        return this.copy(
-            messageReactions = updatedReactions,
-            updatedAt = Instant.now()
-        )
-    }
-
-    /**
      * 메시지 고정 상태 변경
      *
      * @param isPinned 고정 여부
      * @param userId 고정/해제한 사용자 ID (고정 시에만 사용)
      * @return 업데이트된 ChatMessage 객체
      */
-    fun updatePinStatus(isPinned: Boolean, userId: Long? = null): ChatMessage {
+    fun updatePinStatus(
+        isPinned: Boolean,
+        userId: Long? = null
+    ): ChatMessage {
         return if (isPinned) {
             this.copy(
                 isPinned = true,
@@ -105,6 +76,32 @@ data class ChatMessage(
                 updatedAt = Instant.now()
             )
         }
+    }
+
+    /**
+     * 채팅방에서 메시지를 고정합니다.
+     * 이 메서드는 도메인 규칙 "한 채팅방에는 최대 하나의 고정 메시지만 존재할 수 있다"를 강제합니다.
+     *
+     * @param userId 고정한 사용자 ID
+     * @param currentPinnedMessage 채팅방에 현재 고정된 메시지 (있는 경우)
+     * @return 고정 작업 결과 (고정할 메시지와 해제할 메시지)
+     */
+    fun pinMessageInRoom(
+        userId: Long,
+        currentPinnedMessage: ChatMessage?
+    ): PinMessageResult {
+        // 이미 고정된 메시지인지 확인
+        if (this.isPinned) {
+            return PinMessageResult(this, null)
+        }
+
+        // 새 메시지 고정
+        val pinnedMessage = this.updatePinStatus(true, userId)
+
+        // 기존 고정 메시지가 있으면 해제 정보 반환
+        val messageToUnpin = currentPinnedMessage?.updatePinStatus(false)
+
+        return PinMessageResult(pinnedMessage, messageToUnpin)
     }
 
     /**
@@ -170,48 +167,64 @@ data class ChatMessage(
      * @param reactionType 리액션 타입
      * @return 토글 결과 (메시지, 기존 리액션 타입, 추가 여부)
      */
-    fun toggleReaction(userId: Long, reactionType: ReactionType): ReactionToggleResult {
-        // MessageReactions에 토글 로직 위임
-        val result = messageReactions.toggleReaction(userId, reactionType)
+    fun toggleReaction(
+        userId: Long,
+        reactionType: ReactionType
+    ): ReactionToggleResult {
+        // 사용자가 이미 추가한 리액션 타입 찾기
+        val userExistingReactionType = messageReactions.findUserExistingReactionType(userId)
+
+        // 토글 처리 결과 변수
+        val updatedReactions: MessageReactions
+        val isAdded: Boolean
+        val previousReactionType: String?
+        val isReplacement: Boolean
+
+        // 토글 처리
+        when {
+            // 1. 같은 리액션을 선택한 경우: 제거
+            userExistingReactionType == reactionType.code -> {
+                updatedReactions = messageReactions.removeReaction(userId, reactionType.code)
+                isAdded = false
+                previousReactionType = null
+                isReplacement = false
+            }
+
+            // 2. 다른 리액션이 이미 있는 경우: 기존 리액션 제거 후 새 리액션 추가
+            userExistingReactionType != null -> {
+                val reactionsAfterRemove = messageReactions.removeReaction(userId, userExistingReactionType)
+                updatedReactions = reactionsAfterRemove.addReaction(userId, reactionType.code)
+                isAdded = true
+                previousReactionType = userExistingReactionType
+                isReplacement = true
+            }
+
+            // 3. 리액션이 없는 경우: 새 리액션 추가
+            else -> {
+                updatedReactions = messageReactions.addReaction(userId, reactionType.code)
+                isAdded = true
+                previousReactionType = null
+                isReplacement = false
+            }
+        }
 
         // 업데이트된 메시지 생성
         val updatedMessage = this.copy(
-            messageReactions = result.reactions,
+            messageReactions = updatedReactions,
             updatedAt = Instant.now()
         )
 
-        // ChatMessage.ReactionToggleResult로 변환하여 반환
+        // ReactionToggleResult 반환
         return ReactionToggleResult(
+            reactions = updatedReactions,
             message = updatedMessage,
-            userId = result.userId,
-            reactionType = result.reactionType,
-            isAdded = result.isAdded,
-            previousReactionType = result.previousReactionType,
-            isReplacement = result.isReplacement
+            userId = userId,
+            reactionType = reactionType.code,
+            isAdded = isAdded,
+            previousReactionType = previousReactionType,
+            isReplacement = isReplacement
         )
     }
-
-    /**
-     * 사용자가 이미 추가한 리액션 타입을 찾습니다.
-     *
-     * @param userId 사용자 ID
-     * @return 사용자가 추가한 리액션 타입 코드 또는 null
-     */
-    private fun findUserExistingReactionType(userId: Long): String? {
-        return messageReactions.findUserExistingReactionType(userId)
-    }
-
-    /**
-     * 리액션 토글 결과를 나타내는 데이터 클래스
-     */
-    data class ReactionToggleResult(
-        val message: ChatMessage,
-        val userId: Long,
-        val reactionType: String,
-        val isAdded: Boolean,
-        val previousReactionType: String? = null,
-        val isReplacement: Boolean = false
-    )
 
     /**
      * URL 미리보기 정보를 설정합니다.
@@ -250,7 +263,6 @@ data class ChatMessage(
     }
 
     companion object {
-        // 도메인 로직을 위한 상수나 유틸리티 메서드가 필요하면 여기에 추가
 
         /**
          * 새 메시지를 생성합니다.
@@ -358,4 +370,5 @@ data class ChatMessage(
             )
         }
     }
+
 }

@@ -36,46 +36,18 @@ class SendMessageService(
 
     /**
      * 메시지를 전송합니다.
-     * 1. 메시지에 임시 ID와 상태 추가
-     * 2. URL 미리보기 처리 (캐시 확인)
-     * 3. Redis와 Kafka 발행
+     * 1. 도메인 객체 생성 및 비즈니스 로직 처리
+     * 2. 메시지 발행 (Redis, Kafka)
      *
-     * @param messageRequest 메시지 요청
+     * @param messageRequest 메시지 요청 DTO
      */
     override fun sendMessage(messageRequest: ChatMessageRequest) {
         try {
-            // 1. 도메인 객체 생성 (임시 ID 생성 및 상태 설정)
-            val tempId = UUID.randomUUID().toString()
-            val chatMessage = ChatMessage.create(
-                roomId = messageRequest.roomId,
-                senderId = messageRequest.senderId,
-                text = messageRequest.content.text,
-                type = messageRequest.content.type,
-                tempId = tempId
-            )
+            // 1. 도메인 객체 생성 및 비즈니스 로직 처리
+            val domainMessage = createAndProcessDomainMessage(messageRequest)
 
-            // 2. URL 미리보기 처리 (도메인 로직 활용)
-            val messageWithPreview = ChatMessage.processUrlPreview(
-                message = chatMessage,
-                extractUrls = { text -> extractUrlPort.extractUrls(text) },
-                getCachedPreview = { url -> cacheUrlPreviewPort.getCachedUrlPreview(url) }
-            )
-
-            // 3. 요청 객체에 도메인 처리 결과 반영
-            updateRequestFromDomain(messageRequest, messageWithPreview)
-
-            // 4. Redis와 Kafka 발행 - 코루틴으로 변경
-            applicationCoroutineScope.launch {
-                try {
-                    // Redis 발행
-                    publishToRedisSuspend(messageRequest)
-
-                    // Kafka 발행과 상태 업데이트
-                    sendToKafkaSuspend(messageRequest)
-                } catch (throwable: Throwable) {
-                    handleMessageError(messageRequest, tempId, throwable)
-                }
-            }
+            // 2. 메시지 발행 (Redis, Kafka)
+            publishMessage(messageRequest, domainMessage)
         } catch (e: Exception) {
             logger.error(e) { "메시지 처리 중 예외 발생: ${e.message}" }
             sendErrorResponse(e, messageRequest)
@@ -83,9 +55,65 @@ class SendMessageService(
     }
 
     /**
-     * 도메인 객체의 상태를 요청 객체에 반영합니다.
+     * 도메인 메시지 객체를 생성하고 비즈니스 로직을 처리합니다.
      *
-     * @param request 메시지 요청
+     * @param messageRequest 메시지 요청 DTO
+     * @return 처리된 도메인 메시지 객체
+     */
+    private fun createAndProcessDomainMessage(
+        messageRequest: ChatMessageRequest
+    ): ChatMessage {
+        // 1. 도메인 객체 생성
+        val tempId = UUID.randomUUID().toString()
+        val chatMessage = ChatMessage.create(
+            roomId = messageRequest.roomId,
+            senderId = messageRequest.senderId,
+            text = messageRequest.content.text,
+            type = messageRequest.content.type,
+            tempId = tempId
+        )
+
+        // 2. URL 미리보기 처리 (도메인 로직 활용)
+        val messageWithPreview = ChatMessage.processUrlPreview(
+            message = chatMessage,
+            extractUrls = { text -> extractUrlPort.extractUrls(text) },
+            getCachedPreview = { url -> cacheUrlPreviewPort.getCachedUrlPreview(url) }
+        )
+
+        // 3. 요청 객체에 도메인 처리 결과 반영
+        updateRequestFromDomain(messageRequest, messageWithPreview)
+
+        return messageWithPreview
+    }
+
+    /**
+     * 메시지를 발행합니다 (Redis, Kafka).
+     *
+     * @param messageRequest 메시지 요청 DTO
+     * @param domainMessage 도메인 메시지 객체
+     */
+    private fun publishMessage(
+        messageRequest: ChatMessageRequest,
+        domainMessage: ChatMessage
+    ) {
+        applicationCoroutineScope.launch {
+            try {
+                // 1. Redis 발행
+                publishToRedisSuspend(messageRequest)
+
+                // 2. Kafka 발행과 상태 업데이트
+                sendToKafkaSuspend(messageRequest)
+            } catch (throwable: Throwable) {
+                handleMessageError(messageRequest, domainMessage.metadata.tempId ?: "", throwable)
+            }
+        }
+    }
+
+    /**
+     * 도메인 객체의 상태를 요청 객체에 반영합니다.
+     * 도메인 모델의 상태를 DTO에 매핑하는 역할을 합니다.
+     *
+     * @param request 메시지 요청 DTO
      * @param domainMessage 도메인 메시지 객체
      */
     private fun updateRequestFromDomain(
@@ -98,34 +126,25 @@ class SendMessageService(
         // 상태 설정
         request.status = domainMessage.status
 
-        // URL 미리보기 정보 설정
-        request.metadata.needsUrlPreview = domainMessage.metadata.needsUrlPreview
-        request.metadata.previewUrl = domainMessage.metadata.previewUrl
-        request.metadata.urlPreview = domainMessage.metadata.urlPreview
+        // URL 미리보기 정보 설정 - 도메인 메타데이터를 DTO에 매핑
+        val metadataDto = domainMessage.metadata.toRequestDto()
+        request.metadata.needsUrlPreview = metadataDto.needsUrlPreview
+        request.metadata.previewUrl = metadataDto.previewUrl
+        request.metadata.urlPreview = metadataDto.urlPreview
     }
 
     /**
      * Redis를 통해 메시지를 실시간으로 발행합니다.
+     * 이 메서드는 인프라스트럭처 계층과의 통신을 담당합니다.
      *
-     * @param message 메시지
+     * @param message 메시지 요청 DTO
      */
     private suspend fun publishToRedisSuspend(
         message: ChatMessageRequest
     ) {
-        val streamKey = "stream:chat:room:${message.roomId}"
+        val streamKey = generateStreamKey(message.roomId)
         try {
-            val messageJson = objectMapper.writeValueAsString(message)
-            val map = mapOf("message" to messageJson)
-
-            // StreamRecords 사용
-            val record = StreamRecords.newRecord()
-                .ofMap(map)
-                .withStreamKey(streamKey)
-
-            // Stream 추가
-            val messageId = redisTemplate.opsForStream<String, String>()
-                .add(record)
-
+            val messageId = publishToRedisStream(streamKey, message)
             logger.debug { "Redis Stream에 메시지 발행: $streamKey, id: $messageId, tempId: ${message.tempId}" }
         } catch (e: Exception) {
             logger.error(e) { "Redis 발행 실패: ${e.message}" }
@@ -134,9 +153,41 @@ class SendMessageService(
     }
 
     /**
-     * Kafka를 통해 메시지를 발행하고 상태를 업데이트합니다.
+     * Redis 스트림 키를 생성합니다.
      *
-     * @param message 메시지
+     * @param roomId 채팅방 ID
+     * @return Redis 스트림 키
+     */
+    private fun generateStreamKey(roomId: Long): String {
+        return "stream:chat:room:$roomId"
+    }
+
+    /**
+     * Redis 스트림에 메시지를 발행합니다.
+     *
+     * @param streamKey Redis 스트림 키
+     * @param message 메시지 요청 DTO
+     * @return 발행된 메시지 ID
+     */
+    private suspend fun publishToRedisStream(streamKey: String, message: ChatMessageRequest): Any {
+        val messageJson = objectMapper.writeValueAsString(message)
+        val map = mapOf("message" to messageJson)
+
+        // StreamRecords 사용
+        val record = StreamRecords.newRecord()
+            .ofMap(map)
+            .withStreamKey(streamKey)
+
+        // Stream 추가
+        return redisTemplate.opsForStream<String, String>()
+            .add(record) ?: "unknown-id"
+    }
+
+    /**
+     * Kafka를 통해 메시지를 발행하고 상태를 업데이트합니다.
+     * 이 메서드는 인프라스트럭처 계층과의 통신을 담당합니다.
+     *
+     * @param message 메시지 요청 DTO
      */
     private suspend fun sendToKafkaSuspend(
         message: ChatMessageRequest
@@ -144,19 +195,12 @@ class SendMessageService(
         val tempId = message.tempId ?: ""
 
         try {
-            // 코루틴 컨텍스트 내에서 다른 suspend 함수 호출
-            val result = handleMessageSuspend(message)
+            // 1. 메시지 이벤트 발행
+            publishMessageToKafka(message)
 
-            // 상태 업데이트 (메시징 작업도 I/O 작업)
-            val statusUpdate = MessageStatusResponse(
-                tempId = tempId,
-                status = MessageStatus.SENT_TO_KAFKA.name, // Kafka로 전송됨 (아직 DB에 저장되지 않음)
-                persistedId = null,
-                errorMessage = null,
-                createdAt = Instant.now().toString()
-            )
+            // 2. 상태 업데이트 전송
+            notifyMessageStatus(message.roomId, tempId, MessageStatus.SENT_TO_KAFKA)
 
-            webSocketMessageBroker.sendMessage("/topic/message/status/${message.roomId}", statusUpdate)
             logger.debug { "메시지 Kafka 발행 성공, 상태 업데이트: tempId=$tempId" }
         } catch (e: Exception) {
             logger.error(e) { "Kafka 발행 실패: ${e.message}" }
@@ -165,9 +209,46 @@ class SendMessageService(
     }
 
     /**
-     * 메시지 처리 중 오류가 발생했을 때 처리합니다.
+     * 메시지를 Kafka에 발행합니다.
      *
-     * @param message 메시지
+     * @param message 메시지 요청 DTO
+     * @return 발행 결과
+     */
+    private suspend fun publishMessageToKafka(
+        message: ChatMessageRequest
+    ): String? {
+        // 도메인 객체 생성 및 이벤트 발행
+        return handleMessageSuspend(message)
+    }
+
+    /**
+     * 메시지 상태를 클라이언트에 알립니다.
+     *
+     * @param roomId 채팅방 ID
+     * @param tempId 임시 메시지 ID
+     * @param status 메시지 상태
+     */
+    private fun notifyMessageStatus(
+        roomId: Long,
+        tempId: String,
+        status: MessageStatus
+    ) {
+        val statusUpdate = MessageStatusResponse(
+            tempId = tempId,
+            status = status.name,
+            persistedId = null,
+            errorMessage = null,
+            createdAt = Instant.now().toString()
+        )
+
+        webSocketMessageBroker.sendMessage("/topic/message/status/$roomId", statusUpdate)
+    }
+
+    /**
+     * 메시지 처리 중 오류가 발생했을 때 처리합니다.
+     * 오류 로깅 및 클라이언트 알림을 담당합니다.
+     *
+     * @param message 메시지 요청 DTO
      * @param tempId 임시 ID
      * @param throwable 예외
      */
@@ -176,67 +257,162 @@ class SendMessageService(
         tempId: String,
         throwable: Throwable
     ) {
-        logger.error(throwable) { "Kafka 발행 실패: ${message.content.text}" }
+        // 1. 오류 로깅
+        logMessageError(message, throwable)
 
-        // 1. 일반 오류 채널로 전송
+        // 2. 오류 알림
+        notifyMessageError(message.roomId, throwable)
+
+        // 3. 메시지 상태 업데이트
+        notifyMessageStatus(
+            roomId = message.roomId,
+            tempId = tempId,
+            status = MessageStatus.FAILED,
+            errorMessage = throwable.message
+        )
+    }
+
+    /**
+     * 메시지 처리 오류를 로깅합니다.
+     *
+     * @param message 메시지 요청 DTO
+     * @param throwable 예외
+     */
+    private fun logMessageError(
+        message: ChatMessageRequest,
+        throwable: Throwable
+    ) {
+        logger.error(throwable) { "메시지 처리 실패: roomId=${message.roomId}, content=${message.content.text}" }
+    }
+
+    /**
+     * 오류를 클라이언트에 알립니다.
+     *
+     * @param roomId 채팅방 ID
+     * @param throwable 예외
+     */
+    private fun notifyMessageError(
+        roomId: Long,
+        throwable: Throwable
+    ) {
         val errorResponse = ErrorResponse(
             status = 500,
             message = throwable.message ?: "메시지 처리 중 오류가 발생했습니다",
             timestamp = System.currentTimeMillis()
         )
-        webSocketMessageBroker.sendMessage("/topic/errors/${message.roomId}", errorResponse)
+        webSocketMessageBroker.sendMessage("/topic/errors/$roomId", errorResponse)
+    }
 
-        // 2. 메시지 상태 업데이트 전송
+    /**
+     * 메시지 상태를 클라이언트에 알립니다.
+     *
+     * @param roomId 채팅방 ID
+     * @param tempId 임시 메시지 ID
+     * @param status 메시지 상태
+     * @param errorMessage 오류 메시지 (선택적)
+     */
+    private fun notifyMessageStatus(
+        roomId: Long,
+        tempId: String,
+        status: MessageStatus,
+        errorMessage: String? = null
+    ) {
         val statusUpdate = MessageStatusResponse(
             tempId = tempId,
-            status = MessageStatus.FAILED.name,
+            status = status.name,
             persistedId = null,
-            errorMessage = throwable.message,
+            errorMessage = errorMessage,
             createdAt = Instant.now().toString()
         )
-        webSocketMessageBroker.sendMessage("/topic/message/status/${message.roomId}", statusUpdate)
+
+        webSocketMessageBroker.sendMessage("/topic/message/status/$roomId", statusUpdate)
     }
 
 
     /**
      * 메시지 전송 처리 (Kafka로 이벤트 발행)
+     * 도메인 객체 생성 및 이벤트 발행을 담당합니다.
      *
-     * @param requestMessage ChatMessageRequest
-     * @return CompletableFuture<String?>
+     * @param requestMessage 메시지 요청 DTO
+     * @return 임시 메시지 ID
      */
     private suspend fun handleMessageSuspend(
         requestMessage: ChatMessageRequest
     ): String? {
-        // ChatMessageRequest로부터 ChatMessage 생성 후 ChatEvent 생성
-        val chatMessage = ChatMessage.fromRequest(requestMessage)
-        val chatEvent = ChatEvent.fromMessage(chatMessage, EventType.MESSAGE_CREATED)
+        // 1. 도메인 객체 생성
+        val chatMessage = createDomainMessage(requestMessage)
 
-        // Kafka로 이벤트 발행 (코루틴 방식)
-        return publishKafkaMessageSuspend(requestMessage, chatEvent, requestMessage.tempId)
+        // 2. 도메인 이벤트 생성
+        val chatEvent = createDomainEvent(chatMessage)
+
+        // 3. Kafka로 이벤트 발행
+        return publishKafkaMessageSuspend(requestMessage.roomId, chatEvent, requestMessage.tempId)
     }
 
+    /**
+     * 요청 DTO로부터 도메인 메시지 객체를 생성합니다.
+     *
+     * @param requestMessage 메시지 요청 DTO
+     * @return 도메인 메시지 객체
+     */
+    private fun createDomainMessage(
+        requestMessage: ChatMessageRequest
+    ): ChatMessage {
+        return ChatMessage.fromRequest(requestMessage)
+    }
 
-    // createChatMessage와 createChatEvent 메서드는 이제 이 서비스에 구현되어 있습니다.
-    // fromRequest 메서드와 ChatEvent.fromMessage 메서드를 사용하세요.
+    /**
+     * 도메인 메시지로부터 도메인 이벤트를 생성합니다.
+     *
+     * @param chatMessage 도메인 메시지 객체
+     * @return 도메인 이벤트
+     */
+    private fun createDomainEvent(
+        chatMessage: ChatMessage
+    ): ChatEvent {
+        return ChatEvent.fromMessage(chatMessage, EventType.MESSAGE_CREATED)
+    }
 
+    /**
+     * Kafka에 도메인 이벤트를 발행합니다.
+     *
+     * @param roomId 채팅방 ID
+     * @param chatEvent 도메인 이벤트
+     * @param tempId 임시 메시지 ID
+     * @return 임시 메시지 ID
+     */
     private suspend fun publishKafkaMessageSuspend(
-        requestMessage: ChatMessageRequest,
+        roomId: Long,
         chatEvent: ChatEvent,
         tempId: String?
     ): String? {
         try {
+            // Kafka 토픽 및 키 생성
+            val topic = determineKafkaTopic()
+            val key = roomId.toString()
+
+            // 이벤트 발행
             kafkaMessagePublishPort.publishChatEventSuspend(
-                topic = "chat-messages",
-                key = requestMessage.roomId.toString(),
+                topic = topic,
+                key = key,
                 event = chatEvent
             )
             return tempId
         } catch (e: Exception) {
             // 에러 로깅
-            logger.error(e) { "Kafka 발행 실패: ${requestMessage.roomId}" }
+            logger.error(e) { "Kafka 발행 실패: roomId=$roomId" }
             // 예외 전파
             throw e
         }
+    }
+
+    /**
+     * Kafka 토픽을 결정합니다.
+     *
+     * @return Kafka 토픽 이름
+     */
+    private fun determineKafkaTopic(): String {
+        return "chat-messages"
     }
 
     /**
@@ -249,16 +425,21 @@ class SendMessageService(
         e: Exception,
         message: ChatMessageRequest
     ) {
-        val errorResponse = ErrorResponse(
-            status = 500,
-            message = e.message ?: "메시지 처리 중 오류가 발생했습니다",
-            timestamp = System.currentTimeMillis()
-        )
+        // 1. 오류 로깅
+        logMessageError(message, e)
 
-        webSocketMessageBroker.sendMessage(
-            "/topic/errors/${message.roomId}",
-            errorResponse
-        )
+        // 2. 오류 알림
+        notifyMessageError(message.roomId, e)
+
+        // 3. 메시지 상태 업데이트 (tempId가 있는 경우)
+        message.tempId?.let { tempId ->
+            notifyMessageStatus(
+                roomId = message.roomId,
+                tempId = tempId,
+                status = MessageStatus.FAILED,
+                errorMessage = e.message
+            )
+        }
     }
 
 }

@@ -1,9 +1,16 @@
 package com.stark.shoot.domain.notification
 
 import com.stark.shoot.domain.exception.NotificationException
+import com.stark.shoot.domain.notification.event.NotificationEvent
 import java.time.Instant
 
-data class Notification(
+/**
+ * 알림 도메인 엔티티
+ *
+ * 알림은 사용자에게 전달되는 메시지로, 다양한 소스(채팅, 친구 요청 등)에서 발생할 수 있습니다.
+ * 알림은 읽음 상태와 삭제 상태를 가지며, 이러한 상태 변경은 도메인 로직을 통해 이루어집니다.
+ */
+class Notification(
     val id: String? = null,
     val userId: Long,
     val title: String,
@@ -25,11 +32,25 @@ data class Notification(
      * @return 읽음 처리된 알림 객체
      */
     fun markAsRead(): Notification {
-        return if (isRead) {
-            this
-        } else {
-            this.copy(isRead = true, readAt = Instant.now())
+        if (isRead) {
+            return this
         }
+
+        return Notification(
+            id = this.id,
+            userId = this.userId,
+            title = this.title,
+            message = this.message,
+            type = this.type,
+            sourceId = this.sourceId,
+            sourceType = this.sourceType,
+            isRead = true,
+            createdAt = this.createdAt,
+            readAt = Instant.now(),
+            metadata = this.metadata,
+            isDeleted = this.isDeleted,
+            deletedAt = this.deletedAt
+        )
     }
 
     /**
@@ -60,15 +81,28 @@ data class Notification(
      * @return 삭제 처리된 알림 객체
      */
     fun markAsDeleted(): Notification {
-        return if (isDeleted) {
-            this
-        } else {
-            this.copy(isDeleted = true, deletedAt = Instant.now())
+        if (isDeleted) {
+            return this
         }
+
+        return Notification(
+            id = this.id,
+            userId = this.userId,
+            title = this.title,
+            message = this.message,
+            type = this.type,
+            sourceId = this.sourceId,
+            sourceType = this.sourceType,
+            isRead = this.isRead,
+            createdAt = this.createdAt,
+            readAt = this.readAt,
+            metadata = this.metadata,
+            isDeleted = true,
+            deletedAt = Instant.now()
+        )
     }
 
-
-    companion object {
+    companion object Factory {
         /**
          * 채팅 이벤트로부터 알림을 생성합니다.
          *
@@ -99,5 +133,55 @@ data class Notification(
             )
         }
 
+        /**
+         * 알림 이벤트로부터 알림을 생성합니다.
+         *
+         * @param event 알림 이벤트
+         * @param recipientId 수신자 ID
+         * @return 생성된 알림 객체
+         */
+        fun fromEvent(event: NotificationEvent, recipientId: Long): Notification {
+            return Notification(
+                userId = recipientId,
+                title = event.getTitle(),
+                message = event.getMessage(),
+                type = event.type,
+                sourceId = event.sourceId,
+                sourceType = event.sourceType,
+                metadata = event.metadata
+            )
+        }
+
+        /**
+         * 알림을 생성합니다.
+         *
+         * @param userId 사용자 ID
+         * @param title 알림 제목
+         * @param message 알림 메시지
+         * @param type 알림 타입
+         * @param sourceId 소스 ID
+         * @param sourceType 소스 타입
+         * @param metadata 메타데이터
+         * @return 생성된 알림 객체
+         */
+        fun create(
+            userId: Long,
+            title: String,
+            message: String,
+            type: NotificationType,
+            sourceId: String,
+            sourceType: SourceType,
+            metadata: Map<String, Any> = emptyMap()
+        ): Notification {
+            return Notification(
+                userId = userId,
+                title = title,
+                message = message,
+                type = type,
+                sourceId = sourceId,
+                sourceType = sourceType,
+                metadata = metadata
+            )
+        }
     }
 }

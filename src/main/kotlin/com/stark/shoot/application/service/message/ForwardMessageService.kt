@@ -8,6 +8,7 @@ import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
+import com.stark.shoot.domain.chat.reaction.MessageReactions
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
@@ -72,7 +73,7 @@ class ForwardMessageService(
             content = forwardedContent,
             status = MessageStatus.SAVED,
             replyToMessageId = null,
-            reactions = emptyMap(),
+            messageReactions = MessageReactions(),
             mentions = emptySet(),
             isDeleted = false,
             createdAt = Instant.now(),

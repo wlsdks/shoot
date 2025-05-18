@@ -134,6 +134,7 @@ class PaginationMessageSyncService(
         val attachmentIds = message.content.attachments.map { it.id }
 
         // 리액션 맵을 ReactionDto 리스트로 변환
+        // message.reactions는 ChatMessage의 getter를 통해 messageReactions.reactions에 접근
         val reactionDtos = message.reactions.map { (reactionType, userIds) ->
             val reaction = ReactionType.fromCode(reactionType)
             ReactionDto(

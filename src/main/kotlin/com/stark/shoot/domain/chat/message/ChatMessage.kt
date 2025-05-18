@@ -3,6 +3,7 @@ package com.stark.shoot.domain.chat.message
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.reaction.MessageReactions
 import com.stark.shoot.domain.chat.reaction.ReactionType
 import java.time.Instant
 
@@ -13,7 +14,7 @@ data class ChatMessage(
     val content: MessageContent,
     val status: MessageStatus,
     val replyToMessageId: String? = null,
-    val reactions: Map<String, Set<Long>> = emptyMap(),
+    val messageReactions: MessageReactions = MessageReactions(),
     val mentions: Set<Long> = emptySet(),
     val createdAt: Instant? = Instant.now(),
     val updatedAt: Instant? = null,
@@ -26,6 +27,12 @@ data class ChatMessage(
     val pinnedBy: Long? = null,
     val pinnedAt: Instant? = null
 ) {
+    /**
+     * 메시지의 반응 맵을 반환합니다.
+     * 이는 하위 호환성을 위한 속성입니다.
+     */
+    val reactions: Map<String, Set<Long>>
+        get() = messageReactions.reactions
     /**
      * 메시지 읽음 상태 업데이트
      *
@@ -50,19 +57,10 @@ data class ChatMessage(
      * @return 업데이트된 ChatMessage 객체
      */
     fun addReaction(userId: Long, reactionType: String): ChatMessage {
-        val updatedReactions = this.reactions.toMutableMap()
-
-        // 해당 반응 타입에 대한 사용자 목록 가져오기 또는 새로 생성
-        val usersWithReaction = updatedReactions[reactionType]?.toMutableSet() ?: mutableSetOf()
-
-        // 사용자 ID 추가
-        usersWithReaction.add(userId)
-
-        // 업데이트된 사용자 목록 저장
-        updatedReactions[reactionType] = usersWithReaction
+        val updatedReactions = this.messageReactions.addReaction(userId, reactionType)
 
         return this.copy(
-            reactions = updatedReactions,
+            messageReactions = updatedReactions,
             updatedAt = Instant.now()
         )
     }
@@ -75,23 +73,10 @@ data class ChatMessage(
      * @return 업데이트된 ChatMessage 객체
      */
     fun removeReaction(userId: Long, reactionType: String): ChatMessage {
-        val updatedReactions = this.reactions.toMutableMap()
-
-        // 해당 반응 타입에 대한 사용자 목록이 없으면 변경 없음
-        val usersWithReaction = updatedReactions[reactionType]?.toMutableSet() ?: return this
-
-        // 사용자 ID 제거
-        usersWithReaction.remove(userId)
-
-        // 사용자 목록이 비어있으면 해당 반응 타입 자체를 제거
-        if (usersWithReaction.isEmpty()) {
-            updatedReactions.remove(reactionType)
-        } else {
-            updatedReactions[reactionType] = usersWithReaction
-        }
+        val updatedReactions = this.messageReactions.removeReaction(userId, reactionType)
 
         return this.copy(
-            reactions = updatedReactions,
+            messageReactions = updatedReactions,
             updatedAt = Instant.now()
         )
     }
@@ -185,37 +170,24 @@ data class ChatMessage(
      * @return 토글 결과 (메시지, 기존 리액션 타입, 추가 여부)
      */
     fun toggleReaction(userId: Long, reactionType: ReactionType): ReactionToggleResult {
-        // 사용자가 이미 추가한 리액션 타입 찾기
-        val userExistingReactionType = findUserExistingReactionType(userId)
+        // MessageReactions에 토글 로직 위임
+        val result = messageReactions.toggleReaction(userId, reactionType)
 
-        // 토글 처리
-        return when {
-            // 1. 같은 리액션을 선택한 경우: 제거
-            userExistingReactionType == reactionType.code -> {
-                val updatedMessage = removeReaction(userId, reactionType.code)
-                ReactionToggleResult(updatedMessage, userId, reactionType.code, false)
-            }
+        // 업데이트된 메시지 생성
+        val updatedMessage = this.copy(
+            messageReactions = result.reactions,
+            updatedAt = Instant.now()
+        )
 
-            // 2. 다른 리액션이 이미 있는 경우: 기존 리액션 제거 후 새 리액션 추가
-            userExistingReactionType != null -> {
-                val messageAfterRemove = removeReaction(userId, userExistingReactionType)
-                val messageAfterAdd = messageAfterRemove.addReaction(userId, reactionType.code)
-                ReactionToggleResult(
-                    message = messageAfterAdd, 
-                    userId = userId,
-                    reactionType = reactionType.code, 
-                    isAdded = true, 
-                    previousReactionType = userExistingReactionType, 
-                    isReplacement = true
-                )
-            }
-
-            // 3. 리액션이 없는 경우: 새 리액션 추가
-            else -> {
-                val updatedMessage = addReaction(userId, reactionType.code)
-                ReactionToggleResult(updatedMessage, userId, reactionType.code, true)
-            }
-        }
+        // ChatMessage.ReactionToggleResult로 변환하여 반환
+        return ReactionToggleResult(
+            message = updatedMessage,
+            userId = result.userId,
+            reactionType = result.reactionType,
+            isAdded = result.isAdded,
+            previousReactionType = result.previousReactionType,
+            isReplacement = result.isReplacement
+        )
     }
 
     /**
@@ -225,9 +197,7 @@ data class ChatMessage(
      * @return 사용자가 추가한 리액션 타입 코드 또는 null
      */
     private fun findUserExistingReactionType(userId: Long): String? {
-        return reactions.entries
-            .find { (_, users) -> userId in users }
-            ?.key
+        return messageReactions.findUserExistingReactionType(userId)
     }
 
     /**

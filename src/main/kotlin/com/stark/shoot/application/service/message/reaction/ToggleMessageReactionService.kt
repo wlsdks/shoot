@@ -54,6 +54,7 @@ class ToggleMessageReactionService(
         val savedMessage = saveMessagePort.save(result.message)
 
         // 응답 생성
+        // savedMessage.reactions는 ChatMessage의 getter를 통해 messageReactions.reactions에 접근
         return ReactionResponse.from(
             messageId = savedMessage.id ?: messageId,
             reactions = savedMessage.reactions,

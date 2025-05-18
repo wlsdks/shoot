@@ -24,6 +24,7 @@ class GetMessageReactionService(
         val message = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
+        // messageReactions.reactions 또는 reactions 속성을 통해 접근 가능
         return message.reactions
     }
 

@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.chat.service
+package com.stark.shoot.domain.chat.room.service
 
 import com.stark.shoot.domain.chat.room.ChatRoom
 import org.springframework.stereotype.Service

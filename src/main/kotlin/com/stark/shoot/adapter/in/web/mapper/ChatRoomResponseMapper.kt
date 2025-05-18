@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.chat.service
+package com.stark.shoot.adapter.`in`.web.mapper
 
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.domain.chat.room.ChatRoom

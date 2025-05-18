@@ -4,8 +4,8 @@ import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.SearchChatRoomsUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.service.ChatRoomDomainService
-import com.stark.shoot.domain.chat.service.ChatRoomResponseMapper
+import com.stark.shoot.domain.chat.room.service.ChatRoomDomainService
+import com.stark.shoot.adapter.`in`.web.mapper.ChatRoomResponseMapper
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase

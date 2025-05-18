@@ -5,7 +5,6 @@ import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
@@ -13,13 +12,10 @@ import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.springframework.data.redis.connection.stream.StreamRecords
 import org.springframework.data.redis.core.StringRedisTemplate
 import java.time.Instant
@@ -44,107 +40,65 @@ class SendMessageService(
      * 2. URL 미리보기 처리 (캐시 확인)
      * 3. Redis와 Kafka 발행
      *
-     * @param message 메시지
+     * @param messageRequest 메시지 요청
      */
-    override fun sendMessage(message: ChatMessageRequest) {
+    override fun sendMessage(messageRequest: ChatMessageRequest) {
         try {
-            // 1. 메시지 전송 준비 (임시 ID와 상태 설정)
-            prepareForSending(message)
+            // 1. 도메인 객체 생성 (임시 ID 생성 및 상태 설정)
+            val tempId = UUID.randomUUID().toString()
+            val chatMessage = ChatMessage.create(
+                roomId = messageRequest.roomId,
+                senderId = messageRequest.senderId,
+                text = messageRequest.content.text,
+                type = messageRequest.content.type,
+                tempId = tempId
+            )
 
-            // 임시 ID 변수 (에러 처리용)
-            val tempId = message.tempId ?: UUID.randomUUID().toString()
+            // 2. URL 미리보기 처리 (도메인 로직 활용)
+            val messageWithPreview = ChatMessage.processUrlPreview(
+                message = chatMessage,
+                extractUrls = { text -> extractUrlPort.extractUrls(text) },
+                getCachedPreview = { url -> cacheUrlPreviewPort.getCachedUrlPreview(url) }
+            )
 
-            // 3. URL 미리보기 처리 (캐시 확인만)
-            getCachedUrlPreview(message)
+            // 3. 요청 객체에 도메인 처리 결과 반영
+            updateRequestFromDomain(messageRequest, messageWithPreview)
 
             // 4. Redis와 Kafka 발행 - 코루틴으로 변경
             applicationCoroutineScope.launch {
                 try {
                     // Redis 발행
-                    publishToRedisSuspend(message)
+                    publishToRedisSuspend(messageRequest)
 
                     // Kafka 발행과 상태 업데이트
-                    sendToKafkaSuspend(message)
+                    sendToKafkaSuspend(messageRequest)
                 } catch (throwable: Throwable) {
-                    handleMessageError(message, tempId, throwable)
+                    handleMessageError(messageRequest, tempId, throwable)
                 }
             }
         } catch (e: Exception) {
             logger.error(e) { "메시지 처리 중 예외 발생: ${e.message}" }
-            sendErrorResponse(e, message)
+            sendErrorResponse(e, messageRequest)
         }
     }
 
     /**
-     * 메시지 전송을 위해 준비합니다.
-     * 임시 ID와 상태를 설정합니다.
+     * 도메인 객체의 상태를 요청 객체에 반영합니다.
      *
      * @param request 메시지 요청
-     * @return 업데이트된 메시지 요청
+     * @param domainMessage 도메인 메시지 객체
      */
-    private fun prepareForSending(request: ChatMessageRequest): ChatMessageRequest {
-        // 임시 ID 생성
-        val tempId = java.util.UUID.randomUUID().toString()
+    private fun updateRequestFromDomain(request: ChatMessageRequest, domainMessage: ChatMessage) {
+        // 임시 ID 설정
+        request.tempId = domainMessage.metadata.tempId
 
-        // 메시지에 임시 ID와 상태 추가
-        return request.apply {
-            this.tempId = tempId
-            this.status = MessageStatus.SENDING
-        }
-    }
+        // 상태 설정
+        request.status = domainMessage.status
 
-    /**
-     * ChatMessageRequest로부터 ChatMessage 객체를 생성합니다.
-     *
-     * @param request ChatMessageRequest
-     * @return ChatMessage
-     */
-    fun fromRequest(request: ChatMessageRequest): ChatMessage {
-        // 기본 메시지 생성
-        val chatMessage = ChatMessage(
-            roomId = request.roomId,
-            senderId = request.senderId,
-            content = MessageContent(
-                text = request.content.text,
-                type = MessageType.TEXT
-            ),
-            status = MessageStatus.SAVED,
-            createdAt = Instant.now()
-        )
-
-        // 메타데이터 복사 (tempId와 status 포함)
-        return if (request.metadata != null) {
-            // 불변 객체이므로 새 메타데이터로 새 객체 생성
-            val updatedMetadata = chatMessage.metadata.requestToDomain(request.metadata)
-            chatMessage.copy(metadata = updatedMetadata)
-        } else {
-            chatMessage
-        }
-    }
-
-    /**
-     * URL 미리보기를 처리합니다.
-     * URL 추출 및 미리보기 처리를 수행합니다.
-     *
-     * @param message 메시지
-     */
-    private fun getCachedUrlPreview(message: ChatMessageRequest) {
-        if (message.content.type == MessageType.TEXT) {
-            val urls = extractUrlPort.extractUrls(message.content.text)
-            if (urls.isNotEmpty()) {
-                val url = urls.first()
-                val cachedPreview = cacheUrlPreviewPort.getCachedUrlPreview(url)
-
-                // 캐시된 미리보기가 있으면 메시지에 추가
-                if (cachedPreview != null) {
-                    message.metadata.urlPreview = cachedPreview
-                } else {
-                    // 캐시 미스인 경우 처리 필요 표시
-                    message.metadata.needsUrlPreview = true
-                    message.metadata.previewUrl = url
-                }
-            }
-        }
+        // URL 미리보기 정보 설정
+        request.metadata.needsUrlPreview = domainMessage.metadata.needsUrlPreview
+        request.metadata.previewUrl = domainMessage.metadata.previewUrl
+        request.metadata.urlPreview = domainMessage.metadata.urlPreview
     }
 
     /**
@@ -251,7 +205,7 @@ class SendMessageService(
         requestMessage: ChatMessageRequest
     ): String? {
         // ChatMessageRequest로부터 ChatMessage 생성 후 ChatEvent 생성
-        val chatMessage = fromRequest(requestMessage)
+        val chatMessage = ChatMessage.fromRequest(requestMessage)
         val chatEvent = ChatEvent.fromMessage(chatMessage, EventType.MESSAGE_CREATED)
 
         // Kafka로 이벤트 발행 (코루틴 방식)

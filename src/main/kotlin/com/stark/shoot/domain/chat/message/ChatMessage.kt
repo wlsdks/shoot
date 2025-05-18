@@ -33,6 +33,7 @@ data class ChatMessage(
      */
     val reactions: Map<String, Set<Long>>
         get() = messageReactions.reactions
+
     /**
      * 메시지 읽음 상태 업데이트
      *
@@ -212,8 +213,116 @@ data class ChatMessage(
         val isReplacement: Boolean = false
     )
 
+    /**
+     * URL 미리보기 정보를 설정합니다.
+     *
+     * @param urlPreview URL 미리보기 정보
+     * @return 업데이트된 ChatMessage 객체
+     */
+    fun setUrlPreview(urlPreview: UrlPreview): ChatMessage {
+        val updatedMetadata = this.metadata.copy(
+            urlPreview = urlPreview,
+            needsUrlPreview = false
+        )
+
+        return this.copy(
+            metadata = updatedMetadata,
+            updatedAt = Instant.now()
+        )
+    }
+
+    /**
+     * URL 미리보기가 필요함을 표시합니다.
+     *
+     * @param url 미리보기가 필요한 URL
+     * @return 업데이트된 ChatMessage 객체
+     */
+    fun markNeedsUrlPreview(url: String): ChatMessage {
+        val updatedMetadata = this.metadata.copy(
+            needsUrlPreview = true,
+            previewUrl = url
+        )
+
+        return this.copy(
+            metadata = updatedMetadata,
+            updatedAt = Instant.now()
+        )
+    }
+
     companion object {
         // 도메인 로직을 위한 상수나 유틸리티 메서드가 필요하면 여기에 추가
+
+        /**
+         * 새 메시지를 생성합니다.
+         *
+         * @param roomId 채팅방 ID
+         * @param senderId 발신자 ID
+         * @param text 메시지 텍스트
+         * @param type 메시지 타입
+         * @param tempId 임시 ID (선택)
+         * @return 생성된 ChatMessage 객체
+         */
+        fun create(
+            roomId: Long,
+            senderId: Long,
+            text: String,
+            type: MessageType = MessageType.TEXT,
+            tempId: String? = null
+        ): ChatMessage {
+            val content = MessageContent(
+                text = text,
+                type = type
+            )
+
+            val metadata = ChatMessageMetadata(
+                tempId = tempId
+            )
+
+            return ChatMessage(
+                roomId = roomId,
+                senderId = senderId,
+                content = content,
+                status = MessageStatus.SENDING,
+                metadata = metadata
+            )
+        }
+
+        /**
+         * 메시지에서 URL을 추출하고 미리보기 정보를 설정합니다.
+         *
+         * @param message 메시지
+         * @param extractUrls URL 추출 함수
+         * @param getCachedPreview 캐시된 미리보기 조회 함수
+         * @return 업데이트된 ChatMessage 객체
+         */
+        fun processUrlPreview(
+            message: ChatMessage,
+            extractUrls: (String) -> List<String>,
+            getCachedPreview: (String) -> UrlPreview?
+        ): ChatMessage {
+            // 텍스트 메시지가 아니면 처리하지 않음
+            if (message.content.type != MessageType.TEXT) {
+                return message
+            }
+
+            // URL 추출
+            val urls = extractUrls(message.content.text)
+            if (urls.isEmpty()) {
+                return message
+            }
+
+            // 첫 번째 URL에 대한 미리보기 처리
+            val url = urls.first()
+            val cachedPreview = getCachedPreview(url)
+
+            return if (cachedPreview != null) {
+                // 캐시된 미리보기가 있으면 설정
+                message.setUrlPreview(cachedPreview)
+            } else {
+                // 캐시된 미리보기가 없으면 필요함을 표시
+                message.markNeedsUrlPreview(url)
+            }
+        }
 
         /**
          * ChatMessageRequest로부터 ChatMessage 객체를 생성합니다.

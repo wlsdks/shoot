@@ -7,7 +7,6 @@ import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 @Transactional
 @UseCase
@@ -25,16 +24,17 @@ class UserCreateService(
     override fun createUser(
         request: CreateUserRequest
     ): User {
-        val user = User(
+        // 도메인 팩토리 메서드를 사용하여 사용자 생성
+        val user = User.create(
             username = request.username,
             nickname = request.nickname,
+            rawPassword = request.password,
+            passwordEncoder = { rawPassword -> passwordEncoder.encode(rawPassword) },
             bio = request.bio,
-            userCode = UUID.randomUUID().toString().substring(0, 8).uppercase(), // 간단한 8자리 코드 생성
-            passwordHash = passwordEncoder.encode(request.password),
-            profileImageUrl = request.profileImage.toString() // todo: 추후 이부분 수정 필요
+            profileImageUrl = request.profileImage?.toString()
         )
 
+        // 영속성 계층을 통해 사용자 저장
         return userCreatePort.createUser(user)
     }
-
 }

@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.chat.room
 
+import com.stark.shoot.domain.chat.room.ChatRoomType
 import com.stark.shoot.domain.exception.FavoriteLimitExceededException
 import java.time.Instant
 
@@ -15,7 +16,7 @@ data class ChatRoom(
     // 필요한 경우에만 남길 선택적 필드
     val announcement: String? = null,
     val pinnedParticipants: MutableSet<Long> = mutableSetOf(),
-    val updatedAt: Instant? = null
+    val updatedAt: Instant? = null,
 ) {
     /**
      * 참여자 변경 정보를 담는 데이터 클래스
@@ -104,6 +105,24 @@ data class ChatRoom(
                 lastActiveAt = Instant.now(),
                 createdAt = Instant.now()
             )
+        }
+
+        /**
+         * 기존 채팅방 목록에서 두 사용자 간의 1:1 채팅방 찾기
+         *
+         * @param chatRooms 검색할 채팅방 목록
+         * @param userId 사용자 ID
+         * @param friendId 친구 ID
+         * @return 찾은 채팅방 또는 null
+         */
+        fun findDirectChatBetween(
+            chatRooms: List<ChatRoom>,
+            userId: Long,
+            friendId: Long
+        ): ChatRoom? {
+            return chatRooms.firstOrNull { chatRoom ->
+                chatRoom.isDirectChatBetween(userId, friendId)
+            }
         }
     }
 
@@ -283,13 +302,14 @@ data class ChatRoom(
     }
 
     /**
-     * 채팅방이 특정 사용자들만 포함하는지 확인
+     * 채팅방이 삭제되어야 하는지 확인
+     * 현재는 참여자가 없는 경우에만 삭제 대상으로 판단하지만,
+     * 추후 다른 비즈니스 규칙이 추가될 수 있음
      *
-     * @param userIds 확인할 사용자 ID 목록
-     * @return 채팅방이 정확히 해당 사용자들만 포함하면 true, 아니면 false
+     * @return 삭제되어야 하면 true, 아니면 false
      */
-    fun containsExactlyUsers(userIds: Collection<Long>): Boolean {
-        return participants.size == userIds.size && participants.containsAll(userIds)
+    fun shouldBeDeleted(): Boolean {
+        return isEmpty()
     }
 
     /**
@@ -305,5 +325,6 @@ data class ChatRoom(
                 participants.contains(userId1) &&
                 participants.contains(userId2)
     }
+
 
 }

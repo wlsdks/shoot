@@ -73,9 +73,9 @@ class ManageChatRoomService(
         // 변경사항 저장
         saveChatRoomPort.save(updatedChatRoom)
 
-        // 채팅방에 참여자가 없으면 채팅방 삭제
-        if (updatedChatRoom.isEmpty()) {
-            val deleted = deleteChatRoomPort.deleteById(roomId)
+        // 채팅방이 삭제되어야 하는지 도메인 모델에서 판단
+        if (updatedChatRoom.shouldBeDeleted()) {
+            deleteChatRoomPort.deleteById(roomId)
         }
 
         return true

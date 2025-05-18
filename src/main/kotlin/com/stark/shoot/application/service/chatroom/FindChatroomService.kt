@@ -46,10 +46,8 @@ class FindChatroomService(
         // 첫 번째 사용자가 참여한 채팅방 목록을 조회합니다.
         val chatRooms = loadChatRoomPort.findByParticipantId(userId1)
 
-        // 두 사용자 간의 1:1 채팅방을 찾습니다.
-        val directChatRoom = chatRooms.find { room -> 
-            room.isDirectChatBetween(userId1, userId2)
-        }
+        // 두 사용자 간의 1:1 채팅방을 찾습니다. (도메인 객체의 정적 메서드 사용)
+        val directChatRoom = ChatRoom.findDirectChatBetween(chatRooms, userId1, userId2)
 
         // 채팅방이 없으면 null 반환
         return directChatRoom?.let { mapToResponse(it, userId1) }

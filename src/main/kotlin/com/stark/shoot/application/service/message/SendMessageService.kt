@@ -88,7 +88,10 @@ class SendMessageService(
      * @param request 메시지 요청
      * @param domainMessage 도메인 메시지 객체
      */
-    private fun updateRequestFromDomain(request: ChatMessageRequest, domainMessage: ChatMessage) {
+    private fun updateRequestFromDomain(
+        request: ChatMessageRequest,
+        domainMessage: ChatMessage
+    ) {
         // 임시 ID 설정
         request.tempId = domainMessage.metadata.tempId
 

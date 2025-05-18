@@ -2,8 +2,8 @@ package com.stark.shoot.application.service.message.reaction
 
 import com.stark.shoot.application.port.`in`.message.reaction.GetMessageReactionUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
+import com.stark.shoot.domain.chat.reaction.ReactionType
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.enumerate.ReactionType
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 

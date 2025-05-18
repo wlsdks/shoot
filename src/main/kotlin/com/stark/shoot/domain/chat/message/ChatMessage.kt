@@ -3,6 +3,7 @@ package com.stark.shoot.domain.chat.message
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.reaction.ReactionType
 import java.time.Instant
 
 data class ChatMessage(
@@ -174,6 +175,72 @@ data class ChatMessage(
             updatedAt = Instant.now()
         )
     }
+
+    /**
+     * 메시지에 리액션을 토글합니다.
+     * 같은 리액션을 선택하면 제거하고, 다른 리액션을 선택하면 기존 리액션을 제거하고 새 리액션을 추가합니다.
+     *
+     * @param userId 사용자 ID
+     * @param reactionType 리액션 타입
+     * @return 토글 결과 (메시지, 기존 리액션 타입, 추가 여부)
+     */
+    fun toggleReaction(userId: Long, reactionType: ReactionType): ReactionToggleResult {
+        // 사용자가 이미 추가한 리액션 타입 찾기
+        val userExistingReactionType = findUserExistingReactionType(userId)
+
+        // 토글 처리
+        return when {
+            // 1. 같은 리액션을 선택한 경우: 제거
+            userExistingReactionType == reactionType.code -> {
+                val updatedMessage = removeReaction(userId, reactionType.code)
+                ReactionToggleResult(updatedMessage, userId, reactionType.code, false)
+            }
+
+            // 2. 다른 리액션이 이미 있는 경우: 기존 리액션 제거 후 새 리액션 추가
+            userExistingReactionType != null -> {
+                val messageAfterRemove = removeReaction(userId, userExistingReactionType)
+                val messageAfterAdd = messageAfterRemove.addReaction(userId, reactionType.code)
+                ReactionToggleResult(
+                    message = messageAfterAdd, 
+                    userId = userId,
+                    reactionType = reactionType.code, 
+                    isAdded = true, 
+                    previousReactionType = userExistingReactionType, 
+                    isReplacement = true
+                )
+            }
+
+            // 3. 리액션이 없는 경우: 새 리액션 추가
+            else -> {
+                val updatedMessage = addReaction(userId, reactionType.code)
+                ReactionToggleResult(updatedMessage, userId, reactionType.code, true)
+            }
+        }
+    }
+
+    /**
+     * 사용자가 이미 추가한 리액션 타입을 찾습니다.
+     *
+     * @param userId 사용자 ID
+     * @return 사용자가 추가한 리액션 타입 코드 또는 null
+     */
+    private fun findUserExistingReactionType(userId: Long): String? {
+        return reactions.entries
+            .find { (_, users) -> userId in users }
+            ?.key
+    }
+
+    /**
+     * 리액션 토글 결과를 나타내는 데이터 클래스
+     */
+    data class ReactionToggleResult(
+        val message: ChatMessage,
+        val userId: Long,
+        val reactionType: String,
+        val isAdded: Boolean,
+        val previousReactionType: String? = null,
+        val isReplacement: Boolean = false
+    )
 
     companion object {
         // 도메인 로직을 위한 상수나 유틸리티 메서드가 필요하면 여기에 추가

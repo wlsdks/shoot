@@ -8,7 +8,7 @@ import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.event.MessageReactionEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.enumerate.ReactionType
+import com.stark.shoot.domain.chat.reaction.ReactionType
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
@@ -44,26 +44,14 @@ class ToggleMessageReactionService(
         val message = loadMessagePort.findById(messageId.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
-        // 사용자가 이미 추가한 리액션 타입 찾기
-        val userExistingReactionType = findUserExistingReactionType(message, userId)
+        // 도메인 객체에 토글 로직 위임
+        val result = message.toggleReaction(userId, type)
 
-        // 토글 처리
-        val updatedMessage = when {
-            // 1. 같은 리액션을 선택한 경우: 제거
-            userExistingReactionType == type.code ->
-                handleRemoveSameReaction(message, messageId, userId, type)
-
-            // 2. 다른 리액션이 이미 있는 경우: 기존 리액션 제거 후 새 리액션 추가
-            userExistingReactionType != null ->
-                handleReplaceReaction(message, messageId, userId, type, userExistingReactionType)
-
-            // 3. 리액션이 없는 경우: 새 리액션 추가
-            else ->
-                handleAddNewReaction(message, messageId, userId, type)
-        }
+        // 결과에 따라 알림 및 이벤트 처리
+        handleNotificationsAndEvents(messageId, result)
 
         // 저장 및 반환
-        val savedMessage = saveMessagePort.save(updatedMessage)
+        val savedMessage = saveMessagePort.save(result.message)
 
         // 응답 생성
         return ReactionResponse.from(
@@ -74,142 +62,48 @@ class ToggleMessageReactionService(
     }
 
     /**
-     * 사용자가 이미 추가한 리액션 타입을 찾습니다.
+     * 토글 결과에 따라 알림 및 이벤트를 처리합니다.
      *
-     * @param message 메시지
-     * @param userId 사용자 ID
-     * @return 사용자가 추가한 리액션 타입 코드 또는 null
-     */
-    private fun findUserExistingReactionType(message: ChatMessage, userId: Long): String? {
-        return message.reactions.entries // (리액션 타입, 사용자 집합) 쌍을 하나씩 꺼내요.
-            .find { (_, users) ->        // 각 쌍에서 users라는 이름으로 Set<Long>을 바인딩
-                userId in users          // "users 안에 내가 전달한 userId가 있는지"를 검사합니다.
-            }?.key                       // 찾은 쌍이 있으면 그 key(리액션 타입)를, 없으면 null
-    }
-
-    /**
-     * 같은 리액션을 선택한 경우 처리: 리액션 제거
-     *
-     * @param message 메시지
      * @param messageId 메시지 ID
-     * @param userId 사용자 ID
-     * @param type 리액션 타입
-     * @return 업데이트된 메시지
+     * @param result 토글 결과
      */
-    private fun handleRemoveSameReaction(
-        message: ChatMessage,
+    private fun handleNotificationsAndEvents(
         messageId: String,
-        userId: Long,
-        type: ReactionType
-    ): ChatMessage {
-        val updatedMessage = processRemoveReaction(message, type, userId)
+        result: ChatMessage.ReactionToggleResult
+    ) {
+        val message = result.message
+        val userId = result.userId // 리액션을 토글한 사용자 ID
 
-        // WebSocket으로 실시간 업데이트 전송 (제거)
-        notifyReactionUpdate(messageId, message.roomId, userId, type.code, false)
+        // 리액션 교체인 경우 (기존 리액션 제거 후 새 리액션 추가)
+        if (result.isReplacement && result.previousReactionType != null) {
+            // 기존 리액션 제거 알림
+            notifyReactionUpdate(messageId, message.roomId, userId, result.previousReactionType, false)
 
-        // 도메인 이벤트 발행 (리액션 제거)
-        publishReactionEvent(messageId, message.roomId, userId, type.code, false)
+            // 새 리액션 추가 알림
+            notifyReactionUpdate(messageId, message.roomId, userId, result.reactionType, true)
 
-        return updatedMessage
-    }
+            // 도메인 이벤트 발행 (리액션 교체)
+            publishReactionEvent(
+                messageId, 
+                message.roomId, 
+                userId, 
+                result.reactionType, 
+                isAdded = true, 
+                isReplacement = true
+            )
+        } else {
+            // 일반 추가/제거 알림
+            notifyReactionUpdate(messageId, message.roomId, userId, result.reactionType, result.isAdded)
 
-    /**
-     * 다른 리액션이 이미 있는 경우 처리: 기존 리액션 제거 후 새 리액션 추가
-     *
-     * @param message 메시지
-     * @param messageId 메시지 ID
-     * @param userId 사용자 ID
-     * @param newType 새 리액션 타입
-     * @param existingTypeCode 기존 리액션 타입 코드
-     * @return 업데이트된 메시지
-     */
-    private fun handleReplaceReaction(
-        message: ChatMessage,
-        messageId: String,
-        userId: Long,
-        newType: ReactionType,
-        existingTypeCode: String
-    ): ChatMessage {
-        // 기존 리액션 제거
-        val existingType = ReactionType.fromCode(existingTypeCode)
-            ?: throw InvalidInputException("지원하지 않는 리액션 타입입니다: $existingTypeCode")
-
-        val messageAfterRemove = processRemoveReaction(message, existingType, userId)
-
-        // WebSocket으로 실시간 업데이트 전송 (기존 리액션 제거)
-        notifyReactionUpdate(messageId, message.roomId, userId, existingType.code, false)
-
-        // 새 리액션 추가
-        val messageAfterAdd = processAddReactionMessage(messageAfterRemove, newType, userId)
-
-        // WebSocket으로 실시간 업데이트 전송 (새 리액션 추가)
-        notifyReactionUpdate(messageId, message.roomId, userId, newType.code, true)
-
-        // 도메인 이벤트 발행 (리액션 교체)
-        // 교체 작업에 대해 하나의 이벤트만 발행 (최종 상태인 추가 이벤트)
-        publishReactionEvent(messageId, message.roomId, userId, newType.code, isAdded = true, isReplacement = true)
-
-        return messageAfterAdd
-    }
-
-    /**
-     * 리액션이 없는 경우 처리: 새 리액션 추가
-     *
-     * @param message 메시지
-     * @param messageId 메시지 ID
-     * @param userId 사용자 ID
-     * @param type 리액션 타입
-     * @return 업데이트된 메시지
-     */
-    private fun handleAddNewReaction(
-        message: ChatMessage,
-        messageId: String,
-        userId: Long,
-        type: ReactionType
-    ): ChatMessage {
-        val updatedMessage = processAddReactionMessage(message, type, userId)
-
-        // WebSocket으로 실시간 업데이트 전송 (추가)
-        notifyReactionUpdate(messageId, message.roomId, userId, type.code, true)
-
-        // 도메인 이벤트 발행 (리액션 추가)
-        publishReactionEvent(messageId, message.roomId, userId, type.code, true)
-
-        return updatedMessage
-    }
-
-    /**
-     * 메시지에 리액션을 추가합니다.
-     *
-     * @param message 메시지
-     * @param type 리액션 타입
-     * @param userId 사용자 ID
-     * @return 업데이트된 메시지
-     */
-    private fun processAddReactionMessage(
-        message: ChatMessage,
-        type: ReactionType,
-        userId: Long
-    ): ChatMessage {
-        // 도메인 객체의 메서드를 사용하여 리액션 추가
-        return message.addReaction(userId, type.code)
-    }
-
-    /**
-     * 메시지에서 리액션을 제거합니다.
-     *
-     * @param message 메시지
-     * @param type 리액션 타입
-     * @param userId 사용자 ID
-     * @return 업데이트된 메시지
-     */
-    private fun processRemoveReaction(
-        message: ChatMessage,
-        type: ReactionType,
-        userId: Long
-    ): ChatMessage {
-        // 도메인 객체의 메서드를 사용하여 리액션 제거
-        return message.removeReaction(userId, type.code)
+            // 도메인 이벤트 발행 (일반 추가/제거)
+            publishReactionEvent(
+                messageId, 
+                message.roomId, 
+                userId, 
+                result.reactionType, 
+                result.isAdded
+            )
+        }
     }
 
     /**

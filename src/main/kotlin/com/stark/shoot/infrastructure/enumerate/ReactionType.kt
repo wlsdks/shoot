@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.enumerate
+package com.stark.shoot.domain.chat.reaction
 
 enum class ReactionType(
     val code: String,

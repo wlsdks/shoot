@@ -7,6 +7,32 @@ package com.stark.shoot.domain.chat.reaction
 data class MessageReactions(
     val reactions: Map<String, Set<Long>> = emptyMap()
 ) {
+    companion object {
+        /**
+         * 빈 메시지 반응 객체 생성
+         *
+         * @return 빈 MessageReactions 객체
+         */
+        fun create(): MessageReactions {
+            return MessageReactions()
+        }
+
+        /**
+         * 초기 반응이 있는 메시지 반응 객체 생성
+         *
+         * @param reactionType 반응 타입
+         * @param userId 사용자 ID
+         * @return 초기 반응이 설정된 MessageReactions 객체
+         */
+        fun createWithInitialReaction(
+            reactionType: String,
+            userId: Long
+        ): MessageReactions {
+            return MessageReactions(
+                reactions = mapOf(reactionType to setOf(userId))
+            )
+        }
+    }
 
     /**
      * 반응 추가

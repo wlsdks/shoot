@@ -12,21 +12,41 @@ data class ChatMessageMetadata(
     val urlPreview: UrlPreview? = null,
     var readAt: Instant? = null
 ) {
-    fun requestToDomain(request: ChatMessageMetadataRequest): ChatMessageMetadata {
-        return ChatMessageMetadata(
-            tempId = request.tempId,
-            needsUrlPreview = request.needsUrlPreview,
-            previewUrl = request.previewUrl,
-            urlPreview = request.urlPreview?.let {
-                UrlPreview(
-                    url = it.url,
-                    title = it.title,
-                    description = it.description,
-                    imageUrl = it.imageUrl,
-                    siteName = it.siteName
-                )
-            }
-        )
+    companion object {
+        /**
+         * 요청 객체로부터 메타데이터 생성
+         *
+         * @param request 메타데이터 요청 객체
+         * @return 생성된 ChatMessageMetadata 객체
+         */
+        fun fromRequest(request: ChatMessageMetadataRequest): ChatMessageMetadata {
+            return ChatMessageMetadata(
+                tempId = request.tempId,
+                needsUrlPreview = request.needsUrlPreview,
+                previewUrl = request.previewUrl,
+                urlPreview = request.urlPreview?.let {
+                    UrlPreview(
+                        url = it.url,
+                        title = it.title,
+                        description = it.description,
+                        imageUrl = it.imageUrl,
+                        siteName = it.siteName
+                    )
+                }
+            )
+        }
+
+        /**
+         * 기본 메타데이터 생성
+         *
+         * @param tempId 임시 ID (선택)
+         * @return 생성된 ChatMessageMetadata 객체
+         */
+        fun create(tempId: String? = null): ChatMessageMetadata {
+            return ChatMessageMetadata(
+                tempId = tempId
+            )
+        }
     }
 
     fun toMessageMetadataDocument(): MessageMetadataDocument {

@@ -6,6 +6,39 @@ data class ChatRoomSettings(
     val isEncrypted: Boolean = false,
     val customSettings: Map<String, Any> = emptyMap()
 ) {
+    companion object {
+        /**
+         * 기본 채팅방 설정 생성
+         *
+         * @return 기본 설정이 적용된 ChatRoomSettings 객체
+         */
+        fun createDefault(): ChatRoomSettings {
+            return ChatRoomSettings()
+        }
+
+        /**
+         * 커스텀 채팅방 설정 생성
+         *
+         * @param isNotificationEnabled 알림 활성화 여부
+         * @param retentionDays 메시지 보존 기간 (일)
+         * @param isEncrypted 암호화 여부
+         * @param customSettings 추가 커스텀 설정
+         * @return 커스텀 설정이 적용된 ChatRoomSettings 객체
+         */
+        fun create(
+            isNotificationEnabled: Boolean = true,
+            retentionDays: Int? = null,
+            isEncrypted: Boolean = false,
+            customSettings: Map<String, Any> = emptyMap()
+        ): ChatRoomSettings {
+            return ChatRoomSettings(
+                isNotificationEnabled = isNotificationEnabled,
+                retentionDays = retentionDays,
+                isEncrypted = isEncrypted,
+                customSettings = customSettings
+            )
+        }
+    }
     /**
      * 알림 설정 업데이트
      *

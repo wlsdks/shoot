@@ -133,7 +133,7 @@ class MessagePinService(
         userId: Long,
         isPinned: Boolean
     ) {
-        val pinEvent = MessagePinEvent(
+        val pinEvent = MessagePinEvent.create(
             messageId = message.id ?: return,
             roomId = message.roomId,
             isPinned = isPinned,

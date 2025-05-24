@@ -316,7 +316,7 @@ class MessageReadService(
         try {
             webSocketMessageBroker.sendMessage(
                 "/topic/read-bulk/$roomId",
-                ChatBulkReadEvent(roomId, messageIds, userId)
+                ChatBulkReadEvent.create(roomId, messageIds, userId)
             )
             logger.debug { "일괄 읽음 알림 전송 완료: roomId=$roomId, userId=$userId, 메시지 수=${messageIds.size}" }
         } catch (e: Exception) {
@@ -338,7 +338,7 @@ class MessageReadService(
         lastMessage: String
     ) {
         try {
-            val event = ChatUnreadCountUpdatedEvent(
+            val event = ChatUnreadCountUpdatedEvent.create(
                 roomId = roomId,
                 unreadCounts = mapOf(userId to 0),
                 lastMessage = lastMessage

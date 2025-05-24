@@ -59,7 +59,7 @@ class CreateChatRoomService(
         // 5. 채팅방 생성 이벤트 발행 (서비스 레이어에서 직접 처리)
         // 각 참여자에게 이벤트 전송
         savedRoom.participants.forEach { participantId ->
-            val event = ChatRoomCreatedEvent(
+            val event = ChatRoomCreatedEvent.create(
                 roomId = savedRoom.id ?: 0L,
                 userId = participantId
             )

@@ -156,7 +156,7 @@ class ToggleMessageReactionService(
         isAdded: Boolean,
         isReplacement: Boolean = false
     ) {
-        val event = MessageReactionEvent(
+        val event = MessageReactionEvent.create(
             messageId = messageId,
             roomId = roomId.toString(),
             userId = userId.toString(),

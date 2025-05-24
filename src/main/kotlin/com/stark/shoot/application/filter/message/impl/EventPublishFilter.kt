@@ -38,7 +38,7 @@ class EventPublishFilter(
 
         // 읽지 않은 메시지 수 이벤트 발행
         eventPublisher.publish(
-            ChatUnreadCountUpdatedEvent(
+            ChatUnreadCountUpdatedEvent.create(
                 roomId = roomId,
                 unreadCounts = unreadCounts,
                 lastMessage = message.content.text

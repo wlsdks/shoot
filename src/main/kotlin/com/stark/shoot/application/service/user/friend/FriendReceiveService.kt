@@ -53,8 +53,8 @@ class FriendReceiveService(
         updateFriendPort.updateFriends(updatedRequester)
 
         // 이벤트 발행 (양쪽 사용자에게 친구 추가 알림)
-        eventPublisher.publish(FriendAddedEvent(userId = currentUserId, friendId = requesterId))
-        eventPublisher.publish(FriendAddedEvent(userId = requesterId, friendId = currentUserId))
+        eventPublisher.publish(FriendAddedEvent.create(userId = currentUserId, friendId = requesterId))
+        eventPublisher.publish(FriendAddedEvent.create(userId = requesterId, friendId = currentUserId))
 
         // 캐시 무효화 (Redis 및 로컬 캐시)
         invalidateRecommendationCache(currentUserId)

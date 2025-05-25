@@ -80,4 +80,34 @@ class ChatNotificationFactory {
         )
     }
 
+    /**
+     * 메시지 반응 알림을 생성합니다.
+     *
+     * @param userId 알림을 받을 사용자 ID (메시지 작성자)
+     * @param reactingUserId 반응을 추가한 사용자 ID
+     * @param messageId 메시지 ID
+     * @param roomId 채팅방 ID
+     * @param reactionType 반응 타입
+     * @return 생성된 반응 알림
+     */
+    fun createReactionNotification(
+        userId: Long,
+        reactingUserId: Long,
+        messageId: String,
+        roomId: String,
+        reactionType: String
+    ): Notification {
+        return Notification.fromChatEvent(
+            userId = userId,
+            title = "새로운 반응",
+            message = "내 메시지에 새로운 반응이 추가되었습니다",
+            type = NotificationType.REACTION,
+            sourceId = roomId,
+            metadata = mapOf(
+                "messageId" to messageId,
+                "reactingUserId" to reactingUserId.toString(),
+                "reactionType" to reactionType
+            )
+        )
+    }
 }

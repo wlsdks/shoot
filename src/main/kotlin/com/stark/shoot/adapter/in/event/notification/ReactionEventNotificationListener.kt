@@ -4,8 +4,6 @@ import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.notification.SaveNotificationPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.domain.chat.event.MessageReactionEvent
-import com.stark.shoot.domain.notification.Notification
-import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener
@@ -23,7 +21,8 @@ import org.springframework.stereotype.Component
 class ReactionEventNotificationListener(
     private val loadMessagePort: LoadMessagePort,
     private val saveNotificationPort: SaveNotificationPort,
-    private val sendNotificationPort: SendNotificationPort
+    private val sendNotificationPort: SendNotificationPort,
+    private val chatNotificationFactory: ChatNotificationFactory
 ) {
 
     private val logger = KotlinLogging.logger {}
@@ -101,18 +100,11 @@ class ReactionEventNotificationListener(
         messageId: String,
         roomId: String,
         reactionType: String
-    ): Notification {
-        return Notification.fromChatEvent(
-            userId = userId,
-            title = "새로운 반응",
-            message = "내 메시지에 새로운 반응이 추가되었습니다",
-            type = NotificationType.REACTION,
-            sourceId = roomId,
-            metadata = mapOf(
-                "messageId" to messageId,
-                "reactingUserId" to reactingUserId.toString(),
-                "reactionType" to reactionType
-            )
-        )
-    }
+    ) = chatNotificationFactory.createReactionNotification(
+        userId = userId,
+        reactingUserId = reactingUserId,
+        messageId = messageId,
+        roomId = roomId,
+        reactionType = reactionType
+    )
 }

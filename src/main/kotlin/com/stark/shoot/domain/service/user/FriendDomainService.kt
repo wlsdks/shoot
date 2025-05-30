@@ -124,20 +124,28 @@ class FriendDomainService {
     }
 
     /**
-     * 친구 요청 수락 결과
+     * 친구 관계 제거 처리를 수행합니다.
+     *
+     * @param currentUser 현재 사용자
+     * @param friend 친구 사용자
+     * @param friendId 친구 ID
+     * @return 처리 결과 (업데이트된 사용자, 업데이트된 친구)
      */
-    data class FriendAcceptResult(
-        val updatedCurrentUser: User,
-        val updatedRequester: User,
-        val events: List<FriendAddedEvent>
-    )
+    fun processFriendRemoval(
+        currentUser: User,
+        friend: User,
+        friendId: Long
+    ): FriendRemovalResult {
+        // 도메인 객체의 메서드를 사용하여 친구 관계 제거
+        val updatedCurrentUser = currentUser.removeFriend(friendId)
 
-    /**
-     * 친구 요청 거절 결과
-     */
-    data class FriendRejectResult(
-        val updatedCurrentUser: User,
-        val updatedRequester: User
-    )
+        // 친구의 친구 목록에서도 현재 사용자 제거
+        val updatedFriend = friend.removeFriend(currentUser.id!!)
+
+        return FriendRemovalResult(
+            updatedCurrentUser = updatedCurrentUser,
+            updatedFriend = updatedFriend
+        )
+    }
 
 }

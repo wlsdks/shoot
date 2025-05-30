@@ -213,4 +213,21 @@ data class User(
         )
     }
 
+    /**
+     * 친구 제거
+     *
+     * @param friendId 제거할 친구 ID
+     * @return 업데이트된 User 객체
+     */
+    fun removeFriend(friendId: Long): User {
+        // 친구 목록에서 제거
+        val updatedFriendIds = this.friendIds.toMutableSet()
+        updatedFriendIds.remove(friendId)
+
+        return this.copy(
+            friendIds = updatedFriendIds,
+            updatedAt = Instant.now()
+        )
+    }
+
 }

@@ -7,6 +7,7 @@ import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.event.MessagePinEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.service.message.MessagePinDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
@@ -18,7 +19,8 @@ class MessagePinService(
     private val loadMessagePort: LoadMessagePort,
     private val saveMessagePort: SaveMessagePort,
     private val webSocketMessageBroker: WebSocketMessageBroker,
-    private val eventPublisher: EventPublisher
+    private val eventPublisher: EventPublisher,
+    private val messagePinDomainService: MessagePinDomainService
 ) : MessagePinUseCase {
     private val logger = KotlinLogging.logger {}
 
@@ -133,14 +135,11 @@ class MessagePinService(
         userId: Long,
         isPinned: Boolean
     ) {
-        val pinEvent = MessagePinEvent.create(
-            messageId = message.id ?: return,
-            roomId = message.roomId,
-            isPinned = isPinned,
-            userId = userId
-        )
+        val pinEvent = messagePinDomainService.createPinEvent(message, userId, isPinned)
 
-        eventPublisher.publish(pinEvent)
+        if (pinEvent != null) {
+            eventPublisher.publish(pinEvent)
+        }
     }
 
 }

@@ -213,4 +213,78 @@ data class User(
         )
     }
 
+    /**
+     * 친구 제거
+     *
+     * @param friendId 제거할 친구 ID
+     * @return 업데이트된 User 객체
+     */
+    fun removeFriend(friendId: Long): User {
+        // 친구 목록에서 제거
+        val updatedFriendIds = this.friendIds.toMutableSet()
+        updatedFriendIds.remove(friendId)
+
+        return this.copy(
+            friendIds = updatedFriendIds,
+            updatedAt = Instant.now()
+        )
+    }
+
+    /**
+     * 프로필 정보 업데이트
+     *
+     * @param nickname 새 닉네임 (null인 경우 기존 값 유지)
+     * @param bio 새 자기소개 (null인 경우 기존 값 유지)
+     * @param profileImageUrl 새 프로필 이미지 URL (null인 경우 기존 값 유지)
+     * @param backgroundImageUrl 새 배경 이미지 URL (null인 경우 기존 값 유지)
+     * @return 업데이트된 User 객체
+     * @throws InvalidUserDataException 유효하지 않은 데이터가 제공된 경우
+     */
+    fun updateProfile(
+        nickname: String? = null,
+        bio: String? = null,
+        profileImageUrl: String? = null,
+        backgroundImageUrl: String? = null
+    ): User {
+        // 닉네임 유효성 검증
+        if (nickname != null) {
+            validateNickname(nickname)
+        }
+
+        // 업데이트된 사용자 정보 반환
+        return this.copy(
+            nickname = nickname ?: this.nickname,
+            bio = bio ?: this.bio,
+            profileImageUrl = profileImageUrl ?: this.profileImageUrl,
+            backgroundImageUrl = backgroundImageUrl ?: this.backgroundImageUrl,
+            updatedAt = Instant.now()
+        )
+    }
+
+    /**
+     * 프로필 이미지 변경
+     *
+     * @param imageUrl 새 프로필 이미지 URL
+     * @return 업데이트된 User 객체
+     */
+    fun changeProfileImage(imageUrl: String): User {
+        return this.copy(
+            profileImageUrl = imageUrl,
+            updatedAt = Instant.now()
+        )
+    }
+
+    /**
+     * 배경 이미지 변경
+     *
+     * @param imageUrl 새 배경 이미지 URL
+     * @return 업데이트된 User 객체
+     */
+    fun changeBackgroundImage(imageUrl: String): User {
+        return this.copy(
+            backgroundImageUrl = imageUrl,
+            updatedAt = Instant.now()
+        )
+    }
+
 }

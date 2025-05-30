@@ -10,7 +10,6 @@ import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 
 @Transactional
 @UseCase
@@ -34,12 +33,12 @@ class UserUpdateProfileService(
         val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
 
-        val updatedUser = user.copy(
-            nickname = request.nickname ?: user.nickname,
-            profileImageUrl = request.profileImageUrl ?: user.profileImageUrl,
-            backgroundImageUrl = request.backgroundImageUrl ?: user.backgroundImageUrl,
-            bio = request.bio ?: user.bio,
-            updatedAt = Instant.now()
+        // 도메인 객체의 메서드를 직접 호출하여 프로필 업데이트
+        val updatedUser = user.updateProfile(
+            nickname = request.nickname,
+            bio = request.bio,
+            profileImageUrl = request.profileImageUrl,
+            backgroundImageUrl = request.backgroundImageUrl
         )
 
         return userUpdatePort.updateUser(updatedUser)
@@ -60,9 +59,9 @@ class UserUpdateProfileService(
         val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
 
-        val updatedUser = user.copy(
-            profileImageUrl = request.profileImageUrl,
-            updatedAt = Instant.now()
+        // 도메인 객체의 메서드를 직접 호출하여 프로필 이미지 변경
+        val updatedUser = user.changeProfileImage(
+            imageUrl = request.profileImageUrl
         )
 
         return userUpdatePort.updateUser(updatedUser)
@@ -83,9 +82,9 @@ class UserUpdateProfileService(
         val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
 
-        val updatedUser = user.copy(
-            backgroundImageUrl = request.backgroundImageUrl,
-            updatedAt = Instant.now()
+        // 도메인 객체의 메서드를 직접 호출하여 배경 이미지 변경
+        val updatedUser = user.changeBackgroundImage(
+            imageUrl = request.backgroundImageUrl
         )
 
         return userUpdatePort.updateUser(updatedUser)

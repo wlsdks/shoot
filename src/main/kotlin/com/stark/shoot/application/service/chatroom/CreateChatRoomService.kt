@@ -5,8 +5,8 @@ import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.domain.service.chatroom.ChatRoomEventService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
@@ -17,7 +17,8 @@ class CreateChatRoomService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
     private val findUserPort: FindUserPort,
-    private val eventPublisher: EventPublisher
+    private val eventPublisher: EventPublisher,
+    private val chatRoomEventService: ChatRoomEventService
 ) : CreateChatRoomUseCase {
 
     /**
@@ -56,13 +57,9 @@ class CreateChatRoomService(
         // 4. 채팅방 저장
         val savedRoom = saveChatRoomPort.save(newChatRoom)
 
-        // 5. 채팅방 생성 이벤트 발행 (서비스 레이어에서 직접 처리)
-        // 각 참여자에게 이벤트 전송
-        savedRoom.participants.forEach { participantId ->
-            val event = ChatRoomCreatedEvent.create(
-                roomId = savedRoom.id ?: 0L,
-                userId = participantId
-            )
+        // 5. 채팅방 생성 이벤트 발행 (도메인 서비스를 통해 처리)
+        val events = chatRoomEventService.createChatRoomCreatedEvents(savedRoom)
+        events.forEach { event ->
             eventPublisher.publish(event)
         }
 

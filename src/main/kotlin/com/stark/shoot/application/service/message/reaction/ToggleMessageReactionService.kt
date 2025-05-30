@@ -8,6 +8,7 @@ import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.event.MessageReactionEvent
 import com.stark.shoot.domain.chat.message.ReactionToggleResult
 import com.stark.shoot.domain.chat.reaction.ReactionType
+import com.stark.shoot.domain.service.message.MessageReactionService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -19,7 +20,8 @@ class ToggleMessageReactionService(
     private val loadMessagePort: LoadMessagePort,
     private val saveMessagePort: SaveMessagePort,
     private val messagingTemplate: SimpMessagingTemplate,
-    private val eventPublisher: EventPublisher
+    private val eventPublisher: EventPublisher,
+    private val messageReactionService: MessageReactionService
 ) : ToggleMessageReactionUseCase {
 
     /**
@@ -82,29 +84,14 @@ class ToggleMessageReactionService(
 
             // 새 리액션 추가 알림
             notifyReactionUpdate(messageId, message.roomId, userId, result.reactionType, true)
-
-            // 도메인 이벤트 발행 (리액션 교체)
-            publishReactionEvent(
-                messageId, 
-                message.roomId, 
-                userId, 
-                result.reactionType, 
-                isAdded = true, 
-                isReplacement = true
-            )
         } else {
             // 일반 추가/제거 알림
             notifyReactionUpdate(messageId, message.roomId, userId, result.reactionType, result.isAdded)
-
-            // 도메인 이벤트 발행 (일반 추가/제거)
-            publishReactionEvent(
-                messageId, 
-                message.roomId, 
-                userId, 
-                result.reactionType, 
-                result.isAdded
-            )
         }
+
+        // 도메인 서비스를 통해 이벤트 생성 및 발행
+        val events = messageReactionService.processReactionToggleResult(result)
+        events.forEach { eventPublisher.publish(it) }
     }
 
     /**
@@ -138,34 +125,5 @@ class ToggleMessageReactionService(
         )
     }
 
-    /**
-     * 메시지 반응 이벤트를 발행합니다.
-     *
-     * @param messageId 메시지 ID
-     * @param roomId 채팅방 ID
-     * @param userId 사용자 ID
-     * @param reactionType 리액션 타입
-     * @param isAdded 추가 여부
-     * @param isReplacement 리액션 교체의 일부 여부
-     */
-    private fun publishReactionEvent(
-        messageId: String,
-        roomId: Long,
-        userId: Long,
-        reactionType: String,
-        isAdded: Boolean,
-        isReplacement: Boolean = false
-    ) {
-        val event = MessageReactionEvent.create(
-            messageId = messageId,
-            roomId = roomId.toString(),
-            userId = userId.toString(),
-            reactionType = reactionType,
-            isAdded = isAdded,
-            isReplacement = isReplacement
-        )
-
-        eventPublisher.publish(event)
-    }
 
 }

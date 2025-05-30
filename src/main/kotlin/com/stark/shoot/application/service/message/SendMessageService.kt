@@ -29,7 +29,8 @@ class SendMessageService(
     private val objectMapper: ObjectMapper,
     private val redisTemplate: StringRedisTemplate,
     private val webSocketMessageBroker: WebSocketMessageBroker,
-    private val applicationCoroutineScope: ApplicationCoroutineScope
+    private val applicationCoroutineScope: ApplicationCoroutineScope,
+    private val messageDomainService: com.stark.shoot.domain.service.message.MessageDomainService
 ) : SendMessageUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -63,25 +64,15 @@ class SendMessageService(
     private fun createAndProcessDomainMessage(
         messageRequest: ChatMessageRequest
     ): ChatMessage {
-        // 1. 도메인 객체 생성
-        val tempId = UUID.randomUUID().toString()
-        val chatMessage = ChatMessage.create(
-            roomId = messageRequest.roomId,
-            senderId = messageRequest.senderId,
-            text = messageRequest.content.text,
-            type = messageRequest.content.type,
-            tempId = tempId
-        )
-
-        // 2. URL 미리보기 처리 (도메인 로직 활용)
-        val messageWithPreview = ChatMessage.processUrlPreview(
-            message = chatMessage,
+        // 도메인 서비스를 사용하여 메시지 생성 및 처리
+        val messageWithPreview = messageDomainService.createAndProcessMessage(
+            messageRequest = messageRequest,
             extractUrls = { text -> extractUrlPort.extractUrls(text) },
             getCachedPreview = { url -> cacheUrlPreviewPort.getCachedUrlPreview(url) }
         )
 
-        // 3. 요청 객체에 도메인 처리 결과 반영
-        updateRequestFromDomain(messageRequest, messageWithPreview)
+        // 요청 객체에 도메인 처리 결과 반영
+        messageDomainService.updateRequestFromDomain(messageRequest, messageWithPreview)
 
         return messageWithPreview
     }
@@ -109,29 +100,7 @@ class SendMessageService(
         }
     }
 
-    /**
-     * 도메인 객체의 상태를 요청 객체에 반영합니다.
-     * 도메인 모델의 상태를 DTO에 매핑하는 역할을 합니다.
-     *
-     * @param request 메시지 요청 DTO
-     * @param domainMessage 도메인 메시지 객체
-     */
-    private fun updateRequestFromDomain(
-        request: ChatMessageRequest,
-        domainMessage: ChatMessage
-    ) {
-        // 임시 ID 설정
-        request.tempId = domainMessage.metadata.tempId
-
-        // 상태 설정
-        request.status = domainMessage.status
-
-        // URL 미리보기 정보 설정 - 도메인 메타데이터를 DTO에 매핑
-        val metadataDto = domainMessage.metadata.toRequestDto()
-        request.metadata.needsUrlPreview = metadataDto.needsUrlPreview
-        request.metadata.previewUrl = metadataDto.previewUrl
-        request.metadata.urlPreview = metadataDto.urlPreview
-    }
+    // 도메인 서비스로 이동됨
 
     /**
      * Redis를 통해 메시지를 실시간으로 발행합니다.
@@ -370,7 +339,7 @@ class SendMessageService(
     private fun createDomainEvent(
         chatMessage: ChatMessage
     ): ChatEvent {
-        return ChatEvent.fromMessage(chatMessage, EventType.MESSAGE_CREATED)
+        return messageDomainService.createMessageEvent(chatMessage)
     }
 
     /**

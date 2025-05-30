@@ -7,16 +7,17 @@ import com.stark.shoot.application.port.`in`.user.profile.UserUpdateProfileUseCa
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.service.user.UserProfileDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 
 @Transactional
 @UseCase
 class UserUpdateProfileService(
     private val findUserPort: FindUserPort,
-    private val userUpdatePort: UserUpdatePort
+    private val userUpdatePort: UserUpdatePort,
+    private val userProfileDomainService: UserProfileDomainService
 ) : UserUpdateProfileUseCase {
 
     /**
@@ -34,12 +35,13 @@ class UserUpdateProfileService(
         val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
 
-        val updatedUser = user.copy(
-            nickname = request.nickname ?: user.nickname,
-            profileImageUrl = request.profileImageUrl ?: user.profileImageUrl,
-            backgroundImageUrl = request.backgroundImageUrl ?: user.backgroundImageUrl,
-            bio = request.bio ?: user.bio,
-            updatedAt = Instant.now()
+        // 도메인 서비스를 사용하여 프로필 업데이트
+        val updatedUser = userProfileDomainService.updateProfile(
+            user = user,
+            nickname = request.nickname,
+            profileImageUrl = request.profileImageUrl,
+            backgroundImageUrl = request.backgroundImageUrl,
+            bio = request.bio
         )
 
         return userUpdatePort.updateUser(updatedUser)
@@ -60,9 +62,10 @@ class UserUpdateProfileService(
         val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
 
-        val updatedUser = user.copy(
-            profileImageUrl = request.profileImageUrl,
-            updatedAt = Instant.now()
+        // 도메인 서비스를 사용하여 프로필 이미지 설정
+        val updatedUser = userProfileDomainService.setProfileImage(
+            user = user,
+            profileImageUrl = request.profileImageUrl
         )
 
         return userUpdatePort.updateUser(updatedUser)
@@ -83,9 +86,10 @@ class UserUpdateProfileService(
         val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
 
-        val updatedUser = user.copy(
-            backgroundImageUrl = request.backgroundImageUrl,
-            updatedAt = Instant.now()
+        // 도메인 서비스를 사용하여 배경 이미지 설정
+        val updatedUser = userProfileDomainService.setBackgroundImage(
+            user = user,
+            backgroundImageUrl = request.backgroundImageUrl
         )
 
         return userUpdatePort.updateUser(updatedUser)

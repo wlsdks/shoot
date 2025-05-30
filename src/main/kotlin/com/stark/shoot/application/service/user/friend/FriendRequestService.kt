@@ -15,9 +15,8 @@ import org.springframework.transaction.annotation.Transactional
 class FriendRequestService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
-    private val redisTemplate: StringRedisTemplate,
-    private val friendCachePort: FriendCachePort,
-    private val friendDomainService: com.stark.shoot.domain.service.user.FriendDomainService
+    private val friendDomainService: com.stark.shoot.domain.service.user.FriendDomainService,
+    private val friendCacheManager: FriendCacheManager
 ) : FriendRequestUseCase {
 
     /**
@@ -55,13 +54,8 @@ class FriendRequestService(
         // 친구 요청 추가
         updateFriendPort.addOutgoingFriendRequest(currentUserId, targetUserId)
 
-        // 추천 친구 캐시 무효화 (Redis 및 로컬 캐시)
-        invalidateRecommendationCache(currentUserId)
-        invalidateRecommendationCache(targetUserId)
-
-        // 친구 추천 캐시 무효화
-        friendCachePort.invalidateUserCache(currentUserId)
-        friendCachePort.invalidateUserCache(targetUserId)
+        // 캐시 무효화 (FriendCacheManager 사용)
+        friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)
     }
 
     /**
@@ -100,36 +94,9 @@ class FriendRequestService(
         // 실제 친구 요청 데이터 삭제
         updateFriendPort.removeOutgoingFriendRequest(currentUserId, targetUserId)
 
-        // 캐시 무효화 (Redis 및 로컬 캐시)
-        invalidateRecommendationCache(currentUserId)
-        invalidateRecommendationCache(targetUserId)
-
-        // 친구 추천 캐시 무효화
-        friendCachePort.invalidateUserCache(currentUserId)
-        friendCachePort.invalidateUserCache(targetUserId)
+        // 캐시 무효화 (FriendCacheManager 사용)
+        friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)
     }
 
-    /**
-     * 추천 친구 캐시를 무효화합니다.
-     *
-     * @param userId 사용자 ID
-     */
-    private fun invalidateRecommendationCache(userId: Long) {
-        try {
-            // 추천 친구 캐시 키 패턴
-            val cacheKeyPattern = "friend_recommend:$userId:*"
-
-            // 해당 패턴의 모든 키 조회
-            val keys = redisTemplate.keys(cacheKeyPattern)
-
-            // 키가 있으면 삭제
-            if (!keys.isNullOrEmpty()) {
-                redisTemplate.delete(keys)
-            }
-        } catch (e: Exception) {
-            // 캐시 삭제 실패는 치명적인 오류가 아니므로 로깅만 하고 계속 진행
-            // 실제 구현 시 로깅 추가 필요
-        }
-    }
 
 }

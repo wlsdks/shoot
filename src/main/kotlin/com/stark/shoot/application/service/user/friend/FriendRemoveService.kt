@@ -16,12 +16,9 @@ import org.springframework.transaction.annotation.Transactional
 class FriendRemoveService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
-    private val redisStringTemplate: StringRedisTemplate,
-    private val friendCachePort: FriendCachePort,
-    private val friendDomainService: FriendDomainService
+    private val friendDomainService: FriendDomainService,
+    private val friendCacheManager: FriendCacheManager
 ) : FriendRemoveUseCase {
-
-    private val maxPinnedFriends = 5
 
     override fun removeFriend(userId: Long, friendId: Long): User {
         // 기본 사용자 정보 조회
@@ -49,34 +46,10 @@ class FriendRemoveService(
         updateFriendPort.updateFriends(result.updatedCurrentUser)
         updateFriendPort.updateFriends(result.updatedFriend)
 
-        // 캐시 무효화
-        invalidateRecommendationCache(userId)
-        invalidateRecommendationCache(friendId)
+        // 캐시 무효화 (FriendCacheManager 사용)
+        friendCacheManager.invalidateFriendshipCaches(userId, friendId)
 
         return result.updatedCurrentUser
     }
 
-    /**
-     * 추천 캐시 무효화
-     */
-    private fun invalidateRecommendationCache(userId: Long) {
-        try {
-            // 추천 친구 캐시 키 패턴
-            val cacheKeyPattern = "friend_recommend:$userId:*"
-
-            // 해당 패턴의 모든 키 조회
-            val keys = redisStringTemplate.keys(cacheKeyPattern)
-
-            // 키가 있으면 삭제
-            if (!keys.isNullOrEmpty()) {
-                redisStringTemplate.delete(keys)
-            }
-
-            // 친구 추천 캐시 무효화
-            friendCachePort.invalidateUserCache(userId)
-        } catch (e: Exception) {
-            // 캐시 삭제 실패는 치명적인 오류가 아니므로 로깅만 하고 계속 진행
-            println("캐시 삭제 실패: userId=$userId, error: ${e.message}")
-        }
-    }
 }

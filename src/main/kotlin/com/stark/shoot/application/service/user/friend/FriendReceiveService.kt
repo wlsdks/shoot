@@ -3,13 +3,11 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendReceiveUseCase
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.friend.FriendCachePort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
-import com.stark.shoot.domain.chat.event.FriendAddedEvent
+import com.stark.shoot.domain.service.user.FriendDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.transaction.annotation.Transactional
 
 @Transactional
@@ -18,9 +16,8 @@ class FriendReceiveService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
     private val eventPublisher: EventPublisher,
-    private val redisTemplate: StringRedisTemplate,
-    private val friendCachePort: FriendCachePort,
-    private val friendDomainService: com.stark.shoot.domain.service.user.FriendDomainService
+    private val friendDomainService: FriendDomainService,
+    private val friendCacheManager: FriendCacheManager
 ) : FriendReceiveUseCase {
 
     /**
@@ -63,13 +60,8 @@ class FriendReceiveService(
             eventPublisher.publish(event)
         }
 
-        // 캐시 무효화 (Redis 및 로컬 캐시)
-        invalidateRecommendationCache(currentUserId)
-        invalidateRecommendationCache(requesterId)
-
-        // 친구 추천 캐시 무효화
-        friendCachePort.invalidateUserCache(currentUserId)
-        friendCachePort.invalidateUserCache(requesterId)
+        // 캐시 무효화 (FriendCacheManager 사용)
+        friendCacheManager.invalidateFriendshipCaches(currentUserId, requesterId)
     }
 
     /**
@@ -107,36 +99,8 @@ class FriendReceiveService(
         updateFriendPort.updateFriends(result.updatedCurrentUser)
         updateFriendPort.updateFriends(result.updatedRequester)
 
-        // 캐시 무효화 (Redis 및 로컬 캐시)
-        invalidateRecommendationCache(currentUserId)
-        invalidateRecommendationCache(requesterId)
-
-        // 친구 추천 캐시 무효화
-        friendCachePort.invalidateUserCache(currentUserId)
-        friendCachePort.invalidateUserCache(requesterId)
-    }
-
-    /**
-     * 추천 친구 캐시를 무효화합니다.
-     *
-     * @param userId 사용자 ID
-     */
-    private fun invalidateRecommendationCache(userId: Long) {
-        try {
-            // 추천 친구 캐시 키 패턴
-            val cacheKeyPattern = "friend_recommend:$userId:*"
-
-            // 해당 패턴의 모든 키 조회
-            val keys = redisTemplate.keys(cacheKeyPattern)
-
-            // 키가 있으면 삭제
-            if (!keys.isNullOrEmpty()) {
-                redisTemplate.delete(keys)
-            }
-        } catch (e: Exception) {
-            // 캐시 삭제 실패는 치명적인 오류가 아니므로 로깅만 하고 계속 진행
-            // 실제 구현 시 로깅 추가 필요
-        }
+        // 캐시 무효화 (FriendCacheManager 사용)
+        friendCacheManager.invalidateFriendshipCaches(currentUserId, requesterId)
     }
 
 }

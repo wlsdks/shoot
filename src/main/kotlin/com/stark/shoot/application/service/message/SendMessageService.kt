@@ -226,19 +226,8 @@ class SendMessageService(
         tempId: String,
         throwable: Throwable
     ) {
-        // 1. 오류 로깅
-        logMessageError(message, throwable)
-
-        // 2. 오류 알림
-        notifyMessageError(message.roomId, throwable)
-
-        // 3. 메시지 상태 업데이트
-        notifyMessageStatus(
-            roomId = message.roomId,
-            tempId = tempId,
-            status = MessageStatus.FAILED,
-            errorMessage = throwable.message
-        )
+        // 공통 오류 처리 메서드 호출
+        handleMessageProcessingError(message, tempId, throwable)
     }
 
     /**
@@ -394,19 +383,35 @@ class SendMessageService(
         e: Exception,
         message: ChatMessageRequest
     ) {
+        // 메시지 처리 오류 처리 공통 메서드 호출
+        handleMessageProcessingError(message, message.tempId ?: "", e)
+    }
+
+    /**
+     * 메시지 처리 중 발생한 오류를 공통으로 처리합니다.
+     * 
+     * @param message 메시지 요청 DTO
+     * @param tempId 임시 메시지 ID
+     * @param throwable 발생한 예외
+     */
+    private fun handleMessageProcessingError(
+        message: ChatMessageRequest,
+        tempId: String,
+        throwable: Throwable
+    ) {
         // 1. 오류 로깅
-        logMessageError(message, e)
+        logMessageError(message, throwable)
 
         // 2. 오류 알림
-        notifyMessageError(message.roomId, e)
+        notifyMessageError(message.roomId, throwable)
 
-        // 3. 메시지 상태 업데이트 (tempId가 있는 경우)
-        message.tempId?.let { tempId ->
+        // 3. 메시지 상태 업데이트
+        if (tempId.isNotEmpty()) {
             notifyMessageStatus(
                 roomId = message.roomId,
                 tempId = tempId,
                 status = MessageStatus.FAILED,
-                errorMessage = e.message
+                errorMessage = throwable.message
             )
         }
     }

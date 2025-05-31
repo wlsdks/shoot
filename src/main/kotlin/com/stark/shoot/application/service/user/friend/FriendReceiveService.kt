@@ -4,6 +4,7 @@ import com.stark.shoot.application.port.`in`.user.friend.FriendReceiveUseCase
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
+import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.domain.service.user.FriendDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
@@ -30,19 +31,12 @@ class FriendReceiveService(
         currentUserId: Long,
         requesterId: Long
     ) {
-        // 사용자 조회 (친구 요청 정보 포함)
-        val currentUser = findUserPort.findUserWithFriendRequestsById(currentUserId)
-            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
-
-        val requester = findUserPort.findUserById(requesterId)
-            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $requesterId")
-
-        // 도메인 서비스를 사용하여 친구 요청 수락 유효성 검증
-        try {
-            friendDomainService.validateFriendAccept(currentUser, requesterId)
-        } catch (e: IllegalArgumentException) {
-            throw InvalidInputException(e.message ?: "친구 요청 수락 유효성 검증 실패")
-        }
+        // 사용자 조회 및 유효성 검증
+        val (currentUser, requester) = retrieveAndValidateUsers(
+            currentUserId,
+            requesterId,
+            "친구 요청 수락 유효성 검증 실패"
+        )
 
         // 도메인 서비스를 사용하여 친구 요청 수락 처리
         val result = friendDomainService.processFriendAccept(
@@ -60,7 +54,7 @@ class FriendReceiveService(
             eventPublisher.publish(event)
         }
 
-        // 캐시 무효화 (FriendCacheManager 사용)
+        // 캐시 무효화
         friendCacheManager.invalidateFriendshipCaches(currentUserId, requesterId)
     }
 
@@ -74,19 +68,12 @@ class FriendReceiveService(
         currentUserId: Long,
         requesterId: Long
     ) {
-        // 사용자 조회 (친구 요청 정보 포함)
-        val currentUser = findUserPort.findUserWithFriendRequestsById(currentUserId)
-            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
-
-        val requester = findUserPort.findUserById(requesterId)
-            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $requesterId")
-
-        // 도메인 서비스를 사용하여 친구 요청 수락 유효성 검증
-        try {
-            friendDomainService.validateFriendAccept(currentUser, requesterId)
-        } catch (e: IllegalArgumentException) {
-            throw InvalidInputException(e.message ?: "친구 요청 거절 유효성 검증 실패")
-        }
+        // 사용자 조회 및 유효성 검증
+        val (currentUser, requester) = retrieveAndValidateUsers(
+            currentUserId,
+            requesterId,
+            "친구 요청 거절 유효성 검증 실패"
+        )
 
         // 도메인 서비스를 사용하여 친구 요청 거절 처리
         val result = friendDomainService.processFriendReject(
@@ -99,8 +86,41 @@ class FriendReceiveService(
         updateFriendPort.updateFriends(result.updatedCurrentUser)
         updateFriendPort.updateFriends(result.updatedRequester)
 
-        // 캐시 무효화 (FriendCacheManager 사용)
+        // 캐시 무효화
         friendCacheManager.invalidateFriendshipCaches(currentUserId, requesterId)
     }
 
+    /**
+     * 사용자 조회 및 유효성 검증을 수행하는 공통 메서드
+     *
+     * @param currentUserId 현재 사용자 ID
+     * @param requesterId 요청자 ID
+     * @param validationErrorMessage 유효성 검증 실패 시 표시할 메시지
+     * @return Pair<User, User> 현재 사용자와 요청자 객체 쌍
+     */
+    private fun retrieveAndValidateUsers(
+        currentUserId: Long,
+        requesterId: Long,
+        validationErrorMessage: String
+    ): Pair<User, User> {
+        // 사용자 조회 (친구 요청 정보 포함)
+        val currentUser = findUserPort.findUserWithFriendRequestsById(currentUserId)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
+
+        val requester = findUserPort.findUserById(requesterId)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $requesterId")
+
+        // 도메인 서비스를 사용하여 친구 요청 유효성 검증
+        try {
+            // 친구 요청이 존재하는지 확인
+            if (!currentUser.incomingFriendRequestIds.contains(requesterId)) {
+                throw IllegalArgumentException("해당 친구 요청이 존재하지 않습니다.")
+            }
+        } catch (e: IllegalArgumentException) {
+            throw InvalidInputException(e.message ?: validationErrorMessage)
+        }
+
+        return Pair(currentUser, requester)
+    }
+    
 }

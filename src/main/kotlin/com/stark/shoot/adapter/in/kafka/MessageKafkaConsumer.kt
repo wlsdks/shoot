@@ -41,7 +41,11 @@ class MessageKafkaConsumer(
         if (event.type == EventType.MESSAGE_CREATED) {
             try {
                 // 메시지 내부의 임시 ID, 채팅방 ID 추출
-                val tempId = event.data.metadata.tempId!!
+                val tempId = event.data.metadata.tempId
+                    ?: run {
+                        logger.warn { "Received message event without tempId" }
+                        return
+                    }
                 val roomId = event.data.roomId
 
                 // MongoDB 저장 전 처리 중 상태 업데이트
@@ -130,7 +134,7 @@ class MessageKafkaConsumer(
         if (savedMessage.metadata.needsUrlPreview &&
             savedMessage.metadata.previewUrl != null
         ) {
-            val previewUrl = savedMessage.metadata.previewUrl!!
+            val previewUrl = savedMessage.metadata.previewUrl ?: return
 
             // URL 미리보기 비동기 처리
             try {

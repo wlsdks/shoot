@@ -36,16 +36,18 @@ class UserLoginService(
         }
 
         // JWT 토큰 생성
-        val accessToken = jwtProvider.generateToken(user.id.toString(), user.username)
-        val refreshToken = jwtProvider.generateRefreshToken(user.id.toString(), user.username, 43200) // 30일
+        val userId = user.id ?: throw IllegalStateException("User ID must not be null")
+
+        val accessToken = jwtProvider.generateToken(userId.toString(), user.username)
+        val refreshToken = jwtProvider.generateRefreshToken(userId.toString(), user.username, 43200) // 30일
 
         // 리프레시 토큰 저장 (기본 정보만)
         refreshTokenPort.createRefreshToken(
-            userId = user.id!!,
+            userId = userId,
             token = refreshToken
         )
 
-        return LoginResponse(user.id.toString(), accessToken, refreshToken)
+        return LoginResponse(userId.toString(), accessToken, refreshToken)
     }
 
 }

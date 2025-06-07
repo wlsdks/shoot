@@ -26,10 +26,11 @@ class RateLimitInterceptor(
 
         val userId = accessor.user?.name ?: return message
         val key = "ratelimit:chat:$userId"
-        val count = redisTemplate.opsForValue().increment(key, 1)
+
+        val count = redisTemplate.opsForValue().increment(key, 1) ?: 0L
         redisTemplate.expire(key, java.time.Duration.ofMinutes(1))
 
-        if (count!! > 500) { // 제한 증가: 300 -> 500
+        if (count > 500) { // 제한 증가: 300 -> 500
             throw MessageDeliveryException("Rate limit exceeded")
         }
 

@@ -39,6 +39,7 @@ class UserMapper {
             friendIds = emptySet(),
             incomingFriendRequestIds = emptySet(),
             outgoingFriendRequestIds = emptySet(),
+            blockedUserIds = emptySet(),
             userCode = userEntity.userCode
         )
     }

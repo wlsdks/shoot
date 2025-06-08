@@ -26,6 +26,7 @@ data class User(
     var friendIds: Set<Long> = emptySet(),                 // 이미 친구인 사용자들의 id 목록
     var incomingFriendRequestIds: Set<Long> = emptySet(),  // 받은 친구 요청의 사용자 id 목록
     var outgoingFriendRequestIds: Set<Long> = emptySet(),  // 보낸 친구 요청의 사용자 id 목록
+    var blockedUserIds: Set<Long> = emptySet(),             // 차단한 사용자 id 목록
 ) {
 
     companion object {
@@ -226,6 +227,53 @@ data class User(
 
         return this.copy(
             friendIds = updatedFriendIds,
+            updatedAt = Instant.now()
+        )
+    }
+
+    /**
+     * 사용자를 차단합니다.
+     * 친구 관계와 친구 요청을 모두 제거합니다.
+     */
+    fun blockUser(userId: Long): User {
+        if (blockedUserIds.contains(userId)) {
+            return this
+        }
+
+        val updatedBlocked = this.blockedUserIds.toMutableSet()
+        updatedBlocked.add(userId)
+
+        val updatedFriends = this.friendIds.toMutableSet()
+        updatedFriends.remove(userId)
+
+        val updatedOutgoing = this.outgoingFriendRequestIds.toMutableSet()
+        updatedOutgoing.remove(userId)
+
+        val updatedIncoming = this.incomingFriendRequestIds.toMutableSet()
+        updatedIncoming.remove(userId)
+
+        return this.copy(
+            blockedUserIds = updatedBlocked,
+            friendIds = updatedFriends,
+            outgoingFriendRequestIds = updatedOutgoing,
+            incomingFriendRequestIds = updatedIncoming,
+            updatedAt = Instant.now()
+        )
+    }
+
+    /**
+     * 차단을 해제합니다.
+     */
+    fun unblockUser(userId: Long): User {
+        if (!blockedUserIds.contains(userId)) {
+            return this
+        }
+
+        val updatedBlocked = this.blockedUserIds.toMutableSet()
+        updatedBlocked.remove(userId)
+
+        return this.copy(
+            blockedUserIds = updatedBlocked,
             updatedAt = Instant.now()
         )
     }

@@ -6,6 +6,8 @@ import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.domain.chat.room.service.ChatRoomDomainService
+import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.domain.service.chatroom.ChatRoomEventService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -18,7 +20,8 @@ class CreateChatRoomService(
     private val saveChatRoomPort: SaveChatRoomPort,
     private val findUserPort: FindUserPort,
     private val eventPublisher: EventPublisher,
-    private val chatRoomEventService: ChatRoomEventService
+    private val chatRoomEventService: ChatRoomEventService,
+    private val chatRoomDomainService: ChatRoomDomainService,
 ) : CreateChatRoomUseCase {
 
     /**
@@ -40,29 +43,44 @@ class CreateChatRoomService(
 
         // 2. 이미 존재하는 1:1 채팅방이 있는지 확인 (도메인 객체의 정적 메서드 사용)
         val existingRooms = loadChatRoomPort.findByParticipantId(userId)
-        val existingRoom = ChatRoom.findDirectChatBetween(existingRooms, userId, friendId)
+        val existingRoom = chatRoomDomainService.findDirectChatBetween(existingRooms, userId, friendId)
 
         // 이미 존재하는 채팅방이 있으면 반환
-        if (existingRoom != null) {
-            return existingRoom
-        }
+        if (existingRoom != null) return existingRoom
 
-        // 3. 새 1:1 채팅방 생성 (도메인 객체의 팩토리 메서드 사용)
+        // 3. 새 1:1 채팅방 생성 및 저장
+        val savedRoom = registerNewDirectChatRoom(userId, friendId, friend)
+
+        // 4. 채팅방 생성 이벤트 발행
+        publishChatRoomCreatedEvent(savedRoom)
+
+        return savedRoom
+    }
+
+    private fun publishChatRoomCreatedEvent(savedRoom: ChatRoom) {
+        // 채팅방 생성 이벤트 발행 (도메인 서비스를 통해 처리)
+        val events = chatRoomEventService.createChatRoomCreatedEvents(savedRoom)
+
+        // 이벤트를 이벤트 퍼블리셔를 통해 발행
+        events.forEach { event ->
+            eventPublisher.publish(event)
+        }
+    }
+
+    private fun registerNewDirectChatRoom(
+        userId: Long,
+        friendId: Long,
+        friend: User
+    ): ChatRoom {
+        // 새 1:1 채팅방 생성 (도메인 객체의 팩토리 메서드 사용)
         val newChatRoom = ChatRoom.createDirectChat(
             userId = userId,
             friendId = friendId,
             friendName = friend.nickname
         )
 
-        // 4. 채팅방 저장
+        // 채팅방 저장
         val savedRoom = saveChatRoomPort.save(newChatRoom)
-
-        // 5. 채팅방 생성 이벤트 발행 (도메인 서비스를 통해 처리)
-        val events = chatRoomEventService.createChatRoomCreatedEvents(savedRoom)
-        events.forEach { event ->
-            eventPublisher.publish(event)
-        }
-
         return savedRoom
     }
 

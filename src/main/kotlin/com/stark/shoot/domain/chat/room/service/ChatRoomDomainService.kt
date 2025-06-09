@@ -65,4 +65,44 @@ class ChatRoomDomainService {
         }
     }
 
+    /**
+     * 채팅방 제목 맵 준비
+     */
+    fun prepareChatRoomTitles(
+        chatRooms: List<ChatRoom>,
+        userId: Long
+    ): Map<Long, String> {
+        return chatRooms.associate { room ->
+            val roomId = room.id ?: 0L
+            val title = room.createChatRoomTitle(userId)
+            roomId to title
+        }
+    }
+
+    /**
+     * 마지막 메시지 맵 준비
+     */
+    fun prepareLastMessages(
+        chatRooms: List<ChatRoom>
+    ): Map<Long, String> {
+        return chatRooms.associate { room ->
+            val roomId = room.id ?: 0L
+            val lastMessage = room.createLastMessageText()
+            roomId to lastMessage
+        }
+    }
+
+    /**
+     * 타임스탬프 맵 준비
+     */
+    fun prepareTimestamps(
+        chatRooms: List<ChatRoom>
+    ): Map<Long, String> {
+        return chatRooms.associate { room ->
+            val roomId = room.id ?: 0L
+            val timestamp = room.formatTimestamp()
+            roomId to timestamp
+        }
+    }
+
 }

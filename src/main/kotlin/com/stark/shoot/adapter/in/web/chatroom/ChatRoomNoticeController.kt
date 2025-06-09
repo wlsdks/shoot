@@ -25,14 +25,4 @@ class ChatRoomNoticeController(
         return ResponseDto.success(Unit, "공지사항이 업데이트되었습니다.")
     }
 
-    @Operation(summary = "채팅방 제목 변경", description = "채팅방의 제목을 변경합니다.")
-    @PutMapping("/{roomId}/title")
-    fun updateTitle(
-        @PathVariable roomId: Long,
-        @RequestBody request: TitleRequest
-    ): ResponseDto<Boolean> {
-        val result = manageChatRoomUseCase.updateTitle(roomId, request.title)
-        return ResponseDto.success(result, "채팅방 제목이 변경되었습니다.")
-    }
-
 }

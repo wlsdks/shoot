@@ -65,5 +65,5 @@ data class ResponseDto<T>(
             return ResponseDto(false, null, exception.message, null, Instant.now(), code)
         }
     }
-    
+
 }

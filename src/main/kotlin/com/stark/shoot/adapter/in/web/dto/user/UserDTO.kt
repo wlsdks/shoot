@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.dto.user
 
-import com.stark.shoot.domain.chat.user.UserStatus
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.chat.user.UserStatus
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -18,7 +18,13 @@ data class CreateUserRequest(
     val profileImage: MultipartFile? = null
 )
 
-data class UpdateProfileRequest(val nickname: String?, val profileImageUrl: String?, val backgroundImageUrl: String?, val bio: String?)
+data class UpdateProfileRequest(
+    val nickname: String?,
+    val profileImageUrl: String?,
+    val backgroundImageUrl: String?,
+    val bio: String?
+)
+
 data class SetProfileImageRequest(val profileImageUrl: String)
 data class SetBackgroundImageRequest(val backgroundImageUrl: String)
 data class FindUserRequest(val query: String) // username 또는 userCode로 검색

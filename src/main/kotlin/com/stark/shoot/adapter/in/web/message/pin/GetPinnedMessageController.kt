@@ -3,7 +3,6 @@ package com.stark.shoot.adapter.`in`.web.message.pin
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.pin.PinnedMessagesResponse
 import com.stark.shoot.application.port.`in`.message.pin.GetPinnedMessageUseCase
-import com.stark.shoot.application.port.`in`.message.pin.MessagePinUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping

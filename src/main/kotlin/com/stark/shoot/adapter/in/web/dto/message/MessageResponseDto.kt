@@ -1,8 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.dto.message
 
+import com.stark.shoot.domain.chat.message.UrlPreview
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
-import com.stark.shoot.domain.chat.message.UrlPreview
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
 import java.time.Instant
 

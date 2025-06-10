@@ -1,8 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.dto.notification
 
 import com.stark.shoot.domain.notification.Notification
-import com.stark.shoot.domain.notification.NotificationType
-import com.stark.shoot.domain.notification.SourceType
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
 import java.time.Instant
 

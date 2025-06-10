@@ -2,13 +2,11 @@ package com.stark.shoot.domain.service.chatroom
 
 import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.room.ChatRoom
-import org.springframework.stereotype.Service
 
 /**
  * 채팅방 이벤트 관련 도메인 서비스
  * 채팅방 생성, 수정 등의 이벤트를 생성합니다.
  */
-@Service
 class ChatRoomEventService {
 
     /**

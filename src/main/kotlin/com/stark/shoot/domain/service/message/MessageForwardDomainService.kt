@@ -4,14 +4,12 @@ import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.reaction.MessageReactions
-import org.springframework.stereotype.Service
 import java.time.Instant
 
 /**
  * 메시지 전달 관련 도메인 서비스
  * 메시지 전달(포워딩) 처리를 담당합니다.
  */
-@Service
 class MessageForwardDomainService {
 
     companion object {

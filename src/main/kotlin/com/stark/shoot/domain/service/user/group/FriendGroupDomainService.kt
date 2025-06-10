@@ -1,9 +1,7 @@
 package com.stark.shoot.domain.service.user.group
 
 import com.stark.shoot.domain.chat.user.FriendGroup
-import org.springframework.stereotype.Service
 
-@Service
 class FriendGroupDomainService {
     fun create(ownerId: Long, name: String, description: String?): FriendGroup {
         require(name.isNotBlank()) { "그룹 이름은 비어있을 수 없습니다." }

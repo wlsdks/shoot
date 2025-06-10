@@ -2,13 +2,11 @@ package com.stark.shoot.domain.service.message
 
 import com.stark.shoot.domain.chat.event.MessageReactionEvent
 import com.stark.shoot.domain.chat.message.ReactionToggleResult
-import org.springframework.stereotype.Service
 
 /**
  * 메시지 리액션 관련 도메인 서비스
  * 메시지 리액션 토글 결과를 처리하고 필요한 도메인 이벤트를 생성합니다.
  */
-@Service
 class MessageReactionService {
 
     /**

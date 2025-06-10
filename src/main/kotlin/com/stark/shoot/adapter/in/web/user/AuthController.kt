@@ -1,8 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.user
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.user.LoginRequest
-import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
+import com.stark.shoot.application.dto.user.LoginRequest
+import com.stark.shoot.application.dto.user.LoginResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
 import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase

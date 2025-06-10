@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.user.token
 
-import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
+import com.stark.shoot.application.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.token.RefreshTokenUseCase
 import com.stark.shoot.application.port.out.user.token.RefreshTokenPort
 import com.stark.shoot.infrastructure.annotation.UseCase

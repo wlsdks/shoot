@@ -110,24 +110,6 @@ data class ChatRoom(
                 createdAt = Instant.now()
             )
         }
-
-        /**
-         * 기존 채팅방 목록에서 두 사용자 간의 1:1 채팅방 찾기
-         *
-         * @param chatRooms 검색할 채팅방 목록
-         * @param userId 사용자 ID
-         * @param friendId 친구 ID
-         * @return 찾은 채팅방 또는 null
-         */
-        fun findDirectChatBetween(
-            chatRooms: List<ChatRoom>,
-            userId: Long,
-            friendId: Long
-        ): ChatRoom? {
-            return chatRooms.firstOrNull { chatRoom ->
-                chatRoom.isDirectChatBetween(userId, friendId)
-            }
-        }
     }
 
     /**

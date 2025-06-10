@@ -47,4 +47,62 @@ class ChatRoomDomainService {
         }
     }
 
+    /**
+     * 기존 채팅방 목록에서 두 사용자 간의 1:1 채팅방 찾기
+     *
+     * @param chatRooms 검색할 채팅방 목록
+     * @param userId 사용자 ID
+     * @param friendId 친구 ID
+     * @return 찾은 채팅방 또는 null
+     */
+    fun findDirectChatBetween(
+        chatRooms: List<ChatRoom>,
+        userId: Long,
+        friendId: Long
+    ): ChatRoom? {
+        return chatRooms.firstOrNull { chatRoom ->
+            chatRoom.isDirectChatBetween(userId, friendId)
+        }
+    }
+
+    /**
+     * 채팅방 제목 맵 준비
+     */
+    fun prepareChatRoomTitles(
+        chatRooms: List<ChatRoom>,
+        userId: Long
+    ): Map<Long, String> {
+        return chatRooms.associate { room ->
+            val roomId = room.id ?: 0L
+            val title = room.createChatRoomTitle(userId)
+            roomId to title
+        }
+    }
+
+    /**
+     * 마지막 메시지 맵 준비
+     */
+    fun prepareLastMessages(
+        chatRooms: List<ChatRoom>
+    ): Map<Long, String> {
+        return chatRooms.associate { room ->
+            val roomId = room.id ?: 0L
+            val lastMessage = room.createLastMessageText()
+            roomId to lastMessage
+        }
+    }
+
+    /**
+     * 타임스탬프 맵 준비
+     */
+    fun prepareTimestamps(
+        chatRooms: List<ChatRoom>
+    ): Map<Long, String> {
+        return chatRooms.associate { room ->
+            val roomId = room.id ?: 0L
+            val timestamp = room.formatTimestamp()
+            roomId to timestamp
+        }
+    }
+
 }

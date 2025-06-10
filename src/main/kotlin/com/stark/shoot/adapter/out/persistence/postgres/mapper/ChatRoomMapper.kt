@@ -2,9 +2,8 @@ package com.stark.shoot.adapter.out.persistence.postgres.mapper
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomUserEntity
-import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomType as PersistenceChatRoomType
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.ChatRoomType as DomainChatRoomType
+import com.stark.shoot.domain.chat.room.ChatRoomType
 import org.springframework.stereotype.Component
 
 @Component
@@ -24,11 +23,8 @@ class ChatRoomMapper {
             .map { it.user.id }
             .toMutableSet()
 
-        // 영속성 타입에서 도메인 타입으로 변환
-        val domainType = when (entity.type) {
-            PersistenceChatRoomType.INDIVIDUAL -> DomainChatRoomType.INDIVIDUAL
-            PersistenceChatRoomType.GROUP -> DomainChatRoomType.GROUP
-        }
+        // JPA 엔티티에서 바로 도메인 타입 사용
+        val domainType = entity.type
 
         return ChatRoom(
             id = entity.id,
@@ -48,15 +44,9 @@ class ChatRoomMapper {
     fun toEntity(domain: ChatRoom): ChatRoomEntity {
         val lastMessageIdLong: Long? = domain.lastMessageId?.toLongOrNull()
 
-        // 도메인 타입에서 영속성 타입으로 변환
-        val persistenceType = when (domain.type) {
-            DomainChatRoomType.INDIVIDUAL -> PersistenceChatRoomType.INDIVIDUAL
-            DomainChatRoomType.GROUP -> PersistenceChatRoomType.GROUP
-        }
-
         return ChatRoomEntity(
             title = domain.title,
-            type = persistenceType,
+            type = domain.type,
             announcement = domain.announcement,
             lastMessageId = lastMessageIdLong,
             lastActiveAt = domain.lastActiveAt

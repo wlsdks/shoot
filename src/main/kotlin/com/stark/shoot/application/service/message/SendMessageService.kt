@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.message
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
+import com.stark.shoot.adapter.`in`.web.dto.message.toDomain
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.domain.chat.message.type.MessageStatus
@@ -324,7 +325,7 @@ class SendMessageService(
     private fun createDomainMessage(
         requestMessage: ChatMessageRequest
     ): ChatMessage {
-        return ChatMessage.fromRequest(requestMessage)
+        return requestMessage.toDomain()
     }
 
     /**

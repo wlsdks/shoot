@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.message.type.MessageType
 
 data class MessageContentDocument(
     val text: String,

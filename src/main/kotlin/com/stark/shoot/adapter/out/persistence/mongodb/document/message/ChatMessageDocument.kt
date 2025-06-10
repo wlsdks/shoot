@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.document.message
 
 import com.stark.shoot.adapter.out.persistence.mongodb.document.common.BaseMongoDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
+import com.stark.shoot.domain.chat.message.type.MessageStatus
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.index.CompoundIndexes

@@ -2,9 +2,10 @@ package com.stark.shoot.application.service.message
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
+import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
@@ -64,15 +65,22 @@ class SendMessageService(
     private fun createAndProcessDomainMessage(
         messageRequest: ChatMessageRequest
     ): ChatMessage {
-        // 도메인 서비스를 사용하여 메시지 생성 및 처리
         val messageWithPreview = messageDomainService.createAndProcessMessage(
-            messageRequest = messageRequest,
+            roomId = messageRequest.roomId,
+            senderId = messageRequest.senderId,
+            contentText = messageRequest.content.text,
+            contentType = messageRequest.content.type,
             extractUrls = { text -> extractUrlPort.extractUrls(text) },
             getCachedPreview = { url -> cacheUrlPreviewPort.getCachedUrlPreview(url) }
         )
 
         // 요청 객체에 도메인 처리 결과 반영
-        messageDomainService.updateRequestFromDomain(messageRequest, messageWithPreview)
+        val metadataDto = messageWithPreview.metadata.toRequestDto()
+        messageRequest.tempId = metadataDto.tempId
+        messageRequest.status = messageWithPreview.status
+        messageRequest.metadata.needsUrlPreview = metadataDto.needsUrlPreview
+        messageRequest.metadata.previewUrl = metadataDto.previewUrl
+        messageRequest.metadata.urlPreview = metadataDto.urlPreview
 
         return messageWithPreview
     }

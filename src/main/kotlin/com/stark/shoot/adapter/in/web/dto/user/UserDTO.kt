@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.dto.user
 
-import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.UserStatus
+import com.stark.shoot.domain.chat.user.UserStatus
 import com.stark.shoot.domain.chat.user.User
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content

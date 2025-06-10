@@ -6,8 +6,8 @@ import com.stark.shoot.adapter.`in`.web.socket.dto.ReactionDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncResponseDto
 import com.stark.shoot.adapter.`in`.web.socket.mapper.MessageSyncMapper
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.message.type.MessageStatus
+import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent

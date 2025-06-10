@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.user.profile
 
-import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.UserStatus
+import com.stark.shoot.domain.chat.user.UserStatus
 import com.stark.shoot.domain.chat.user.User
 import org.springframework.security.core.Authentication
 

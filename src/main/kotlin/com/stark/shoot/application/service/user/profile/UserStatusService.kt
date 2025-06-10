@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.user.profile
 
-import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.UserStatus
+import com.stark.shoot.domain.chat.user.UserStatus
 import com.stark.shoot.application.port.`in`.user.profile.UserStatusUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.UserUpdatePort

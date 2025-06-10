@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.dto.message
 
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.message.type.MessageStatus
+import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.UrlPreview
 import java.time.Instant
 

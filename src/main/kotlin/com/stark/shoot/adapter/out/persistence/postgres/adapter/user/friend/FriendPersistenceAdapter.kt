@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendRequestEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendshipMappingEntity
+import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.FriendRequestStatus
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
@@ -10,6 +11,7 @@ import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import java.time.Instant
 
 @Adapter
 class FriendPersistenceAdapter(
@@ -33,13 +35,21 @@ class FriendPersistenceAdapter(
         val receiver = userRepository.findById(targetUserId)
             .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId") }
 
-        // 이미 요청이 존재하는지 확인
-        if (friendRequestRepository.existsBySenderIdAndReceiverId(userId, targetUserId)) {
+        // 이미 요청이 존재하는지 확인 (대기 중 상태만)
+        if (friendRequestRepository.existsBySenderIdAndReceiverIdAndStatus(
+                userId,
+                targetUserId,
+                FriendRequestStatus.PENDING
+            )) {
             return // 이미 요청이 있으면 중복 생성하지 않음
         }
 
         // 새로운 친구 요청 생성 및 저장
-        val request = FriendRequestEntity(sender, receiver)
+        val request = FriendRequestEntity(
+            sender = sender,
+            receiver = receiver,
+            status = FriendRequestStatus.PENDING
+        )
         friendRequestRepository.save(request)
     }
 
@@ -47,16 +57,24 @@ class FriendPersistenceAdapter(
         userId: Long,
         targetUserId: Long
     ) {
-        // 친구 요청 찾기 및 삭제
-        friendRequestRepository.deleteBySenderIdAndReceiverId(userId, targetUserId)
+        // 친구 요청 상태를 취소로 변경
+        friendRequestRepository.findBySenderIdAndReceiverId(userId, targetUserId)?.let { entity ->
+            entity.status = FriendRequestStatus.CANCELLED
+            entity.respondedAt = Instant.now()
+            friendRequestRepository.save(entity)
+        }
     }
 
     override fun removeIncomingFriendRequest(
         userId: Long,
         fromUserId: Long
     ) {
-        // 이 메서드는 JPA 모델에서 removeOutgoingFriendRequest와 동일 (방향만 반대이므로 파라미터 순서만 바꿔서 호출)
-        friendRequestRepository.deleteBySenderIdAndReceiverId(fromUserId, userId)
+        // 받은 요청을 거절 상태로 변경
+        friendRequestRepository.findBySenderIdAndReceiverId(fromUserId, userId)?.let { entity ->
+            entity.status = FriendRequestStatus.REJECTED
+            entity.respondedAt = Instant.now()
+            friendRequestRepository.save(entity)
+        }
     }
 
     override fun addFriendRelation(
@@ -105,7 +123,8 @@ class FriendPersistenceAdapter(
         }
 
         // 6. 현재 데이터베이스에 저장된 받은 친구 요청 조회
-        val currentIncomingRequests = friendRequestRepository.findAllByReceiverId(user.id)
+        val currentIncomingRequests = friendRequestRepository
+            .findAllByReceiverIdAndStatus(user.id, FriendRequestStatus.PENDING)
         val currentIncomingRequestIds = currentIncomingRequests.map { it.sender.id!! }.toSet()
 
         // 7. 도메인 모델의 받은 친구 요청 ID와 비교하여 제거할 요청 파악
@@ -117,7 +136,8 @@ class FriendPersistenceAdapter(
         }
 
         // 9. 현재 데이터베이스에 저장된 보낸 친구 요청 조회
-        val currentOutgoingRequests = friendRequestRepository.findAllBySenderId(user.id)
+        val currentOutgoingRequests = friendRequestRepository
+            .findAllBySenderIdAndStatus(user.id, FriendRequestStatus.PENDING)
         val currentOutgoingRequestIds = currentOutgoingRequests.map { it.receiver.id!! }.toSet()
 
         // 10. 도메인 모델의 보낸 친구 요청 ID와 비교하여 제거할 요청 파악
@@ -177,12 +197,14 @@ class FriendPersistenceAdapter(
 
         // 4. 받은 친구 요청 로드
         val incomingRequestIds = mutableSetOf<Long>()
-        friendRequestRepository.findAllByReceiverId(userId)
+        friendRequestRepository
+            .findAllByReceiverIdAndStatus(userId, FriendRequestStatus.PENDING)
             .forEach { request -> incomingRequestIds.add(request.sender.id!!) }
 
         // 5. 보낸 친구 요청 로드
         val outgoingRequestIds = mutableSetOf<Long>()
-        friendRequestRepository.findAllBySenderId(userId)
+        friendRequestRepository
+            .findAllBySenderIdAndStatus(userId, FriendRequestStatus.PENDING)
             .forEach { request -> outgoingRequestIds.add(request.receiver.id!!) }
 
         // 6. 관계 정보를 도메인 객체에 설정

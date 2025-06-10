@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
+import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.FriendRequestStatus
 import com.stark.shoot.application.port.out.user.friend.RecommendFriendPort
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.infrastructure.annotation.Adapter
@@ -95,12 +96,14 @@ class RecommendFriendJpaAdapter(
         excludeIds.addAll(incomingFriendIds)
 
         // 보낸 친구 요청 추가
-        val outgoingRequestIds = friendRequestRepository.findAllBySenderId(userId)
+        val outgoingRequestIds = friendRequestRepository
+            .findAllBySenderIdAndStatus(userId, FriendRequestStatus.PENDING)
             .map { it.receiver.id!! }
         excludeIds.addAll(outgoingRequestIds)
 
         // 받은 친구 요청 추가
-        val incomingRequestIds = friendRequestRepository.findAllByReceiverId(userId)
+        val incomingRequestIds = friendRequestRepository
+            .findAllByReceiverIdAndStatus(userId, FriendRequestStatus.PENDING)
             .map { it.sender.id!! }
         excludeIds.addAll(incomingRequestIds)
 

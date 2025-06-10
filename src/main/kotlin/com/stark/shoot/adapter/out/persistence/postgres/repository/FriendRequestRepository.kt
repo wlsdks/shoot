@@ -1,11 +1,12 @@
 package com.stark.shoot.adapter.out.persistence.postgres.repository
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendRequestEntity
+import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.FriendRequestStatus
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface FriendRequestRepository : JpaRepository<FriendRequestEntity, Long> {
-    fun findAllBySenderId(senderId: Long): List<FriendRequestEntity>
-    fun findAllByReceiverId(receiverId: Long): List<FriendRequestEntity>
-    fun deleteBySenderIdAndReceiverId(senderId: Long, receiverId: Long)
-    fun existsBySenderIdAndReceiverId(senderId: Long, receiverId: Long): Boolean
+    fun findAllBySenderIdAndStatus(senderId: Long, status: FriendRequestStatus): List<FriendRequestEntity>
+    fun findAllByReceiverIdAndStatus(receiverId: Long, status: FriendRequestStatus): List<FriendRequestEntity>
+    fun findBySenderIdAndReceiverId(senderId: Long, receiverId: Long): FriendRequestEntity?
+    fun existsBySenderIdAndReceiverIdAndStatus(senderId: Long, receiverId: Long, status: FriendRequestStatus): Boolean
 }

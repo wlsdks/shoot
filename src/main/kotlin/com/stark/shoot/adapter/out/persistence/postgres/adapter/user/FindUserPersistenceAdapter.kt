@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
+import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.FriendRequestStatus
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.user.User
@@ -136,12 +137,14 @@ class FindUserPersistenceAdapter(
         val user = userMapper.toDomain(userEntity)
 
         // 받은 친구 요청 조회
-        val incomingRequestIds = friendRequestRepository.findAllByReceiverId(userId)
+        val incomingRequestIds = friendRequestRepository
+            .findAllByReceiverIdAndStatus(userId, FriendRequestStatus.PENDING)
             .map { it.sender.id!! }
             .toSet()
 
         // 보낸 친구 요청 조회
-        val outgoingRequestIds = friendRequestRepository.findAllBySenderId(userId)
+        val outgoingRequestIds = friendRequestRepository
+            .findAllBySenderIdAndStatus(userId, FriendRequestStatus.PENDING)
             .map { it.receiver.id!! }
             .toSet()
 
@@ -173,12 +176,14 @@ class FindUserPersistenceAdapter(
         val allFriendIds = outgoingFriendIds.union(incomingFriendIds)
 
         // 받은 친구 요청 조회
-        val incomingRequestIds = friendRequestRepository.findAllByReceiverId(userId)
+        val incomingRequestIds = friendRequestRepository
+            .findAllByReceiverIdAndStatus(userId, FriendRequestStatus.PENDING)
             .map { it.sender.id!! }
             .toSet()
 
         // 보낸 친구 요청 조회
-        val outgoingRequestIds = friendRequestRepository.findAllBySenderId(userId)
+        val outgoingRequestIds = friendRequestRepository
+            .findAllBySenderIdAndStatus(userId, FriendRequestStatus.PENDING)
             .map { it.receiver.id!! }
             .toSet()
 
@@ -214,7 +219,11 @@ class FindUserPersistenceAdapter(
         userId: Long,
         targetId: Long
     ): Boolean {
-        return friendRequestRepository.existsBySenderIdAndReceiverId(userId, targetId)
+        return friendRequestRepository.existsBySenderIdAndReceiverIdAndStatus(
+            userId,
+            targetId,
+            FriendRequestStatus.PENDING
+        )
     }
 
     /**
@@ -224,7 +233,11 @@ class FindUserPersistenceAdapter(
         userId: Long,
         requesterId: Long
     ): Boolean {
-        return friendRequestRepository.existsBySenderIdAndReceiverId(requesterId, userId)
+        return friendRequestRepository.existsBySenderIdAndReceiverIdAndStatus(
+            requesterId,
+            userId,
+            FriendRequestStatus.PENDING
+        )
     }
 
 }

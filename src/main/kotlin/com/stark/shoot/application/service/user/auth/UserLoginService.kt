@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.user.auth
 
-import com.stark.shoot.application.dto.user.LoginRequest
-import com.stark.shoot.application.dto.user.LoginResponse
+import com.stark.shoot.adapter.`in`.web.dto.user.LoginRequest
+import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.token.RefreshTokenPort

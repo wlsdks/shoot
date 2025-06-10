@@ -26,7 +26,7 @@ class ChatRoomController(
         @RequestParam friendId: Long
     ): ResponseDto<ChatRoomResponse> {
         val room = createChatRoomUseCase.createDirectChat(userId, friendId)
-        return ResponseDto.success(ChatRoomResponse.from(room, userId), "채팅방이 생성되었습니다.")
+        return ResponseDto.success(room, "채팅방이 생성되었습니다.")
     }
 
     @Operation(summary = "사용자의 채팅방 목록 조회", description = "특정 사용자의 채팅방 전체 목록을 조회합니다.")

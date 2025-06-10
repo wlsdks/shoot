@@ -2,9 +2,10 @@ package com.stark.shoot.adapter.`in`.web.dto.chatroom
 
 import com.stark.shoot.domain.chat.room.ChatRoomType
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.infrastructure.annotation.ApplicationDto
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-
+@ApplicationDto
 data class ChatRoomResponse(
     val roomId: Long,
     val title: String,  // 1:1 채팅인 경우, 상대방의 이름이나 채팅방 제목을 담습니다.

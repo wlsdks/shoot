@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.chat.message
 
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.infrastructure.enumerate.ScheduledMessageStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

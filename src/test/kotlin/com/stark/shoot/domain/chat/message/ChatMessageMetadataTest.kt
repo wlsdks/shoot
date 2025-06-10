@@ -1,6 +1,8 @@
 package com.stark.shoot.domain.chat.message
 
 import org.assertj.core.api.Assertions.assertThat
+import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
+import com.stark.shoot.adapter.`in`.web.dto.message.toResponseDto
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -188,7 +190,7 @@ class ChatMessageMetadataTest {
             )
 
             // when
-            val responseDto = metadata.toMessageMetadataResponseDto()
+            val responseDto = metadata.toResponseDto()
 
             // then
             assertThat(responseDto.tempId).isEqualTo(tempId)

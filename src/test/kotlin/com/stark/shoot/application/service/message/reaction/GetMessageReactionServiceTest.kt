@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.*
 import org.bson.types.ObjectId
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.message.type.MessageStatus
+import com.stark.shoot.domain.chat.message.type.MessageType
 
 @DisplayName("메시지 리액션 조회 서비스 테스트")
 class GetMessageReactionServiceTest {

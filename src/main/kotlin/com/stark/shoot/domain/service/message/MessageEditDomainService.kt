@@ -31,7 +31,7 @@ class MessageEditDomainService {
         }
 
         // 메시지 타입 확인 (TEXT 타입만 수정 가능)
-        if (message.content.type != com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType.TEXT) {
+        if (message.content.type != com.stark.shoot.domain.chat.message.type.MessageType.TEXT) {
             return EditabilityResult(false, "텍스트 타입의 메시지만 수정할 수 있습니다.")
         }
 

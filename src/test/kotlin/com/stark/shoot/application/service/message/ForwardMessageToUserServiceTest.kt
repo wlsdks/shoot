@@ -4,8 +4,8 @@ import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.message.ForwardMessageUseCase
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.message.type.MessageStatus
+import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomType
 import org.assertj.core.api.Assertions.assertThat

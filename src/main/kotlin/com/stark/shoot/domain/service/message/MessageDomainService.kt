@@ -1,6 +1,5 @@
 package com.stark.shoot.domain.service.message
 
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -24,17 +23,20 @@ class MessageDomainService {
      * @return 처리된 도메인 메시지 객체
      */
     fun createAndProcessMessage(
-        messageRequest: ChatMessageRequest,
+        roomId: Long,
+        senderId: Long,
+        contentText: String,
+        contentType: com.stark.shoot.domain.chat.message.type.MessageType,
         extractUrls: (String) -> List<String>,
         getCachedPreview: (String) -> UrlPreview?
     ): ChatMessage {
         // 1. 도메인 객체 생성
         val tempId = UUID.randomUUID().toString()
         val chatMessage = ChatMessage.create(
-            roomId = messageRequest.roomId,
-            senderId = messageRequest.senderId,
-            text = messageRequest.content.text,
-            type = messageRequest.content.type,
+            roomId = roomId,
+            senderId = senderId,
+            text = contentText,
+            type = contentType,
             tempId = tempId
         )
 
@@ -56,23 +58,4 @@ class MessageDomainService {
         return ChatEvent.fromMessage(chatMessage, EventType.MESSAGE_CREATED)
     }
 
-    /**
-     * 도메인 메시지 객체로부터 메시지 요청 DTO를 업데이트합니다.
-     *
-     * @param request 메시지 요청 DTO
-     * @param domainMessage 도메인 메시지 객체
-     */
-    fun updateRequestFromDomain(request: ChatMessageRequest, domainMessage: ChatMessage) {
-        // 임시 ID 설정
-        request.tempId = domainMessage.metadata.tempId
-
-        // 상태 설정
-        request.status = domainMessage.status
-
-        // URL 미리보기 정보 설정 - 도메인 메타데이터를 DTO에 매핑
-        val metadataDto = domainMessage.metadata.toRequestDto()
-        request.metadata.needsUrlPreview = metadataDto.needsUrlPreview
-        request.metadata.previewUrl = metadataDto.previewUrl
-        request.metadata.urlPreview = metadataDto.urlPreview
-    }
 }

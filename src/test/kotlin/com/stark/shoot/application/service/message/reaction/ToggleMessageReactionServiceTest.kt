@@ -1,8 +1,8 @@
 package com.stark.shoot.application.service.message.reaction
 
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionResponse
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.message.type.MessageStatus
+import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort

@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.chat.user
 
-import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.UserStatus
+import com.stark.shoot.domain.chat.user.UserStatus
 import com.stark.shoot.domain.exception.InvalidUserDataException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

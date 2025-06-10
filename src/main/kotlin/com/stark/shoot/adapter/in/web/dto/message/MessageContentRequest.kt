@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.`in`.web.dto.message
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.message.type.MessageType
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MessageContentRequest @JsonCreator constructor(

@@ -1,8 +1,7 @@
 package com.stark.shoot.domain.chat.message
 
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageType
+import com.stark.shoot.domain.chat.message.type.MessageStatus
+import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.reaction.MessageReactions
 import com.stark.shoot.domain.chat.reaction.ReactionType
 import java.time.Instant
@@ -336,39 +335,6 @@ data class ChatMessage(
             }
         }
 
-        /**
-         * ChatMessageRequest로부터 ChatMessage 객체를 생성합니다.
-         *
-         * @param request ChatMessageRequest
-         * @return ChatMessage
-         */
-        fun fromRequest(request: ChatMessageRequest): ChatMessage {
-            val content = MessageContent(
-                text = request.content.text,
-                type = request.content.type,
-                isEdited = request.content.isEdited,
-                isDeleted = request.content.isDeleted,
-                attachments = emptyList() // Attachments are handled separately
-            )
-
-            val metadata = ChatMessageMetadata(
-                tempId = request.metadata.tempId,
-                needsUrlPreview = request.metadata.needsUrlPreview,
-                previewUrl = request.metadata.previewUrl,
-                urlPreview = request.metadata.urlPreview,
-                readAt = request.metadata.readAt
-            )
-
-            return ChatMessage(
-                id = request.id,
-                roomId = request.roomId,
-                senderId = request.senderId,
-                content = content,
-                status = request.status ?: MessageStatus.SAVED,
-                readBy = request.readBy?.mapKeys { it.key.toLong() }?.toMutableMap() ?: mutableMapOf(),
-                metadata = metadata
-            )
-        }
     }
 
 }

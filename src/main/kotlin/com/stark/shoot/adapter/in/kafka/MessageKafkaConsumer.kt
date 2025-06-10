@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.`in`.kafka
 
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.type.MessageStatus
+import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort

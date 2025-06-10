@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.out.persistence.postgres.entity
 
 import jakarta.persistence.*
-import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.FriendRequestStatus
+import com.stark.shoot.domain.chat.user.FriendRequestStatus
 import java.time.Instant
 
 // 친구 요청 정보를 따로 관리하여, 보낸 요청과 받은 요청을 모두 처리할 수 있습니다.

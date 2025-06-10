@@ -3,12 +3,14 @@ package com.stark.shoot.adapter.`in`.web.dto.message
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.UrlPreview
+import com.stark.shoot.infrastructure.annotation.ApplicationDto
 import java.time.Instant
 
 /**
  * 메시지 응답 DTO
  * API 응답으로 사용되는 메시지 데이터 객체
  */
+@ApplicationDto
 data class MessageResponseDto(
     val id: String,
     val roomId: Long,
@@ -29,6 +31,7 @@ data class MessageResponseDto(
 /**
  * 메시지 내 실제 컨텐츠 객체 DTO
  */
+@ApplicationDto
 data class MessageContentResponseDto(
     val text: String,
     val type: MessageType,
@@ -41,6 +44,7 @@ data class MessageContentResponseDto(
 /**
  * 메시지 내 실제 컨텐츠 객체 DTO
  */
+@ApplicationDto
 data class MessageMetadataResponseDto(
     val tempId: String? = null,
     val needsUrlPreview: Boolean = false,
@@ -52,6 +56,7 @@ data class MessageMetadataResponseDto(
 /**
  * 첨부파일 DTO
  */
+@ApplicationDto
 data class AttachmentDto(
     val id: String,
     val filename: String,
@@ -64,6 +69,7 @@ data class AttachmentDto(
 /**
  * URL 프리뷰 DTO
  */
+@ApplicationDto
 data class UrlPreviewDto(
     val url: String,
     val title: String?,

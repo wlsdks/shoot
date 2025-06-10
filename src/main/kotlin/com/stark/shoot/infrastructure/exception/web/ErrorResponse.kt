@@ -1,7 +1,9 @@
 package com.stark.shoot.infrastructure.exception.web
 
 import java.time.Instant
+import com.stark.shoot.infrastructure.annotation.ApplicationDto
 
+@ApplicationDto
 data class ErrorResponse(
     val status: Int,
     val message: String,

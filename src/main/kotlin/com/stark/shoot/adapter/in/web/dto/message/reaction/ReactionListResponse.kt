@@ -1,5 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.dto.message.reaction
 
+import com.stark.shoot.infrastructure.annotation.ApplicationDto
+
+@ApplicationDto
 data class ReactionListResponse(
     val messageId: String,
     val reactions: List<ReactionInfoDto>

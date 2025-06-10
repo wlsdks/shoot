@@ -1,7 +1,9 @@
 package com.stark.shoot.adapter.`in`.web.dto.message.pin
 
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.infrastructure.annotation.ApplicationDto
 
+@ApplicationDto
 data class PinnedMessagesResponse(
     val roomId: Long,
     val pinnedMessages: List<PinnedMessageItem>

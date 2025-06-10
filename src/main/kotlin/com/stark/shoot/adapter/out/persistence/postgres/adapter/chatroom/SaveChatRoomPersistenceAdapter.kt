@@ -1,14 +1,13 @@
 package com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomUserEntity
-import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomType as PersistenceChatRoomType
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.ChatRoomType as DomainChatRoomType
+import com.stark.shoot.domain.chat.room.ChatRoomType
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
@@ -33,16 +32,10 @@ class SaveChatRoomPersistenceAdapter(
                 IllegalStateException("채팅방을 찾을 수 없습니다. id=${chatRoom.id}")
             }
 
-            // 도메인 타입에서 영속성 타입으로 변환
-            val persistenceType = when (chatRoom.type) {
-                DomainChatRoomType.INDIVIDUAL -> PersistenceChatRoomType.INDIVIDUAL
-                DomainChatRoomType.GROUP -> PersistenceChatRoomType.GROUP
-            }
-
             // 업데이트된 도메인 객체를 사용하여 엔티티 업데이트
             existingEntity.update(
                 title = chatRoom.title,
-                type = persistenceType,
+                type = chatRoom.type,
                 announcement = chatRoom.announcement,
                 lastMessageId = chatRoom.lastMessageId?.toLongOrNull(),
                 lastActiveAt = chatRoom.lastActiveAt
@@ -75,10 +68,7 @@ class SaveChatRoomPersistenceAdapter(
         val existingChatRoom = ChatRoom(
             id = savedChatRoomEntity.id,
             title = savedChatRoomEntity.title,
-            type = when (savedChatRoomEntity.type) {
-                PersistenceChatRoomType.INDIVIDUAL -> DomainChatRoomType.INDIVIDUAL
-                PersistenceChatRoomType.GROUP -> DomainChatRoomType.GROUP
-            },
+            type = savedChatRoomEntity.type,
             participants = currentParticipantIds.toMutableSet(),
             pinnedParticipants = existingParticipants.filter { it.value.isPinned }.keys.toMutableSet()
         )

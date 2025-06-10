@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.out.persistence.postgres.entity
 
-import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomType
+import com.stark.shoot.domain.chat.room.ChatRoomType
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated

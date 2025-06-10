@@ -17,7 +17,6 @@ data class CreateUserRequest(
     val profileImage: MultipartFile? = null
 )
 
-data class LoginRequest(val username: String, val password: String)
 data class UpdateProfileRequest(val nickname: String?, val profileImageUrl: String?, val backgroundImageUrl: String?, val bio: String?)
 data class SetProfileImageRequest(val profileImageUrl: String)
 data class SetBackgroundImageRequest(val backgroundImageUrl: String)
@@ -29,11 +28,6 @@ data class UpdateStatusRequest(
     val status: UserStatus
 )
 
-data class LoginResponse(
-    val userId: String,
-    val accessToken: String,
-    val refreshToken: String
-)
 
 data class UserResponse(
     val id: String,

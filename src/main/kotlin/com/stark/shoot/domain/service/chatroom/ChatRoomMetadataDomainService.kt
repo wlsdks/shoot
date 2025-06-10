@@ -2,14 +2,12 @@ package com.stark.shoot.domain.service.chatroom
 
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.room.ChatRoom
-import org.springframework.stereotype.Service
 import java.time.Instant
 
 /**
  * 채팅방 메타데이터 관련 도메인 서비스
  * 채팅방의 메타데이터(마지막 메시지, 활동 시간 등) 업데이트를 담당합니다.
  */
-@Service
 class ChatRoomMetadataDomainService {
 
     /**

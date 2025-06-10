@@ -1,7 +1,6 @@
 package com.stark.shoot.domain.chat.room.service
 
 import com.stark.shoot.domain.chat.room.ChatRoom
-import org.springframework.stereotype.Service
 
 /**
  * 채팅방 도메인 서비스
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Service
  * 채팅방 도메인 모델에 대한 비즈니스 로직을 처리하는 서비스입니다.
  * 단일 채팅방 엔티티로 처리할 수 없는 복잡한 도메인 로직을 담당합니다.
  */
-@Service
 class ChatRoomDomainService {
 
     /**

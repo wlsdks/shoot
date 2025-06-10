@@ -2,7 +2,6 @@ package com.stark.shoot.domain.service.message
 
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.service.chatroom.EditabilityResult
-import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
 
@@ -10,7 +9,6 @@ import java.time.Instant
  * 메시지 편집 관련 도메인 서비스
  * 메시지 편집 가능 여부 확인 및 편집 처리를 담당합니다.
  */
-@Service
 class MessageEditDomainService {
 
     companion object {

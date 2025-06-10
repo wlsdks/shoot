@@ -4,14 +4,12 @@ import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.UrlPreview
-import org.springframework.stereotype.Service
 import java.util.*
 
 /**
  * 메시지 관련 도메인 서비스
  * 메시지 생성, 처리, 이벤트 생성 등의 도메인 로직을 담당합니다.
  */
-@Service
 class MessageDomainService {
 
     /**

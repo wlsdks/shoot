@@ -2,13 +2,11 @@ package com.stark.shoot.domain.service.message
 
 import com.stark.shoot.domain.chat.event.MessagePinEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
-import org.springframework.stereotype.Service
 
 /**
  * 메시지 고정 관련 도메인 서비스
  * 메시지 고정/해제 시 필요한 도메인 이벤트를 생성합니다.
  */
-@Service
 class MessagePinDomainService {
 
     /**

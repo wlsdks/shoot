@@ -2,13 +2,11 @@ package com.stark.shoot.domain.service.user
 
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import com.stark.shoot.domain.chat.user.User
-import org.springframework.stereotype.Service
 
 /**
  * 친구 관련 도메인 서비스
  * 친구 요청, 수락, 거절 등의 도메인 로직을 담당합니다.
  */
-@Service
 class FriendDomainService {
 
     /**

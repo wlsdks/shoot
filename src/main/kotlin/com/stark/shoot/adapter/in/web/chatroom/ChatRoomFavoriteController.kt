@@ -29,7 +29,7 @@ class ChatRoomFavoriteController(
     ): ResponseDto<ChatRoomResponse> {
         val updatedRoom = updateFavoriteUseCase.updateFavoriteStatus(roomId, userId, isFavorite)
         val message = if (isFavorite) "채팅방이 즐겨찾기에 추가되었습니다." else "채팅방이 즐겨찾기에서 제거되었습니다."
-        return ResponseDto.success(ChatRoomResponse.from(updatedRoom, userId), message)
+        return ResponseDto.success(updatedRoom, message)
     }
 
 }

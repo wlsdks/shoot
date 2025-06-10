@@ -5,6 +5,7 @@ import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.service.ChatRoomDomainService
 import com.stark.shoot.domain.chat.user.User
@@ -27,13 +28,13 @@ class CreateChatRoomService(
     /**
      * @param userId 사용자 ID
      * @param friendId 친구 ID
-     * @return ChatRoom 채팅방
+     * @return ChatRoomResponse 생성된 채팅방 정보
      * @apiNote 1:1 채팅방 생성
      */
     override fun createDirectChat(
         userId: Long,
         friendId: Long
-    ): ChatRoom {
+    ): ChatRoomResponse {
         // 1. 사용자와 친구가 존재하는지 확인
         val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
@@ -46,7 +47,7 @@ class CreateChatRoomService(
         val existingRoom = chatRoomDomainService.findDirectChatBetween(existingRooms, userId, friendId)
 
         // 이미 존재하는 채팅방이 있으면 반환
-        if (existingRoom != null) return existingRoom
+        if (existingRoom != null) return ChatRoomResponse.from(existingRoom, userId)
 
         // 3. 새 1:1 채팅방 생성 및 저장
         val savedRoom = registerNewDirectChatRoom(userId, friendId, friend)
@@ -54,7 +55,7 @@ class CreateChatRoomService(
         // 4. 채팅방 생성 이벤트 발행
         publishChatRoomCreatedEvent(savedRoom)
 
-        return savedRoom
+        return ChatRoomResponse.from(savedRoom, userId)
     }
 
     private fun publishChatRoomCreatedEvent(savedRoom: ChatRoom) {

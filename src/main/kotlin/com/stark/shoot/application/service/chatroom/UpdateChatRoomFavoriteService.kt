@@ -4,6 +4,7 @@ import com.stark.shoot.application.port.`in`.chatroom.UpdateChatRoomFavoriteUseC
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.LoadPinnedRoomsPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
+import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -24,7 +25,7 @@ class UpdateChatRoomFavoriteService(
         roomId: Long,
         userId: Long,
         isFavorite: Boolean
-    ): ChatRoom {
+    ): ChatRoomResponse {
         // 채팅방 조회 (도메인 객체로 반환)
         val chatRoom: ChatRoom = loadChatRoomPort.findById(roomId)
             ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. id=$roomId")
@@ -39,6 +40,7 @@ class UpdateChatRoomFavoriteService(
             userPinnedRoomsCount = pinnedRooms.size
         )
 
-        return saveChatRoomPort.save(updatedChatRoom)
+        val saved = saveChatRoomPort.save(updatedChatRoom)
+        return ChatRoomResponse.from(saved, userId)
     }
 }

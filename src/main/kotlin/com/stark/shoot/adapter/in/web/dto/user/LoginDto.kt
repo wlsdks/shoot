@@ -1,4 +1,6 @@
-package com.stark.shoot.application.dto.user
+package com.stark.shoot.adapter.`in`.web.dto.user
+
+import com.stark.shoot.infrastructure.annotation.ApplicationDto
 
 /**
  * 사용자 로그인 요청
@@ -11,6 +13,7 @@ data class LoginRequest(
 /**
  * 로그인 응답
  */
+@ApplicationDto
 data class LoginResponse(
     val userId: String,
     val accessToken: String,

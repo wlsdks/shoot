@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.notification
 
+import com.stark.shoot.domain.exception.NotificationException
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue

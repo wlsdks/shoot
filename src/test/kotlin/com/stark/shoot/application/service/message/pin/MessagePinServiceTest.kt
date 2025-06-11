@@ -9,6 +9,7 @@ import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.PinMessageResult
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
+import com.stark.shoot.domain.service.message.MessagePinDomainService
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import org.assertj.core.api.Assertions.assertThat
@@ -29,12 +30,14 @@ class MessagePinServiceTest {
         val saveMessagePort = mock(SaveMessagePort::class.java)
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
         val eventPublisher = mock(EventPublisher::class.java)
+        val messagePinDomainService = mock(MessagePinDomainService::class.java)
 
         val messagePinService = MessagePinService(
             loadMessagePort,
             saveMessagePort,
             webSocketMessageBroker,
-            eventPublisher
+            eventPublisher,
+            messagePinDomainService
         )
 
         val messageId = "5f9f1b9b9c9d1b9b9c9d1b9b"
@@ -62,12 +65,14 @@ class MessagePinServiceTest {
         val saveMessagePort = mock(SaveMessagePort::class.java)
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
         val eventPublisher = mock(EventPublisher::class.java)
+        val messagePinDomainService = mock(MessagePinDomainService::class.java)
 
         val messagePinService = MessagePinService(
             loadMessagePort,
             saveMessagePort,
             webSocketMessageBroker,
-            eventPublisher
+            eventPublisher,
+            messagePinDomainService
         )
 
         val messageId = "5f9f1b9b9c9d1b9b9c9d1b9b"
@@ -109,12 +114,14 @@ class MessagePinServiceTest {
         val saveMessagePort = mock(SaveMessagePort::class.java)
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
         val eventPublisher = mock(EventPublisher::class.java)
+        val messagePinDomainService = mock(MessagePinDomainService::class.java)
 
         val messagePinService = MessagePinService(
             loadMessagePort,
             saveMessagePort,
             webSocketMessageBroker,
-            eventPublisher
+            eventPublisher,
+            messagePinDomainService
         )
 
         val messageId = "5f9f1b9b9c9d1b9b9c9d1b9b"

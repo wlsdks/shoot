@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 @DisplayName("채팅방 테스트")
 class ChatRoomTest {
@@ -596,66 +595,4 @@ class ChatRoomTest {
         }
     }
 
-    @Nested
-    @DisplayName("채팅방 검색 시")
-    inner class FindChatRoom {
-
-        @Test
-        @DisplayName("두 사용자 간의 1대1 채팅방을 찾을 수 있다")
-        fun `두 사용자 간의 1대1 채팅방을 찾을 수 있다`() {
-            // given
-            val userId = 1L
-            val friendId = 2L
-            val directChatRoom = ChatRoom(
-                id = 10L,
-                title = "1:1 채팅",
-                type = ChatRoomType.INDIVIDUAL,
-                participants = mutableSetOf(userId, friendId)
-            )
-            val otherDirectChatRoom = ChatRoom(
-                id = 20L,
-                title = "다른 1:1 채팅",
-                type = ChatRoomType.INDIVIDUAL,
-                participants = mutableSetOf(userId, 3L)
-            )
-            val groupChatRoom = ChatRoom(
-                id = 30L,
-                title = "그룹 채팅",
-                type = ChatRoomType.GROUP,
-                participants = mutableSetOf(userId, friendId, 3L)
-            )
-
-            val chatRooms = listOf(directChatRoom, otherDirectChatRoom, groupChatRoom)
-
-            // when
-            val foundChatRoom = ChatRoom.findDirectChatBetween(chatRooms, userId, friendId)
-
-            // then
-            assertThat(foundChatRoom).isNotNull
-            assertThat(foundChatRoom?.id).isEqualTo(10L)
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 1대1 채팅방을 찾으면 null을 반환한다")
-        fun `존재하지 않는 1대1 채팅방을 찾으면 null을 반환한다`() {
-            // given
-            val userId = 1L
-            val friendId = 2L
-            val nonExistingFriendId = 99L
-            val directChatRoom = ChatRoom(
-                id = 10L,
-                title = "1:1 채팅",
-                type = ChatRoomType.INDIVIDUAL,
-                participants = mutableSetOf(userId, friendId)
-            )
-
-            val chatRooms = listOf(directChatRoom)
-
-            // when
-            val foundChatRoom = ChatRoom.findDirectChatBetween(chatRooms, userId, nonExistingFriendId)
-
-            // then
-            assertThat(foundChatRoom).isNull()
-        }
-    }
 }

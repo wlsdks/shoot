@@ -20,7 +20,7 @@ class MessageDomainServiceTest {
             contentText = "check https://example.com",
             contentType = MessageType.TEXT,
             extractUrls = { listOf("https://example.com") },
-            getCachedPreview = { UrlPreview(it, "Example", "desc") }
+            getCachedPreview = { UrlPreview(it, "Example", "desc", "") }
         )
 
         assertThat(result.content.text).contains("check")

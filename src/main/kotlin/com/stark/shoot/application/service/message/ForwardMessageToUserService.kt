@@ -28,7 +28,8 @@ class ForwardMessageToUserService(
             friendId = targetUserId
         )
 
-        val roomId = chatRoom.roomId
+        val roomId = chatRoom.roomId.takeIf { it > 0 }
+            ?: throw IllegalStateException("채팅방 ID가 null입니다.")
 
         // 2. 해당 채팅방으로 메시지 전달
         return forwardMessageUseCase.forwardMessage(

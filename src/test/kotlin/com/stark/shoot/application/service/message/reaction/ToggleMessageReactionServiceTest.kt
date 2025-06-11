@@ -12,6 +12,7 @@ import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.ReactionToggleResult
 import com.stark.shoot.domain.chat.reaction.MessageReactions
 import com.stark.shoot.domain.chat.reaction.ReactionType
+import com.stark.shoot.domain.service.message.MessageReactionService
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
@@ -31,12 +32,14 @@ class ToggleMessageReactionServiceTest {
     private val saveMessagePort = mock(SaveMessagePort::class.java)
     private val messagingTemplate = mock(SimpMessagingTemplate::class.java)
     private val eventPublisher = mock(EventPublisher::class.java)
+    private val messageReactionService = mock(MessageReactionService::class.java)
     
     private val toggleMessageReactionService = ToggleMessageReactionService(
         loadMessagePort,
         saveMessagePort,
         messagingTemplate,
-        eventPublisher
+        eventPublisher,
+        messageReactionService
     )
 
     @Nested

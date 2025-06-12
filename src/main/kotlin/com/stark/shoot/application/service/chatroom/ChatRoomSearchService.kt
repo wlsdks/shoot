@@ -3,15 +3,15 @@ package com.stark.shoot.application.service.chatroom
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.ChatRoomSearchUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
-import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.adapter.`in`.web.mapper.ChatRoomResponseMapper
+import com.stark.shoot.domain.chat.room.service.ChatRoomDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
-import org.bson.types.ObjectId
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @UseCase
 class ChatRoomSearchService(
     private val loadChatRoomPort: LoadChatRoomPort,
+    private val chatRoomDomainService: ChatRoomDomainService,
+    private val chatRoomResponseMapper: ChatRoomResponseMapper,
 ) : ChatRoomSearchUseCase {
 
     /**
@@ -32,12 +32,16 @@ class ChatRoomSearchService(
         // 사용자가 참여한 채팅방 목록을 조회
         val chatRooms = loadChatRoomPort.findByParticipantId(userId)
 
-        // Instant를 ZonedDateTime으로 변환하여 포맷 (예: "오후 3:15")
-        val formatter = DateTimeFormatter.ofPattern("a h:mm")
-        val zoneId = ZoneId.systemDefault()
+        // 필터링된 채팅방 목록
+        val filteredRooms = chatRoomDomainService.filterChatRooms(chatRooms, query, type, unreadOnly, userId)
+
+        // 채팅방 정보 준비
+        val titles = chatRoomDomainService.prepareChatRoomTitles(filteredRooms, userId)
+        val lastMessages = chatRoomDomainService.prepareLastMessages(filteredRooms)
+        val timestamps = chatRoomDomainService.prepareTimestamps(filteredRooms)
 
         // ChatRoomResponse로 변환하여 반환
-        return listOf()
+        return chatRoomResponseMapper.toResponseList(filteredRooms, userId, titles, lastMessages, timestamps)
     }
 
 }

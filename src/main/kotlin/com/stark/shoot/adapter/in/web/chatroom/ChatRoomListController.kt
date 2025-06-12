@@ -17,6 +17,13 @@ class ChatRoomListController(
     private val findChatRoomUseCase: FindChatRoomUseCase
 ) {
 
-
+    @Operation(summary = "채팅방 목록 조회", description = "사용자가 참여 중인 채팅방 목록을 반환합니다.")
+    @GetMapping("/list")
+    fun getChatRooms(
+        @RequestParam userId: Long
+    ): ResponseDto<List<ChatRoomResponse>> {
+        val chatRooms = findChatRoomUseCase.getChatRoomsForUser(userId)
+        return ResponseDto.success(chatRooms)
+    }
 
 }

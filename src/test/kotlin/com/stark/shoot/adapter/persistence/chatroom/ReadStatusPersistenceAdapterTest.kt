@@ -26,10 +26,11 @@ class ReadStatusPersistenceAdapterTest @Autowired constructor(
     fun updateLastReadMessageId() {
         val user = userRepository.save(TestEntityFactory.createUser("user", "u1"))
         val room = chatRoomRepository.save(TestEntityFactory.createChatRoomEntity("room"))
-        val cru = chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(room, user))
+        val chatRoomUser = chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(room, user, "m1"))
 
         readStatusPersistenceAdapter.updateLastReadMessageId(room.id, user.id, "m1")
-        val updated = chatRoomUserRepository.findById(cru.id).get()
+        val updated = chatRoomUserRepository.findById(chatRoomUser.id).get()
         assertThat(updated.lastReadMessageId).isEqualTo("m1")
     }
+    
 }

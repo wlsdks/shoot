@@ -6,6 +6,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomUserRole
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomType
+import com.stark.shoot.domain.chat.user.UserStatus
 import java.time.Instant
 
 object TestEntityFactory {
@@ -13,7 +14,7 @@ object TestEntityFactory {
         return UserEntity(
             username = username,
             nickname = username,
-            status = com.stark.shoot.domain.chat.user.UserStatus.ACTIVE,
+            status = UserStatus.ONLINE,
             userCode = userCode
         )
     }
@@ -31,10 +32,11 @@ object TestEntityFactory {
     fun createChatRoomUser(
         room: ChatRoomEntity,
         user: UserEntity,
+        lastReadMessageId: String,
         isPinned: Boolean = false,
-        role: ChatRoomUserRole = ChatRoomUserRole.MEMBER
+        role: ChatRoomUserRole = ChatRoomUserRole.MEMBER,
     ): ChatRoomUserEntity {
-        return ChatRoomUserEntity(room, user, isPinned, role = role)
+        return ChatRoomUserEntity(room, user, isPinned, role = role, lastReadMessageId = lastReadMessageId)
     }
 
     fun createChatRoomDomain(

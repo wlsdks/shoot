@@ -32,8 +32,8 @@ class LoadPinnedRoomsPersistenceAdapterTest @Autowired constructor(
         val roomEntity = chatRoomRepository.save(
             TestEntityFactory.createChatRoomEntity("room", ChatRoomType.GROUP)
         )
-        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user1, isPinned = true))
-        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user2))
+        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user1, "m1", isPinned = true))
+        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user2, "m1"))
 
         val rooms = loadPinnedRoomsPersistenceAdapter.findByUserId(user1.id)
         assertThat(rooms).hasSize(1)

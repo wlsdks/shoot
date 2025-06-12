@@ -31,8 +31,8 @@ class LoadChatRoomPersistenceAdapterTest @Autowired constructor(
         val roomEntity = chatRoomRepository.save(
             TestEntityFactory.createChatRoomEntity("room", ChatRoomType.GROUP)
         )
-        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user1))
-        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user2, isPinned = true))
+        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user1, "m1"))
+        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user2, "m1", isPinned = true))
 
         val room = loadChatRoomPersistenceAdapter.findById(roomEntity.id)
         assertThat(room).isNotNull
@@ -48,8 +48,8 @@ class LoadChatRoomPersistenceAdapterTest @Autowired constructor(
         val roomEntity = chatRoomRepository.save(
             TestEntityFactory.createChatRoomEntity("room", ChatRoomType.GROUP)
         )
-        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user1))
-        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user2))
+        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user1, "m1"))
+        chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user2, "m1"))
 
         val rooms = loadChatRoomPersistenceAdapter.findByParticipantId(user1.id)
         assertThat(rooms).hasSize(1)

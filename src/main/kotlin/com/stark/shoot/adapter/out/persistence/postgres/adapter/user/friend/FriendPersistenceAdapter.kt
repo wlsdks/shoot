@@ -35,13 +35,25 @@ class FriendPersistenceAdapter(
         val receiver = userRepository.findById(targetUserId)
             .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId") }
 
-        // 이미 요청이 존재하는지 확인 (대기 중 상태만)
+        // 이미 대기 중인 요청이 존재하는지 확인
         if (friendRequestRepository.existsBySenderIdAndReceiverIdAndStatus(
                 userId,
                 targetUserId,
                 FriendRequestStatus.PENDING
             )) {
-            return // 이미 요청이 있으면 중복 생성하지 않음
+            return // 이미 대기 중인 요청이 있으면 중복 생성하지 않음
+        }
+
+        // 취소되거나 거절된 요청이 있는지 확인하고 상태를 업데이트
+        val existingRequests = friendRequestRepository.findAllBySenderIdAndReceiverId(userId, targetUserId)
+        if (existingRequests.isNotEmpty()) {
+            // 기존 요청의 상태를 PENDING으로 변경
+            for (entity in existingRequests) {
+                entity.status = FriendRequestStatus.PENDING
+                entity.respondedAt = null
+                friendRequestRepository.save(entity)
+            }
+            return
         }
 
         // 새로운 친구 요청 생성 및 저장
@@ -57,8 +69,9 @@ class FriendPersistenceAdapter(
         userId: Long,
         targetUserId: Long
     ) {
-        // 친구 요청 상태를 취소로 변경
-        friendRequestRepository.findBySenderIdAndReceiverId(userId, targetUserId)?.let { entity ->
+        // 친구 요청 상태를 취소로 변경 (중복된 요청이 있을 수 있으므로 모두 처리)
+        val requests = friendRequestRepository.findAllBySenderIdAndReceiverId(userId, targetUserId)
+        for (entity in requests) {
             entity.status = FriendRequestStatus.CANCELLED
             entity.respondedAt = Instant.now()
             friendRequestRepository.save(entity)
@@ -69,8 +82,9 @@ class FriendPersistenceAdapter(
         userId: Long,
         fromUserId: Long
     ) {
-        // 받은 요청을 거절 상태로 변경
-        friendRequestRepository.findBySenderIdAndReceiverId(fromUserId, userId)?.let { entity ->
+        // 받은 요청을 거절 상태로 변경 (중복된 요청이 있을 수 있으므로 모두 처리)
+        val requests = friendRequestRepository.findAllBySenderIdAndReceiverId(fromUserId, userId)
+        for (entity in requests) {
             entity.status = FriendRequestStatus.REJECTED
             entity.respondedAt = Instant.now()
             friendRequestRepository.save(entity)

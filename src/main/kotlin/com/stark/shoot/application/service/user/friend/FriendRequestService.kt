@@ -91,8 +91,8 @@ class FriendRequestService(
         updateFriendPort.updateFriends(result.updatedCurrentUser)
         updateFriendPort.updateFriends(result.updatedRequester)
 
-        // 실제 친구 요청 데이터 삭제
-        updateFriendPort.removeOutgoingFriendRequest(currentUserId, targetUserId)
+        // 실제 친구 요청 데이터 삭제 - 중복 상태 변경 방지
+        // updateFriendPort.removeOutgoingFriendRequest(currentUserId, targetUserId)
 
         // 캐시 무효화 (FriendCacheManager 사용)
         friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)

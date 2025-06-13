@@ -17,6 +17,7 @@ data class MessageResponseDto(
     val senderId: Long,
     val content: MessageContentResponseDto,  // content 객체 구조로 변경
     val status: MessageStatus,
+    val threadId: String? = null,
     val replyToMessageId: String? = null,
     val reactions: Map<String, Set<Long>> = emptyMap(),
     val mentions: Set<Long> = emptySet(),

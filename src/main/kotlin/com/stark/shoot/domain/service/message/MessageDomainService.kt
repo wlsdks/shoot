@@ -25,6 +25,7 @@ class MessageDomainService {
         senderId: Long,
         contentText: String,
         contentType: com.stark.shoot.domain.chat.message.type.MessageType,
+        threadId: String? = null,
         extractUrls: (String) -> List<String>,
         getCachedPreview: (String) -> UrlPreview?
     ): ChatMessage {
@@ -35,7 +36,8 @@ class MessageDomainService {
             senderId = senderId,
             text = contentText,
             type = contentType,
-            tempId = tempId
+            tempId = tempId,
+            threadId = threadId
         )
 
         // 2. URL 미리보기 처리 (도메인 로직 활용)

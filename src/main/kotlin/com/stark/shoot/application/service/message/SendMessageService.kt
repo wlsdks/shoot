@@ -71,6 +71,7 @@ class SendMessageService(
             senderId = messageRequest.senderId,
             contentText = messageRequest.content.text,
             contentType = messageRequest.content.type,
+            threadId = messageRequest.threadId,
             extractUrls = { text -> extractUrlPort.extractUrls(text) },
             getCachedPreview = { url -> cacheUrlPreviewPort.getCachedUrlPreview(url) }
         )

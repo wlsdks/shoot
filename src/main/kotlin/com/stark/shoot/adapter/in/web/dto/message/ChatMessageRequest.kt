@@ -11,6 +11,7 @@ data class ChatMessageRequest(
     @JsonProperty("roomId") val roomId: Long,
     @JsonProperty("senderId") val senderId: Long,
     @JsonProperty("content") val content: MessageContentRequest,
+    @JsonProperty("threadId") val threadId: String? = null,
     @JsonProperty("status") var status: MessageStatus? = null,
     @JsonProperty("readBy") val readBy: Map<String, Boolean>? = null,
     @JsonProperty("metadata") var metadata: ChatMessageMetadataRequest = ChatMessageMetadataRequest()

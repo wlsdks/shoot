@@ -21,7 +21,7 @@ class ChatRoomUserEntity(
     @Column(name = "is_pinned")
     var isPinned: Boolean = false,
 
-    @Column(name = "last_read_message_mongodb_id", length = 24)
+    @Column(name = "last_read_message_mongodb_id", length = 64)
     var lastReadMessageId: String? = null,  // MongoDB의 ObjectId를 문자열로 저장
 
     @Column(name = "joined_at", nullable = false)

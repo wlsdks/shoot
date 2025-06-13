@@ -5,7 +5,6 @@ import com.stark.shoot.application.port.`in`.message.pin.MessagePinUseCase
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
-import com.stark.shoot.domain.chat.event.MessagePinEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.service.message.MessagePinDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase

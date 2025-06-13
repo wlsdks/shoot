@@ -1,10 +1,10 @@
 package com.stark.shoot.application.service.chatroom
 
+import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.UpdateChatRoomFavoriteUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.LoadPinnedRoomsPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
-import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException

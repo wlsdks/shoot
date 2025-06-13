@@ -82,6 +82,7 @@ Shoot 프로젝트는 DDD(Domain-Driven Design)와 헥사고날 아키텍처(Hex
 - `markAsDeleted`: 메시지 삭제 처리
 - `toggleReaction`: 메시지에 대한 반응 토글
 - `setUrlPreview`/`markNeedsUrlPreview`: URL 미리보기 처리
+- `getThreadMessages`: 스레드에 속한 메시지 조회
 
 **팩토리 메서드**:
 - `create`: 새 메시지 생성

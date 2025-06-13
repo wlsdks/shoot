@@ -23,6 +23,10 @@ interface LoadMessagePort {
     fun findByThreadId(threadId: ObjectId, limit: Int): List<ChatMessage>
     fun findByThreadIdAndBeforeId(threadId: ObjectId, lastId: ObjectId, limit: Int): List<ChatMessage>
 
+    fun findThreadRootsByRoomId(roomId: Long, limit: Int): List<ChatMessage>
+    fun findThreadRootsByRoomIdAndBeforeId(roomId: Long, lastId: ObjectId, limit: Int): List<ChatMessage>
+    fun countByThreadId(threadId: ObjectId): Long
+
     fun findByRoomIdFlow(roomId: Long, limit: Int): Flow<ChatMessage>
     fun findByRoomIdAndBeforeIdFlow(roomId: Long, messageId: ObjectId, limit: Int): Flow<ChatMessage>
     fun findByRoomIdAndAfterIdFlow(roomId: Long, messageId: ObjectId, limit: Int): Flow<ChatMessage>

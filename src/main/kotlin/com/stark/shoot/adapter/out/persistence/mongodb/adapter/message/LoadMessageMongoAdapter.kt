@@ -171,6 +171,39 @@ class LoadMessageMongoAdapter(
             .map(chatMessageMapper::toDomain)
     }
 
+    override fun findThreadRootsByRoomId(
+        roomId: Long,
+        limit: Int
+    ): List<ChatMessage> {
+        val pageable = PageRequest.of(
+            0,
+            limit,
+            Sort.by(Sort.Direction.DESC, "_id")
+        )
+
+        return chatMessageRepository.findThreadRootsByRoomId(roomId, pageable)
+            .map(chatMessageMapper::toDomain)
+    }
+
+    override fun findThreadRootsByRoomIdAndBeforeId(
+        roomId: Long,
+        lastId: ObjectId,
+        limit: Int
+    ): List<ChatMessage> {
+        val pageable = PageRequest.of(
+            0,
+            limit,
+            Sort.by(Sort.Direction.DESC, "_id")
+        )
+
+        return chatMessageRepository.findThreadRootsByRoomIdAndIdBefore(roomId, lastId, pageable)
+            .map(chatMessageMapper::toDomain)
+    }
+
+    override fun countByThreadId(threadId: ObjectId): Long {
+        return chatMessageRepository.countByThreadId(threadId)
+    }
+
     /**
      * 채팅방 ID로 메시지 조회 (Flow)
      *

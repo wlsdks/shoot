@@ -41,4 +41,16 @@ interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, Obje
         pageable: Pageable
     ): List<ChatMessageDocument>
 
+    @Query("{ 'roomId': ?0, 'threadId': null }")
+    fun findThreadRootsByRoomId(roomId: Long, pageable: Pageable = Pageable.unpaged()): List<ChatMessageDocument>
+
+    @Query("{ 'roomId': ?0, '_id': { \$lt: ?1 }, 'threadId': null }")
+    fun findThreadRootsByRoomIdAndIdBefore(
+        roomId: Long,
+        lastId: ObjectId,
+        pageable: Pageable
+    ): List<ChatMessageDocument>
+
+    fun countByThreadId(threadId: ObjectId): Long
+
 }

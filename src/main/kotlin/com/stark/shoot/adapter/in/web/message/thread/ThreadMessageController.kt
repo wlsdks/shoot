@@ -2,7 +2,9 @@ package com.stark.shoot.adapter.`in`.web.message.thread
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
+import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.`in`.message.thread.GetThreadMessagesUseCase
+import com.stark.shoot.application.port.`in`.message.thread.SendThreadMessageUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,7 +16,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/messages")
 @RestController
 class ThreadMessageController(
-    private val getThreadMessagesUseCase: GetThreadMessagesUseCase
+    private val getThreadMessagesUseCase: GetThreadMessagesUseCase,
+    private val sendThreadMessageUseCase: SendThreadMessageUseCase,
 ) {
 
     @Operation(
@@ -29,5 +32,17 @@ class ThreadMessageController(
     ): ResponseDto<List<MessageResponseDto>> {
         val messages = getThreadMessagesUseCase.getThreadMessages(threadId, lastMessageId, limit)
         return ResponseDto.success(messages)
+    }
+
+    @Operation(
+        summary = "스레드 메시지 전송",
+        description = "스레드에 새로운 메시지를 작성합니다."
+    )
+    @PostMapping("/thread")
+    fun sendThreadMessage(
+        @RequestBody request: ChatMessageRequest
+    ): ResponseDto<Void> {
+        sendThreadMessageUseCase.sendThreadMessage(request)
+        return ResponseDto.success(null)
     }
 }

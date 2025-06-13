@@ -747,6 +747,7 @@ fun scheduleMessage(
 | `/api/v1/messages/pin/{messageId}` | DELETE | 메시지 고정 해제 | 예 |
 | `/api/v1/messages/pins/{roomId}` | GET | 고정된 메시지 목록 | 예 |
 | `/api/v1/messages/thread` | GET | 스레드 메시지 조회 | 예 |
+| `/api/v1/messages/thread` | POST | 스레드 메시지 전송 | 예 |
 | `/api/v1/messages/reaction` | POST | 이모티콘 반응 추가 | 예 |
 | `/api/v1/messages/reaction` | DELETE | 이모티콘 반응 제거 | 예 |
 | `/api/v1/messages/schedule` | POST | 메시지 예약 | 예 |

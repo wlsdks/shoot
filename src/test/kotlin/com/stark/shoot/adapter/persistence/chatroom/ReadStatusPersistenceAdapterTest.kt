@@ -32,5 +32,24 @@ class ReadStatusPersistenceAdapterTest @Autowired constructor(
         val updated = chatRoomUserRepository.findById(chatRoomUser.id).get()
         assertThat(updated.lastReadMessageId).isEqualTo("m1")
     }
-    
+
+    @Test
+    @DisplayName("긴 메시지 ID(24자 초과)도 업데이트할 수 있다")
+    fun updateLongLastReadMessageId() {
+        val user = userRepository.save(TestEntityFactory.createUser("user", "u1"))
+        val room = chatRoomRepository.save(TestEntityFactory.createChatRoomEntity("room"))
+        // 초기 짧은 메시지 ID 설정
+        val initialMessageId = "short_id"
+        val chatRoomUser = chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(room, user, initialMessageId))
+
+        // 24자를 초과하는 긴 메시지 ID
+        val longMessageId = "abcdef1234567890abcdef1234567890"  // 32자
+
+        readStatusPersistenceAdapter.updateLastReadMessageId(room.id, user.id, longMessageId)
+
+        // 직접 쿼리를 통해 현재 값을 확인
+        val currentMessageId = chatRoomUserRepository.findLastReadMessageId(room.id, user.id)
+        assertThat(currentMessageId).isEqualTo(longMessageId)
+    }
+
 }

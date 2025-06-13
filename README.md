@@ -186,6 +186,7 @@ data class ChatMessage(
     val senderId: String,                       // 발신자 ID
     val content: MessageContent,                // 메시지 내용
     val status: MessageStatus,                  // 메시지 상태 (SENDING, SENT, SAVED 등)
+    val threadId: String? = null,               // 스레드 ID (루트 메시지 ID)
     val replyToMessageId: String? = null,       // 답장할 메시지 ID
     val reactions: Map<String, Set<String>> = emptyMap(),  // 이모티콘 반응들
     val mentions: Set<String> = emptySet(),               // 멘션된 사용자 ID 목록

@@ -67,6 +67,7 @@ Shoot 프로젝트는 DDD(Domain-Driven Design)와 헥사고날 아키텍처(Hex
 - id, roomId, senderId: 기본 식별자
 - content: 메시지 내용 (텍스트, 타입 등)
 - status: 메시지 상태 (SENDING, SAVED 등)
+- threadId: 스레드 ID (루트 메시지 ID)
 - messageReactions: 메시지에 대한 반응
 - mentions: 메시지 내 언급된 사용자
 - readBy: 메시지를 읽은 사용자 추적

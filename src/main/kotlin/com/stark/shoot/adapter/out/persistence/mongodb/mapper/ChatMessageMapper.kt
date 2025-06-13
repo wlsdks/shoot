@@ -22,6 +22,7 @@ class ChatMessageMapper {
             senderId = domain.senderId,
             content = toMessageContentDocument(domain.content),
             status = domain.status,
+            threadId = domain.threadId?.let { ObjectId(it) },
             replyToMessageId = domain.replyToMessageId?.let { ObjectId(it) },
             reactions = domain.reactions.mapValues { (_, userIds) ->
                 userIds.map { it }.toSet()
@@ -45,6 +46,7 @@ class ChatMessageMapper {
             senderId = document.senderId,
             content = toMessageContent(document.content),
             status = document.status,
+            threadId = document.threadId?.toString(),
             replyToMessageId = document.replyToMessageId?.toString(),
             messageReactions = MessageReactions(document.reactions.mapValues { (_, userIds) ->
                 userIds.map { it }.toSet()
@@ -150,6 +152,7 @@ class ChatMessageMapper {
                 urlPreview = message.content.metadata?.urlPreview?.let { toUrlPreviewDto(it) }
             ),
             status = message.status,
+            threadId = message.threadId,
             replyToMessageId = message.replyToMessageId,
             reactions = message.reactions,
             mentions = message.mentions,

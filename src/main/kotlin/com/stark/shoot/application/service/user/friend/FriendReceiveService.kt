@@ -46,8 +46,10 @@ class FriendReceiveService(
         )
 
         // 업데이트된 사용자 정보 저장
-        updateFriendPort.updateFriends(result.updatedCurrentUser)
-        updateFriendPort.updateFriends(result.updatedRequester)
+        updateFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
+        updateFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
+        updateFriendPort.addFriendRelation(currentUserId, requesterId)
+        updateFriendPort.addFriendRelation(requesterId, currentUserId)
 
         // 이벤트 발행
         result.events.forEach { event ->
@@ -83,8 +85,8 @@ class FriendReceiveService(
         )
 
         // 업데이트된 사용자 정보 저장
-        updateFriendPort.updateFriends(result.updatedCurrentUser)
-        updateFriendPort.updateFriends(result.updatedRequester)
+        updateFriendPort.removeIncomingFriendRequest(currentUserId, requesterId)
+        updateFriendPort.removeOutgoingFriendRequest(requesterId, currentUserId)
 
         // 캐시 무효화
         friendCacheManager.invalidateFriendshipCaches(currentUserId, requesterId)

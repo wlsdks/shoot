@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
+import com.stark.shoot.domain.service.user.FriendDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -13,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 class FriendRequestService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
-    private val friendDomainService: com.stark.shoot.domain.service.user.FriendDomainService,
+    private val friendDomainService: FriendDomainService,
     private val friendCacheManager: FriendCacheManager
 ) : FriendRequestUseCase {
 

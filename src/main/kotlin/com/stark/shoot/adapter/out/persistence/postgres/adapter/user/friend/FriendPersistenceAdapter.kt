@@ -2,12 +2,11 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendRequestEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendshipMappingEntity
-import com.stark.shoot.domain.chat.user.FriendRequestStatus
-import com.stark.shoot.adapter.out.persistence.postgres.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
+import com.stark.shoot.domain.chat.user.FriendRequestStatus
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import java.time.Instant
@@ -16,8 +15,7 @@ import java.time.Instant
 class FriendPersistenceAdapter(
     private val userRepository: UserRepository,
     private val friendRequestRepository: FriendRequestRepository,
-    private val friendshipMappingRepository: FriendshipMappingRepository,
-    private val userMapper: UserMapper
+    private val friendshipMappingRepository: FriendshipMappingRepository
 ) : UpdateFriendPort {
 
     /**
@@ -39,7 +37,8 @@ class FriendPersistenceAdapter(
                 userId,
                 targetUserId,
                 FriendRequestStatus.PENDING
-            )) {
+            )
+        ) {
             return // 이미 대기 중인 요청이 있으면 중복 생성하지 않음
         }
 

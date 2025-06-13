@@ -31,4 +31,14 @@ interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, Obje
     @Query("{ 'roomId': ?0, 'isPinned': true }")
     fun findPinnedMessagesByRoomId(roomId: Long, pageable: Pageable = Pageable.unpaged()): List<ChatMessageDocument>
 
+    @Query("{ 'threadId': ?0 }")
+    fun findByThreadId(threadId: ObjectId, pageable: Pageable = Pageable.unpaged()): List<ChatMessageDocument>
+
+    @Query("{ 'threadId': ?0, '_id': { \$lt: ?1 } }")
+    fun findByThreadIdAndIdBefore(
+        threadId: ObjectId,
+        lastId: ObjectId,
+        pageable: Pageable
+    ): List<ChatMessageDocument>
+
 }

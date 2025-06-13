@@ -20,6 +20,9 @@ interface LoadMessagePort {
     fun findUnreadByRoomId(roomId: Long, userId: Long, limit: Int = 100): List<ChatMessage>
     fun findPinnedMessagesByRoomId(roomId: Long, limit: Int): List<ChatMessage>
 
+    fun findByThreadId(threadId: ObjectId, limit: Int): List<ChatMessage>
+    fun findByThreadIdAndBeforeId(threadId: ObjectId, lastId: ObjectId, limit: Int): List<ChatMessage>
+
     fun findByRoomIdFlow(roomId: Long, limit: Int): Flow<ChatMessage>
     fun findByRoomIdAndBeforeIdFlow(roomId: Long, messageId: ObjectId, limit: Int): Flow<ChatMessage>
     fun findByRoomIdAndAfterIdFlow(roomId: Long, messageId: ObjectId, limit: Int): Flow<ChatMessage>

@@ -43,8 +43,8 @@ class FriendRemoveService(
         )
 
         // 업데이트된 사용자 정보 저장
-        updateFriendPort.updateFriends(result.updatedCurrentUser)
-        updateFriendPort.updateFriends(result.updatedFriend)
+        updateFriendPort.removeFriendRelation(userId, friendId)
+        updateFriendPort.removeFriendRelation(friendId, userId)
 
         // 캐시 무효화 (FriendCacheManager 사용)
         friendCacheManager.invalidateFriendshipCaches(userId, friendId)

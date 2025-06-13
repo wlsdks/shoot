@@ -439,4 +439,35 @@ class ChatMessageTest {
             assertThat(updatedMessage.updatedAt).isNotNull()
         }
     }
+
+    @Nested
+    @DisplayName("메시지 만료 설정 시")
+    inner class Expiration {
+
+        @Test
+        @DisplayName("만료 시간이 지나면 만료로 판단한다")
+        fun `만료 시간이 지나면 만료로 판단한다`() {
+            val expireAt = Instant.now().minusSeconds(10)
+            val message = ChatMessage.create(
+                roomId = 1L,
+                senderId = 2L,
+                text = "hi",
+                expiresAt = expireAt
+            )
+            assertThat(message.isExpired()).isTrue()
+        }
+
+        @Test
+        @DisplayName("미래의 만료 시간은 만료되지 않은 것으로 판단한다")
+        fun `미래의 만료 시간은 만료되지 않은 것으로 판단한다`() {
+            val expireAt = Instant.now().plusSeconds(60)
+            val message = ChatMessage.create(
+                roomId = 1L,
+                senderId = 2L,
+                text = "hi",
+                expiresAt = expireAt
+            )
+            assertThat(message.isExpired()).isFalse()
+        }
+    }
 }

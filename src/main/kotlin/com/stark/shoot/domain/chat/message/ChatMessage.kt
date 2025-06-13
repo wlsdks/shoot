@@ -13,6 +13,8 @@ data class ChatMessage(
     val content: MessageContent,
     val status: MessageStatus,
     val replyToMessageId: String? = null,
+    val threadId: String? = null,
+    val expiresAt: Instant? = null,
     val messageReactions: MessageReactions = MessageReactions(),
     val mentions: Set<Long> = emptySet(),
     val createdAt: Instant? = Instant.now(),
@@ -47,6 +49,26 @@ data class ChatMessage(
             readBy = updatedReadBy,
             metadata = this.metadata.copy(readAt = Instant.now())
         )
+    }
+
+    /**
+     * 메시지가 만료되었는지 확인합니다.
+     *
+     * @param now 기준 시간 (기본값: 현재 시간)
+     * @return 만료 여부
+     */
+    fun isExpired(now: Instant = Instant.now()): Boolean {
+        return expiresAt?.isBefore(now) ?: false
+    }
+
+    /**
+     * 메시지 만료 시간을 설정합니다.
+     *
+     * @param instant 만료 시각
+     * @return 업데이트된 ChatMessage 객체
+     */
+    fun setExpiration(instant: Instant?): ChatMessage {
+        return this.copy(expiresAt = instant, updatedAt = Instant.now())
     }
 
     /**
@@ -278,7 +300,9 @@ data class ChatMessage(
             senderId: Long,
             text: String,
             type: MessageType = MessageType.TEXT,
-            tempId: String? = null
+            tempId: String? = null,
+            threadId: String? = null,
+            expiresAt: Instant? = null
         ): ChatMessage {
             val content = MessageContent(
                 text = text,
@@ -294,7 +318,9 @@ data class ChatMessage(
                 senderId = senderId,
                 content = content,
                 status = MessageStatus.SENDING,
-                metadata = metadata
+                metadata = metadata,
+                threadId = threadId,
+                expiresAt = expiresAt
             )
         }
 

@@ -11,9 +11,12 @@ class SendThreadMessageStompHandler(
     private val sendThreadMessageUseCase: SendThreadMessageUseCase,
 ) {
 
-    @Operation(summary = "스레드 메시지 전송 (WebSocket)")
+    @Operation(
+        summary = "스레드 메시지 전송 (WebSocket)"
+    )
     @MessageMapping("/thread")
     fun handleSendThreadMessage(request: ChatMessageRequest) {
         sendThreadMessageUseCase.sendThreadMessage(request)
     }
+
 }

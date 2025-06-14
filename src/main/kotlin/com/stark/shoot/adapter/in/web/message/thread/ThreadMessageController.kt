@@ -1,16 +1,13 @@
 package com.stark.shoot.adapter.`in`.web.message.thread
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.application.port.`in`.message.thread.GetThreadMessagesUseCase
 import com.stark.shoot.application.port.`in`.message.thread.SendThreadMessageUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @Tag(name = "스레드", description = "스레드 메시지 관련 API")
 @RequestMapping("/api/v1/messages")
@@ -43,6 +40,7 @@ class ThreadMessageController(
         @RequestBody request: ChatMessageRequest
     ): ResponseDto<Void> {
         sendThreadMessageUseCase.sendThreadMessage(request)
-        return ResponseDto.success(null)
+        return ResponseDto.success()
     }
+
 }

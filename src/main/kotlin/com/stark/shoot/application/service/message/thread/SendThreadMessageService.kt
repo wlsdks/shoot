@@ -23,4 +23,5 @@ class SendThreadMessageService(
 
         sendMessageUseCase.sendMessage(request)
     }
+
 }

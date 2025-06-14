@@ -19,7 +19,7 @@ class ThreadController(
 
     @Operation(
         summary = "채팅방 스레드 목록 조회",
-        description = "채팅방의 루트 메시지를 기반으로 스레드 목록을 조회합니다."
+        description = "채팅방의 루트 메시지를 기준으로 생성된 스레드의 요약 정보(답글 수)를 페이징하여 제공합니다."
     )
     @GetMapping("/threads")
     fun getThreads(
@@ -30,4 +30,5 @@ class ThreadController(
         val threads = getThreadsUseCase.getThreads(roomId, lastThreadId, limit)
         return ResponseDto.success(threads)
     }
+
 }

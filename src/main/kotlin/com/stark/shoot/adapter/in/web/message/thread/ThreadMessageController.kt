@@ -3,10 +3,10 @@ package com.stark.shoot.adapter.`in`.web.message.thread
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
-import com.stark.shoot.application.port.`in`.message.thread.GetThreadMessagesUseCase
-import com.stark.shoot.application.port.`in`.message.thread.GetThreadDetailUseCase
-import com.stark.shoot.application.port.`in`.message.thread.SendThreadMessageUseCase
 import com.stark.shoot.adapter.`in`.web.dto.message.thread.ThreadDetailDto
+import com.stark.shoot.application.port.`in`.message.thread.GetThreadDetailUseCase
+import com.stark.shoot.application.port.`in`.message.thread.GetThreadMessagesUseCase
+import com.stark.shoot.application.port.`in`.message.thread.SendThreadMessageUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
@@ -22,7 +22,10 @@ class ThreadMessageController(
 
     @Operation(
         summary = "스레드 메시지 조회",
-        description = "특정 스레드에 속한 메시지들을 조회합니다."
+        description = """
+            특정 스레드의 하위 메시지(답글)를 페이징하여 조회합니다.
+            스레드 목록에서 스크롤을 통해 추가 메시지를 가져올 때 `getThreadMessages`를 호출합니다.
+        """
     )
     @GetMapping("/thread")
     fun getThreadMessages(
@@ -36,7 +39,7 @@ class ThreadMessageController(
 
     @Operation(
         summary = "스레드 상세 조회",
-        description = "루트 메시지와 스레드 메시지를 함께 조회합니다."
+        description = "스레드를 처음 열 때 사용하며 루트 메시지와 현재까지의 답글을 함께 반환합니다."
     )
     @GetMapping("/thread/detail")
     fun getThreadDetail(
@@ -50,7 +53,7 @@ class ThreadMessageController(
 
     @Operation(
         summary = "스레드 메시지 전송",
-        description = "스레드에 새로운 메시지를 작성합니다."
+        description = "지정된 threadId의 스레드에 새 메시지를 작성합니다."
     )
     @PostMapping("/thread")
     fun sendThreadMessage(

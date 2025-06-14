@@ -763,6 +763,10 @@ fun scheduleMessage(
 | `/app/chat` | 메시지 전송 |
 | `/app/typing` | 타이핑 인디케이터 |
 | `/app/read` | 메시지 읽음 처리 |
+| `/app/thread` | 스레드 메시지 전송 |
+| `/app/thread/messages` | 스레드 메시지 조회 |
+| `/app/thread/detail` | 스레드 상세 조회 |
+| `/app/threads` | 채팅방 스레드 목록 조회 |
 | `/topic/messages/{roomId}` | 채팅방 메시지 구독 |
 | `/topic/message/status/{roomId}` | 메시지 상태 업데이트 구독 |
 | `/topic/typing/{roomId}` | 타이핑 인디케이터 구독 |

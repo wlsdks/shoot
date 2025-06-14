@@ -23,7 +23,7 @@ class MessageSyncMapper {
      * @param message ChatMessage 객체
      * @return MessageSyncInfoDto 객체
      */
-    fun toSyncInfoDto(message: ChatMessage): MessageSyncInfoDto {
+    fun toSyncInfoDto(message: ChatMessage, replyCount: Long? = null): MessageSyncInfoDto {
         logger.trace { "메시지 변환: messageId=${message.id}, senderId=${message.senderId}" }
 
         // 도메인 Attachment 객체를 ID 문자열로 변환
@@ -55,7 +55,8 @@ class MessageSyncMapper {
                 isDeleted = message.content.isDeleted
             ),
             readBy = message.readBy,
-            reactions = reactionDtos
+            reactions = reactionDtos,
+            replyCount = replyCount
         )
     }
 

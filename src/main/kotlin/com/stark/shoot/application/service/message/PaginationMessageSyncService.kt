@@ -53,7 +53,12 @@ class PaginationMessageSyncService(
                 throw e
             }
             .collect { message ->
-                emit(messageSyncMapper.toSyncInfoDto(message))
+                val replyCount = if (message.threadId == null && message.id != null) {
+                    loadMessagePort.countByThreadId(ObjectId(message.id))
+                } else {
+                    null
+                }
+                emit(messageSyncMapper.toSyncInfoDto(message, replyCount))
             }
     }
 

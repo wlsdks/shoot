@@ -114,10 +114,7 @@ class FriendReceiveService(
 
         // 도메인 서비스를 사용하여 친구 요청 유효성 검증
         try {
-            // 친구 요청이 존재하는지 확인
-            if (!currentUser.incomingFriendRequestIds.contains(requesterId)) {
-                throw IllegalArgumentException("해당 친구 요청이 존재하지 않습니다.")
-            }
+            friendDomainService.validateFriendAccept(currentUser, requesterId)
         } catch (e: IllegalArgumentException) {
             throw InvalidInputException(e.message ?: validationErrorMessage)
         }

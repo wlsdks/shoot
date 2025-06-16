@@ -1,6 +1,5 @@
 package com.stark.shoot.application.service.message
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
 import com.stark.shoot.adapter.`in`.web.dto.message.toDomain
@@ -9,6 +8,7 @@ import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
+import com.stark.shoot.application.port.out.message.PublishMessagePort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.domain.chat.event.ChatEvent
@@ -18,8 +18,6 @@ import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.data.redis.connection.stream.StreamRecords
-import org.springframework.data.redis.core.StringRedisTemplate
 import java.time.Instant
 import java.util.*
 
@@ -28,8 +26,7 @@ class SendMessageService(
     private val extractUrlPort: ExtractUrlPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
     private val kafkaMessagePublishPort: KafkaMessagePublishPort,
-    private val objectMapper: ObjectMapper,
-    private val redisTemplate: StringRedisTemplate,
+    private val publishMessagePort: PublishMessagePort,
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val applicationCoroutineScope: ApplicationCoroutineScope,
     private val messageDomainService: com.stark.shoot.domain.service.message.MessageDomainService
@@ -118,48 +115,13 @@ class SendMessageService(
      *
      * @param message 메시지 요청 DTO
      */
-    private suspend fun publishToRedisSuspend(
-        message: ChatMessageRequest
-    ) {
-        val streamKey = generateStreamKey(message.roomId)
+    private suspend fun publishToRedisSuspend(message: ChatMessageRequest) {
         try {
-            val messageId = publishToRedisStream(streamKey, message)
-            logger.debug { "Redis Stream에 메시지 발행: $streamKey, id: $messageId, tempId: ${message.tempId}" }
+            publishMessagePort.publish(message)
         } catch (e: Exception) {
             logger.error(e) { "Redis 발행 실패: ${e.message}" }
             throw e
         }
-    }
-
-    /**
-     * Redis 스트림 키를 생성합니다.
-     *
-     * @param roomId 채팅방 ID
-     * @return Redis 스트림 키
-     */
-    private fun generateStreamKey(roomId: Long): String {
-        return "stream:chat:room:$roomId"
-    }
-
-    /**
-     * Redis 스트림에 메시지를 발행합니다.
-     *
-     * @param streamKey Redis 스트림 키
-     * @param message 메시지 요청 DTO
-     * @return 발행된 메시지 ID
-     */
-    private suspend fun publishToRedisStream(streamKey: String, message: ChatMessageRequest): Any {
-        val messageJson = objectMapper.writeValueAsString(message)
-        val map = mapOf("message" to messageJson)
-
-        // StreamRecords 사용
-        val record = StreamRecords.newRecord()
-            .ofMap(map)
-            .withStreamKey(streamKey)
-
-        // Stream 추가
-        return redisTemplate.opsForStream<String, String>()
-            .add(record) ?: "unknown-id"
     }
 
     /**

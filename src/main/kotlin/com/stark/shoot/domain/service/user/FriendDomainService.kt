@@ -1,6 +1,7 @@
 package com.stark.shoot.domain.service.user
 
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
+import com.stark.shoot.domain.chat.event.FriendRemovedEvent
 import com.stark.shoot.domain.chat.user.User
 
 /**
@@ -140,9 +141,16 @@ class FriendDomainService {
         // 친구의 친구 목록에서도 현재 사용자 제거
         val updatedFriend = friend.removeFriend(currentUser.id!!)
 
+        // 이벤트 생성 (양쪽 사용자에게 친구 제거 알림)
+        val events = listOf(
+            FriendRemovedEvent.create(userId = currentUser.id!!, friendId = friendId),
+            FriendRemovedEvent.create(userId = friendId, friendId = currentUser.id!!)
+        )
+
         return FriendRemovalResult(
             updatedCurrentUser = updatedCurrentUser,
-            updatedFriend = updatedFriend
+            updatedFriend = updatedFriend,
+            events = events
         )
     }
 

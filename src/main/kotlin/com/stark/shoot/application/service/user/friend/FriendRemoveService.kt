@@ -2,13 +2,12 @@ package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendRemoveUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.friend.FriendCachePort
+import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.domain.service.user.FriendDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.transaction.annotation.Transactional
 
 @Transactional
@@ -16,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 class FriendRemoveService(
     private val findUserPort: FindUserPort,
     private val updateFriendPort: UpdateFriendPort,
+    private val eventPublisher: EventPublisher,
     private val friendDomainService: FriendDomainService,
     private val friendCacheManager: FriendCacheManager
 ) : FriendRemoveUseCase {
@@ -41,6 +41,11 @@ class FriendRemoveService(
             friend = friend,
             friendId = friendId
         )
+
+        // 이벤트 발행
+        result.events.forEach { event ->
+            eventPublisher.publish(event)
+        }
 
         // 업데이트된 사용자 정보 저장
         updateFriendPort.removeFriendRelation(userId, friendId)

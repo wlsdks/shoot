@@ -2,6 +2,7 @@ package com.stark.shoot.domain.chat.event
 
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageType
+import com.stark.shoot.domain.chat.event.FriendRemovedEvent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -34,6 +35,12 @@ class EventFactoryTest {
     fun `FriendAddedEvent create 함수는 주어진 값으로 이벤트를 생성한다`() {
         val event = FriendAddedEvent.create(1L, 2L)
         assertThat(event).isEqualTo(FriendAddedEvent(1L, 2L))
+    }
+
+    @Test
+    fun `FriendRemovedEvent create 함수는 주어진 값으로 이벤트를 생성한다`() {
+        val event = FriendRemovedEvent.create(1L, 2L)
+        assertThat(event).isEqualTo(FriendRemovedEvent(1L, 2L))
     }
 
     @Test

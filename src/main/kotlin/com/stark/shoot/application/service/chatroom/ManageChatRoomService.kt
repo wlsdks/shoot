@@ -6,6 +6,7 @@ import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.domain.service.chatroom.ChatRoomParticipantDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
@@ -16,7 +17,8 @@ class ManageChatRoomService(
     private val loadChatRoomPort: LoadChatRoomPort,
     private val saveChatRoomPort: SaveChatRoomPort,
     private val deleteChatRoomPort: DeleteChatRoomPort,
-    private val findUserPort: FindUserPort
+    private val findUserPort: FindUserPort,
+    private val participantDomainService: ChatRoomParticipantDomainService
 ) : ManageChatRoomUseCase {
 
     /**
@@ -61,9 +63,8 @@ class ManageChatRoomService(
         }
 
         return withChatRoom(roomId, "채팅방을 찾을 수 없습니다: $roomId") { chatRoom ->
-            // 참여자 추가 (도메인 객체의 메서드 사용)
-            // 도메인 메서드 내부에서 이미 참여 중인지 확인하는 로직 처리
-            val updatedChatRoom = chatRoom.addParticipant(userId)
+            // 도메인 서비스에 위임하여 참여자 추가
+            val updatedChatRoom = participantDomainService.addParticipant(chatRoom, userId)
 
             // 결과 반환 (업데이트된 채팅방과 성공 여부)
             Pair(updatedChatRoom, true)
@@ -81,23 +82,21 @@ class ManageChatRoomService(
         userId: Long
     ): Boolean {
         return withChatRoom(roomId, "채팅방을 찾을 수 없습니다.") { chatRoom ->
-            // 참여자 제거 (도메인 객체의 메서드 사용)
-            // 도메인 메서드 내부에서 참여자가 아닌 경우 처리
-            val updatedChatRoom = chatRoom.removeParticipant(userId)
+            // 도메인 서비스에 위임하여 참여자 제거 및 삭제 필요 여부 확인
+            val result = participantDomainService.removeParticipant(chatRoom, userId)
 
             // 참여자가 아니었으면 변경이 없으므로 원래 객체와 동일
-            if (updatedChatRoom === chatRoom) {
+            if (result.chatRoom === chatRoom) {
                 return@withChatRoom Pair(chatRoom, false)
             }
 
-            // 채팅방이 삭제되어야 하는지 도메인 모델에서 판단
-            if (updatedChatRoom.shouldBeDeleted()) {
-                // 저장 후 삭제 (withChatRoom 메서드가 저장을 처리함)
+            // 채팅방이 삭제 대상이면 삭제 처리
+            if (result.shouldDeleteRoom) {
                 deleteChatRoomPort.deleteById(roomId)
             }
 
             // 결과 반환 (업데이트된 채팅방과 성공 여부)
-            Pair(updatedChatRoom, true)
+            Pair(result.chatRoom, true)
         }
     }
 

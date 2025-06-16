@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.sse
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
 import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
+import com.stark.shoot.domain.chat.event.FriendRemovedEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PreDestroy
@@ -324,6 +325,25 @@ class SseEmitterService : SseEmitterUseCase {
             eventName = "friendAdded",
             data = data,
             logMessage = "Sent friendAdded event to user: $userId, friendId: ${event.friendId}"
+        )
+    }
+
+    /**
+     * 친구 삭제 이벤트 전송
+     */
+    override fun sendFriendRemovedEvent(event: FriendRemovedEvent) {
+        val userId = event.userId
+        val data = mapOf(
+            "type" to "friend_removed",
+            "friendId" to event.friendId,
+            "timestamp" to System.currentTimeMillis()
+        )
+
+        sendEvent(
+            userId = userId,
+            eventName = "friendRemoved",
+            data = data,
+            logMessage = "Sent friendRemoved event to user: $userId, friendId: ${event.friendId}"
         )
     }
 

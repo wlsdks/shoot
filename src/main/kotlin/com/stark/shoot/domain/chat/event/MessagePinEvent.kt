@@ -6,7 +6,8 @@ data class MessagePinEvent(
     val messageId: String,
     val roomId: Long,
     val isPinned: Boolean,
-    val userId: Long
+    val userId: Long,
+    override val occurredOn: Long = System.currentTimeMillis()
 ) : DomainEvent {
     companion object {
         /**

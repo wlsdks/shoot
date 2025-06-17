@@ -11,7 +11,8 @@ import com.stark.shoot.domain.common.DomainEvent
 data class ChatUnreadCountUpdatedEvent(
     val roomId: Long,
     val unreadCounts: Map<Long, Int>,
-    val lastMessage: String? = null
+    val lastMessage: String? = null,
+    override val occurredOn: Long = System.currentTimeMillis()
 ) : DomainEvent {
     companion object {
         /**

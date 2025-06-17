@@ -5,7 +5,8 @@ import com.stark.shoot.domain.common.DomainEvent
 // 새 이벤트 정의
 data class ChatRoomCreatedEvent(
     val roomId: Long,
-    val userId: Long
+    val userId: Long,
+    override val occurredOn: Long = System.currentTimeMillis()
 ) : DomainEvent {
     companion object {
         /**

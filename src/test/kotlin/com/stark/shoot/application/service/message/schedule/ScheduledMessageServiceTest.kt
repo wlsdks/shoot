@@ -13,7 +13,7 @@ import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomType
-import com.stark.shoot.infrastructure.enumerate.ScheduledMessageStatus
+import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

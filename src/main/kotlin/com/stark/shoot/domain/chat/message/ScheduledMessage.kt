@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.chat.message
 
-import com.stark.shoot.infrastructure.enumerate.ScheduledMessageStatus
+import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
 import java.time.Instant
 
 data class ScheduledMessage(

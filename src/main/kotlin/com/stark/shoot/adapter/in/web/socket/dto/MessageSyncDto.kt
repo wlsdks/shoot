@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.socket.dto
 
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
-import com.stark.shoot.infrastructure.enumerate.SyncDirection
+import com.stark.shoot.domain.chat.message.SyncDirection
 import java.time.Instant
 
 data class SyncRequestDto(

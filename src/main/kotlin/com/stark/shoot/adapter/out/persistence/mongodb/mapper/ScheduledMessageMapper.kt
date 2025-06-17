@@ -6,7 +6,7 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.Schedule
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.ScheduledMessage
-import com.stark.shoot.infrastructure.enumerate.ScheduledMessageStatus
+import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
 import com.stark.shoot.infrastructure.util.toObjectId
 import org.springframework.stereotype.Component
 

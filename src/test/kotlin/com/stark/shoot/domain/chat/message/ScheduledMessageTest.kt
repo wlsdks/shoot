@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.chat.message
 
 import com.stark.shoot.domain.chat.message.type.MessageType
-import com.stark.shoot.infrastructure.enumerate.ScheduledMessageStatus
+import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

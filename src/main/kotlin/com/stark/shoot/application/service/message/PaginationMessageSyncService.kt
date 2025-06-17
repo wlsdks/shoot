@@ -9,7 +9,7 @@ import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCa
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.enumerate.SyncDirection
+import com.stark.shoot.domain.chat.message.SyncDirection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

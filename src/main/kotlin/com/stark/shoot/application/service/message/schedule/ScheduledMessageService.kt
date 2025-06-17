@@ -14,7 +14,7 @@ import com.stark.shoot.application.port.out.message.ScheduledMessagePort
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.enumerate.ScheduledMessageStatus
+import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant

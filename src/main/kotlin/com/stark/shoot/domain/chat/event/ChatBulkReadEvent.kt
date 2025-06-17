@@ -5,7 +5,8 @@ import com.stark.shoot.domain.common.DomainEvent
 data class ChatBulkReadEvent(
     val roomId: Long,
     val messageIds: List<String>,
-    val userId: Long
+    val userId: Long,
+    override val occurredOn: Long = System.currentTimeMillis()
 ) : DomainEvent {
     companion object {
         /**

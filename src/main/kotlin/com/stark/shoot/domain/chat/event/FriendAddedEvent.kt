@@ -4,7 +4,8 @@ import com.stark.shoot.domain.common.DomainEvent
 
 data class FriendAddedEvent(
     val userId: Long,
-    val friendId: Long
+    val friendId: Long,
+    override val occurredOn: Long = System.currentTimeMillis()
 ) : DomainEvent {
     companion object {
         /**

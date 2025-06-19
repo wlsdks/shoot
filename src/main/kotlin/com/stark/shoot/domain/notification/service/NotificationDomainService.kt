@@ -1,6 +1,7 @@
 package com.stark.shoot.domain.notification.service
 
 import com.stark.shoot.domain.notification.Notification
+import com.stark.shoot.domain.notification.event.NotificationEvent
 
 /**
  * 알림 도메인 서비스
@@ -44,6 +45,20 @@ class NotificationDomainService {
         notifications: List<Notification>
     ): List<Notification> {
         return notifications.filter { !it.isRead }
+    }
+
+    /**
+     * 도메인 이벤트로부터 알림 목록을 생성합니다.
+     *
+     * @param event 알림 이벤트
+     * @return 수신자별로 생성된 알림 목록
+     */
+    fun createNotificationsFromEvent(event: NotificationEvent): List<Notification> {
+        val recipients = event.getRecipients()
+        if (recipients.isEmpty()) return emptyList()
+        return recipients.map { recipientId ->
+            Notification.fromEvent(event, recipientId)
+        }
     }
 
 }

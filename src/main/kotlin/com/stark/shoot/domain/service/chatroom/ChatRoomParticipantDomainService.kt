@@ -28,4 +28,30 @@ class ChatRoomParticipantDomainService {
         val shouldDelete = updatedRoom.shouldBeDeleted()
         return RemovalResult(updatedRoom, shouldDelete)
     }
+
+    /**
+     * 참여자 변경 정보를 적용합니다.
+     *
+     * @param chatRoom 대상 채팅방
+     * @param changes 변경 정보
+     * @param pinnedCountProvider 사용자의 핀 채팅방 수 조회 함수
+     * @return 업데이트된 채팅방
+     */
+    fun applyChanges(
+        chatRoom: ChatRoom,
+        changes: ChatRoom.ParticipantChanges,
+        pinnedCountProvider: (Long) -> Int
+    ): ChatRoom {
+        var room = chatRoom
+        if (changes.participantsToAdd.isNotEmpty()) {
+            room = room.addParticipants(changes.participantsToAdd)
+        }
+        if (changes.participantsToRemove.isNotEmpty()) {
+            room = room.removeParticipants(changes.participantsToRemove)
+        }
+        changes.pinnedStatusChanges.forEach { (userId, isPinned) ->
+            room = room.updateFavoriteStatus(userId, isPinned, pinnedCountProvider(userId))
+        }
+        return room
+    }
 }

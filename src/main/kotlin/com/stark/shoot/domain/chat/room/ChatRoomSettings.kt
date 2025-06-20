@@ -2,7 +2,7 @@ package com.stark.shoot.domain.chat.room
 
 data class ChatRoomSettings(
     val isNotificationEnabled: Boolean = true,
-    val retentionDays: Int? = null,
+    val retentionDays: RetentionDays? = null,
     val isEncrypted: Boolean = false,
     val customSettings: Map<String, Any> = emptyMap()
 ) {
@@ -27,7 +27,7 @@ data class ChatRoomSettings(
          */
         fun create(
             isNotificationEnabled: Boolean = true,
-            retentionDays: Int? = null,
+            retentionDays: RetentionDays? = null,
             isEncrypted: Boolean = false,
             customSettings: Map<String, Any> = emptyMap()
         ): ChatRoomSettings {
@@ -55,7 +55,7 @@ data class ChatRoomSettings(
      * @param days 보존할 일수 (null이면 무기한 보존)
      * @return 업데이트된 ChatRoomSettings 객체
      */
-    fun updateRetentionPolicy(days: Int?): ChatRoomSettings {
+    fun updateRetentionPolicy(days: RetentionDays?): ChatRoomSettings {
         return this.copy(retentionDays = days)
     }
 

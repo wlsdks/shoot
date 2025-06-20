@@ -227,7 +227,7 @@ class RecommendFriendService(
             .map { user ->
                 FriendResponse(
                     id = user.id ?: 0L,
-                    username = user.username,
+                    username = user.username.value,
                     nickname = user.nickname,
                     profileImageUrl = user.profileImageUrl
                 )

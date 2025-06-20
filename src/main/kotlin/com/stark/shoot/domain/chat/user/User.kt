@@ -5,10 +5,11 @@ import java.time.Instant
 
 // 값 객체
 import com.stark.shoot.domain.chat.user.UserCode
+import com.stark.shoot.domain.chat.user.Username
 
 data class User(
     val id: Long? = null,
-    var username: String,
+    var username: Username,
     var nickname: String,
     var status: UserStatus = UserStatus.OFFLINE,
     var passwordHash: String? = null,
@@ -51,13 +52,13 @@ data class User(
             bio: String? = null,
             profileImageUrl: String? = null
         ): User {
-            // 유효성 검증
-            validateUsername(username)
+            // 유효성 검증 및 값 객체 생성
+            val usernameVo = Username.from(username)
             validateNickname(nickname)
             validatePassword(rawPassword)
 
             return User(
-                username = username,
+                username = usernameVo,
                 nickname = nickname,
                 passwordHash = passwordEncoder(rawPassword),
                 userCode = UserCode.generate(),
@@ -75,20 +76,6 @@ data class User(
             return UserCode.generate()
         }
 
-        /**
-         * 사용자명 유효성 검증
-         *
-         * @param username 검증할 사용자명
-         * @throws InvalidUserDataException 유효하지 않은 사용자명
-         */
-        private fun validateUsername(username: String) {
-            if (username.isBlank()) {
-                throw InvalidUserDataException("사용자명은 비어있을 수 없습니다.")
-            }
-            if (username.length < 3 || username.length > 20) {
-                throw InvalidUserDataException("사용자명은 3-20자 사이여야 합니다.")
-            }
-        }
 
         /**
          * 닉네임 유효성 검증

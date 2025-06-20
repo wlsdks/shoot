@@ -139,7 +139,7 @@ com.stark.shoot
 ```kotlin
 data class User(
     val id: ObjectId? = null,                      // 고유 ID
-    val username: String,                          // 사용자명 (로그인용)
+    val username: Username,                        // 사용자명 (로그인용)
     val nickname: String,                          // 닉네임 (표시용)
     val status: UserStatus = UserStatus.OFFLINE,   // 상태 (ONLINE, OFFLINE, BUSY, AWAY 등)
     val profileImageUrl: String? = null,           // 프로필 이미지 URL

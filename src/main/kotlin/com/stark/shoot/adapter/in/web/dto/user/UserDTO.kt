@@ -52,7 +52,7 @@ data class UserResponse(
 // User -> UserResponse 변환 확장 함수
 fun User.toResponse() = UserResponse(
     id = id.toString(),
-    username = username,
+    username = username.value,
     nickname = nickname,
     status = status,
     profileImageUrl = profileImageUrl,

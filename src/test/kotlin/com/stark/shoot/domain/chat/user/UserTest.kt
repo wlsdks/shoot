@@ -1,6 +1,7 @@
 package com.stark.shoot.domain.chat.user
 
 import com.stark.shoot.domain.chat.user.UserStatus
+import com.stark.shoot.domain.chat.user.UserCode
 import com.stark.shoot.domain.exception.InvalidUserDataException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -39,8 +40,8 @@ class UserTest {
             assertThat(user.nickname).isEqualTo(nickname)
             assertThat(user.passwordHash).isEqualTo("encoded_$rawPassword")
             assertThat(user.status).isEqualTo(UserStatus.OFFLINE)
-            assertThat(user.userCode).isNotEmpty()
-            assertThat(user.userCode.length).isEqualTo(8)
+            assertThat(user.userCode.value).isNotEmpty()
+            assertThat(user.userCode.value.length).isEqualTo(8)
             assertThat(user.createdAt).isNotNull()
             assertThat(user.isDeleted).isFalse()
             assertThat(user.friendIds).isEmpty()
@@ -266,7 +267,7 @@ class UserTest {
                 id = 1L,
                 username = "testuser",
                 nickname = "테스트유저",
-                userCode = "ABCD1234"
+                userCode = UserCode.from("ABCD1234")
             )
             val friendId = 2L
             
@@ -286,7 +287,7 @@ class UserTest {
                 id = 1L,
                 username = "testuser",
                 nickname = "테스트유저",
-                userCode = "ABCD1234",
+                userCode = UserCode.from("ABCD1234"),
                 outgoingFriendRequestIds = setOf(2L, 3L),
                 incomingFriendRequestIds = setOf(2L, 4L)
             )
@@ -311,7 +312,7 @@ class UserTest {
                 id = 1L,
                 username = "testuser",
                 nickname = "테스트유저",
-                userCode = "ABCD1234",
+                userCode = UserCode.from("ABCD1234"),
                 incomingFriendRequestIds = setOf(2L, 3L)
             )
             val requesterId = 2L
@@ -334,7 +335,7 @@ class UserTest {
                 id = 1L,
                 username = "testuser",
                 nickname = "테스트유저",
-                userCode = "ABCD1234",
+                userCode = UserCode.from("ABCD1234"),
                 incomingFriendRequestIds = setOf(2L, 3L)
             )
             val nonExistingRequesterId = 4L
@@ -354,7 +355,7 @@ class UserTest {
                 id = 1L,
                 username = "testuser",
                 nickname = "테스트유저",
-                userCode = "ABCD1234",
+                userCode = UserCode.from("ABCD1234"),
                 incomingFriendRequestIds = setOf(2L, 3L)
             )
             val requesterId = 2L
@@ -377,7 +378,7 @@ class UserTest {
                 id = 1L,
                 username = "testuser",
                 nickname = "테스트유저",
-                userCode = "ABCD1234",
+                userCode = UserCode.from("ABCD1234"),
                 outgoingFriendRequestIds = setOf(2L, 3L)
             )
             val targetUserId = 2L
@@ -404,7 +405,7 @@ class UserTest {
                 id = 1L,
                 username = "testuser",
                 nickname = "테스트유저",
-                userCode = "ABCD1234",
+                userCode = UserCode.from("ABCD1234"),
                 status = UserStatus.ONLINE
             )
             

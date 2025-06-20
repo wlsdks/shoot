@@ -6,6 +6,7 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
+import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import org.assertj.core.api.Assertions.assertThat
@@ -36,7 +37,7 @@ class GetThreadDetailServiceTest {
         fun `루트 메시지와 스레드 메시지를 함께 조회할 수 있다`() {
             val threadId = "5f9f1b9b9c9d1b9b9c9d1b9b"
             val rootMessage = ChatMessage(
-                id = threadId,
+                id = MessageId.from(threadId),
                 roomId = 1L,
                 senderId = 2L,
                 content = MessageContent("root", MessageType.TEXT),
@@ -44,12 +45,12 @@ class GetThreadDetailServiceTest {
                 createdAt = Instant.now()
             )
             val reply = ChatMessage(
-                id = "5f9f1b9b9c9d1b9b9c9d1b9c",
+                id = MessageId.from("5f9f1b9b9c9d1b9b9c9d1b9c"),
                 roomId = 1L,
                 senderId = 3L,
                 content = MessageContent("reply", MessageType.TEXT),
                 status = MessageStatus.SAVED,
-                threadId = threadId,
+                threadId = MessageId.from(threadId),
                 createdAt = Instant.now()
             )
 

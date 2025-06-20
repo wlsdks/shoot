@@ -2,6 +2,7 @@ package com.stark.shoot.domain.chat.message
 
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
+import com.stark.shoot.domain.common.vo.MessageId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -51,7 +52,7 @@ class ScheduledMessageTest {
         @DisplayName("모든 속성으로 예약 메시지를 생성할 수 있다")
         fun `모든 속성으로 예약 메시지를 생성할 수 있다`() {
             // given
-            val id = "message123"
+            val id = MessageId.from("message123")
             val roomId = 1L
             val senderId = 2L
             val content = MessageContent(

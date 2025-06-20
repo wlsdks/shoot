@@ -4,16 +4,17 @@ import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.reaction.MessageReactions
 import com.stark.shoot.domain.chat.reaction.ReactionType
+import com.stark.shoot.domain.common.vo.MessageId
 import java.time.Instant
 
 data class ChatMessage(
-    val id: String? = null,
+    val id: MessageId? = null,
     val roomId: Long,
     val senderId: Long,
     val content: MessageContent,
     val status: MessageStatus,
-    val replyToMessageId: String? = null,
-    val threadId: String? = null,
+    val replyToMessageId: MessageId? = null,
+    val threadId: MessageId? = null,
     val expiresAt: Instant? = null,
     val messageReactions: MessageReactions = MessageReactions(),
     val mentions: Set<Long> = emptySet(),
@@ -301,7 +302,7 @@ data class ChatMessage(
             text: String,
             type: MessageType = MessageType.TEXT,
             tempId: String? = null,
-            threadId: String? = null,
+            threadId: MessageId? = null,
             expiresAt: Instant? = null
         ): ChatMessage {
             val content = MessageContent(

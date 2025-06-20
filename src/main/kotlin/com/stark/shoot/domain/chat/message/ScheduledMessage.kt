@@ -1,10 +1,11 @@
 package com.stark.shoot.domain.chat.message
 
 import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
+import com.stark.shoot.domain.common.vo.MessageId
 import java.time.Instant
 
 data class ScheduledMessage(
-    val id: String? = null,
+    val id: MessageId? = null,
     val roomId: Long,
     val senderId: Long,
     val content: MessageContent,

@@ -8,6 +8,7 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
+import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
 import org.junit.jupiter.api.DisplayName
@@ -59,7 +60,7 @@ class SendThreadMessageServiceTest {
         )
 
         val rootMessage = ChatMessage(
-            id = threadId,
+            id = MessageId.from(threadId),
             roomId = 1L,
             senderId = 3L,
             content = MessageContent("root", MessageType.TEXT),

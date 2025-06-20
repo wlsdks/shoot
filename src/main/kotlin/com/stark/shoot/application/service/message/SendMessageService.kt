@@ -14,6 +14,7 @@ import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
@@ -68,7 +69,7 @@ class SendMessageService(
             senderId = messageRequest.senderId,
             contentText = messageRequest.content.text,
             contentType = messageRequest.content.type,
-            threadId = messageRequest.threadId,
+            threadId = messageRequest.threadId?.let { MessageId.from(it) },
             extractUrls = { text -> extractUrlPort.extractUrls(text) },
             getCachedPreview = { url -> cacheUrlPreviewPort.getCachedUrlPreview(url) }
         )

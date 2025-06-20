@@ -228,7 +228,7 @@ class RecommendFriendService(
                 FriendResponse(
                     id = user.id ?: 0L,
                     username = user.username.value,
-                    nickname = user.nickname,
+                    nickname = user.nickname.value,
                     profileImageUrl = user.profileImageUrl
                 )
             }

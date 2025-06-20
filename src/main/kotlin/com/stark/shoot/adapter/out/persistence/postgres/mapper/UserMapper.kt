@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.domain.chat.user.User
 import com.stark.shoot.domain.chat.user.UserCode
 import com.stark.shoot.domain.chat.user.Username
+import com.stark.shoot.domain.chat.user.Nickname
 import org.springframework.stereotype.Component
 
 @Component
@@ -12,7 +13,7 @@ class UserMapper {
     fun toEntity(user: User): UserEntity {
         return UserEntity(
             username = user.username.value,
-            nickname = user.nickname,
+            nickname = user.nickname.value,
             status = user.status,
             userCode = user.userCode.value,
             profileImageUrl = user.profileImageUrl,
@@ -28,7 +29,7 @@ class UserMapper {
         return User(
             id = userEntity.id,
             username = Username.from(userEntity.username),
-            nickname = userEntity.nickname,
+            nickname = Nickname.from(userEntity.nickname),
             status = userEntity.status,
             profileImageUrl = userEntity.profileImageUrl,
             backgroundImageUrl = userEntity.backgroundImageUrl,

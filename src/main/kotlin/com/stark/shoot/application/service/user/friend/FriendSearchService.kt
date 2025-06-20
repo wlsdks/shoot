@@ -41,12 +41,12 @@ class FriendSearchService(
         return allUsers.filter { user ->
             user.id != null && !excludedIds.contains(user.id) &&
                     (user.username.value.contains(query, ignoreCase = true) ||
-                            user.nickname.contains(query, ignoreCase = true))
+                            user.nickname.value.contains(query, ignoreCase = true))
         }.map { user ->
             FriendResponse(
                 id = user.id ?: 0L,
                 username = user.username.value,
-                nickname = user.nickname,
+                nickname = user.nickname.value,
                 profileImageUrl = user.profileImageUrl
             )
         }

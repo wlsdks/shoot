@@ -5,6 +5,7 @@ import com.stark.shoot.application.port.out.notification.LoadNotificationPort
 import com.stark.shoot.application.port.out.notification.SaveNotificationPort
 import com.stark.shoot.domain.exception.NotificationException
 import com.stark.shoot.domain.notification.Notification
+import com.stark.shoot.domain.notification.NotificationId
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
 import com.stark.shoot.domain.notification.service.NotificationDomainService
@@ -41,7 +42,7 @@ class NotificationManagementService(
      * @throws NotificationException 알림이 해당 유저의 것이 아닌 경우
      */
     override fun markAsRead(
-        notificationId: String,
+        notificationId: NotificationId,
         userId: Long
     ): Notification {
         // 알림 조회
@@ -163,7 +164,7 @@ class NotificationManagementService(
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
     override fun deleteNotification(
-        notificationId: String,
+        notificationId: NotificationId,
         userId: Long
     ): Boolean {
         // 알림 조회

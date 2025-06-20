@@ -21,7 +21,7 @@ data class NotificationResponse(
     companion object {
         fun from(notification: Notification): NotificationResponse {
             return NotificationResponse(
-                id = notification.id,
+                id = notification.id?.value,
                 userId = notification.userId,
                 title = notification.title.value,
                 message = notification.message.value,

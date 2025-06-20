@@ -3,6 +3,7 @@ package com.stark.shoot.domain.notification
 import com.stark.shoot.domain.exception.NotificationException
 import com.stark.shoot.domain.notification.event.NotificationEvent
 import com.stark.shoot.domain.notification.NotificationTitle
+import com.stark.shoot.domain.notification.NotificationId
 import com.stark.shoot.domain.notification.NotificationMessage
 import java.time.Instant
 
@@ -13,7 +14,7 @@ import java.time.Instant
  * 알림은 읽음 상태와 삭제 상태를 가지며, 이러한 상태 변경은 도메인 로직을 통해 이루어집니다.
  */
 class Notification(
-    val id: String? = null,
+    val id: NotificationId? = null,
     val userId: Long,
     val title: NotificationTitle,
     val message: NotificationMessage,

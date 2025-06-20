@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.document.notification
 
 import com.stark.shoot.domain.notification.Notification
+import com.stark.shoot.domain.notification.NotificationId
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
 import com.stark.shoot.domain.notification.NotificationTitle
@@ -41,7 +42,7 @@ data class NotificationDocument(
 
     fun toDomain(): Notification {
         return Notification(
-            id = id,
+            id = id?.let { NotificationId.from(it) },
             userId = userId,
             title = NotificationTitle.from(title),
             message = NotificationMessage.from(message),
@@ -58,7 +59,7 @@ data class NotificationDocument(
     companion object {
         fun fromDomain(notification: Notification): NotificationDocument {
             return NotificationDocument(
-                id = notification.id,
+                id = notification.id?.value,
                 userId = notification.userId,
                 title = notification.title.value,
                 message = notification.message.value,

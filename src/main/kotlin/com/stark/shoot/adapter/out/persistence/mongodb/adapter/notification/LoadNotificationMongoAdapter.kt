@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.notification
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.NotificationMongoRepository
 import com.stark.shoot.application.port.out.notification.LoadNotificationPort
 import com.stark.shoot.domain.notification.Notification
+import com.stark.shoot.domain.notification.NotificationId
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
 import com.stark.shoot.infrastructure.annotation.Adapter
@@ -20,8 +21,8 @@ class LoadNotificationMongoAdapter(
      * @param id 알림 ID
      * @return 알림 객체 또는 null
      */
-    override fun loadNotificationById(id: String): Notification? {
-        return notificationMongoRepository.findById(id)
+    override fun loadNotificationById(id: NotificationId): Notification? {
+        return notificationMongoRepository.findById(id.value)
             .map { it.toDomain() }
             .orElse(null)
     }

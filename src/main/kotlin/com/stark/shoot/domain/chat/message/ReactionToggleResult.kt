@@ -1,6 +1,7 @@
 package com.stark.shoot.domain.chat.message
 
 import com.stark.shoot.domain.chat.reaction.MessageReactions
+import com.stark.shoot.domain.common.vo.UserId
 
 /**
  * 리액션 토글 결과를 나타내는 데이터 클래스
@@ -8,7 +9,7 @@ import com.stark.shoot.domain.chat.reaction.MessageReactions
 data class ReactionToggleResult(
     val reactions: MessageReactions,
     val message: ChatMessage,
-    val userId: Long,
+    val userId: UserId,
     val reactionType: String,
     val isAdded: Boolean,
     val previousReactionType: String? = null,

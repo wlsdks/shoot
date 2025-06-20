@@ -2,6 +2,7 @@ package com.stark.shoot.domain.service.message
 
 import com.stark.shoot.domain.chat.event.MessagePinEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.common.vo.UserId
 
 /**
  * 메시지 고정 관련 도메인 서비스
@@ -19,7 +20,7 @@ class MessagePinDomainService {
      */
     fun createPinEvent(
         message: ChatMessage,
-        userId: Long,
+        userId: UserId,
         isPinned: Boolean
     ): MessagePinEvent? {
         val messageId = message.id ?: return null
@@ -28,7 +29,7 @@ class MessagePinDomainService {
             messageId = messageId,
             roomId = message.roomId,
             isPinned = isPinned,
-            userId = userId
+            userId = userId.value
         )
     }
 

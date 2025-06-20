@@ -5,6 +5,8 @@ import com.stark.shoot.domain.chat.message.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
 
 fun ChatMessageMetadataRequest.toDomain(): ChatMessageMetadata {
     return ChatMessageMetadata(
@@ -48,12 +50,12 @@ fun ChatMessageRequest.toDomain(): ChatMessage {
 
     return ChatMessage(
         id = this.id?.let { MessageId.from(it) },
-        roomId = this.roomId,
-        senderId = this.senderId,
+        roomId = ChatRoomId.from(this.roomId),
+        senderId = UserId.from(this.senderId),
         content = content,
         threadId = this.threadId?.let { MessageId.from(it) },
         status = this.status ?: MessageStatus.SAVED,
-        readBy = this.readBy?.mapKeys { it.key.toLong() }?.toMutableMap() ?: mutableMapOf(),
+        readBy = this.readBy?.mapKeys { UserId.from(it.key.toLong()) }?.toMutableMap() ?: mutableMapOf(),
         metadata = metadata
     )
 }

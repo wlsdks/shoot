@@ -5,28 +5,30 @@ import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.reaction.MessageReactions
 import com.stark.shoot.domain.chat.reaction.ReactionType
 import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chat.room.ChatRoomId
 import java.time.Instant
 
 data class ChatMessage(
     val id: MessageId? = null,
-    val roomId: Long,
-    val senderId: Long,
+    val roomId: ChatRoomId,
+    val senderId: UserId,
     val content: MessageContent,
     val status: MessageStatus,
     val replyToMessageId: MessageId? = null,
     val threadId: MessageId? = null,
     val expiresAt: Instant? = null,
     val messageReactions: MessageReactions = MessageReactions(),
-    val mentions: Set<Long> = emptySet(),
+    val mentions: Set<UserId> = emptySet(),
     val createdAt: Instant? = Instant.now(),
     val updatedAt: Instant? = null,
     val isDeleted: Boolean = false,
-    val readBy: MutableMap<Long, Boolean> = mutableMapOf(),
+    val readBy: MutableMap<UserId, Boolean> = mutableMapOf(),
     var metadata: ChatMessageMetadata = ChatMessageMetadata(),
 
     // 메시지 고정기능
     val isPinned: Boolean = false,
-    val pinnedBy: Long? = null,
+    val pinnedBy: UserId? = null,
     val pinnedAt: Instant? = null
 ) {
     /**
@@ -42,7 +44,7 @@ data class ChatMessage(
      * @param userId 사용자 ID
      * @return 업데이트된 ChatMessage 객체
      */
-    fun markAsRead(userId: Long): ChatMessage {
+    fun markAsRead(userId: UserId): ChatMessage {
         val updatedReadBy = this.readBy.toMutableMap()
         updatedReadBy[userId] = true
 
@@ -81,7 +83,7 @@ data class ChatMessage(
      */
     fun updatePinStatus(
         isPinned: Boolean,
-        userId: Long? = null
+        userId: UserId? = null
     ): ChatMessage {
         return if (isPinned) {
             this.copy(
@@ -109,7 +111,7 @@ data class ChatMessage(
      * @return 고정 작업 결과 (고정할 메시지와 해제할 메시지)
      */
     fun pinMessageInRoom(
-        userId: Long,
+        userId: UserId,
         currentPinnedMessage: ChatMessage?
     ): PinMessageResult {
         // 이미 고정된 메시지인지 확인
@@ -190,11 +192,11 @@ data class ChatMessage(
      * @return 토글 결과 (메시지, 기존 리액션 타입, 추가 여부)
      */
     fun toggleReaction(
-        userId: Long,
+        userId: UserId,
         reactionType: ReactionType
     ): ReactionToggleResult {
         // 사용자가 이미 추가한 리액션 타입 찾기
-        val userExistingReactionType = messageReactions.findUserExistingReactionType(userId)
+        val userExistingReactionType = messageReactions.findUserExistingReactionType(userId.value)
 
         // 토글 처리 결과 변수
         val updatedReactions: MessageReactions
@@ -206,7 +208,7 @@ data class ChatMessage(
         when {
             // 1. 같은 리액션을 선택한 경우: 제거
             userExistingReactionType == reactionType.code -> {
-                updatedReactions = messageReactions.removeReaction(userId, reactionType.code)
+                updatedReactions = messageReactions.removeReaction(userId.value, reactionType.code)
                 isAdded = false
                 previousReactionType = null
                 isReplacement = false
@@ -214,8 +216,8 @@ data class ChatMessage(
 
             // 2. 다른 리액션이 이미 있는 경우: 기존 리액션 제거 후 새 리액션 추가
             userExistingReactionType != null -> {
-                val reactionsAfterRemove = messageReactions.removeReaction(userId, userExistingReactionType)
-                updatedReactions = reactionsAfterRemove.addReaction(userId, reactionType.code)
+                val reactionsAfterRemove = messageReactions.removeReaction(userId.value, userExistingReactionType)
+                updatedReactions = reactionsAfterRemove.addReaction(userId.value, reactionType.code)
                 isAdded = true
                 previousReactionType = userExistingReactionType
                 isReplacement = true
@@ -223,7 +225,7 @@ data class ChatMessage(
 
             // 3. 리액션이 없는 경우: 새 리액션 추가
             else -> {
-                updatedReactions = messageReactions.addReaction(userId, reactionType.code)
+                updatedReactions = messageReactions.addReaction(userId.value, reactionType.code)
                 isAdded = true
                 previousReactionType = null
                 isReplacement = false
@@ -297,8 +299,8 @@ data class ChatMessage(
          * @return 생성된 ChatMessage 객체
          */
         fun create(
-            roomId: Long,
-            senderId: Long,
+            roomId: ChatRoomId,
+            senderId: UserId,
             text: String,
             type: MessageType = MessageType.TEXT,
             tempId: String? = null,

@@ -4,6 +4,8 @@ import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.reaction.MessageReactions
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
 import java.time.Instant
 
 /**
@@ -38,8 +40,8 @@ class MessageForwardDomainService {
      * @return 생성된 메시지 객체
      */
     fun createForwardedMessage(
-        targetRoomId: Long,
-        forwardingUserId: Long,
+        targetRoomId: ChatRoomId,
+        forwardingUserId: UserId,
         forwardedContent: MessageContent
     ): ChatMessage {
         // 전달할 메시지 생성

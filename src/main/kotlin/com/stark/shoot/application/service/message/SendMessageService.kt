@@ -141,7 +141,7 @@ class SendMessageService(
             publishMessageToKafka(message)
 
             // 2. 상태 업데이트 전송
-            notifyMessageStatus(message.roomId, tempId, MessageStatus.SENT_TO_KAFKA)
+            notifyMessageStatus(message.roomId.value, tempId, MessageStatus.SENT_TO_KAFKA)
 
             logger.debug { "메시지 Kafka 발행 성공, 상태 업데이트: tempId=$tempId" }
         } catch (e: Exception) {
@@ -376,12 +376,12 @@ class SendMessageService(
         logMessageError(message, throwable)
 
         // 2. 오류 알림
-        notifyMessageError(message.roomId, throwable)
+        notifyMessageError(message.roomId.value, throwable)
 
         // 3. 메시지 상태 업데이트
         if (tempId.isNotEmpty()) {
             notifyMessageStatus(
-                roomId = message.roomId,
+                roomId = message.roomId.value,
                 tempId = tempId,
                 status = MessageStatus.FAILED,
                 errorMessage = throwable.message

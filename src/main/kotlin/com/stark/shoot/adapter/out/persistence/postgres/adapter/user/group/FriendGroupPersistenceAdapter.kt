@@ -27,7 +27,7 @@ class FriendGroupPersistenceAdapter(
 
         val entity: FriendGroupEntity = if (group.id != null) {
             val existing = groupRepository.findById(group.id).orElseThrow { ResourceNotFoundException("그룹을 찾을 수 없습니다: ${group.id}") }
-            existing.name = group.name
+            existing.name = group.name.value
             existing.description = group.description
             existing
         } else {

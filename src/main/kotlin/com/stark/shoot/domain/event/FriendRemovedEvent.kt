@@ -1,13 +1,14 @@
 package com.stark.shoot.domain.event
 
 import com.stark.shoot.domain.event.DomainEvent
+import com.stark.shoot.domain.user.vo.UserId
 
 /**
  * 친구 삭제 도메인 이벤트
  */
 data class FriendRemovedEvent(
-    val userId: Long,
-    val friendId: Long,
+    val userId: UserId,
+    val friendId: UserId,
     override val occurredOn: Long = System.currentTimeMillis()
 ) : DomainEvent {
     companion object {
@@ -15,8 +16,8 @@ data class FriendRemovedEvent(
          * FriendRemovedEvent 생성 팩토리 메서드
          */
         fun create(
-            userId: Long,
-            friendId: Long
+            userId: UserId,
+            friendId: UserId
         ): FriendRemovedEvent {
             return FriendRemovedEvent(
                 userId = userId,

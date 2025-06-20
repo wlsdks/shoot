@@ -250,10 +250,11 @@ class MessageReadService(
 
             if (updatedMessageIds.isNotEmpty()) {
                 // WebSocket을 통해 읽음 완료처리된 메시지 id를 실시간 알림
-                sendBulkReadNotification(roomId.value, updatedMessageIds, userId.value)
+                val messageIdVos = updatedMessageIds.map { MessageId.from(it) }
+                sendBulkReadNotification(roomId, messageIdVos, userId)
 
                 // 읽지 않은 메시지 수 업데이트 이벤트 발행
-                publishEvent(roomId.value, userId.value, lastMessageText)
+                publishEvent(roomId, userId, lastMessageText)
             }
 
             logger.info { "채팅방 모든 메시지 읽음 처리 완료: roomId=$roomId, userId=$userId, 메시지 수=${updatedMessageIds.size}" }
@@ -306,21 +307,21 @@ class MessageReadService(
      * @param userId 사용자 ID
      */
     private fun sendBulkReadNotification(
-        roomId: Long,
-        messageIds: List<String>,
-        userId: Long
+        roomId: ChatRoomId,
+        messageIds: List<MessageId>,
+        userId: UserId
     ) {
         if (messageIds.isEmpty()) {
-            logger.debug { "알림 대상 메시지가 없습니다: roomId=$roomId, userId=$userId" }
+            logger.debug { "알림 대상 메시지가 없습니다: roomId=${roomId.value}, userId=${userId.value}" }
             return
         }
 
         try {
             webSocketMessageBroker.sendMessage(
-                "/topic/read-bulk/$roomId",
+                "/topic/read-bulk/${roomId.value}",
                 MessageBulkReadEvent.create(roomId, messageIds, userId)
             )
-            logger.debug { "일괄 읽음 알림 전송 완료: roomId=$roomId, userId=$userId, 메시지 수=${messageIds.size}" }
+            logger.debug { "일괄 읽음 알림 전송 완료: roomId=${roomId.value}, userId=${userId.value}, 메시지 수=${messageIds.size}" }
         } catch (e: Exception) {
             logger.error(e) { "일괄 읽음 알림 전송 실패: roomId=$roomId, userId=$userId" }
             // WebSocket 알림 실패는 중요하지만 전체 프로세스를 중단시킬 만큼 치명적이지 않음
@@ -335,8 +336,8 @@ class MessageReadService(
      * @param lastMessage 마지막 메시지 내용
      */
     private fun publishEvent(
-        roomId: Long,
-        userId: Long,
+        roomId: ChatRoomId,
+        userId: UserId,
         lastMessage: String
     ) {
         try {
@@ -347,9 +348,9 @@ class MessageReadService(
             )
 
             eventPublisher.publish(event)
-            logger.debug { "읽지 않은 메시지 수 업데이트 이벤트 발행 완료: roomId=$roomId, userId=$userId" }
+            logger.debug { "읽지 않은 메시지 수 업데이트 이벤트 발행 완료: roomId=${roomId.value}, userId=${userId.value}" }
         } catch (e: Exception) {
-            logger.error(e) { "읽지 않은 메시지 수 업데이트 이벤트 발행 실패: roomId=$roomId, userId=$userId" }
+            logger.error(e) { "읽지 않은 메시지 수 업데이트 이벤트 발행 실패: roomId=${roomId.value}, userId=${userId.value}" }
             // 이벤트 발행 실패는 로깅만 하고 진행
         }
     }

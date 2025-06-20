@@ -1,11 +1,13 @@
 package com.stark.shoot.domain.event
 
 import com.stark.shoot.domain.event.DomainEvent
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.user.vo.UserId
 
 // 새 이벤트 정의
 data class ChatRoomCreatedEvent(
-    val roomId: Long,
-    val userId: Long,
+    val roomId: ChatRoomId,
+    val userId: UserId,
     override val occurredOn: Long = System.currentTimeMillis()
 ) : DomainEvent {
     companion object {
@@ -17,8 +19,8 @@ data class ChatRoomCreatedEvent(
          * @return 생성된 ChatRoomCreatedEvent 객체
          */
         fun create(
-            roomId: Long,
-            userId: Long
+            roomId: ChatRoomId,
+            userId: UserId
         ): ChatRoomCreatedEvent {
             return ChatRoomCreatedEvent(
                 roomId = roomId,

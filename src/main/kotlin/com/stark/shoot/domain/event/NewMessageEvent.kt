@@ -3,11 +3,12 @@ package com.stark.shoot.domain.event
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import java.time.Instant
 
 class NewMessageEvent(
     id: String? = null,
-    val roomId: Long,
+    val roomId: ChatRoomId,
     val senderId: UserId,
     val senderName: String,
     val messageContent: String,
@@ -18,7 +19,7 @@ class NewMessageEvent(
     id = id,
     timestamp = timestamp,
     type = NotificationType.NEW_MESSAGE,
-    sourceId = roomId.toString(),
+    sourceId = roomId.value.toString(),
     sourceType = SourceType.CHAT_ROOM,
     metadata = metadata
 ) {

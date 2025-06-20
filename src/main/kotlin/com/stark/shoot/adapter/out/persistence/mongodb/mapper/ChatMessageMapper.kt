@@ -11,6 +11,8 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 import com.stark.shoot.domain.chat.message.*
 import com.stark.shoot.domain.chat.reaction.MessageReactions
 import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 
@@ -19,20 +21,20 @@ class ChatMessageMapper {
 
     fun toDocument(domain: ChatMessage): ChatMessageDocument {
         return ChatMessageDocument(
-            roomId = domain.roomId,
-            senderId = domain.senderId,
+            roomId = domain.roomId.value,
+            senderId = domain.senderId.value,
             content = toMessageContentDocument(domain.content),
             status = domain.status,
             threadId = domain.threadId?.let { ObjectId(it.value) },
             replyToMessageId = domain.replyToMessageId?.let { ObjectId(it.value) },
             reactions = domain.reactions.mapValues { (_, userIds) ->
-                userIds.map { it }.toSet()
+                userIds.map { it.value }.toSet()
             },
-            mentions = domain.mentions.map { it }.toSet(),
+            mentions = domain.mentions.map { it.value }.toSet(),
             isDeleted = domain.isDeleted,
-            readBy = domain.readBy.toMutableMap(),
+            readBy = domain.readBy.mapKeys { it.key.value }.toMutableMap(),
             isPinned = domain.isPinned,
-            pinnedBy = domain.pinnedBy,
+            pinnedBy = domain.pinnedBy?.value,
             pinnedAt = domain.pinnedAt
         ).apply {
             id = domain.id?.let { ObjectId(it.value) }
@@ -43,8 +45,8 @@ class ChatMessageMapper {
     fun toDomain(document: ChatMessageDocument): ChatMessage {
         return ChatMessage(
             id = document.id?.toString()?.let { MessageId.from(it) },
-            roomId = document.roomId,
-            senderId = document.senderId,
+            roomId = ChatRoomId.from(document.roomId),
+            senderId = UserId.from(document.senderId),
             content = toMessageContent(document.content),
             status = document.status,
             threadId = document.threadId?.toString()?.let { MessageId.from(it) },
@@ -52,13 +54,13 @@ class ChatMessageMapper {
             messageReactions = MessageReactions(document.reactions.mapValues { (_, userIds) ->
                 userIds.map { it }.toSet()
             }),
-            mentions = document.mentions.map { it }.toSet(),
+            mentions = document.mentions.map { UserId.from(it) }.toSet(),
             createdAt = document.createdAt,
             updatedAt = document.updatedAt,
             isDeleted = document.isDeleted,
-            readBy = document.readBy.toMutableMap(),
+            readBy = document.readBy.mapKeys { UserId.from(it.key) }.toMutableMap(),
             isPinned = document.isPinned,
-            pinnedBy = document.pinnedBy,
+            pinnedBy = document.pinnedBy?.let { UserId.from(it) },
             pinnedAt = document.pinnedAt
         )
     }
@@ -142,8 +144,8 @@ class ChatMessageMapper {
     fun toDto(message: ChatMessage): MessageResponseDto {
         return MessageResponseDto(
             id = message.id?.value ?: "",
-            roomId = message.roomId,
-            senderId = message.senderId,
+            roomId = message.roomId.value,
+            senderId = message.senderId.value,
             content = MessageContentResponseDto(
                 text = message.content.text,
                 type = message.content.type,
@@ -156,12 +158,12 @@ class ChatMessageMapper {
             threadId = message.threadId?.value,
             replyToMessageId = message.replyToMessageId?.value,
             reactions = message.reactions,
-            mentions = message.mentions,
+            mentions = message.mentions.map { it.value }.toSet(),
             createdAt = message.createdAt,
             updatedAt = message.updatedAt,
-            readBy = message.readBy,
+            readBy = message.readBy.mapKeys { it.key.value },
             isPinned = message.isPinned,
-            pinnedBy = message.pinnedBy,
+            pinnedBy = message.pinnedBy?.value,
             pinnedAt = message.pinnedAt
         )
     }

@@ -80,13 +80,13 @@ class ToggleMessageReactionService(
         // 리액션 교체인 경우 (기존 리액션 제거 후 새 리액션 추가)
         if (result.isReplacement && result.previousReactionType != null) {
             // 기존 리액션 제거 알림
-            notifyReactionUpdate(messageId, message.roomId, userId, result.previousReactionType, false)
+            notifyReactionUpdate(messageId, message.roomId.value, userId.value, result.previousReactionType, false)
 
             // 새 리액션 추가 알림
-            notifyReactionUpdate(messageId, message.roomId, userId, result.reactionType, true)
+            notifyReactionUpdate(messageId, message.roomId.value, userId.value, result.reactionType, true)
         } else {
             // 일반 추가/제거 알림
-            notifyReactionUpdate(messageId, message.roomId, userId, result.reactionType, result.isAdded)
+            notifyReactionUpdate(messageId, message.roomId.value, userId.value, result.reactionType, result.isAdded)
         }
 
         // 도메인 서비스를 통해 이벤트 생성 및 발행

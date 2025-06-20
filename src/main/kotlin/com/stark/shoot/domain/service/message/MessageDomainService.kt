@@ -5,6 +5,8 @@ import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.UrlPreview
 import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
 import java.util.*
 
 /**
@@ -22,8 +24,8 @@ class MessageDomainService {
      * @return 처리된 도메인 메시지 객체
      */
     fun createAndProcessMessage(
-        roomId: Long,
-        senderId: Long,
+        roomId: ChatRoomId,
+        senderId: UserId,
         contentText: String,
         contentType: com.stark.shoot.domain.chat.message.type.MessageType,
         threadId: MessageId? = null,

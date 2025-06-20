@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.AnnouncementRequest
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.TitleRequest
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
+import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
@@ -21,7 +22,8 @@ class ChatRoomNoticeController(
         @PathVariable roomId: Long,
         @RequestBody request: AnnouncementRequest
     ): ResponseDto<Unit> {
-        manageChatRoomUseCase.updateAnnouncement(roomId, request.announcement)
+        val announcement = request.announcement?.let { ChatRoomAnnouncement.from(it) }
+        manageChatRoomUseCase.updateAnnouncement(roomId, announcement)
         return ResponseDto.success(Unit, "공지사항이 업데이트되었습니다.")
     }
 

@@ -36,7 +36,7 @@ class SaveChatRoomPersistenceAdapter(
             existingEntity.update(
                 title = chatRoom.title?.value,
                 type = chatRoom.type,
-                announcement = chatRoom.announcement,
+                announcement = chatRoom.announcement?.value,
                 lastMessageId = chatRoom.lastMessageId?.toLongOrNull(),
                 lastActiveAt = chatRoom.lastActiveAt
             )

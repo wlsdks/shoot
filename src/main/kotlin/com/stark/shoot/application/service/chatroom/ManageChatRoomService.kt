@@ -8,6 +8,7 @@ import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.service.chatroom.ChatRoomParticipantDomainService
 import com.stark.shoot.domain.chat.room.ChatRoomTitle
+import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
@@ -109,7 +110,7 @@ class ManageChatRoomService(
      */
     override fun updateAnnouncement(
         roomId: Long,
-        announcement: String?
+        announcement: ChatRoomAnnouncement?
     ) {
         withChatRoom(roomId) { chatRoom ->
             // 공지사항 업데이트 (도메인 객체의 메서드 사용)

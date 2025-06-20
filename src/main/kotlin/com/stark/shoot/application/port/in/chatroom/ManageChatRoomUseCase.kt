@@ -1,9 +1,11 @@
 package com.stark.shoot.application.port.`in`.chatroom
 
+import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
+
 interface ManageChatRoomUseCase {
     fun addParticipant(roomId: Long, userId: Long): Boolean
     fun removeParticipant(roomId: Long, userId: Long): Boolean
-    fun updateAnnouncement(roomId: Long, announcement: String?)
+    fun updateAnnouncement(roomId: Long, announcement: ChatRoomAnnouncement?)
 
     /**
      * 채팅방 제목을 업데이트합니다.

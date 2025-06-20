@@ -2,6 +2,7 @@ package com.stark.shoot.application.port.out.notification
 
 import com.stark.shoot.infrastructure.exception.web.MongoOperationException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.notification.NotificationId
 
 interface DeleteNotificationPort {
 
@@ -12,7 +13,7 @@ interface DeleteNotificationPort {
      * @throws ResourceNotFoundException 알림을 찾을 수 없는 경우
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
-    fun deleteNotification(notificationId: String)
+    fun deleteNotification(notificationId: NotificationId)
 
     /**
      * 사용자의 모든 알림을 삭제합니다.

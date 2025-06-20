@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.notification.NotificationResponse
 import com.stark.shoot.application.port.`in`.notification.NotificationManagementUseCase
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
+import com.stark.shoot.domain.notification.NotificationId
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -26,7 +27,7 @@ class NotificationReadController(
         @PathVariable notificationId: String,
         @RequestParam userId: Long
     ): ResponseEntity<NotificationResponse> {
-        val notification = notificationManagementUseCase.markAsRead(notificationId, userId)
+        val notification = notificationManagementUseCase.markAsRead(NotificationId.from(notificationId), userId)
         return ResponseEntity.ok(NotificationResponse.from(notification))
     }
 

@@ -5,6 +5,7 @@ import com.stark.shoot.application.port.out.notification.DeleteNotificationPort
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.MongoOperationException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.notification.NotificationId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
@@ -26,10 +27,10 @@ class DeleteNotificationMongoAdapter(
      * @throws ResourceNotFoundException 알림을 찾을 수 없는 경우
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
-    override fun deleteNotification(notificationId: String) {
+    override fun deleteNotification(notificationId: NotificationId) {
         try {
-            if (notificationMongoRepository.existsById(notificationId)) {
-                notificationMongoRepository.deleteById(notificationId)
+            if (notificationMongoRepository.existsById(notificationId.value)) {
+                notificationMongoRepository.deleteById(notificationId.value)
             } else {
                 throw ResourceNotFoundException("알림을 찾을 수 없습니다: $notificationId")
             }

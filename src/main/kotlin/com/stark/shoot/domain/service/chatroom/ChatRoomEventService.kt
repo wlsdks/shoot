@@ -22,7 +22,7 @@ class ChatRoomEventService {
         return chatRoom.participants.map { participantId ->
             ChatRoomCreatedEvent.create(
                 roomId = roomId,
-                userId = participantId
+                userId = participantId.value
             )
         }
     }

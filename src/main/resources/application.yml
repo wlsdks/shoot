@@ -35,6 +35,16 @@ spring:
       host: localhost
       port: 6379
       password: redis
+      # 연결 안정성 향상을 위한 설정
+      connect-timeout: 2000  # 연결 타임아웃 (ms)
+      timeout: 3000          # 작업 타임아웃 (ms)
+      lettuce:
+        pool:
+          max-active: 8      # 최대 활성 연결 수
+          max-idle: 8        # 최대 유휴 연결 수
+          min-idle: 2        # 최소 유휴 연결 수
+          max-wait: 1000     # 연결 풀이 소진됐을 때 최대 대기 시간 (ms)
+        shutdown-timeout: 100 # 셧다운 타임아웃 (ms)
   # 카프카 설정
   kafka:
     consumer:

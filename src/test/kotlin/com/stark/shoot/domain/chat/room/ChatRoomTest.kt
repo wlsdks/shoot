@@ -5,6 +5,7 @@ import com.stark.shoot.domain.chat.room.ChatRoomTitle
 import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
 import com.stark.shoot.domain.chat.room.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

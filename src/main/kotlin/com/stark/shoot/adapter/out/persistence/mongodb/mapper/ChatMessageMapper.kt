@@ -28,7 +28,7 @@ class ChatMessageMapper {
             threadId = domain.threadId?.let { ObjectId(it.value) },
             replyToMessageId = domain.replyToMessageId?.let { ObjectId(it.value) },
             reactions = domain.reactions.mapValues { (_, userIds) ->
-                userIds.map { it.value }.toSet()
+                userIds
             },
             mentions = domain.mentions.map { it.value }.toSet(),
             isDeleted = domain.isDeleted,
@@ -52,7 +52,7 @@ class ChatMessageMapper {
             threadId = document.threadId?.toString()?.let { MessageId.from(it) },
             replyToMessageId = document.replyToMessageId?.toString()?.let { MessageId.from(it) },
             messageReactions = MessageReactions(document.reactions.mapValues { (_, userIds) ->
-                userIds.map { it }.toSet()
+                userIds
             }),
             mentions = document.mentions.map { UserId.from(it) }.toSet(),
             createdAt = document.createdAt,

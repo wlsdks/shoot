@@ -21,13 +21,13 @@ class LoadChatRoomPersistenceAdapter(
      * @param roomId 채팅방 ID
      * @return 채팅방
      */
-    override fun findById(roomId: Long): ChatRoom? {
+    override fun findById(roomId: ChatRoomId): ChatRoom? {
         // 1. 채팅방 엔티티 조회
-        val chatRoomEntity = chatRoomRepository.findById(roomId)
+        val chatRoomEntity = chatRoomRepository.findById(roomId.value)
             .orElse(null) ?: return null
 
         // 2. 해당 채팅방의 모든 참여자 조회
-        val participants = chatRoomUserRepository.findByChatRoomId(roomId)
+        val participants = chatRoomUserRepository.findByChatRoomId(roomId.value)
 
         // 3. 도메인 객체로 변환
         return chatRoomMapper.toDomain(chatRoomEntity, participants)

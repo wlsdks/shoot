@@ -71,7 +71,7 @@ class ChatRoomDomainService {
         userId: Long
     ): Map<Long, String> {
         return chatRooms.associate { room ->
-            val roomId = room.id ?: 0L
+            val roomId = room.id?.value ?: 0L
             val title = room.createChatRoomTitle(userId)
             roomId to title
         }
@@ -84,7 +84,7 @@ class ChatRoomDomainService {
         chatRooms: List<ChatRoom>
     ): Map<Long, String> {
         return chatRooms.associate { room ->
-            val roomId = room.id ?: 0L
+            val roomId = room.id?.value ?: 0L
             val lastMessage = room.createLastMessageText()
             roomId to lastMessage
         }
@@ -97,7 +97,7 @@ class ChatRoomDomainService {
         chatRooms: List<ChatRoom>
     ): Map<Long, String> {
         return chatRooms.associate { room ->
-            val roomId = room.id ?: 0L
+            val roomId = room.id?.value ?: 0L
             val timestamp = room.formatTimestamp()
             roomId to timestamp
         }

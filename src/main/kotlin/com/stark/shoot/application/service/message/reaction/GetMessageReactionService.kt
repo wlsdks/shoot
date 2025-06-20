@@ -3,9 +3,9 @@ package com.stark.shoot.application.service.message.reaction
 import com.stark.shoot.application.port.`in`.message.reaction.GetMessageReactionUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.reaction.ReactionType
+import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import com.stark.shoot.infrastructure.util.toObjectId
 
 @UseCase
 class GetMessageReactionService(
@@ -19,9 +19,9 @@ class GetMessageReactionService(
      * @return 리액션 목록
      */
     override fun getReactions(
-        messageId: String
+        messageId: MessageId,
     ): Map<String, Set<Long>> {
-        val message = loadMessagePort.findById(messageId.toObjectId())
+        val message = loadMessagePort.findById(messageId)
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
         // messageReactions.reactions 또는 reactions 속성을 통해 접근 가능

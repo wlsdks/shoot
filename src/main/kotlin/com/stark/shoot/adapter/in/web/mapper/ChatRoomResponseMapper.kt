@@ -33,9 +33,9 @@ class ChatRoomResponseMapper {
         return rooms.map { room ->
             toResponse(
                 room, userId,
-                titles[room.id] ?: "채팅방",
-                lastMessages[room.id] ?: "메시지 없음",
-                timestamps[room.id] ?: ""
+                titles[room.id?.value] ?: "채팅방",
+                lastMessages[room.id?.value] ?: "메시지 없음",
+                timestamps[room.id?.value] ?: ""
             )
         }
     }
@@ -62,7 +62,7 @@ class ChatRoomResponseMapper {
             title = title,
             lastMessage = lastMessage,
             unreadMessages = 0, // 실제 구현시 읽지 않은 메시지 수 계산 로직 추가
-            isPinned = room.pinnedParticipants.contains(userId),
+            isPinned = room.pinnedParticipants.any { it.value == userId },
             timestamp = timestamp
         )
     }

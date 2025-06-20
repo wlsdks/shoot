@@ -9,6 +9,7 @@ import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.service.ChatRoomDomainService
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.service.chatroom.ChatRoomEventService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -32,30 +33,30 @@ class CreateChatRoomService(
      * @apiNote 1:1 채팅방 생성
      */
     override fun createDirectChat(
-        userId: Long,
-        friendId: Long
+        userId: UserId,
+        friendId: UserId
     ): ChatRoomResponse {
         // 1. 사용자와 친구가 존재하는지 확인
-        val user = findUserPort.findUserById(userId)
-            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
+        val user = findUserPort.findUserById(userId.value)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${userId.value}")
 
-        val friend = findUserPort.findUserById(friendId)
-            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $friendId")
+        val friend = findUserPort.findUserById(friendId.value)
+            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendId.value}")
 
         // 2. 이미 존재하는 1:1 채팅방이 있는지 확인 (도메인 객체의 정적 메서드 사용)
-        val existingRooms = loadChatRoomPort.findByParticipantId(userId)
-        val existingRoom = chatRoomDomainService.findDirectChatBetween(existingRooms, userId, friendId)
+        val existingRooms = loadChatRoomPort.findByParticipantId(userId.value)
+        val existingRoom = chatRoomDomainService.findDirectChatBetween(existingRooms, userId.value, friendId.value)
 
         // 이미 존재하는 채팅방이 있으면 반환
-        if (existingRoom != null) return ChatRoomResponse.from(existingRoom, userId)
+        if (existingRoom != null) return ChatRoomResponse.from(existingRoom, userId.value)
 
         // 3. 새 1:1 채팅방 생성 및 저장
-        val savedRoom = registerNewDirectChatRoom(userId, friendId, friend)
+        val savedRoom = registerNewDirectChatRoom(userId.value, friendId.value, friend)
 
         // 4. 채팅방 생성 이벤트 발행
         publishChatRoomCreatedEvent(savedRoom)
 
-        return ChatRoomResponse.from(savedRoom, userId)
+        return ChatRoomResponse.from(savedRoom, userId.value)
     }
 
     private fun publishChatRoomCreatedEvent(savedRoom: ChatRoom) {

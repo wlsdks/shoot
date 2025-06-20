@@ -3,6 +3,7 @@ package com.stark.shoot.application.filter.message.impl
 import com.stark.shoot.application.filter.common.MessageProcessingFilter
 import com.stark.shoot.application.filter.message.chain.MessageProcessingChain
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.common.vo.UserId
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 
@@ -36,8 +37,9 @@ class UnreadCountUpdateFilter(
 
         // 이미 읽은 사용자 및 활성 사용자는 readBy에 추가
         activeUserIds.forEach { userId ->
-            if (userId != message.senderId && !updatedReadBy.containsKey(userId)) {
-                updatedReadBy[userId] = true
+            val userIdObj = UserId.from(userId)
+            if (userIdObj != message.senderId && !updatedReadBy.containsKey(userIdObj)) {
+                updatedReadBy[userIdObj] = true
             }
         }
 

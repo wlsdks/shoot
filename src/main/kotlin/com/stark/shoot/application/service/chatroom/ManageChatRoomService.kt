@@ -6,9 +6,11 @@ import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.service.chatroom.ChatRoomParticipantDomainService
-import com.stark.shoot.domain.chat.room.ChatRoomTitle
 import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.ChatRoomTitle
+import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.service.chatroom.ChatRoomParticipantDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
@@ -32,7 +34,7 @@ class ManageChatRoomService(
      * @return 작업 결과
      */
     private fun <T> withChatRoom(
-        roomId: Long,
+        roomId: ChatRoomId,
         errorMessage: String = "채팅방을 찾을 수 없습니다: $roomId",
         operation: (ChatRoom) -> Pair<ChatRoom, T>
     ): T {
@@ -56,11 +58,11 @@ class ManageChatRoomService(
      * @return Boolean 참여자 추가 성공 여부
      */
     override fun addParticipant(
-        roomId: Long,
-        userId: Long
+        roomId: ChatRoomId,
+        userId: UserId
     ): Boolean {
         // 사용자 존재 여부 확인
-        if (!findUserPort.existsById(userId)) {
+        if (!findUserPort.existsById(userId.value)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
         }
 
@@ -80,8 +82,8 @@ class ManageChatRoomService(
      * @apiNote 채팅방 참여자 제거
      */
     override fun removeParticipant(
-        roomId: Long,
-        userId: Long
+        roomId: ChatRoomId,
+        userId: UserId
     ): Boolean {
         return withChatRoom(roomId, "채팅방을 찾을 수 없습니다.") { chatRoom ->
             // 도메인 서비스에 위임하여 참여자 제거 및 삭제 필요 여부 확인
@@ -109,7 +111,7 @@ class ManageChatRoomService(
      * @param announcement 공지사항 (null인 경우 공지사항 삭제)
      */
     override fun updateAnnouncement(
-        roomId: Long,
+        roomId: ChatRoomId,
         announcement: ChatRoomAnnouncement?
     ) {
         withChatRoom(roomId) { chatRoom ->
@@ -129,12 +131,12 @@ class ManageChatRoomService(
      * @return 업데이트 성공 여부
      */
     override fun updateTitle(
-        roomId: Long,
-        title: String
+        roomId: ChatRoomId,
+        title: ChatRoomTitle
     ): Boolean {
         return withChatRoom(roomId) { chatRoom ->
             // 제목 업데이트 (도메인 객체의 update 메서드 사용)
-            val updatedRoom = chatRoom.update(title = ChatRoomTitle.from(title))
+            val updatedRoom = chatRoom.update(title = title)
 
             // 결과 반환 (업데이트된 채팅방과 성공 여부)
             Pair(updatedRoom, true)

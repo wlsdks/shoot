@@ -15,7 +15,7 @@ data class FriendGroupResponse(
 fun FriendGroup.toResponse() = FriendGroupResponse(
     id = id ?: 0L,
     ownerId = ownerId,
-    name = name,
+    name = name.value,
     description = description,
     memberIds = memberIds
 )

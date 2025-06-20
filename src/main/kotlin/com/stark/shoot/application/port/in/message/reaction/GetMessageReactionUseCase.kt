@@ -1,8 +1,9 @@
 package com.stark.shoot.application.port.`in`.message.reaction
 
 import com.stark.shoot.domain.chat.reaction.ReactionType
+import com.stark.shoot.domain.common.vo.MessageId
 
 interface GetMessageReactionUseCase {
-    fun getReactions(messageId: String): Map<String, Set<Long>>
+    fun getReactions(messageId: MessageId): Map<String, Set<Long>>
     fun getSupportedReactionTypes(): List<ReactionType>
 }

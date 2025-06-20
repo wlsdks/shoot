@@ -26,8 +26,8 @@ class MessagePinDomainService {
         val messageId = message.id ?: return null
 
         return MessagePinEvent.create(
-            messageId = messageId,
-            roomId = message.roomId,
+            messageId = messageId.value,
+            roomId = message.roomId.value,
             isPinned = isPinned,
             userId = userId.value
         )

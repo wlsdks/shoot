@@ -15,10 +15,10 @@ data class PinnedMessageItem(
     companion object {
         fun from(message: ChatMessage): PinnedMessageItem {
             return PinnedMessageItem(
-                messageId = message.id ?: "",
+                messageId = message.id?.value ?: "",
                 content = message.content.text,
-                senderId = message.senderId,
-                pinnedBy = message.pinnedBy,
+                senderId = message.senderId.value,
+                pinnedBy = message.pinnedBy?.value,
                 pinnedAt = message.pinnedAt?.toString(),
                 createdAt = message.createdAt?.toString() ?: ""
             )

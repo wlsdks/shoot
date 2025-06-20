@@ -10,9 +10,11 @@ import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.event.ChatBulkReadEvent
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.connection.ReturnType
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -58,10 +60,10 @@ class MessageReadService(
      * @return 업데이트된 메시지
      */
     override fun markMessageAsRead(
-        messageId: String,
-        userId: Long
+        messageId: MessageId,
+        userId: UserId
     ) {
-        val chatMessage = loadMessagePort.findById(messageId.toObjectId())
+        val chatMessage = loadMessagePort.findById(messageId)
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$messageId")
 
         // 이미 읽은 메시지인 경우 추가 작업 없이 반환
@@ -96,21 +98,19 @@ class MessageReadService(
 
             // 3. 채팅방의 모든 참여자에게 읽은 상태 알림 (WebSocket)
             webSocketMessageBroker.sendMessage(
-                "/topic/read/$roomId",
+                "/topic/read/${roomId.value}",
                 mapOf(
-                    "messageId" to updatedMessage.id,
-                    "userId" to userId,
+                    "messageId" to updatedMessage.id?.value,
+                    "userId" to userId.value,
                     "readBy" to updatedMessage.readBy
                 )
             )
 
             // 4. 업데이트된 메시지 WebSocket 전송
             webSocketMessageBroker.sendMessage(
-                destination = "/topic/messages/$roomId",
+                destination = "/topic/messages/${roomId.value}",
                 payload = updatedMessage
             )
-
-            logger.debug { "메시지 읽음 처리 완료: messageId=$messageId, userId=$userId, roomId=$roomId" }
         } catch (e: Exception) {
             // 비동기 작업 실패 시 로깅만 하고 예외는 전파하지 않음 (메인 트랜잭션은 이미 완료됨)
             logger.error(e) { "메시지 읽음 처리 후속 작업 실패: messageId=$messageId, userId=$userId" }
@@ -125,8 +125,8 @@ class MessageReadService(
      * @param requestId 프론트에서 생성한 요청 ID (중복 요청 방지용, 선택적이며 유저나 채팅방id와는 전혀 관계 없음)
      */
     override fun markAllMessagesAsRead(
-        roomId: Long,
-        userId: Long,
+        roomId: ChatRoomId,
+        userId: UserId,
         requestId: String?
     ) {
         // 중복 요청 체크 (Redis 캐시 활용)
@@ -173,7 +173,7 @@ class MessageReadService(
 
                 // 모든 메시지 읽음 처리
                 val updatedMessageIds = processUnreadMessages(unreadMessages, userId)
-                allUpdatedMessageIds.addAll(updatedMessageIds)
+                allUpdatedMessageIds.addAll(updatedMessageIds.map { it.value })
 
                 // 마지막 메시지 업데이트 (가장 최신 메시지를 찾기 위해)
                 val batchLastMessage = unreadMessages.maxByOrNull { it.createdAt ?: java.time.Instant.MIN }
@@ -225,7 +225,8 @@ class MessageReadService(
             val lastMessageText = chatRoom.lastMessageId?.let { lastMessageId ->
                 try {
                     // 실제 메시지 내용 조회
-                    val lastMessage = loadMessagePort.findById(lastMessageId.toObjectId())
+                    val lastMessage = loadMessagePort.findById(lastMessageId)
+
                     when {
                         lastMessage == null -> "메시지를 찾을 수 없습니다"
                         lastMessage.content.isDeleted -> "삭제된 메시지입니다"
@@ -237,6 +238,7 @@ class MessageReadService(
                                 lastMessage.content.text
                             }
                         }
+
                         lastMessage.content.attachments.isNotEmpty() -> "첨부파일이 포함된 메시지"
                         else -> "내용 없는 메시지"
                     }
@@ -248,10 +250,10 @@ class MessageReadService(
 
             if (updatedMessageIds.isNotEmpty()) {
                 // WebSocket을 통해 읽음 완료처리된 메시지 id를 실시간 알림
-                sendBulkReadNotification(roomId, updatedMessageIds, userId)
+                sendBulkReadNotification(roomId.value, updatedMessageIds, userId.value)
 
                 // 읽지 않은 메시지 수 업데이트 이벤트 발행
-                publishEvent(roomId, userId, lastMessageText)
+                publishEvent(roomId.value, userId.value, lastMessageText)
             }
 
             logger.info { "채팅방 모든 메시지 읽음 처리 완료: roomId=$roomId, userId=$userId, 메시지 수=${updatedMessageIds.size}" }
@@ -276,8 +278,8 @@ class MessageReadService(
      */
     private fun processUnreadMessages(
         unreadMessages: List<ChatMessage>,
-        userId: Long
-    ): List<String> {
+        userId: UserId
+    ): List<MessageId> {
         if (unreadMessages.isEmpty()) {
             return emptyList()
         }
@@ -359,8 +361,8 @@ class MessageReadService(
      * @param userId 사용자 ID
      * @return Redis 키
      */
-    private fun createUnreadKey(userId: Long): String {
-        val key = "$UNREAD_KEY_PREFIX$userId"
+    private fun createUnreadKey(userId: UserId): String {
+        val key = "$UNREAD_KEY_PREFIX${userId.value}"
 
         // 키가 존재하지 않는 경우에만 만료 시간 설정 (기존 데이터 유지)
         if (!redisTemplate.hasKey(key)) {
@@ -379,7 +381,11 @@ class MessageReadService(
      * @param requestId 요청 ID
      * @return Redis 키
      */
-    private fun createReadOperationKey(roomId: Long, userId: Long, requestId: String): String =
-        "$READ_OPERATION_KEY_PREFIX$roomId:$userId:$requestId"
+    private fun createReadOperationKey(
+        roomId: ChatRoomId,
+        userId: UserId,
+        requestId: String
+    ): String =
+        "$READ_OPERATION_KEY_PREFIX${roomId.value}:${userId.value}:$requestId"
 
 }

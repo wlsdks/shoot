@@ -58,7 +58,7 @@ class ChatEventNotificationListener(
             val notifications = createNotifications(message, recipients)
 
             // 알림 저장 및 전송
-            processNotifications(notifications, message.roomId)
+            processNotifications(notifications, message.roomId.value)
 
         } catch (e: Exception) {
             logger.error(e) { "채팅 이벤트 처리 중 오류가 발생했습니다: ${e.message}" }
@@ -73,7 +73,7 @@ class ChatEventNotificationListener(
      * @return 알림을 받을 사용자 ID 집합
      */
     private fun identifyRecipients(message: ChatMessage): Set<Long> {
-        return message.readBy.keys.filter { it != message.senderId }.toSet()
+        return message.readBy.keys.filter { it != message.senderId }.map { it.value }.toSet()
     }
 
     /**
@@ -124,7 +124,7 @@ class ChatEventNotificationListener(
         // 멘션된 사용자에 대한 알림 생성
         return mentionedUsers.map { userId ->
             chatNotificationFactory.createMentionNotification(
-                userId = userId,
+                userId = userId.value,
                 message = message
             )
         }

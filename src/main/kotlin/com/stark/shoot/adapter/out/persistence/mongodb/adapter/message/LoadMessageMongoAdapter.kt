@@ -4,10 +4,13 @@ import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMongoRepository
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
+import com.stark.shoot.infrastructure.util.toObjectId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.bson.types.ObjectId
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 
@@ -24,9 +27,9 @@ class LoadMessageMongoAdapter(
      * @return 채팅 메시지
      */
     override fun findById(
-        id: ObjectId
+        messageId: MessageId
     ): ChatMessage? {
-        return chatMessageRepository.findById(id)
+        return chatMessageRepository.findById(messageId.value.toObjectId())
             .map(chatMessageMapper::toDomain)
             .orElse(null)
     }
@@ -39,7 +42,7 @@ class LoadMessageMongoAdapter(
      * @return 채팅 메시지 목록
      */
     override fun findByRoomId(
-        roomId: Long,
+        roomId: ChatRoomId,
         limit: Int
     ): List<ChatMessage> {
         val pageable = PageRequest.of(
@@ -48,7 +51,7 @@ class LoadMessageMongoAdapter(
             Sort.by(Sort.Direction.DESC, "_id") // 최신순 정렬
         )
 
-        return chatMessageRepository.findByRoomId(roomId, pageable)
+        return chatMessageRepository.findByRoomId(roomId.value, pageable)
             .map(chatMessageMapper::toDomain)
     }
 
@@ -56,13 +59,13 @@ class LoadMessageMongoAdapter(
      * 채팅방 ID와 이전 메시지 ID로 이전 메시지 조회
      *
      * @param roomId 채팅방 ID
-     * @param lastId 이전 메시지 ID
+     * @param beforeMessageId 이전 메시지 ID
      * @param limit 조회 개수
      * @return 채팅 메시지 목록
      */
     override fun findByRoomIdAndBeforeId(
-        roomId: Long,
-        lastId: ObjectId,
+        roomId: ChatRoomId,
+        beforeMessageId: MessageId,
         limit: Int
     ): List<ChatMessage> {
         val pageable = PageRequest.of(
@@ -71,21 +74,24 @@ class LoadMessageMongoAdapter(
             Sort.by(Sort.Direction.DESC, "_id") // 최신순 정렬
         )
 
-        return chatMessageRepository.findByRoomIdAndIdBefore(roomId, lastId, pageable)
-            .map(chatMessageMapper::toDomain)
+        return chatMessageRepository.findByRoomIdAndIdBefore(
+            roomId.value,
+            beforeMessageId.value.toObjectId(),
+            pageable
+        ).map(chatMessageMapper::toDomain)
     }
 
     /**
      * 채팅방 ID와 이후 메시지 ID로 이후 메시지 조회
      *
      * @param roomId 채팅방 ID
-     * @param lastId 이후 메시지 ID
+     * @param afterMessageId 이후 메시지 ID
      * @param limit 조회 개수
      * @return 채팅 메시지 목록
      */
     override fun findByRoomIdAndAfterId(
-        roomId: Long,
-        lastId: ObjectId,
+        roomId: ChatRoomId,
+        afterMessageId: MessageId,
         limit: Int
     ): List<ChatMessage> {
         val pageable = PageRequest.of(
@@ -94,8 +100,11 @@ class LoadMessageMongoAdapter(
             Sort.by(Sort.Direction.ASC, "_id") // ID 오름차순 정렬 (이후 메시지)
         )
 
-        return chatMessageRepository.findByRoomIdAndIdAfter(roomId, lastId, pageable)
-            .map(chatMessageMapper::toDomain)
+        return chatMessageRepository.findByRoomIdAndIdAfter(
+            roomId.value,
+            afterMessageId.value.toObjectId(),
+            pageable
+        ).map(chatMessageMapper::toDomain)
     }
 
     /**
@@ -107,8 +116,8 @@ class LoadMessageMongoAdapter(
      * @return 읽지 않은 메시지 목록
      */
     override fun findUnreadByRoomId(
-        roomId: Long,
-        userId: Long,
+        roomId: ChatRoomId,
+        userId: UserId,
         limit: Int
     ): List<ChatMessage> {
         val pageable = PageRequest.of(
@@ -116,7 +125,7 @@ class LoadMessageMongoAdapter(
             limit,
             Sort.by(Sort.Direction.DESC, "createdAt") // 최신순 정렬
         )
-        val notReadMessage = chatMessageRepository.findUnreadMessages(roomId, userId, pageable)
+        val notReadMessage = chatMessageRepository.findUnreadMessages(roomId.value, userId.value, pageable)
         return notReadMessage.map(chatMessageMapper::toDomain)
     }
 
@@ -128,7 +137,7 @@ class LoadMessageMongoAdapter(
      * @return 고정된 메시지 목록
      */
     override fun findPinnedMessagesByRoomId(
-        roomId: Long,
+        roomId: ChatRoomId,
         limit: Int
     ): List<ChatMessage> {
         val pageable = PageRequest.of(
@@ -138,12 +147,12 @@ class LoadMessageMongoAdapter(
         )
 
         // MongoDB 쿼리: {roomId: roomId, "metadata.isPinned": true}
-        return chatMessageRepository.findPinnedMessagesByRoomId(roomId, pageable)
+        return chatMessageRepository.findPinnedMessagesByRoomId(roomId.value, pageable)
             .map(chatMessageMapper::toDomain)
     }
 
     override fun findByThreadId(
-        threadId: ObjectId,
+        threadId: MessageId,
         limit: Int
     ): List<ChatMessage> {
         val pageable = PageRequest.of(
@@ -152,13 +161,13 @@ class LoadMessageMongoAdapter(
             Sort.by(Sort.Direction.ASC, "_id")
         )
 
-        return chatMessageRepository.findByThreadId(threadId, pageable)
+        return chatMessageRepository.findByThreadId(threadId.value.toObjectId(), pageable)
             .map(chatMessageMapper::toDomain)
     }
 
     override fun findByThreadIdAndBeforeId(
-        threadId: ObjectId,
-        lastId: ObjectId,
+        threadId: MessageId,
+        beforeMessageId: MessageId,
         limit: Int
     ): List<ChatMessage> {
         val pageable = PageRequest.of(
@@ -167,12 +176,15 @@ class LoadMessageMongoAdapter(
             Sort.by(Sort.Direction.DESC, "_id")
         )
 
-        return chatMessageRepository.findByThreadIdAndIdBefore(threadId, lastId, pageable)
-            .map(chatMessageMapper::toDomain)
+        return chatMessageRepository.findByThreadIdAndIdBefore(
+            threadId.value.toObjectId(),
+            beforeMessageId.value.toObjectId(),
+            pageable
+        ).map(chatMessageMapper::toDomain)
     }
 
     override fun findThreadRootsByRoomId(
-        roomId: Long,
+        roomId: ChatRoomId,
         limit: Int
     ): List<ChatMessage> {
         val pageable = PageRequest.of(
@@ -181,13 +193,13 @@ class LoadMessageMongoAdapter(
             Sort.by(Sort.Direction.DESC, "_id")
         )
 
-        return chatMessageRepository.findThreadRootsByRoomId(roomId, pageable)
+        return chatMessageRepository.findThreadRootsByRoomId(roomId.value, pageable)
             .map(chatMessageMapper::toDomain)
     }
 
     override fun findThreadRootsByRoomIdAndBeforeId(
-        roomId: Long,
-        lastId: ObjectId,
+        roomId: ChatRoomId,
+        beforeMessageId: MessageId,
         limit: Int
     ): List<ChatMessage> {
         val pageable = PageRequest.of(
@@ -196,12 +208,15 @@ class LoadMessageMongoAdapter(
             Sort.by(Sort.Direction.DESC, "_id")
         )
 
-        return chatMessageRepository.findThreadRootsByRoomIdAndIdBefore(roomId, lastId, pageable)
-            .map(chatMessageMapper::toDomain)
+        return chatMessageRepository.findThreadRootsByRoomIdAndIdBefore(
+            roomId.value,
+            beforeMessageId.value.toObjectId(),
+            pageable
+        ).map(chatMessageMapper::toDomain)
     }
 
-    override fun countByThreadId(threadId: ObjectId): Long {
-        return chatMessageRepository.countByThreadId(threadId)
+    override fun countByThreadId(threadId: MessageId): Long {
+        return chatMessageRepository.countByThreadId(threadId.value.toObjectId())
     }
 
     /**
@@ -212,7 +227,7 @@ class LoadMessageMongoAdapter(
      * @return 채팅 메시지 Flow
      */
     override fun findByRoomIdFlow(
-        roomId: Long,
+        roomId: ChatRoomId,
         limit: Int
     ): Flow<ChatMessage> = flow {
         val messages = findByRoomId(roomId, limit)
@@ -224,16 +239,16 @@ class LoadMessageMongoAdapter(
      * 채팅방 ID와 이전 메시지 ID로 이전 메시지 조회 (Flow)
      *
      * @param roomId 채팅방 ID
-     * @param messageId 이전 메시지 ID
+     * @param beforeMessageId 이전 메시지 ID
      * @param limit 조회 개수
      * @return 채팅 메시지 Flow
      */
     override fun findByRoomIdAndBeforeIdFlow(
-        roomId: Long,
-        messageId: ObjectId,
+        roomId: ChatRoomId,
+        beforeMessageId: MessageId,
         limit: Int
     ): Flow<ChatMessage> = flow {
-        val messages = findByRoomIdAndBeforeId(roomId, messageId, limit)
+        val messages = findByRoomIdAndBeforeId(roomId, beforeMessageId, limit)
         messages.forEach { emit(it) }
     }
 
@@ -242,16 +257,16 @@ class LoadMessageMongoAdapter(
      * 채팅방 ID와 이후 메시지 ID로 이후 메시지 조회 (Flow)
      *
      * @param roomId 채팅방 ID
-     * @param messageId 이후 메시지 ID
+     * @param afterMessageId 이후 메시지 ID
      * @param limit 조회 개수
      * @return 채팅 메시지 Flow
      */
     override fun findByRoomIdAndAfterIdFlow(
-        roomId: Long,
-        messageId: ObjectId,
+        roomId: ChatRoomId,
+        afterMessageId: MessageId,
         limit: Int
     ): Flow<ChatMessage> = flow {
-        val messages = findByRoomIdAndAfterId(roomId, messageId, limit)
+        val messages = findByRoomIdAndAfterId(roomId, afterMessageId, limit)
         messages.forEach { emit(it) }
     }
 

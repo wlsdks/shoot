@@ -7,6 +7,7 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
+import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.infrastructure.util.toObjectId
 import org.springframework.stereotype.Component
 
@@ -27,7 +28,7 @@ class ScheduledMessageMapper() {
             status = domain.status.name,
             metadata = domain.metadata.toMessageMetadataDocument(),
         ).apply {
-            id = domain.id?.toObjectId()
+            id = domain.id?.toString()?.toObjectId()
             createdAt = domain.createdAt
         }
     }
@@ -37,7 +38,7 @@ class ScheduledMessageMapper() {
      */
     fun toDomain(document: ScheduledMessageDocument): ScheduledMessage {
         return ScheduledMessage(
-            id = document.id?.toString(),
+            id = document.id?.toString()?.let { MessageId.from(it) },
             roomId = document.roomId,
             senderId = document.senderId,
             content = toMessageContent(document.content),
@@ -79,7 +80,7 @@ class ScheduledMessageMapper() {
      */
     fun toScheduledMessageResponseDto(domain: ScheduledMessage): ScheduledMessageResponseDto {
         return ScheduledMessageResponseDto(
-            id = domain.id!!,
+            id = domain.id!!.toString(),
             roomId = domain.roomId,
             senderId = domain.senderId,
             content = MessageContentResponseDto(

@@ -14,7 +14,9 @@ import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.chat.room.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
@@ -65,8 +67,8 @@ class SendMessageService(
         messageRequest: ChatMessageRequest
     ): ChatMessage {
         val messageWithPreview = messageDomainService.createAndProcessMessage(
-            roomId = messageRequest.roomId,
-            senderId = messageRequest.senderId,
+            roomId = ChatRoomId.from(messageRequest.roomId),
+            senderId = UserId.from(messageRequest.senderId),
             contentText = messageRequest.content.text,
             contentType = messageRequest.content.type,
             threadId = messageRequest.threadId?.let { MessageId.from(it) },
@@ -141,7 +143,7 @@ class SendMessageService(
             publishMessageToKafka(message)
 
             // 2. 상태 업데이트 전송
-            notifyMessageStatus(message.roomId.value, tempId, MessageStatus.SENT_TO_KAFKA)
+            notifyMessageStatus(message.roomId, tempId, MessageStatus.SENT_TO_KAFKA)
 
             logger.debug { "메시지 Kafka 발행 성공, 상태 업데이트: tempId=$tempId" }
         } catch (e: Exception) {
@@ -376,12 +378,12 @@ class SendMessageService(
         logMessageError(message, throwable)
 
         // 2. 오류 알림
-        notifyMessageError(message.roomId.value, throwable)
+        notifyMessageError(message.roomId, throwable)
 
         // 3. 메시지 상태 업데이트
         if (tempId.isNotEmpty()) {
             notifyMessageStatus(
-                roomId = message.roomId.value,
+                roomId = message.roomId,
                 tempId = tempId,
                 status = MessageStatus.FAILED,
                 errorMessage = throwable.message

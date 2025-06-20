@@ -4,6 +4,9 @@ import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.ChatMessageResponse
 import com.stark.shoot.application.port.`in`.message.ForwardMessageToUserUseCase
 import com.stark.shoot.application.port.`in`.message.ForwardMessageUseCase
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.PostMapping
@@ -27,9 +30,9 @@ class MessageForwardController(
         @RequestParam forwardingUserId: Long
     ): ResponseDto<ChatMessageResponse> {
         val forwardedMessage = forwardMessageUseCase.forwardMessage(
-            originalMessageId = originalMessageId,
-            targetRoomId = targetRoomId,
-            forwardingUserId = forwardingUserId
+            MessageId.from(originalMessageId),
+            ChatRoomId.from(targetRoomId),
+            UserId.from(forwardingUserId)
         )
 
         val response = ChatMessageResponse(
@@ -49,9 +52,9 @@ class MessageForwardController(
     ): ResponseDto<ChatMessageResponse> {
         // 사용자에게 메시지 전달 (비즈니스 로직은 서비스에서 처리)
         val forwardedMessage = forwardMessageToUserUseCase.forwardMessageToUser(
-            originalMessageId = originalMessageId,
-            targetUserId = targetUserId,
-            forwardingUserId = forwardingUserId
+            MessageId.from(originalMessageId),
+            UserId.from(targetUserId),
+            UserId.from(forwardingUserId)
         )
 
         val response = ChatMessageResponse(

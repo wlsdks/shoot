@@ -7,7 +7,10 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserR
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.ChatRoomType
+import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.ChatRoomTitle
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
@@ -57,7 +60,8 @@ class SaveChatRoomPersistenceAdapter(
         }
 
         // 3. 참여자 정보 처리를 위한 사용자 조회
-        val allUsers = userRepository.findAllById(chatRoom.participants)
+        val participantLongIds = chatRoom.participants.map { it.value }
+        val allUsers = userRepository.findAllById(participantLongIds)
         val userMap = allUsers.associateBy { it.id }
 
         // 4. 참여자 정보 처리
@@ -67,10 +71,12 @@ class SaveChatRoomPersistenceAdapter(
         // 도메인 객체를 사용하여 참여자 변경 사항 계산
         val existingChatRoom = ChatRoom(
             id = ChatRoomId.from(savedChatRoomEntity.id),
-            title = savedChatRoomEntity.title,
+            title = savedChatRoomEntity.title?.let { ChatRoomTitle.from(it) },
             type = savedChatRoomEntity.type,
-            participants = currentParticipantIds.toMutableSet(),
-            pinnedParticipants = existingParticipants.filter { it.value.isPinned }.keys.toMutableSet()
+            participants = currentParticipantIds.map { UserId.from(it) }.toMutableSet(),
+            pinnedParticipants = existingParticipants.filter { it.value.isPinned }.keys.map { UserId.from(it) }
+                .toMutableSet(),
+            announcement = savedChatRoomEntity.announcement?.let { ChatRoomAnnouncement.from(it) }
         )
 
         val participantChanges = existingChatRoom.calculateParticipantChanges(
@@ -80,7 +86,7 @@ class SaveChatRoomPersistenceAdapter(
 
         // 새 참여자 추가
         participantChanges.participantsToAdd.forEach { participantId ->
-            val user = userMap[participantId] ?: return@forEach // 사용자가 없으면 건너뜀
+            val user = userMap[participantId.value] ?: return@forEach // 사용자가 없으면 건너뜀
             val isPinned = chatRoom.pinnedParticipants.contains(participantId)
 
             val chatRoomUser = ChatRoomUserEntity(
@@ -93,7 +99,7 @@ class SaveChatRoomPersistenceAdapter(
 
         // 기존 참여자 중 핀 상태가 변경된 경우 업데이트
         participantChanges.pinnedStatusChanges.forEach { (participantId, isPinned) ->
-            val existingUser = existingParticipants[participantId] ?: return@forEach
+            val existingUser = existingParticipants[participantId.value] ?: return@forEach
 
             if (existingUser.isPinned != isPinned) {
                 existingUser.isPinned = isPinned
@@ -103,8 +109,9 @@ class SaveChatRoomPersistenceAdapter(
 
         // 참여자 제거
         if (participantChanges.participantsToRemove.isNotEmpty()) {
+            val userIdsToRemove = participantChanges.participantsToRemove.map { it.value }
             chatRoomUserRepository.deleteAllByIdInBatch(
-                existingParticipants.filterKeys { it in participantChanges.participantsToRemove }.values.map { it.id }
+                existingParticipants.filterKeys { it in userIdsToRemove }.values.map { it.id }
             )
         }
 

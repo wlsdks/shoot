@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component
 import java.nio.charset.Charset
 import java.time.Duration
 import java.util.*
+import kotlin.math.pow
 
 /**
  * Redis Stream 관리를 위한 유틸리티 클래스
@@ -136,67 +137,95 @@ class RedisStreamManager(
         streamKey: String,
         consumerGroup: String = DEFAULT_CONSUMER_GROUP,
         count: Long = 10,
-        blockTime: Duration = Duration.ofMillis(100)
+        blockTime: Duration = Duration.ofMillis(100),
+        retryCount: Int = 0,
+        maxRetries: Int = 3
     ): List<MapRecord<String, String, Any>> {
-        // 스트림이 존재하는지 먼저 확인
-        if (!redisTemplate.hasKey(streamKey)) {
-            logger.warn { "스트림이 존재하지 않음: $streamKey - 생성 시도" }
-            ensureStreamExists(streamKey)
-            createConsumerGroup(streamKey, consumerGroup)
-        } else {
-            // 스트림은 존재하지만 소비자 그룹이 존재하는지 확인
-            try {
-                val consumerGroups = redisTemplate.opsForStream<Any, Any>().groups(streamKey)
-                val groupExists = consumerGroups.any { it.groupName() == consumerGroup }
+        try {
+            // 스트림이 존재하는지 먼저 확인
+            if (!redisTemplate.hasKey(streamKey)) {
+                logger.warn { "스트림이 존재하지 않음: $streamKey - 생성 시도" }
+                ensureStreamExists(streamKey)
+                createConsumerGroup(streamKey, consumerGroup)
+            } else {
+                // 스트림은 존재하지만 소비자 그룹이 존재하는지 확인
+                try {
+                    val consumerGroups = redisTemplate.opsForStream<Any, Any>().groups(streamKey)
+                    val groupExists = consumerGroups.any { it.groupName() == consumerGroup }
 
-                if (!groupExists) {
-                    logger.warn { "소비자 그룹이 존재하지 않음: $streamKey - 생성 시도" }
+                    if (!groupExists) {
+                        logger.warn { "소비자 그룹이 존재하지 않음: $streamKey - 생성 시도" }
+                        createConsumerGroup(streamKey, consumerGroup)
+                    }
+                } catch (e: Exception) {
+                    logger.warn(e) { "소비자 그룹 확인 중 오류: $streamKey" }
+                    // 오류 발생 시 소비자 그룹 생성 시도
                     createConsumerGroup(streamKey, consumerGroup)
                 }
-            } catch (e: Exception) {
-                logger.warn(e) { "소비자 그룹 확인 중 오류: $streamKey" }
-                // 오류 발생 시 소비자 그룹 생성 시도
-                createConsumerGroup(streamKey, consumerGroup)
             }
-        }
 
-        val readOptions = StreamReadOptions.empty()
-            .count(count)
-            .block(blockTime)
+            val readOptions = StreamReadOptions.empty()
+                .count(count)
+                .block(blockTime)
 
-        val consumerOptions = Consumer.from(consumerGroup, consumerId)
+            val consumerOptions = Consumer.from(consumerGroup, consumerId)
 
-        return try {
-            val messages = redisTemplate.opsForStream<String, Any>()
-                .read(consumerOptions, readOptions, StreamOffset.create(streamKey, ReadOffset.lastConsumed()))
+            return try {
+                val messages = redisTemplate.opsForStream<String, Any>()
+                    .read(consumerOptions, readOptions, StreamOffset.create(streamKey, ReadOffset.lastConsumed()))
 
-            messages?.toList() ?: emptyList()
-        } catch (e: Exception) {
-            if (e.message?.contains("NOGROUP") == true) {
-                logger.warn { "소비자 그룹이 없음: $streamKey - 재생성 시도" }
-                try {
-                    // 스트림이 존재하는지 확인하고 없으면 생성
-                    ensureStreamExists(streamKey)
-                    // 소비자 그룹 생성
-                    createConsumerGroup(streamKey, consumerGroup)
+                messages?.toList() ?: emptyList()
+            } catch (e: Exception) {
+                if (e.message?.contains("NOGROUP") == true) {
+                    logger.warn { "소비자 그룹이 없음: $streamKey - 재생성 시도" }
+                    try {
+                        // 스트림이 존재하는지 확인하고 없으면 생성
+                        ensureStreamExists(streamKey)
+                        // 소비자 그룹 생성
+                        createConsumerGroup(streamKey, consumerGroup)
 
-                    // 스트림과 소비자 그룹이 생성된 후 다시 메시지 읽기 시도
-                    return try {
-                        val retryMessages = redisTemplate.opsForStream<String, Any>()
-                            .read(consumerOptions, readOptions, StreamOffset.create(streamKey, ReadOffset.lastConsumed()))
+                        // 스트림과 소비자 그룹이 생성된 후 다시 메시지 읽기 시도
+                        return try {
+                            val retryMessages = redisTemplate.opsForStream<String, Any>()
+                                .read(consumerOptions, readOptions, StreamOffset.create(streamKey, ReadOffset.lastConsumed()))
 
-                        retryMessages?.toList() ?: emptyList()
-                    } catch (retryEx: Exception) {
-                        logger.error(retryEx) { "재시도 후에도 스트림 처리 오류: $streamKey" }
-                        emptyList()
+                            retryMessages?.toList() ?: emptyList()
+                        } catch (retryEx: Exception) {
+                            logger.error(retryEx) { "재시도 후에도 스트림 처리 오류: $streamKey" }
+                            emptyList()
+                        }
+                    } catch (ex: Exception) {
+                        logger.error(ex) { "소비자 그룹 재생성 실패: $streamKey - ${ex.message}" }
                     }
-                } catch (ex: Exception) {
-                    logger.error(ex) { "소비자 그룹 재생성 실패: $streamKey - ${ex.message}" }
+                } else {
+                    logger.error(e) { "스트림 처리 오류: $streamKey - Error in execution" }
+                }
+                emptyList()
+            }
+        } catch (e: Exception) {
+            // 연결 관련 오류 처리 (LettuceConnectionFactory was destroyed 등)
+            if (e.message?.contains("LettuceConnectionFactory was destroyed") == true || 
+                e.message?.contains("Connection closed") == true) {
+
+                if (retryCount < maxRetries) {
+                    // 지수 백오프로 재시도 간격 증가
+                    val backoffTime = (2.0.pow(retryCount.toDouble()) * 100).toLong()
+                    logger.warn { "Redis 연결 오류, ${backoffTime}ms 후 재시도 (${retryCount + 1}/$maxRetries): $streamKey" }
+
+                    try {
+                        Thread.sleep(backoffTime)
+                        return readMessages(streamKey, consumerGroup, count, blockTime, retryCount + 1, maxRetries)
+                    } catch (ie: InterruptedException) {
+                        Thread.currentThread().interrupt()
+                        logger.error(ie) { "재시도 중 인터럽트 발생" }
+                    }
+                } else {
+                    logger.error(e) { "최대 재시도 횟수 초과 ($maxRetries): $streamKey" }
                 }
             } else {
-                logger.error(e) { "스트림 처리 오류: $streamKey - Error in execution" }
+                logger.error(e) { "예상치 못한 오류 발생: $streamKey - ${e.message}" }
             }
-            emptyList()
+            return emptyList()
         }
     }
 

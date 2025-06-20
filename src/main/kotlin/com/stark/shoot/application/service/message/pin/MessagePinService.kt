@@ -6,10 +6,11 @@ import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.service.message.MessagePinDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
 
@@ -32,12 +33,12 @@ class MessagePinService(
      * @return 고정된 메시지
      */
     override fun pinMessage(
-        messageId: String,
-        userId: Long
+        messageId: MessageId,
+        userId: UserId
     ): ChatMessage {
         // 메시지 조회
-        val message = (loadMessagePort.findById(messageId.toObjectId())
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId"))
+        val message = (loadMessagePort.findById(messageId))
+            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
         // 채팅방에 이미 고정된 메시지가 있는지 확인
         val currentPinnedMessage = loadMessagePort.findPinnedMessagesByRoomId(message.roomId, 1).firstOrNull()
@@ -72,10 +73,10 @@ class MessagePinService(
      * @return 고정 해제된 메시지
      */
     override fun unpinMessage(
-        messageId: String,
-        userId: Long
+        messageId: MessageId,
+        userId: UserId
     ): ChatMessage {
-        val message = loadMessagePort.findById(messageId.toObjectId())
+        val message = loadMessagePort.findById(messageId)
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
         // 고정되지 않은 메시지인지 확인
@@ -105,17 +106,17 @@ class MessagePinService(
      */
     private fun sendPinStatusToClients(
         message: ChatMessage,
-        userId: Long,
+        userId: UserId,
         isPinned: Boolean
     ) {
-        val roomId = message.roomId
-        val messageId = message.id ?: return
+        val roomId = message.roomId.value
+        val messageId = message.id?.value ?: return
 
         // 채팅방의 모든 클라이언트에게 메시지 고정 상태 변경을 전송
         val pinStatusData = mapOf(
             "messageId" to messageId,
             "roomId" to roomId,
-            "userId" to userId,
+            "userId" to userId.value,
             "isPinned" to isPinned,
             "timestamp" to Instant.now().toString()
         )
@@ -131,7 +132,7 @@ class MessagePinService(
      */
     private fun publishPinEvent(
         message: ChatMessage,
-        userId: Long,
+        userId: UserId,
         isPinned: Boolean
     ) {
         val pinEvent = messagePinDomainService.createPinEvent(message, userId, isPinned)

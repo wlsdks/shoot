@@ -4,6 +4,8 @@ import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.InvitationRequest
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ManageParticipantRequest
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
@@ -21,7 +23,11 @@ class MultipleChatRoomController(
         @PathVariable roomId: Long,
         @RequestBody request: ManageParticipantRequest
     ): ResponseDto<Boolean> {
-        val result = manageChatRoomUseCase.addParticipant(roomId, request.userId)
+        val result = manageChatRoomUseCase.addParticipant(
+            ChatRoomId.from(roomId),
+            UserId.from(request.userId)
+        )
+
         return ResponseDto.success(result, "참여자가 추가되었습니다.")
     }
 
@@ -31,7 +37,11 @@ class MultipleChatRoomController(
         @PathVariable roomId: Long,
         @RequestBody request: ManageParticipantRequest
     ): ResponseDto<Boolean> {
-        val result = manageChatRoomUseCase.removeParticipant(roomId, request.userId)
+        val result = manageChatRoomUseCase.removeParticipant(
+            ChatRoomId.from(roomId),
+            UserId.from(request.userId)
+        )
+
         return ResponseDto.success(result, "참여자가 제거되었습니다.")
     }
 
@@ -41,7 +51,11 @@ class MultipleChatRoomController(
         @PathVariable roomId: Long,
         @RequestBody request: InvitationRequest
     ): ResponseDto<Boolean> {
-        val result = manageChatRoomUseCase.addParticipant(roomId, request.userId)
+        val result = manageChatRoomUseCase.addParticipant(
+            ChatRoomId.from(    roomId),
+            UserId.from(request.userId)
+        )
+
         return ResponseDto.success(result, "사용자를 채팅방에 초대했습니다.")
     }
 

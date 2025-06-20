@@ -2,6 +2,9 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom
 
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserRepository
 import com.stark.shoot.application.port.out.chatroom.ReadStatusPort
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
@@ -10,11 +13,11 @@ class ReadStatusPersistenceAdapter(
 ) : ReadStatusPort {
 
     override fun updateLastReadMessageId(
-        roomId: Long,
-        userId: Long,
-        messageId: String
+        roomId: ChatRoomId,
+        userId: UserId,
+        messageId: MessageId
     ) {
-        chatRoomUserRepository.updateLastReadMessageId(roomId, userId, messageId)
+        chatRoomUserRepository.updateLastReadMessageId(roomId.value, userId.value, messageId.value)
     }
 
 }

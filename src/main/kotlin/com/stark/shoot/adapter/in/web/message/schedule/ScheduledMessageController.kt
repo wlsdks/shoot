@@ -3,6 +3,8 @@ package com.stark.shoot.adapter.`in`.web.message.schedule
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageResponseDto
 import com.stark.shoot.application.port.`in`.message.schedule.ScheduledMessageUseCase
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.format.annotation.DateTimeFormat
@@ -30,8 +32,8 @@ class ScheduledMessageController(
         val scheduledInstant = scheduledAt.atZone(ZoneId.systemDefault()).toInstant()
 
         val result = scheduledMessageUseCase.scheduleMessage(
-            roomId = roomId,
-            senderId = userId,
+            roomId = ChatRoomId.from(roomId),
+            senderId = UserId.from(userId),
             content = content,
             scheduledAt = scheduledInstant
         )
@@ -49,7 +51,7 @@ class ScheduledMessageController(
 
         val result = scheduledMessageUseCase.cancelScheduledMessage(
             scheduledMessageId = scheduledMessageId,
-            userId = userId
+            userId = UserId.from(userId)
         )
 
         return ResponseDto.success(result, "메시지 예약이 취소되었습니다.")

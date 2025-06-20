@@ -1,11 +1,14 @@
 package com.stark.shoot.domain.chat.event
 
+import com.stark.shoot.domain.chat.room.ChatRoomId
 import com.stark.shoot.domain.common.DomainEvent
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 
 data class MessageReactionEvent(
-    val messageId: String,
-    val roomId: String,
-    val userId: String,
+    val messageId: MessageId,
+    val roomId: ChatRoomId,
+    val userId: UserId,
     val reactionType: String,
     val isAdded: Boolean,  // true: 추가, false: 제거
     val isReplacement: Boolean = false,  // true: 리액션 교체의 일부, false: 일반 추가/제거
@@ -24,9 +27,9 @@ data class MessageReactionEvent(
          * @return 생성된 MessageReactionEvent 객체
          */
         fun create(
-            messageId: String,
-            roomId: String,
-            userId: String,
+            messageId: MessageId,
+            roomId: ChatRoomId,
+            userId: UserId,
             reactionType: String,
             isAdded: Boolean,
             isReplacement: Boolean = false

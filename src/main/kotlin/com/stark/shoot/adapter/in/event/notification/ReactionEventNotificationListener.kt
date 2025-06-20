@@ -4,7 +4,9 @@ import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.notification.SaveNotificationPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.domain.chat.event.MessageReactionEvent
-import com.stark.shoot.infrastructure.util.toObjectId
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -36,14 +38,14 @@ class ReactionEventNotificationListener(
     fun handleReactionEvent(event: MessageReactionEvent) {
         try {
             // 메시지 조회
-            val message = loadMessagePort.findById(event.messageId.toObjectId())
+            val message = loadMessagePort.findById(event.messageId)
                 ?: run {
                     logger.warn { "메시지를 찾을 수 없습니다: messageId=${event.messageId}" }
                     return
                 }
 
             // 메시지 작성자가 반응을 추가한 사용자와 같으면 알림을 보내지 않음
-            val reactingUserId = event.userId.toLong()
+            val reactingUserId = event.userId
             if (message.senderId == reactingUserId) {
                 logger.info { "자신의 메시지에 대한 반응은 알림을 생성하지 않습니다: messageId=${event.messageId}" }
                 return
@@ -95,10 +97,10 @@ class ReactionEventNotificationListener(
      * @return 생성된 반응 알림
      */
     private fun createReactionNotification(
-        userId: Long,
-        reactingUserId: Long,
-        messageId: String,
-        roomId: String,
+        userId: UserId,
+        reactingUserId: UserId,
+        messageId: MessageId,
+        roomId: ChatRoomId,
         reactionType: String
     ) = chatNotificationFactory.createReactionNotification(
         userId = userId,

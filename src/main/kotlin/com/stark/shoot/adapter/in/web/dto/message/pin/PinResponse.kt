@@ -16,10 +16,10 @@ data class PinResponse(
     companion object {
         fun from(message: ChatMessage): PinResponse {
             return PinResponse(
-                messageId = message.id ?: "",
-                roomId = message.roomId,
+                messageId = message.id?.value ?: "",
+                roomId = message.roomId.value,
                 isPinned = message.isPinned,
-                pinnedBy = message.pinnedBy,
+                pinnedBy = message.pinnedBy?.value,
                 pinnedAt = message.pinnedAt?.toString(),
                 content = message.content.text,
                 updatedAt = message.updatedAt?.toString() ?: ""

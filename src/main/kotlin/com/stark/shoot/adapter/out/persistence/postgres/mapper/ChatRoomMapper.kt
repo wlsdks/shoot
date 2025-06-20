@@ -3,11 +3,11 @@ package com.stark.shoot.adapter.out.persistence.postgres.mapper
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomUserEntity
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.ChatRoomType
-import com.stark.shoot.domain.chat.room.ChatRoomTitle
 import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
 import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.ChatRoomTitle
 import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import org.springframework.stereotype.Component
 
 @Component
@@ -19,12 +19,12 @@ class ChatRoomMapper {
         participants: List<ChatRoomUserEntity>
     ): ChatRoom {
         // 참여자 ID 목록
-        val participantIds = participants.map { it.user.id }.toMutableSet()
+        val participantIds = participants.map { UserId.from(it.user.id) }.toMutableSet()
 
         // 고정된 참여자 ID 목록 (isPinned 필드 추가 필요)
         val pinnedParticipantIds = participants
             .filter { it.isPinned }
-            .map { it.user.id }
+            .map { UserId.from(it.user.id) }
             .toMutableSet()
 
         // JPA 엔티티에서 바로 도메인 타입 사용

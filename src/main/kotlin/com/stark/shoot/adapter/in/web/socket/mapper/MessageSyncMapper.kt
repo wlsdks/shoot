@@ -42,10 +42,10 @@ class MessageSyncMapper {
         }
 
         return MessageSyncInfoDto(
-            id = message.id ?: "",
+            id = message.id?.value ?: "",
             tempId = message.metadata.tempId,
             timestamp = message.createdAt ?: Instant.now(),
-            senderId = message.senderId,
+            senderId = message.senderId.value,
             status = message.status.name,
             content = MessageContentRequest(
                 text = message.content.text,
@@ -54,7 +54,7 @@ class MessageSyncMapper {
                 isEdited = message.content.isEdited,
                 isDeleted = message.content.isDeleted
             ),
-            readBy = message.readBy,
+            readBy = message.readBy.mapKeys { it.key.value },
             reactions = reactionDtos,
             replyCount = replyCount
         )

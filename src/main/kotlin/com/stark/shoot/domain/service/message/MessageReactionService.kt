@@ -27,8 +27,8 @@ class MessageReactionService {
             events.add(
                 MessageReactionEvent.create(
                     messageId = messageId,
-                    roomId = message.roomId.toString(),
-                    userId = userId.toString(),
+                    roomId = message.roomId,
+                    userId = userId,
                     reactionType = result.previousReactionType,
                     isAdded = false,
                     isReplacement = true
@@ -39,8 +39,8 @@ class MessageReactionService {
             events.add(
                 MessageReactionEvent.create(
                     messageId = messageId,
-                    roomId = message.roomId.toString(),
-                    userId = userId.toString(),
+                    roomId = message.roomId,
+                    userId = userId,
                     reactionType = result.reactionType,
                     isAdded = true,
                     isReplacement = true
@@ -51,8 +51,8 @@ class MessageReactionService {
             events.add(
                 MessageReactionEvent.create(
                     messageId = messageId,
-                    roomId = message.roomId.toString(),
-                    userId = userId.toString(),
+                    roomId = message.roomId,
+                    userId = userId,
                     reactionType = result.reactionType,
                     isAdded = result.isAdded,
                     isReplacement = false

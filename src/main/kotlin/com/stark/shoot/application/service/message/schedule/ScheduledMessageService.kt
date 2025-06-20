@@ -4,17 +4,19 @@ import com.stark.shoot.adapter.`in`.web.dto.ApiException
 import com.stark.shoot.adapter.`in`.web.dto.ErrorCode
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
-import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
 import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageResponseDto
-import com.stark.shoot.domain.chat.message.type.MessageType
+import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ScheduledMessageMapper
 import com.stark.shoot.application.port.`in`.message.schedule.ScheduledMessageUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.message.ScheduledMessagePort
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.ScheduledMessage
-import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
+import com.stark.shoot.domain.chat.message.type.MessageType
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
@@ -29,8 +31,8 @@ class ScheduledMessageService(
     private val logger = KotlinLogging.logger {}
 
     override fun scheduleMessage(
-        roomId: Long,
-        senderId: Long,
+        roomId: ChatRoomId,
+        senderId: UserId,
         content: String,
         scheduledAt: Instant
     ): ScheduledMessageResponseDto {
@@ -50,8 +52,8 @@ class ScheduledMessageService(
 
         // 예약 메시지 생성
         val scheduledMessage = ScheduledMessage(
-            roomId = roomId,
-            senderId = senderId,
+            roomId = roomId.value,
+            senderId = senderId.value,
             content = MessageContent(
                 text = content,
                 type = MessageType.TEXT
@@ -66,14 +68,14 @@ class ScheduledMessageService(
 
     override fun cancelScheduledMessage(
         scheduledMessageId: String,
-        userId: Long
+        userId: UserId
     ): ScheduledMessageResponseDto {
         // 예약 메시지 존재여부 확인
         val scheduledMessage = (scheduledMessagePort.findById(scheduledMessageId.toObjectId())
             ?: throw ApiException("예약 메시지를 찾을 수 없습니다.", ErrorCode.SCHEDULED_MESSAGE_NOT_FOUND))
 
         // 본인이 예약한 메시지인지 확인
-        if (scheduledMessage.senderId != userId) {
+        if (scheduledMessage.senderId != userId.value) {
             throw ApiException("본인이 예약한 메시지만 취소할 수 있습니다.", ErrorCode.SCHEDULED_MESSAGE_NOT_OWNED)
         }
 

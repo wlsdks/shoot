@@ -1,10 +1,13 @@
 package com.stark.shoot.domain.service.chatroom
 
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.domain.common.vo.UserId
+import org.springframework.stereotype.Service
 
 /**
  * 채팅방 참여자 관리 도메인 서비스
  */
+@Service
 class ChatRoomParticipantDomainService {
 
     data class RemovalResult(
@@ -16,14 +19,20 @@ class ChatRoomParticipantDomainService {
      * 채팅방에 참여자를 추가합니다.
      * 단일 채팅방 엔티티의 addParticipant 로직을 래핑합니다.
      */
-    fun addParticipant(chatRoom: ChatRoom, userId: Long): ChatRoom {
+    fun addParticipant(
+        chatRoom: ChatRoom,
+        userId: UserId
+    ): ChatRoom {
         return chatRoom.addParticipant(userId)
     }
 
     /**
      * 채팅방에서 참여자를 제거하고 삭제 필요 여부를 반환합니다.
      */
-    fun removeParticipant(chatRoom: ChatRoom, userId: Long): RemovalResult {
+    fun removeParticipant(
+        chatRoom: ChatRoom,
+        userId: UserId
+    ): RemovalResult {
         val updatedRoom = chatRoom.removeParticipant(userId)
         val shouldDelete = updatedRoom.shouldBeDeleted()
         return RemovalResult(updatedRoom, shouldDelete)
@@ -46,12 +55,15 @@ class ChatRoomParticipantDomainService {
         if (changes.participantsToAdd.isNotEmpty()) {
             room = room.addParticipants(changes.participantsToAdd)
         }
+
         if (changes.participantsToRemove.isNotEmpty()) {
             room = room.removeParticipants(changes.participantsToRemove)
         }
+
         changes.pinnedStatusChanges.forEach { (userId, isPinned) ->
-            room = room.updateFavoriteStatus(userId, isPinned, pinnedCountProvider(userId))
+            room = room.updateFavoriteStatus(userId, isPinned, pinnedCountProvider(userId.value))
         }
+
         return room
     }
 }

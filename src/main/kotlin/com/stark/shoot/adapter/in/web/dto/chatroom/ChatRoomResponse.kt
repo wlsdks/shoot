@@ -28,7 +28,7 @@ data class ChatRoomResponse(
          * - 1:1 채팅인 경우, 다른 참여자의 이름을 가져오려면 추가 조회가 필요하므로 여기서는 단순하게 title을 사용합니다.
          */
         fun from(chatRoom: ChatRoom, userId: Long): ChatRoomResponse {
-            val isPinned = chatRoom.pinnedParticipants.contains(userId)
+            val isPinned = chatRoom.pinnedParticipants.any { it.value == userId }
             val roomTitle = if (chatRoom.type == ChatRoomType.INDIVIDUAL) {
                 // 1:1 채팅인 경우: 다른 참여자의 이름을 사용하고 싶다면 추가 조회가 필요하지만,
                 // 여기서는 채팅방의 title이 있으면 사용하고, 없으면 기본 "채팅방"으로 처리합니다.

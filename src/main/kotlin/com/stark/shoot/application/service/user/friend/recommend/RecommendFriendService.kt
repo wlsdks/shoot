@@ -42,7 +42,7 @@ class RecommendFriendService(
 
     /**
      * 캐시 키 생성
-     * 
+     *
      * @param userId 사용자 ID
      * @param limit 조회 제한 수
      * @return 캐시 키
@@ -55,7 +55,7 @@ class RecommendFriendService(
      * 친구 추천 구현
      * - 캐싱 적용
      * - 페이징 지원
-     * 
+     *
      * @param userId 사용자 ID
      * @param skip 건너뛸 항목 수
      * @param limit 조회할 항목 수
@@ -116,7 +116,7 @@ class RecommendFriendService(
 
     /**
      * 캐시에서 추천 목록 조회
-     * 
+     *
      * @param cacheKey 캐시 키
      * @return 추천 친구 목록 또는 null
      */
@@ -158,7 +158,7 @@ class RecommendFriendService(
 
     /**
      * 로컬 캐시 유효성 검사
-     * 
+     *
      * @param timestamp 캐시 생성 시간
      * @return 유효 여부
      */
@@ -168,7 +168,7 @@ class RecommendFriendService(
 
     /**
      * 추천 목록 계산 및 캐싱
-     * 
+     *
      * @param userId 사용자 ID
      * @param cacheKey 캐시 키
      * @param limit 조회 제한 수
@@ -210,7 +210,7 @@ class RecommendFriendService(
 
     /**
      * 페이징 및 응답 DTO 변환
-     * 
+     *
      * @param users 사용자 목록
      * @param skip 건너뛸 항목 수
      * @param limit 조회할 항목 수
@@ -229,14 +229,14 @@ class RecommendFriendService(
                     id = user.id ?: 0L,
                     username = user.username.value,
                     nickname = user.nickname.value,
-                    profileImageUrl = user.profileImageUrl
+                    profileImageUrl = user.profileImageUrl?.value ?: "",
                 )
             }
     }
 
     /**
      * 이미 친구인 사용자와 친구 요청을 보낸 사용자를 필터링합니다.
-     * 
+     *
      * @param userId 현재 사용자 ID
      * @param users 필터링할 사용자 목록
      * @return 필터링된 사용자 목록
@@ -288,7 +288,10 @@ class RecommendFriendService(
      * 만료된 로컬 캐시 항목 정리
      * 설정된 간격(기본 15분)마다 실행되며, 설정된 시간(기본 30분) 이상 사용되지 않은 캐시 항목을 삭제합니다.
      */
-    @Scheduled(fixedRateString = "\${app.friend-recommend.cache-cleanup-interval-minutes:15}", timeUnit = TimeUnit.MINUTES)
+    @Scheduled(
+        fixedRateString = "\${app.friend-recommend.cache-cleanup-interval-minutes:15}",
+        timeUnit = TimeUnit.MINUTES
+    )
     fun cleanupExpiredCacheEntries() {
         val beforeSize = localCache.size
         val currentTime = System.currentTimeMillis()

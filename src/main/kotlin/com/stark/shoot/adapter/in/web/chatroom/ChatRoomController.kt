@@ -6,6 +6,9 @@ import com.stark.shoot.adapter.`in`.web.dto.chatroom.TitleRequest
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.ChatRoomTitle
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
@@ -25,7 +28,11 @@ class ChatRoomController(
         @RequestParam userId: Long,
         @RequestParam friendId: Long
     ): ResponseDto<ChatRoomResponse> {
-        val room = createChatRoomUseCase.createDirectChat(userId, friendId)
+        val room = createChatRoomUseCase.createDirectChat(
+            UserId.from(userId),
+            UserId.from(friendId)
+        )
+
         return ResponseDto.success(room, "채팅방이 생성되었습니다.")
     }
 
@@ -44,7 +51,11 @@ class ChatRoomController(
         @PathVariable roomId: Long,
         @RequestParam userId: Long
     ): ResponseDto<Boolean> {
-        val result = manageChatRoomUseCase.removeParticipant(roomId, userId)
+        val result = manageChatRoomUseCase.removeParticipant(
+            ChatRoomId.from(roomId),
+            UserId.from(userId)
+        )
+
         return ResponseDto.success(result, "채팅방에서 퇴장했습니다.")
     }
 
@@ -54,7 +65,11 @@ class ChatRoomController(
         @PathVariable roomId: Long,
         @RequestBody request: TitleRequest
     ): ResponseDto<Boolean> {
-        val result = manageChatRoomUseCase.updateTitle(roomId, request.title)
+        val result = manageChatRoomUseCase.updateTitle(
+            ChatRoomId.from(roomId),
+            ChatRoomTitle.from(request.title)
+        )
+
         return ResponseDto.success(result, "채팅방 제목이 변경되었습니다.")
     }
 

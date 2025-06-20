@@ -2,6 +2,9 @@ package com.stark.shoot.adapter.`in`.web.socket.mark
 
 import com.stark.shoot.adapter.`in`.web.dto.message.read.ChatReadRequest
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
@@ -21,8 +24,8 @@ class MessageReadCountStompHandler(
     @MessageMapping("/read-all")
     fun handleReadAll(request: ChatReadRequest) {
         messageReadUseCase.markAllMessagesAsRead(
-            roomId = request.roomId,
-            userId = request.userId,
+            roomId = ChatRoomId.from(request.roomId),
+            userId = UserId.from(request.userId),
             requestId = request.requestId
         )
     }
@@ -38,8 +41,8 @@ class MessageReadCountStompHandler(
     fun handleRead(request: ChatReadRequest) {
         request.messageId?.let { messageId ->
             messageReadUseCase.markMessageAsRead(
-                messageId = messageId,
-                userId = request.userId
+                messageId = MessageId.from(messageId),
+                userId = UserId.from(request.userId)
             )
         }
     }

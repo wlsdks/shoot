@@ -49,13 +49,13 @@ class MessageKafkaConsumer(
                 val roomId = event.data.roomId
 
                 // MongoDB 저장 전 처리 중 상태 업데이트
-                sendStatusUpdate(roomId, tempId, MessageStatus.PROCESSING.name, null)
+                sendStatusUpdate(roomId.value, tempId, MessageStatus.PROCESSING.name, null)
 
                 // 메시지 저장
                 val savedMessage = processMessageUseCase.processMessageCreate(event.data)
 
                 // 저장 성공 상태 업데이트
-                sendStatusUpdate(roomId, tempId, MessageStatus.SAVED.name, savedMessage.id)
+                sendStatusUpdate(roomId.value, tempId, MessageStatus.SAVED.name, savedMessage.id?.value)
 
                 // URL 미리보기 처리 필요 여부 확인
                 processChatMessageForUrlPreview(savedMessage)
@@ -112,7 +112,7 @@ class MessageKafkaConsumer(
 
         if (tempId != null) {
             sendStatusUpdate(
-                event.data.roomId,
+                event.data.roomId.value,
                 tempId,
                 MessageStatus.FAILED.name,
                 null,

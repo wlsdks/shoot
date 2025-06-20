@@ -3,6 +3,8 @@ package com.stark.shoot.adapter.`in`.web.message
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.application.port.`in`.message.GetMessagesUseCase
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,7 +29,12 @@ class MessageReadController(
         @RequestParam(required = false) lastMessageId: String?,
         @RequestParam(defaultValue = "20") limit: Int
     ): ResponseDto<List<MessageResponseDto>> {
-        val messageDtos = getMessagesUseCase.getMessages(roomId, lastMessageId, limit)
+        val messageDtos = getMessagesUseCase.getMessages(
+            ChatRoomId.from(roomId),
+            MessageId.from(lastMessageId ?: ""),
+            limit
+        )
+
         return ResponseDto.success(messageDtos)
     }
 

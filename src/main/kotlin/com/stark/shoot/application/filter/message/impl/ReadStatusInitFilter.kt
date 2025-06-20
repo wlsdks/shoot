@@ -38,7 +38,7 @@ class ReadStatusInitFilter(
             readStatusPort.updateLastReadMessageId(
                 roomId = processedMessage.roomId,
                 userId = processedMessage.senderId,
-                messageId = processedMessage.id.toString()
+                messageId = processedMessage.id
             )
         }
 

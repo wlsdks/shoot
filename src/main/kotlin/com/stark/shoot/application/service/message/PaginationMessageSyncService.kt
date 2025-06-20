@@ -8,14 +8,14 @@ import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.chat.message.SyncDirection
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
-import org.bson.types.ObjectId
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.time.Instant
 
@@ -54,7 +54,7 @@ class PaginationMessageSyncService(
             }
             .collect { message ->
                 val replyCount = if (message.threadId == null && message.id != null) {
-                    loadMessagePort.countByThreadId(ObjectId(message.id))
+                    loadMessagePort.countByThreadId(message.id)
                 } else {
                     null
                 }
@@ -71,41 +71,29 @@ class PaginationMessageSyncService(
     private fun getMessageFlowByDirection(
         request: SyncRequestDto
     ): Flow<ChatMessage> {
-        val roomObjectId = request.roomId
+        val roomObjectId = ChatRoomId.from(request.roomId)
 
         // lastMessageId가 null이 아닌 경우에만 ObjectId로 변환
-        val lastMessageObjectId = request.lastMessageId?.let { ObjectId(it) }
+        val lastMessageObjectId = MessageId.from(request.lastMessageId ?: "")
 
         return when (request.direction) {
             // 초기 로드 시 메시지 동기화
             SyncDirection.INITIAL -> {
-                if (lastMessageObjectId == null) {
-                    loadMessagePort.findByRoomIdFlow(roomObjectId, INITIAL_LOAD_LIMIT)
-                } else {
-                    loadMessagePort.findByRoomIdAndAfterIdFlow(
-                        roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
-                    )
-                }
+                loadMessagePort.findByRoomIdAndAfterIdFlow(
+                    roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
+                )
             }
             // 이전 메시지 동기화
             SyncDirection.BEFORE -> {
-                if (lastMessageObjectId != null) {
-                    loadMessagePort.findByRoomIdAndBeforeIdFlow(
-                        roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
-                    )
-                } else {
-                    emptyFlow()
-                }
+                loadMessagePort.findByRoomIdAndBeforeIdFlow(
+                    roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
+                )
             }
             // 이후 메시지 동기화
             SyncDirection.AFTER -> {
-                if (lastMessageObjectId != null) {
-                    loadMessagePort.findByRoomIdAndAfterIdFlow(
-                        roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
-                    )
-                } else {
-                    emptyFlow()
-                }
+                loadMessagePort.findByRoomIdAndAfterIdFlow(
+                    roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
+                )
             }
         }
     }

@@ -1,10 +1,8 @@
 package com.stark.shoot.domain.chat.room
 
-import com.stark.shoot.domain.exception.FavoriteLimitExceededException
-import com.stark.shoot.domain.chat.room.ChatRoomTitle
-import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
-import com.stark.shoot.domain.chat.room.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.exception.FavoriteLimitExceededException
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -13,23 +11,23 @@ data class ChatRoom(
     val id: ChatRoomId? = null,
     val title: ChatRoomTitle? = null,
     val type: ChatRoomType,
-    val participants: MutableSet<Long>,
+    val participants: MutableSet<UserId>,
     val lastMessageId: MessageId? = null,
     val lastActiveAt: Instant = Instant.now(),
     val createdAt: Instant = Instant.now(),
 
     // 필요한 경우에만 남길 선택적 필드
     val announcement: ChatRoomAnnouncement? = null,
-    val pinnedParticipants: MutableSet<Long> = mutableSetOf(),
+    val pinnedParticipants: MutableSet<UserId> = mutableSetOf(),
     val updatedAt: Instant? = null,
 ) {
     /**
      * 참여자 변경 정보를 담는 데이터 클래스
      */
     data class ParticipantChanges(
-        val participantsToAdd: Set<Long> = emptySet(),
-        val participantsToRemove: Set<Long> = emptySet(),
-        val pinnedStatusChanges: Map<Long, Boolean> = emptyMap()
+        val participantsToAdd: Set<UserId> = emptySet(),
+        val participantsToRemove: Set<UserId> = emptySet(),
+        val pinnedStatusChanges: Map<UserId, Boolean> = emptyMap()
     ) {
         fun isEmpty(): Boolean {
             return participantsToAdd.isEmpty() &&
@@ -46,8 +44,8 @@ data class ChatRoom(
      * @return 참여자 변경 정보
      */
     fun calculateParticipantChanges(
-        newParticipants: Set<Long>,
-        newPinnedParticipants: Set<Long> = this.pinnedParticipants
+        newParticipants: Set<UserId>,
+        newPinnedParticipants: Set<UserId> = this.pinnedParticipants
     ): ParticipantChanges {
         // 추가할 참여자 (새로운 참여자)
         val participantsToAdd = newParticipants - this.participants.toSet()
@@ -56,7 +54,7 @@ data class ChatRoom(
         val participantsToRemove = this.participants.toSet() - newParticipants
 
         // 핀 상태가 변경된 참여자
-        val pinnedStatusChanges = mutableMapOf<Long, Boolean>()
+        val pinnedStatusChanges = mutableMapOf<UserId, Boolean>()
 
         // 새 참여자 중 핀 상태 확인
         (this.participants.toSet() intersect newParticipants).forEach { participantId ->
@@ -107,7 +105,7 @@ data class ChatRoom(
                 title = title,
                 type = ChatRoomType.INDIVIDUAL,
                 announcement = null,
-                participants = mutableSetOf(userId, friendId),
+                participants = mutableSetOf(UserId.from(userId), UserId.from(friendId)),
                 pinnedParticipants = mutableSetOf(),
                 lastMessageId = null,
                 lastActiveAt = Instant.now(),
@@ -144,7 +142,7 @@ data class ChatRoom(
      * @param userId 추가할 사용자 ID
      * @return 업데이트된 ChatRoom 객체 (이미 참여 중인 경우 현재 객체 반환)
      */
-    fun addParticipant(userId: Long): ChatRoom {
+    fun addParticipant(userId: UserId): ChatRoom {
         // 이미 참여 중인지 확인
         if (participants.contains(userId)) {
             return this
@@ -164,7 +162,7 @@ data class ChatRoom(
      * @param userId 제거할 사용자 ID
      * @return 업데이트된 ChatRoom 객체 (참여자가 아닌 경우 현재 객체 반환)
      */
-    fun removeParticipant(userId: Long): ChatRoom {
+    fun removeParticipant(userId: UserId): ChatRoom {
         // 참여자가 아닌 경우
         if (!participants.contains(userId)) {
             return this
@@ -181,7 +179,7 @@ data class ChatRoom(
     /**
      * 여러 참여자 추가
      */
-    fun addParticipants(userIds: Collection<Long>): ChatRoom {
+    fun addParticipants(userIds: Collection<UserId>): ChatRoom {
         val updatedParticipants = this.participants.toMutableSet()
         updatedParticipants.addAll(userIds)
         return this.copy(participants = updatedParticipants)
@@ -190,7 +188,7 @@ data class ChatRoom(
     /**
      * 여러 참여자 제거
      */
-    fun removeParticipants(userIds: Collection<Long>): ChatRoom {
+    fun removeParticipants(userIds: Collection<UserId>): ChatRoom {
         val updatedParticipants = this.participants.toMutableSet()
         updatedParticipants.removeAll(userIds.toSet())
         return this.copy(participants = updatedParticipants)
@@ -199,7 +197,7 @@ data class ChatRoom(
     /**
      * 참여자 목록 업데이트 (기존 참여자 유지하고 새 참여자 추가, 제외된 참여자 제거)
      */
-    fun updateParticipants(newParticipants: Collection<Long>): ChatRoom {
+    fun updateParticipants(newParticipants: Collection<UserId>): ChatRoom {
         val newParticipantsSet = newParticipants.toSet()
         val participantsToAdd = newParticipantsSet - this.participants
         val participantsToRemove = this.participants - newParticipantsSet
@@ -226,7 +224,7 @@ data class ChatRoom(
      * @return 업데이트된 ChatRoom 객체
      */
     fun updateFavoriteStatus(
-        userId: Long,
+        userId: UserId,
         isFavorite: Boolean,
         userPinnedRoomsCount: Int
     ): ChatRoom {
@@ -243,10 +241,10 @@ data class ChatRoom(
      * @return 업데이트된 고정 참여자 목록
      */
     private fun updatePinnedParticipants(
-        userId: Long,
+        userId: UserId,
         isFavorite: Boolean,
         userPinnedRoomsCount: Int
-    ): MutableSet<Long> {
+    ): MutableSet<UserId> {
         val currentPinned = this.pinnedParticipants.toMutableSet()
         val isAlreadyPinned = currentPinned.contains(userId)
 
@@ -255,14 +253,14 @@ data class ChatRoom(
             currentPinned.remove(userId)
         }
         // 즐겨찾기 추가 요청이고 아직 즐겨찾기되지 않은 경우
-        else if (isFavorite && !isAlreadyPinned) {
+        else if (isFavorite) {
             if (userPinnedRoomsCount >= MAX_PINNED) {
                 throw FavoriteLimitExceededException("최대 핀 채팅방 개수를 초과했습니다. (MAX_PINNED=$MAX_PINNED)")
             }
             currentPinned.add(userId)
         }
         // 즐겨찾기 해제 요청
-        else if (!isFavorite) {
+        else {
             currentPinned.remove(userId)
         }
 
@@ -310,10 +308,12 @@ data class ChatRoom(
      * @return 1:1 채팅방이고 정확히 해당 두 사용자만 포함하면 true, 아니면 false
      */
     fun isDirectChatBetween(userId1: Long, userId2: Long): Boolean {
+        val user1 = UserId.from(userId1)
+        val user2 = UserId.from(userId2)
         return type == ChatRoomType.INDIVIDUAL &&
                 participants.size == 2 &&
-                participants.contains(userId1) &&
-                participants.contains(userId2)
+                participants.contains(user1) &&
+                participants.contains(user2)
     }
 
     /**
@@ -323,9 +323,10 @@ data class ChatRoom(
      * @return 채팅방 제목
      */
     fun createChatRoomTitle(userId: Long): String {
+        val userIdObj = UserId.from(userId)
         return if (ChatRoomType.INDIVIDUAL == type) {
             // 1:1 채팅인 경우, 상대방 사용자의 이름을 제목으로 설정
-            val otherParticipantId = participants.find { it != userId }
+            val otherParticipantId = participants.find { it != userIdObj }
             if (otherParticipantId != null) {
                 // 실제 구현에서는 사용자 정보 조회 서비스를 통해 닉네임 가져오기
                 title?.value ?: "1:1 채팅방"

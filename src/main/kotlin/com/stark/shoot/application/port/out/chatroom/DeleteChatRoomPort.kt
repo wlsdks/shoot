@@ -1,5 +1,6 @@
 package com.stark.shoot.application.port.out.chatroom
 
+import com.stark.shoot.domain.chat.room.ChatRoomId
 import com.stark.shoot.infrastructure.exception.web.MongoOperationException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
@@ -14,5 +15,5 @@ interface DeleteChatRoomPort {
      * @throws ResourceNotFoundException 채팅방을 찾을 수 없는 경우
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
-    fun deleteById(roomId: Long) : Boolean
+    fun deleteById(roomId: ChatRoomId) : Boolean
 }

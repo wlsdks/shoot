@@ -47,7 +47,7 @@ class FriendSearchService(
                 id = user.id ?: 0L,
                 username = user.username.value,
                 nickname = user.nickname.value,
-                profileImageUrl = user.profileImageUrl
+                profileImageUrl = user.profileImageUrl?.value
             )
         }
     }

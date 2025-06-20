@@ -1,9 +1,11 @@
 package com.stark.shoot.adapter.`in`.event.notification
 
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.NotificationType
-import com.stark.shoot.domain.common.vo.UserId
 import org.springframework.stereotype.Component
 
 /**
@@ -92,18 +94,18 @@ class ChatNotificationFactory {
      * @return 생성된 반응 알림
      */
     fun createReactionNotification(
-        userId: Long,
-        reactingUserId: Long,
-        messageId: String,
-        roomId: String,
+        userId: UserId,
+        reactingUserId: UserId,
+        messageId: MessageId,
+        roomId: ChatRoomId,
         reactionType: String
     ): Notification {
         return Notification.fromChatEvent(
-            userId = UserId.from(userId),
+            userId = userId,
             title = "새로운 반응",
             message = "내 메시지에 새로운 반응이 추가되었습니다",
             type = NotificationType.REACTION,
-            sourceId = roomId,
+            sourceId = roomId.toString(),
             metadata = mapOf(
                 "messageId" to messageId,
                 "reactingUserId" to reactingUserId.toString(),

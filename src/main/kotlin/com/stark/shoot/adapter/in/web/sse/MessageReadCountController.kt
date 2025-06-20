@@ -2,6 +2,9 @@ package com.stark.shoot.adapter.`in`.web.sse
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
@@ -26,7 +29,12 @@ class MessageReadCountController(
         @RequestParam userId: Long,
         @RequestParam(required = false) requestId: String?
     ): ResponseDto<Unit> {
-        messageReadUseCase.markAllMessagesAsRead(roomId, userId, requestId)
+        messageReadUseCase.markAllMessagesAsRead(
+            ChatRoomId.from(roomId),
+            UserId.from(userId),
+            requestId
+        )
+
         return ResponseDto.success(Unit, "모든 메시지가 읽음으로 처리되었습니다.")
     }
 
@@ -42,7 +50,11 @@ class MessageReadCountController(
         @PathVariable messageId: String,
         @RequestParam userId: Long
     ): ResponseDto<Unit> {
-        messageReadUseCase.markMessageAsRead(messageId, userId)
+        messageReadUseCase.markMessageAsRead(
+            MessageId.from(messageId),
+            UserId.from(userId)
+        )
+
         return ResponseDto.success(Unit, "메시지가 읽음으로 처리되었습니다.")
     }
 

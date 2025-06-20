@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.domain.chat.room.ChatRoomId
 import com.stark.shoot.infrastructure.config.socket.StompPrincipal
 import com.stark.shoot.infrastructure.exception.web.WebSocketException
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -146,7 +147,7 @@ class StompChannelInterceptor(
                             // 캐시에 없으면 채팅방 존재 여부 확인 후 캐싱
                             try {
                                 // roomId는 이미 Long 타입이므로 직접 사용
-                                val room = loadChatRoomPort.findById(roomId)
+                                val room = loadChatRoomPort.findById(ChatRoomId.from(roomId))
                                 if (room != null) {
                                     roomCache.put(roomIdStr, true, 5) // 5분 캐싱
                                 } else {
@@ -236,8 +237,16 @@ class StompChannelInterceptor(
      * ChatMessageRequest 유효성 검사 (최적화: 검증 로직 개선)
      */
     private fun validateMessage(message: ChatMessageRequest) {
+        // content가 null인지 확인
+        if (message.content == null) {
+            throw WebSocketException("Message content cannot be null")
+        }
+
+        // text가 null인지 확인 (MessageContentRequest에서 text는 non-nullable이지만 JSON 역직렬화 과정에서 null이 될 수 있음)
+        val text = message.content.text ?: throw WebSocketException("Message text cannot be null")
+
         // 텍스트 길이 검증
-        val textLength = message.content.text.length
+        val textLength = text.length
         if (textLength > 1000) {
             throw WebSocketException("Message content too long: $textLength characters (max: 1000)")
         }

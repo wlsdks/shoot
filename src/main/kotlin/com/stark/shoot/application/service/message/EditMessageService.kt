@@ -4,6 +4,7 @@ import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.domain.service.message.MessageEditDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.util.toObjectId
@@ -26,13 +27,13 @@ class EditMessageService(
      * SecurityContext에서 현재 사용자 정보를 가져오는 방식으로 구현할 수 있음
      */
     override fun editMessage(
-        messageId: String,
+        messageId: MessageId,
         newContent: String
     ): ChatMessage {
         logger.debug { "메시지 수정 요청: messageId=$messageId, newContent=$newContent" }
 
         // 메시지 조회
-        val existingMessage = loadMessagePort.findById(messageId.toObjectId())
+        val existingMessage = loadMessagePort.findById(messageId)
             ?: run {
                 logger.warn { "메시지를 찾을 수 없습니다: messageId=$messageId" }
                 throw IllegalArgumentException("메시지를 찾을 수 없습니다.")

@@ -6,6 +6,8 @@ import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.LoadPinnedRoomsPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
@@ -22,8 +24,8 @@ class UpdateChatRoomFavoriteService(
      * 사용자(userId)가 해당 채팅방(roomId)을 즐겨찾기(핀)로 설정하거나 해제합니다.
      */
     override fun updateFavoriteStatus(
-        roomId: Long,
-        userId: Long,
+        roomId: ChatRoomId,
+        userId: UserId,
         isFavorite: Boolean
     ): ChatRoomResponse {
         // 채팅방 조회 (도메인 객체로 반환)
@@ -41,6 +43,6 @@ class UpdateChatRoomFavoriteService(
         )
 
         val saved = saveChatRoomPort.save(updatedChatRoom)
-        return ChatRoomResponse.from(saved, userId)
+        return ChatRoomResponse.from(saved, userId.value)
     }
 }

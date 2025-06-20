@@ -32,7 +32,7 @@ class FindFriendService(
                 id = friend.id ?: 0L,
                 username = friend.username.value,
                 nickname = friend.nickname.value,
-                profileImageUrl = friend.profileImageUrl
+                profileImageUrl = friend.profileImageUrl?.value
             )
         }
     }
@@ -58,7 +58,7 @@ class FindFriendService(
                 id = requester.id ?: 0L,
                 username = requester.username.value,
                 nickname = requester.nickname.value,
-                profileImageUrl = requester.profileImageUrl
+                profileImageUrl = requester.profileImageUrl?.value
             )
         }
     }
@@ -84,7 +84,7 @@ class FindFriendService(
                 id = target.id ?: 0L,
                 username = target.username.value,
                 nickname = target.nickname.value,
-                profileImageUrl = target.profileImageUrl
+                profileImageUrl = target.profileImageUrl?.value
             )
         }
     }

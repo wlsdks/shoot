@@ -1,19 +1,21 @@
 package com.stark.shoot.application.port.`in`.message.schedule
 
 import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageResponseDto
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
 import java.time.Instant
 
 interface ScheduledMessageUseCase {
     fun scheduleMessage(
-        roomId: Long,
-        senderId: Long,
+        roomId: ChatRoomId,
+        senderId: UserId,
         content: String,
         scheduledAt: Instant
     ): ScheduledMessageResponseDto
 
     fun cancelScheduledMessage(
         scheduledMessageId: String,
-        userId: Long
+        userId: UserId
     ): ScheduledMessageResponseDto
 
     fun updateScheduledMessage(

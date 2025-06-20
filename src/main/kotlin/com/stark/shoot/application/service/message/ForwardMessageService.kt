@@ -6,11 +6,13 @@ import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.service.chatroom.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.service.message.MessageForwardDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import com.stark.shoot.infrastructure.util.toObjectId
 
 @UseCase
 class ForwardMessageService(
@@ -26,13 +28,13 @@ class ForwardMessageService(
      * 메시지를 전달합니다. (메시지 복사 후 대상 채팅방에 저장)
      */
     override fun forwardMessage(
-        originalMessageId: String,
-        targetRoomId: Long,
-        forwardingUserId: Long
+        originalMessageId: MessageId,
+        targetRoomId: ChatRoomId,
+        forwardingUserId: UserId
     ): ChatMessage {
         // 1. 원본 메시지 조회
-        val originalMessage = (loadMessagePort.findById(originalMessageId.toObjectId())
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$originalMessageId"))
+        val originalMessage = (loadMessagePort.findById(originalMessageId))
+            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$originalMessageId")
 
         // 2. 도메인 서비스를 사용하여 전달할 메시지 내용 생성
         val forwardedContent = messageForwardDomainService.createForwardedContent(originalMessage)
@@ -61,7 +63,7 @@ class ForwardMessageService(
      * @param savedForwardMessage 전달된 메시지
      */
     private fun updateChatRoomMetadata(
-        targetRoomId: Long,
+        targetRoomId: ChatRoomId,
         savedForwardMessage: ChatMessage
     ) {
         // 대상 채팅방 조회

@@ -74,30 +74,45 @@ class RedisStreamListener(
      * Redis Stream에서 새로운 메시지를 주기적으로 폴링합니다.
      */
     private suspend fun pollMessages() {
-        val streamKeys = redisStreamManager.scanStreamKeys(streamKeyPattern)
-        if (streamKeys.isEmpty()) return
+        try {
+            val streamKeys = redisStreamManager.scanStreamKeys(streamKeyPattern)
+            if (streamKeys.isEmpty()) return
 
-        // 각 스트림에 대해 순차적으로 처리 (메시지 순서 보장)
-        streamKeys.forEach { streamKey ->
-            // 스트림이 존재하는지 확인하고 없으면 생성
-            redisStreamManager.ensureStreamExists(streamKey)
-
-            // 소비자 그룹이 존재하는지 확인하고 없으면 생성
-            redisStreamManager.createConsumerGroup(streamKey, consumerGroup)
-
-            val messages = redisStreamManager.readMessages(streamKey, consumerGroup)
-
-            // 각 메시지 개별 처리 및 ACK
-            messages.forEach { message ->
+            // 각 스트림에 대해 순차적으로 처리 (메시지 순서 보장)
+            streamKeys.forEach { streamKey ->
                 try {
-                    processMessage(message)
-                    redisStreamManager.acknowledgeMessage(streamKey, consumerGroup, message.id)
-                } catch (e: JsonParseException) {
-                    logger.error(e) { "메시지 파싱 오류 (ID: ${message.id}): ${e.message}" }
+                    // 스트림이 존재하는지 확인하고 없으면 생성
+                    redisStreamManager.ensureStreamExists(streamKey)
+
+                    // 소비자 그룹이 존재하는지 확인하고 없으면 생성
+                    redisStreamManager.createConsumerGroup(streamKey, consumerGroup)
+
+                    val messages = redisStreamManager.readMessages(streamKey, consumerGroup)
+
+                    // 각 메시지 개별 처리 및 ACK
+                    messages.forEach { message ->
+                        try {
+                            processMessage(message)
+                            redisStreamManager.acknowledgeMessage(streamKey, consumerGroup, message.id)
+                        } catch (e: JsonParseException) {
+                            logger.error(e) { "메시지 파싱 오류 (ID: ${message.id}): ${e.message}" }
+                        } catch (e: Exception) {
+                            logger.error(e) { "메시지 처리 오류 (ID: ${message.id}, 스트림: $streamKey): ${e.message}" }
+                        }
+                    }
                 } catch (e: Exception) {
-                    logger.error(e) { "메시지 처리 오류 (ID: ${message.id}, 스트림: $streamKey): ${e.message}" }
+                    // 개별 스트림 처리 중 오류 발생 시 다른 스트림은 계속 처리
+                    logger.error(e) { "스트림 처리 중 오류 발생: $streamKey - ${e.message}" }
                 }
             }
+        } catch (e: Exception) {
+            if (e.message?.contains("LettuceConnectionFactory was destroyed") == true ||
+                e.message?.contains("Connection closed") == true) {
+                logger.error(e) { "Redis Stream 폴링 중 연결 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
+            } else {
+                logger.error(e) { "Redis Stream 폴링 중 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
+            }
+            // 오류 발생 시 지정된 시간 후 재시도 (상위 코루틴에서 처리)
         }
     }
 

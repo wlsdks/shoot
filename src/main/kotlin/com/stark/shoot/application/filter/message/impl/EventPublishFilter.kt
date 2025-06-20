@@ -7,6 +7,7 @@ import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.domain.common.vo.UserId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
@@ -65,24 +66,24 @@ class EventPublishFilter(
                 try {
                     // Redis에서 현재 읽지 않은 메시지 수 조회
                     val currentUnreadCount = operations
-                        .get("unread:$userId", roomId.toString())?.toIntOrNull() ?: 0
+                        .get("unread:${userId.value}", roomId.toString())?.toIntOrNull() ?: 0
 
                     // 읽지 않은 메시지 수 증가
                     val newUnreadCount = currentUnreadCount + 1
 
                     // Redis 업데이트
-                    operations.put("unread:$userId", roomId.toString(), newUnreadCount.toString())
+                    operations.put("unread:${userId.value}", roomId.toString(), newUnreadCount.toString())
 
                     // 이벤트에 포함할 unreadCounts 맵 업데이트
-                    unreadCounts[userId] = newUnreadCount
+                    unreadCounts[userId.value] = newUnreadCount
                 } catch (e: Exception) {
-                    logger.error(e) { "Redis 읽지 않은 메시지 수 업데이트 실패: roomId=$roomId, userId=$userId" }
+                    logger.error(e) { "Redis 읽지 않은 메시지 수 업데이트 실패: roomId=$roomId, userId=${userId.value}" }
                     // 오류 발생 시 기본값 사용
-                    unreadCounts[userId] = 1
+                    unreadCounts[userId.value] = 1
                 }
             } else {
                 // 이미 읽은 사용자는 0으로 설정
-                unreadCounts[userId] = 0
+                unreadCounts[userId.value] = 0
             }
         }
 

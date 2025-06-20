@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.web.socket.message.thread
 
 import com.stark.shoot.adapter.`in`.web.socket.dto.ThreadMessagesRequestDto
 import com.stark.shoot.application.port.`in`.message.thread.GetThreadMessagesUseCase
+import com.stark.shoot.domain.common.vo.MessageId
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
@@ -23,7 +24,12 @@ class GetThreadMessagesStompHandler(
     @MessageMapping("/thread/messages")
     fun handleGetThreadMessages(request: ThreadMessagesRequestDto) {
         val messages = getThreadMessagesUseCase
-            .getThreadMessages(request.threadId, request.lastMessageId, request.limit)
+            .getThreadMessages(
+                MessageId.from(request.threadId),
+                MessageId.from(request.lastMessageId ?: ""),
+                request.limit
+            )
+
         messagingTemplate.convertAndSendToUser(request.userId.toString(), "/queue/thread/messages", messages)
     }
 

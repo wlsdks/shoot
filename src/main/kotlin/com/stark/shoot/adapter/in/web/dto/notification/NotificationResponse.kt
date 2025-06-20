@@ -22,7 +22,7 @@ data class NotificationResponse(
         fun from(notification: Notification): NotificationResponse {
             return NotificationResponse(
                 id = notification.id?.value,
-                userId = notification.userId,
+                userId = notification.userId.value,
                 title = notification.title.value,
                 message = notification.message.value,
                 type = notification.type.name,

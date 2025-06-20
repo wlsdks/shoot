@@ -1,12 +1,13 @@
 package com.stark.shoot.domain.notification
 
 import java.time.Instant
+import com.stark.shoot.domain.common.vo.UserId
 
 /**
  * 사용자별 알림 설정을 관리하는 애그리게이트
  */
 data class NotificationSettings(
-    val userId: Long,
+    val userId: UserId,
     val preferences: Map<NotificationType, Boolean> = emptyMap(),
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant? = null,

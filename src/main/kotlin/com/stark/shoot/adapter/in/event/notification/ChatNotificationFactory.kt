@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.`in`.event.notification
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.NotificationType
+import com.stark.shoot.domain.common.vo.UserId
 import org.springframework.stereotype.Component
 
 /**
@@ -23,7 +24,7 @@ class ChatNotificationFactory {
         val truncatedText = truncateMessageText(message.content.text)
 
         return Notification.fromChatEvent(
-            userId = userId,
+            userId = UserId.from(userId),
             title = "새로운 멘션",
             message = "메시지에서 언급되었습니다: $truncatedText",
             type = NotificationType.MENTION,
@@ -43,7 +44,7 @@ class ChatNotificationFactory {
         val truncatedText = truncateMessageText(message.content.text)
 
         return Notification.fromChatEvent(
-            userId = userId,
+            userId = UserId.from(userId),
             title = "새로운 메시지",
             message = truncatedText,
             type = NotificationType.NEW_MESSAGE,
@@ -98,7 +99,7 @@ class ChatNotificationFactory {
         reactionType: String
     ): Notification {
         return Notification.fromChatEvent(
-            userId = userId,
+            userId = UserId.from(userId),
             title = "새로운 반응",
             message = "내 메시지에 새로운 반응이 추가되었습니다",
             type = NotificationType.REACTION,

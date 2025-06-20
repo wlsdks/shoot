@@ -2,6 +2,7 @@ package com.stark.shoot.domain.notification.service
 
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.event.NotificationEvent
+import com.stark.shoot.domain.common.vo.UserId
 
 /**
  * 알림 도메인 서비스

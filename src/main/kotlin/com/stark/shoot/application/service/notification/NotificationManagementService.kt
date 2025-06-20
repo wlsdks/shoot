@@ -8,6 +8,7 @@ import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.NotificationId
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.notification.service.NotificationDomainService
 import com.stark.shoot.infrastructure.exception.web.MongoOperationException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -50,7 +51,7 @@ class NotificationManagementService(
             ?: throw ResourceNotFoundException("알림을 찾을 수 없습니다: $notificationId")
 
         // 도메인 모델의 메서드를 사용하여 소유권 검증
-        notification.validateOwnership(userId)
+        notification.validateOwnership(UserId.from(userId))
 
         // 이미 읽은 알림인 경우 바로 반환
         if (notification.isRead) {
@@ -172,7 +173,7 @@ class NotificationManagementService(
             ?: throw ResourceNotFoundException("알림을 찾을 수 없습니다: $notificationId")
 
         // 도메인 모델의 메서드를 사용하여 소유권 검증
-        notification.validateOwnership(userId)
+        notification.validateOwnership(UserId.from(userId))
 
         // 알림 삭제 (소프트 삭제 방식)
         val deletedNotification = notification.markAsDeleted()

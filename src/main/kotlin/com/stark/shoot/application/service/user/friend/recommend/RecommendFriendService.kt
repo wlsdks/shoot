@@ -8,6 +8,7 @@ import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.RecommendFriendPort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
@@ -88,7 +89,7 @@ class RecommendFriendService(
         if (inProgressUsers.contains(userIdStr)) {
             logger.info { "이미 추천 목록 계산 중: userId=$userId, 랜덤 유저 반환" }
             // 빈 목록 대신 랜덤 유저 반환
-            val randomRecommendations = recommendFriendPort.recommendFriends(-1, limit * 2)
+            val randomRecommendations = recommendFriendPort.recommendFriends(UserId.from(1), limit * 2)
 
             // 랜덤 결과에서도 이미 친구인 사용자와 친구 요청을 보낸 사용자 제외
             val filteredRandomUsers = filterExistingRelationships(userId, randomRecommendations)
@@ -179,13 +180,13 @@ class RecommendFriendService(
         cacheKey: String,
         limit: Int
     ): List<User> {
-        var recommendedUsers = recommendFriendPort.recommendFriends(userId, limit * 2)
+        var recommendedUsers = recommendFriendPort.recommendFriends(UserId.from(userId), limit * 2)
             .filter { it.id != userId } // 본인 제외
 
         // 추천 결과가 없으면 랜덤 유저로 대체
         if (recommendedUsers.isEmpty()) {
             logger.info { "추천 친구가 없음: userId=$userId, 랜덤 유저 반환" }
-            recommendedUsers = recommendFriendPort.recommendFriends(-1, limit * 2)
+            recommendedUsers = recommendFriendPort.recommendFriends(UserId.from(1), limit * 2)
                 .filter { it.id != userId } // 본인 제외
         }
 
@@ -314,8 +315,8 @@ class RecommendFriendService(
      *
      * @param userId 캐시를 무효화할 사용자 ID
      */
-    fun invalidateUserCache(userId: Long) {
-        val cacheKeyPattern = "$CACHE_KEY_PREFIX:$userId:"
+    fun invalidateUserCache(userId: UserId) {
+        val cacheKeyPattern = "$CACHE_KEY_PREFIX:${userId.value}:"
 
         // 로컬 캐시 무효화
         val keysToRemove = localCache.keys.filter { it.startsWith(cacheKeyPattern) }
@@ -324,7 +325,7 @@ class RecommendFriendService(
         }
 
         if (keysToRemove.isNotEmpty()) {
-            logger.debug { "사용자 로컬 캐시 무효화: userId=$userId, 제거된 항목=${keysToRemove.size}개" }
+            logger.debug { "사용자 로컬 캐시 무효화: userId=${userId.value}, 제거된 항목=${keysToRemove.size}개" }
         }
 
         // Redis 캐시도 무효화
@@ -332,10 +333,11 @@ class RecommendFriendService(
             val redisKeys = redisStringTemplate.keys(cacheKeyPattern)
             if (!redisKeys.isNullOrEmpty()) {
                 redisStringTemplate.delete(redisKeys)
-                logger.debug { "사용자 Redis 캐시 무효화: userId=$userId, 제거된 항목=${redisKeys.size}개" }
+                logger.debug { "사용자 Redis 캐시 무효화: userId=${userId.value}, 제거된 항목=${redisKeys.size}개" }
             }
         } catch (e: Exception) {
-            logger.warn(e) { "Redis 캐시 무효화 실패: userId=$userId" }
+            logger.warn(e) { "Redis 캐시 무효화 실패: userId=${userId.value}" }
         }
     }
+
 }

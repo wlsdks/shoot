@@ -5,6 +5,7 @@ import com.stark.shoot.adapter.`in`.web.mapper.ChatRoomResponseMapper
 import com.stark.shoot.application.port.`in`.chatroom.SearchChatRoomsUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.domain.chat.room.service.ChatRoomDomainService
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase
@@ -24,7 +25,7 @@ class SearchChatRoomsService(
      * @return 채팅방 검색 결과 목록
      */
     override fun searchChatRooms(
-        userId: Long,
+        userId: UserId,
         query: String?,
         type: String?,
         unreadOnly: Boolean?
@@ -33,7 +34,7 @@ class SearchChatRoomsService(
         val chatRooms = loadChatRoomPort.findByParticipantId(userId)
 
         // 필터링된 채팅방 목록을 반환
-        val filteredRooms = chatRoomDomainService.filterChatRooms(chatRooms, query, type, unreadOnly, userId)
+        val filteredRooms = chatRoomDomainService.filterChatRooms(chatRooms, query, type, unreadOnly)
 
         // 채팅방 정보 준비
         val titles = chatRoomDomainService.prepareChatRoomTitles(filteredRooms, userId)

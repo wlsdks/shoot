@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMongoRepository
 import com.stark.shoot.application.port.out.message.LoadMessagePort
+import com.stark.shoot.application.port.out.message.LoadThreadPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.room.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
@@ -18,7 +19,7 @@ import org.springframework.data.domain.Sort
 class LoadMessageMongoAdapter(
     private val chatMessageRepository: ChatMessageMongoRepository,
     private val chatMessageMapper: ChatMessageMapper
-) : LoadMessagePort {
+) : LoadMessagePort, LoadThreadPort {
 
     /**
      * ID로 채팅 메시지 조회

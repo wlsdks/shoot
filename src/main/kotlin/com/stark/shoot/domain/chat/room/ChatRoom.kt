@@ -307,13 +307,14 @@ data class ChatRoom(
      * @param userId2 두 번째 사용자 ID
      * @return 1:1 채팅방이고 정확히 해당 두 사용자만 포함하면 true, 아니면 false
      */
-    fun isDirectChatBetween(userId1: Long, userId2: Long): Boolean {
-        val user1 = UserId.from(userId1)
-        val user2 = UserId.from(userId2)
+    fun isDirectChatBetween(
+        userId1: UserId,
+        userId2: UserId
+    ): Boolean {
         return type == ChatRoomType.INDIVIDUAL &&
                 participants.size == 2 &&
-                participants.contains(user1) &&
-                participants.contains(user2)
+                participants.contains(userId1) &&
+                participants.contains(userId2)
     }
 
     /**
@@ -322,11 +323,10 @@ data class ChatRoom(
      * @param userId 사용자 ID
      * @return 채팅방 제목
      */
-    fun createChatRoomTitle(userId: Long): String {
-        val userIdObj = UserId.from(userId)
+    fun createChatRoomTitle(userId: UserId): String {
         return if (ChatRoomType.INDIVIDUAL == type) {
             // 1:1 채팅인 경우, 상대방 사용자의 이름을 제목으로 설정
-            val otherParticipantId = participants.find { it != userIdObj }
+            val otherParticipantId = participants.find { it != userId }
             if (otherParticipantId != null) {
                 // 실제 구현에서는 사용자 정보 조회 서비스를 통해 닉네임 가져오기
                 title?.value ?: "1:1 채팅방"

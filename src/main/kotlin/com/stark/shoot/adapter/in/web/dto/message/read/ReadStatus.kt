@@ -1,19 +1,22 @@
 package com.stark.shoot.adapter.`in`.web.dto.message.read
 
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import java.time.Instant
 
 data class ReadStatus(
-    val roomId: Long,
-    val userId: Long,
-    val lastReadMessageId: String?,
+    val roomId: ChatRoomId,
+    val userId: UserId,
+    val lastReadMessageId: MessageId? = null,
     val lastReadAt: Instant,
     val unreadCount: Int
 ) {
     companion object {
         fun create(
-            roomId: Long,
-            userId: Long,
-            lastReadMessageId: String? = null
+            roomId: ChatRoomId,
+            userId: UserId,
+            lastReadMessageId: MessageId? = null
         ): ReadStatus {
             return ReadStatus(
                 roomId = roomId,
@@ -25,7 +28,7 @@ data class ReadStatus(
         }
     }
 
-    fun markAsRead(messageId: String): ReadStatus {
+    fun markAsRead(messageId: MessageId): ReadStatus {
         return copy(
             lastReadMessageId = messageId,
             lastReadAt = Instant.now(),
@@ -39,4 +42,5 @@ data class ReadStatus(
             lastReadAt = Instant.now()
         )
     }
+
 }

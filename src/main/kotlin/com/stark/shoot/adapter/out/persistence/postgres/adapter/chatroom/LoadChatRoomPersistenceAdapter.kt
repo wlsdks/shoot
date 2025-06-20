@@ -6,6 +6,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserR
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
@@ -39,9 +40,9 @@ class LoadChatRoomPersistenceAdapter(
      * @param participantId 참여자 ID
      * @return 채팅방 목록
      */
-    override fun findByParticipantId(participantId: Long): List<ChatRoom> {
+    override fun findByParticipantId(participantId: UserId): List<ChatRoom> {
         // 1. 해당 사용자가 참여한 채팅방-사용자 관계 조회
-        val chatRoomUsers = chatRoomUserRepository.findByUserId(participantId)
+        val chatRoomUsers = chatRoomUserRepository.findByUserId(participantId.value)
 
         // 2. 참여한 채팅방이 없으면 빈 리스트 반환
         if (chatRoomUsers.isEmpty()) {

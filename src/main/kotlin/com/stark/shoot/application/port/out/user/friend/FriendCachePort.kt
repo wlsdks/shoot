@@ -1,5 +1,7 @@
 package com.stark.shoot.application.port.out.user.friend
 
+import com.stark.shoot.domain.common.vo.UserId
+
 /**
  * 친구 관련 캐시를 관리하는 포트 인터페이스
  */
@@ -10,5 +12,5 @@ interface FriendCachePort {
      *
      * @param userId 캐시를 무효화할 사용자 ID
      */
-    fun invalidateUserCache(userId: Long)
+    fun invalidateUserCache(userId: UserId)
 }

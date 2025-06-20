@@ -41,7 +41,7 @@ class ChatRoomController(
     fun getChatRooms(
         @RequestParam userId: Long
     ): ResponseDto<List<ChatRoomResponse>> {
-        val chatRooms = findChatRoomUseCase.getChatRoomsForUser(userId)
+        val chatRooms = findChatRoomUseCase.getChatRoomsForUser(UserId.from(userId))
         return ResponseDto.success(chatRooms)
     }
 

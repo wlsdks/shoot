@@ -44,8 +44,8 @@ class CreateChatRoomService(
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendId.value}")
 
         // 2. 이미 존재하는 1:1 채팅방이 있는지 확인 (도메인 객체의 정적 메서드 사용)
-        val existingRooms = loadChatRoomPort.findByParticipantId(userId.value)
-        val existingRoom = chatRoomDomainService.findDirectChatBetween(existingRooms, userId.value, friendId.value)
+        val existingRooms = loadChatRoomPort.findByParticipantId(userId)
+        val existingRoom = chatRoomDomainService.findDirectChatBetween(existingRooms, userId, friendId)
 
         // 이미 존재하는 채팅방이 있으면 반환
         if (existingRoom != null) return ChatRoomResponse.from(existingRoom, userId.value)

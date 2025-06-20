@@ -3,14 +3,14 @@ package com.stark.shoot.application.service.message.thread
 import com.stark.shoot.adapter.`in`.web.dto.message.thread.ThreadSummaryDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.thread.GetThreadsUseCase
-import com.stark.shoot.application.port.out.message.LoadMessagePort
+import com.stark.shoot.application.port.out.message.LoadThreadPort
 import com.stark.shoot.domain.chat.room.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase
 class GetThreadsService(
-    private val loadMessagePort: LoadMessagePort,
+    private val loadThreadPort: LoadThreadPort,
     private val chatMessageMapper: ChatMessageMapper,
 ) : GetThreadsUseCase {
 
@@ -20,13 +20,13 @@ class GetThreadsService(
         limit: Int
     ): List<ThreadSummaryDto> {
         val rootMessages = if (lastThreadId != null) {
-            loadMessagePort.findThreadRootsByRoomIdAndBeforeId(roomId, lastThreadId, limit)
+            loadThreadPort.findThreadRootsByRoomIdAndBeforeId(roomId, lastThreadId, limit)
         } else {
-            loadMessagePort.findThreadRootsByRoomId(roomId, limit)
+            loadThreadPort.findThreadRootsByRoomId(roomId, limit)
         }
 
         return rootMessages.map { message ->
-            val count = loadMessagePort.countByThreadId(message.id!!)
+            val count = loadThreadPort.countByThreadId(message.id!!)
             ThreadSummaryDto(
                 rootMessage = chatMessageMapper.toDto(message),
                 replyCount = count

@@ -5,6 +5,7 @@ import com.stark.shoot.adapter.`in`.web.mapper.ChatRoomResponseMapper
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.domain.chat.room.service.ChatRoomDomainService
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import org.springframework.transaction.annotation.Transactional
 
@@ -23,7 +24,7 @@ class FindChatroomService(
      * @return ChatRoomResponse 채팅방 목록
      */
     override fun getChatRoomsForUser(
-        userId: Long
+        userId: UserId
     ): List<ChatRoomResponse> {
         // 사용자가 참여한 채팅방 목록을 조회합니다.
         val chatRooms = loadChatRoomPort.findByParticipantId(userId)
@@ -45,8 +46,8 @@ class FindChatroomService(
      * @return 두 사용자 간의 1:1 채팅방 응답 객체, 없으면 null
      */
     override fun findDirectChatBetweenUsers(
-        userId1: Long,
-        userId2: Long
+        userId1: UserId,
+        userId2: UserId
     ): ChatRoomResponse? {
         // 첫 번째 사용자가 참여한 채팅방 목록을 조회합니다.
         val chatRooms = loadChatRoomPort.findByParticipantId(userId1)

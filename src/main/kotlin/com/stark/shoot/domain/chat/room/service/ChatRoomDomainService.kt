@@ -1,6 +1,7 @@
 package com.stark.shoot.domain.chat.room.service
 
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.domain.common.vo.UserId
 
 /**
  * 채팅방 도메인 서비스
@@ -24,8 +25,7 @@ class ChatRoomDomainService {
         chatRooms: List<ChatRoom>,
         query: String?,
         type: String?,
-        unreadOnly: Boolean?,
-        userId: Long
+        unreadOnly: Boolean?
     ): List<ChatRoom> {
         return chatRooms.filter { room ->
             // 검색어 필터링 (제목에 검색어 포함 여부)
@@ -55,8 +55,8 @@ class ChatRoomDomainService {
      */
     fun findDirectChatBetween(
         chatRooms: List<ChatRoom>,
-        userId: Long,
-        friendId: Long
+        userId: UserId,
+        friendId: UserId
     ): ChatRoom? {
         return chatRooms.firstOrNull { chatRoom ->
             chatRoom.isDirectChatBetween(userId, friendId)
@@ -68,7 +68,7 @@ class ChatRoomDomainService {
      */
     fun prepareChatRoomTitles(
         chatRooms: List<ChatRoom>,
-        userId: Long
+        userId: UserId
     ): Map<Long, String> {
         return chatRooms.associate { room ->
             val roomId = room.id?.value ?: 0L

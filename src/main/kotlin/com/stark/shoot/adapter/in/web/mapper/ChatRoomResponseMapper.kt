@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.web.mapper
 
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.domain.common.vo.UserId
 import org.springframework.stereotype.Component
 
 /**
@@ -25,7 +26,7 @@ class ChatRoomResponseMapper {
      */
     fun toResponseList(
         rooms: List<ChatRoom>,
-        userId: Long,
+        userId: UserId,
         titles: Map<Long, String>,
         lastMessages: Map<Long, String>,
         timestamps: Map<Long, String>
@@ -52,7 +53,7 @@ class ChatRoomResponseMapper {
      */
     fun toResponse(
         room: ChatRoom,
-        userId: Long,
+        userId: UserId,
         title: String,
         lastMessage: String,
         timestamp: String
@@ -62,7 +63,7 @@ class ChatRoomResponseMapper {
             title = title,
             lastMessage = lastMessage,
             unreadMessages = 0, // 실제 구현시 읽지 않은 메시지 수 계산 로직 추가
-            isPinned = room.pinnedParticipants.any { it.value == userId },
+            isPinned = room.pinnedParticipants.any { it.value == userId.value },
             timestamp = timestamp
         )
     }

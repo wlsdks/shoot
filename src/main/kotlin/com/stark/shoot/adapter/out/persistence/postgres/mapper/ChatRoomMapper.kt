@@ -6,6 +6,8 @@ import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomType
 import com.stark.shoot.domain.chat.room.ChatRoomTitle
 import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
 import org.springframework.stereotype.Component
 
 @Component
@@ -29,13 +31,13 @@ class ChatRoomMapper {
         val domainType = entity.type
 
         return ChatRoom(
-            id = entity.id,
+            id = ChatRoomId.from(entity.id),
             title = entity.title?.let { ChatRoomTitle.from(it) },
             type = domainType,
             announcement = entity.announcement?.let { ChatRoomAnnouncement.from(it) },
             participants = participantIds,
             pinnedParticipants = pinnedParticipantIds,
-            lastMessageId = entity.lastMessageId?.toString(),
+            lastMessageId = entity.lastMessageId?.let { MessageId.from(it.toString()) },
             lastActiveAt = entity.lastActiveAt,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
@@ -44,7 +46,7 @@ class ChatRoomMapper {
 
     // 도메인 -> 엔티티 변환 (ChatRoomUserEntity는 별도로 생성)
     fun toEntity(domain: ChatRoom): ChatRoomEntity {
-        val lastMessageIdLong: Long? = domain.lastMessageId?.toLongOrNull()
+        val lastMessageIdLong: Long? = domain.lastMessageId?.value?.toLongOrNull()
 
         return ChatRoomEntity(
             title = domain.title?.value,

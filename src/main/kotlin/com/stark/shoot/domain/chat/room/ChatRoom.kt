@@ -3,16 +3,18 @@ package com.stark.shoot.domain.chat.room
 import com.stark.shoot.domain.exception.FavoriteLimitExceededException
 import com.stark.shoot.domain.chat.room.ChatRoomTitle
 import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 data class ChatRoom(
-    val id: Long? = null,
+    val id: ChatRoomId? = null,
     val title: ChatRoomTitle? = null,
     val type: ChatRoomType,
     val participants: MutableSet<Long>,
-    val lastMessageId: String? = null,
+    val lastMessageId: MessageId? = null,
     val lastActiveAt: Instant = Instant.now(),
     val createdAt: Instant = Instant.now(),
 
@@ -118,11 +120,11 @@ data class ChatRoom(
      * 채팅방 정보 업데이트
      */
     fun update(
-        id: Long? = this.id,
+        id: ChatRoomId? = this.id,
         title: ChatRoomTitle? = this.title,
         type: ChatRoomType = this.type,
         announcement: ChatRoomAnnouncement? = this.announcement,
-        lastMessageId: String? = this.lastMessageId,
+        lastMessageId: MessageId? = this.lastMessageId,
         lastActiveAt: Instant = this.lastActiveAt
     ): ChatRoom {
         return this.copy(

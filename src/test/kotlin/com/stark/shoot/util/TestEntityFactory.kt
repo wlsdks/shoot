@@ -49,7 +49,7 @@ object TestEntityFactory {
             type = type,
             participants = participants,
             pinnedParticipants = pinned,
-            title = title,
+            title = title?.let { ChatRoomTitle.from(it) },
             announcement = null,
             lastMessageId = null,
             lastActiveAt = Instant.now(),

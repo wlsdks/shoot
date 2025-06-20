@@ -28,7 +28,7 @@ class SaveChatRoomPersistenceAdapter(
         // 1. 채팅방 엔티티로 변환 및 저장
         val savedChatRoomEntity = if (chatRoom.id != null) {
             // 기존 채팅방 업데이트
-            val existingEntity = chatRoomRepository.findById(chatRoom.id).orElseThrow {
+            val existingEntity = chatRoomRepository.findById(chatRoom.id.value).orElseThrow {
                 IllegalStateException("채팅방을 찾을 수 없습니다. id=${chatRoom.id}")
             }
 
@@ -37,7 +37,7 @@ class SaveChatRoomPersistenceAdapter(
                 title = chatRoom.title?.value,
                 type = chatRoom.type,
                 announcement = chatRoom.announcement?.value,
-                lastMessageId = chatRoom.lastMessageId?.toLongOrNull(),
+                lastMessageId = chatRoom.lastMessageId?.value?.toLongOrNull(),
                 lastActiveAt = chatRoom.lastActiveAt
             )
 
@@ -66,7 +66,7 @@ class SaveChatRoomPersistenceAdapter(
 
         // 도메인 객체를 사용하여 참여자 변경 사항 계산
         val existingChatRoom = ChatRoom(
-            id = savedChatRoomEntity.id,
+            id = ChatRoomId.from(savedChatRoomEntity.id),
             title = savedChatRoomEntity.title,
             type = savedChatRoomEntity.type,
             participants = currentParticipantIds.toMutableSet(),

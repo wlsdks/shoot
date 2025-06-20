@@ -76,8 +76,8 @@ class UserTest {
             assertThat(user.username.value).isEqualTo(username)
             assertThat(user.nickname.value).isEqualTo(nickname)
             assertThat(user.passwordHash).isEqualTo("encoded_$rawPassword")
-            assertThat(user.bio).isEqualTo(bio)
-            assertThat(user.profileImageUrl).isEqualTo(profileImageUrl)
+            assertThat(user.bio?.value).isEqualTo(bio)
+            assertThat(user.profileImageUrl?.value).isEqualTo(profileImageUrl)
         }
         
         @Test

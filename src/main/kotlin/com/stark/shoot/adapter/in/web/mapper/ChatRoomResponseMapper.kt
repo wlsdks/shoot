@@ -58,7 +58,7 @@ class ChatRoomResponseMapper {
         timestamp: String
     ): ChatRoomResponse {
         return ChatRoomResponse(
-            roomId = room.id ?: 0L,
+            roomId = room.id?.value ?: 0L,
             title = title,
             lastMessage = lastMessage,
             unreadMessages = 0, // 실제 구현시 읽지 않은 메시지 수 계산 로직 추가

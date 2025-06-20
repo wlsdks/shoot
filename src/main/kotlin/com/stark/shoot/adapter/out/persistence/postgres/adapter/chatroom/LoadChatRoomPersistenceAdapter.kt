@@ -5,6 +5,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepos
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserRepository
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.domain.chat.room.ChatRoomId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter

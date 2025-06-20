@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomUserEntity
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomType
+import com.stark.shoot.domain.chat.room.ChatRoomTitle
 import org.springframework.stereotype.Component
 
 @Component
@@ -28,7 +29,7 @@ class ChatRoomMapper {
 
         return ChatRoom(
             id = entity.id,
-            title = entity.title,
+            title = entity.title?.let { ChatRoomTitle.from(it) },
             type = domainType,
             announcement = entity.announcement,
             participants = participantIds,
@@ -45,7 +46,7 @@ class ChatRoomMapper {
         val lastMessageIdLong: Long? = domain.lastMessageId?.toLongOrNull()
 
         return ChatRoomEntity(
-            title = domain.title,
+            title = domain.title?.value,
             type = domain.type,
             announcement = domain.announcement,
             lastMessageId = lastMessageIdLong,

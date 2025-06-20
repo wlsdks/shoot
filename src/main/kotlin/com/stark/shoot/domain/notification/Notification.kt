@@ -2,6 +2,8 @@ package com.stark.shoot.domain.notification
 
 import com.stark.shoot.domain.exception.NotificationException
 import com.stark.shoot.domain.notification.event.NotificationEvent
+import com.stark.shoot.domain.notification.NotificationTitle
+import com.stark.shoot.domain.notification.NotificationMessage
 import java.time.Instant
 
 /**
@@ -13,8 +15,8 @@ import java.time.Instant
 class Notification(
     val id: String? = null,
     val userId: Long,
-    val title: String,
-    val message: String,
+    val title: NotificationTitle,
+    val message: NotificationMessage,
     val type: NotificationType,
     val sourceId: String,
     val sourceType: SourceType,
@@ -124,8 +126,8 @@ class Notification(
         ): Notification {
             return Notification(
                 userId = userId,
-                title = title,
-                message = message,
+                title = NotificationTitle.from(title),
+                message = NotificationMessage.from(message),
                 type = type,
                 sourceId = sourceId,
                 sourceType = SourceType.CHAT,
@@ -143,8 +145,8 @@ class Notification(
         fun fromEvent(event: NotificationEvent, recipientId: Long): Notification {
             return Notification(
                 userId = recipientId,
-                title = event.getTitle(),
-                message = event.getMessage(),
+                title = NotificationTitle.from(event.getTitle()),
+                message = NotificationMessage.from(event.getMessage()),
                 type = event.type,
                 sourceId = event.sourceId,
                 sourceType = event.sourceType,
@@ -175,8 +177,8 @@ class Notification(
         ): Notification {
             return Notification(
                 userId = userId,
-                title = title,
-                message = message,
+                title = NotificationTitle.from(title),
+                message = NotificationMessage.from(message),
                 type = type,
                 sourceId = sourceId,
                 sourceType = sourceType,

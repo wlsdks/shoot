@@ -1,13 +1,14 @@
 package com.stark.shoot.domain.chat.room
 
 import com.stark.shoot.domain.exception.FavoriteLimitExceededException
+import com.stark.shoot.domain.chat.room.ChatRoomTitle
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 data class ChatRoom(
     val id: Long? = null,
-    val title: String? = null,
+    val title: ChatRoomTitle? = null,
     val type: ChatRoomType,
     val participants: MutableSet<Long>,
     val lastMessageId: String? = null,
@@ -97,7 +98,7 @@ data class ChatRoom(
             friendId: Long,
             friendName: String
         ): ChatRoom {
-            val title = "${friendName}님과의 대화"
+            val title = ChatRoomTitle.from("${friendName}님과의 대화")
 
             return ChatRoom(
                 title = title,
@@ -117,7 +118,7 @@ data class ChatRoom(
      */
     fun update(
         id: Long? = this.id,
-        title: String? = this.title,
+        title: ChatRoomTitle? = this.title,
         type: ChatRoomType = this.type,
         announcement: String? = this.announcement,
         lastMessageId: String? = this.lastMessageId,
@@ -324,13 +325,13 @@ data class ChatRoom(
             val otherParticipantId = participants.find { it != userId }
             if (otherParticipantId != null) {
                 // 실제 구현에서는 사용자 정보 조회 서비스를 통해 닉네임 가져오기
-                title ?: "1:1 채팅방"
+                title?.value ?: "1:1 채팅방"
             } else {
-                title ?: "1:1 채팅방"
+                title?.value ?: "1:1 채팅방"
             }
         } else {
             // 그룹 채팅의 경우 정해진 제목 사용
-            title ?: "그룹 채팅방"
+            title?.value ?: "그룹 채팅방"
         }
     }
 

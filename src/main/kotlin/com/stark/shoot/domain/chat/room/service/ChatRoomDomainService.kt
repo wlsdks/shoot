@@ -30,7 +30,7 @@ class ChatRoomDomainService {
         return chatRooms.filter { room ->
             // 검색어 필터링 (제목에 검색어 포함 여부)
             val matchesQuery = query.isNullOrBlank() ||
-                    (room.title?.contains(query, ignoreCase = true) ?: false)
+                    (room.title?.value?.contains(query, ignoreCase = true) ?: false)
 
             // 채팅방 타입 필터링
             val matchesType = type.isNullOrBlank() ||

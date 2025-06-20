@@ -32,10 +32,10 @@ data class ChatRoomResponse(
             val roomTitle = if (chatRoom.type == ChatRoomType.INDIVIDUAL) {
                 // 1:1 채팅인 경우: 다른 참여자의 이름을 사용하고 싶다면 추가 조회가 필요하지만,
                 // 여기서는 채팅방의 title이 있으면 사용하고, 없으면 기본 "채팅방"으로 처리합니다.
-                chatRoom.title ?: "채팅방"
+                chatRoom.title?.value ?: "채팅방"
             } else {
                 // 그룹 채팅의 경우 제목 그대로 사용
-                chatRoom.title ?: "채팅방"
+                chatRoom.title?.value ?: "채팅방"
             }
             return ChatRoomResponse(
                 roomId = chatRoom.id ?: 0L,

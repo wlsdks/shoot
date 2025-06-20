@@ -5,6 +5,7 @@ import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.config.socket.StompPrincipal
 import com.stark.shoot.infrastructure.exception.web.WebSocketException
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -117,7 +118,7 @@ class StompChannelInterceptor(
                         try {
                             // userId가 Long으로 변환 가능한지 확인
                             val userIdLong = userId.toLongOrNull()
-                            if (userIdLong != null && findUserPort.existsById(userIdLong)) {
+                            if (userIdLong != null && findUserPort.existsById(UserId.from(userIdLong))) {
                                 userCache.put(userId, true, 10) // 10분 캐싱
                             }
                         } catch (e: Exception) {

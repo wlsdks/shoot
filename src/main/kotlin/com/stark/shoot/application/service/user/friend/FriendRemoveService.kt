@@ -5,6 +5,7 @@ import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.service.user.FriendDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -20,7 +21,10 @@ class FriendRemoveService(
     private val friendCacheManager: FriendCacheManager
 ) : FriendRemoveUseCase {
 
-    override fun removeFriend(userId: Long, friendId: Long): User {
+    override fun removeFriend(
+        userId: UserId,
+        friendId: UserId
+    ): User {
         // 기본 사용자 정보 조회
         val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("User not found: $userId")

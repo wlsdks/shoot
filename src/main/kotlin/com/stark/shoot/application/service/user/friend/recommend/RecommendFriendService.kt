@@ -48,8 +48,8 @@ class RecommendFriendService(
      * @param limit 조회 제한 수
      * @return 캐시 키
      */
-    private fun getCacheKey(userId: Long, limit: Int): String {
-        return "$CACHE_KEY_PREFIX:$userId:$limit"
+    private fun getCacheKey(userId: UserId, limit: Int): String {
+        return "$CACHE_KEY_PREFIX:${userId.value}:$limit"
     }
 
     /**
@@ -63,7 +63,7 @@ class RecommendFriendService(
      * @return 추천 친구 목록
      */
     override fun getRecommendedFriends(
-        userId: Long,
+        userId: UserId,
         skip: Int,
         limit: Int
     ): List<FriendResponse> {
@@ -75,12 +75,8 @@ class RecommendFriendService(
 
         // 캐시 데이터가 있으면 추가 필터링 후 페이징해서 반환
         if (cachedUsers != null) {
-            logger.debug { "캐시에서 추천 친구 목록 조회: userId=$userId, 필터링 전=${cachedUsers.size}명" }
-
             // 캐시된 결과에서 이미 친구인 사용자와 친구 요청을 보낸 사용자 제외
             val filteredUsers = filterExistingRelationships(userId, cachedUsers)
-
-            logger.debug { "캐시 결과 필터링 완료: userId=$userId, 필터링 후=${filteredUsers.size}명" }
             return paginateAndConvert(filteredUsers, skip, limit)
         }
 
@@ -176,11 +172,11 @@ class RecommendFriendService(
      * @return 추천 친구 목록
      */
     private fun calculateAndCacheRecommendations(
-        userId: Long,
+        userId: UserId,
         cacheKey: String,
         limit: Int
     ): List<User> {
-        var recommendedUsers = recommendFriendPort.recommendFriends(UserId.from(userId), limit * 2)
+        var recommendedUsers = recommendFriendPort.recommendFriends(userId, limit * 2)
             .filter { it.id != userId } // 본인 제외
 
         // 추천 결과가 없으면 랜덤 유저로 대체
@@ -227,7 +223,7 @@ class RecommendFriendService(
             .take(limit)
             .map { user ->
                 FriendResponse(
-                    id = user.id ?: 0L,
+                    id = user.id?.value ?: 0L,
                     username = user.username.value,
                     nickname = user.nickname.value,
                     profileImageUrl = user.profileImageUrl?.value ?: "",
@@ -242,15 +238,18 @@ class RecommendFriendService(
      * @param users 필터링할 사용자 목록
      * @return 필터링된 사용자 목록
      */
-    private fun filterExistingRelationships(userId: Long, users: List<User>): List<User> {
+    private fun filterExistingRelationships(
+        userId: UserId,
+        users: List<User>
+    ): List<User> {
         // 이미 친구인 사용자 ID 목록
-        val friendIds = mutableSetOf<Long>()
+        val friendIds = mutableSetOf<UserId>()
 
         // 보낸 친구 요청 ID 목록
-        val outgoingRequestIds = mutableSetOf<Long>()
+        val outgoingRequestIds = mutableSetOf<UserId>()
 
         // 받은 친구 요청 ID 목록
-        val incomingRequestIds = mutableSetOf<Long>()
+        val incomingRequestIds = mutableSetOf<UserId>()
 
         try {
             // 친구 관계 확인
@@ -269,10 +268,8 @@ class RecommendFriendService(
                     }
                 }
             }
-
-            logger.debug { "필터링 정보: userId=$userId, 친구=${friendIds.size}명, 보낸요청=${outgoingRequestIds.size}명, 받은요청=${incomingRequestIds.size}명" }
         } catch (e: Exception) {
-            logger.warn(e) { "친구 관계 확인 중 오류 발생: userId=$userId" }
+            logger.warn(e) { "친구 관계 확인 중 오류 발생: userId=${userId.value}" }
             // 오류 발생 시 원본 목록 반환
             return users
         }

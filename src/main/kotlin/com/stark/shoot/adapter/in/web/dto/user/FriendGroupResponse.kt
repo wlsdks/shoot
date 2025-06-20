@@ -14,8 +14,8 @@ data class FriendGroupResponse(
 
 fun FriendGroup.toResponse() = FriendGroupResponse(
     id = id ?: 0L,
-    ownerId = ownerId,
+    ownerId = ownerId.value,
     name = name.value,
     description = description,
-    memberIds = memberIds
+    memberIds = memberIds.map { it.value }.toSet()
 )

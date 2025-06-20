@@ -3,12 +3,12 @@ package com.stark.shoot.application.service.notification
 import com.stark.shoot.application.port.`in`.notification.NotificationManagementUseCase
 import com.stark.shoot.application.port.out.notification.LoadNotificationPort
 import com.stark.shoot.application.port.out.notification.SaveNotificationPort
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.exception.NotificationException
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.NotificationId
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
-import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.notification.service.NotificationDomainService
 import com.stark.shoot.infrastructure.exception.web.MongoOperationException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -44,14 +44,14 @@ class NotificationManagementService(
      */
     override fun markAsRead(
         notificationId: NotificationId,
-        userId: Long
+        userId: UserId
     ): Notification {
         // 알림 조회
         val notification = loadNotificationPort.loadNotificationById(notificationId)
             ?: throw ResourceNotFoundException("알림을 찾을 수 없습니다: $notificationId")
 
         // 도메인 모델의 메서드를 사용하여 소유권 검증
-        notification.validateOwnership(UserId.from(userId))
+        notification.validateOwnership(userId)
 
         // 이미 읽은 알림인 경우 바로 반환
         if (notification.isRead) {
@@ -73,7 +73,7 @@ class NotificationManagementService(
      * @param userId 사용자 ID
      * @return 읽음 처리된 알림 개수
      */
-    override fun markAllAsRead(userId: Long): Int {
+    override fun markAllAsRead(userId: UserId): Int {
         // 읽지 않은 알림 조회
         val notifications = loadNotificationPort.loadUnreadNotificationsForUser(userId, Int.MAX_VALUE, 0)
 
@@ -98,7 +98,7 @@ class NotificationManagementService(
      * @return 읽음 처리된 알림 개수
      */
     override fun markAllAsReadByType(
-        userId: Long,
+        userId: UserId,
         type: NotificationType
     ): Int {
         // 특정 타입의 알림 조회
@@ -129,7 +129,7 @@ class NotificationManagementService(
      * @return 읽음 처리된 알림 개수
      */
     override fun markAllAsReadBySource(
-        userId: Long,
+        userId: UserId,
         sourceType: SourceType,
         sourceId: String?
     ): Int {
@@ -166,14 +166,14 @@ class NotificationManagementService(
      */
     override fun deleteNotification(
         notificationId: NotificationId,
-        userId: Long
+        userId: UserId
     ): Boolean {
         // 알림 조회
         val notification = loadNotificationPort.loadNotificationById(notificationId)
             ?: throw ResourceNotFoundException("알림을 찾을 수 없습니다: $notificationId")
 
         // 도메인 모델의 메서드를 사용하여 소유권 검증
-        notification.validateOwnership(UserId.from(userId))
+        notification.validateOwnership(userId)
 
         // 알림 삭제 (소프트 삭제 방식)
         val deletedNotification = notification.markAsDeleted()
@@ -189,7 +189,7 @@ class NotificationManagementService(
      * @return 삭제된 알림 개수
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
-    override fun deleteAllNotifications(userId: Long): Int {
+    override fun deleteAllNotifications(userId: UserId): Int {
         // 사용자의 모든 알림 조회
         val notifications = loadNotificationPort.loadNotificationsForUser(userId, Int.MAX_VALUE, 0)
 

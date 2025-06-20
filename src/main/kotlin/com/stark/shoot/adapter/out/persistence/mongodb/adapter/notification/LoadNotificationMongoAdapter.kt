@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.notification
 
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.NotificationMongoRepository
 import com.stark.shoot.application.port.out.notification.LoadNotificationPort
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.NotificationId
 import com.stark.shoot.domain.notification.NotificationType
@@ -36,7 +37,7 @@ class LoadNotificationMongoAdapter(
      * @return 알림 목록
      */
     override fun loadNotificationsForUser(
-        userId: Long,
+        userId: UserId,
         limit: Int,
         offset: Int
     ): List<Notification> {
@@ -49,7 +50,7 @@ class LoadNotificationMongoAdapter(
             )
         )
 
-        return notificationMongoRepository.findByUserId(userId, pageable)
+        return notificationMongoRepository.findByUserId(userId.value, pageable)
             .map { it.toDomain() }
     }
 
@@ -62,7 +63,7 @@ class LoadNotificationMongoAdapter(
      * @return 읽지 않은 알림 목록
      */
     override fun loadUnreadNotificationsForUser(
-        userId: Long,
+        userId: UserId,
         limit: Int,
         offset: Int
     ): List<Notification> {
@@ -75,7 +76,7 @@ class LoadNotificationMongoAdapter(
             )
         )
 
-        return notificationMongoRepository.findByUserIdAndIsReadFalse(userId, pageable)
+        return notificationMongoRepository.findByUserIdAndIsReadFalse(userId.value, pageable)
             .map { it.toDomain() }
     }
 
@@ -89,7 +90,7 @@ class LoadNotificationMongoAdapter(
      * @return 알림 목록
      */
     override fun loadNotificationsByType(
-        userId: Long,
+        userId: UserId,
         type: NotificationType,
         limit: Int,
         offset: Int
@@ -103,7 +104,7 @@ class LoadNotificationMongoAdapter(
             )
         )
 
-        return notificationMongoRepository.findByUserIdAndType(userId, type.name, pageable)
+        return notificationMongoRepository.findByUserIdAndType(userId.value, type.name, pageable)
             .map { it.toDomain() }
     }
 
@@ -118,7 +119,7 @@ class LoadNotificationMongoAdapter(
      * @return 알림 목록
      */
     override fun loadNotificationsBySource(
-        userId: Long,
+        userId: UserId,
         sourceType: SourceType,
         sourceId: String?,
         limit: Int,
@@ -135,14 +136,16 @@ class LoadNotificationMongoAdapter(
 
         return if (sourceId != null) {
             notificationMongoRepository.findByUserIdAndSourceTypeAndSourceId(
-                userId,
+                userId.value,
                 sourceType.name,
                 sourceId,
                 pageable
-            )
-                .map { it.toDomain() }
+            ).map {
+                it.toDomain()
+            }
         } else {
-            notificationMongoRepository.findByUserIdAndSourceType(userId, sourceType.name, pageable)
+            notificationMongoRepository
+                .findByUserIdAndSourceType(userId.value, sourceType.name, pageable)
                 .map { it.toDomain() }
         }
     }
@@ -153,8 +156,8 @@ class LoadNotificationMongoAdapter(
      * @param userId 사용자 ID
      * @return 읽지 않은 알림 개수
      */
-    override fun countUnreadNotifications(userId: Long): Int {
-        return notificationMongoRepository.countByUserIdAndIsReadFalse(userId)
+    override fun countUnreadNotifications(userId: UserId): Int {
+        return notificationMongoRepository.countByUserIdAndIsReadFalse(userId.value)
     }
 
 }

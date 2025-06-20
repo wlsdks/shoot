@@ -2,10 +2,11 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.notification
 
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.NotificationMongoRepository
 import com.stark.shoot.application.port.out.notification.DeleteNotificationPort
+import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.notification.NotificationId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.MongoOperationException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import com.stark.shoot.domain.notification.NotificationId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
@@ -48,11 +49,11 @@ class DeleteNotificationMongoAdapter(
      * @return 삭제된 알림 개수
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
-    override fun deleteAllNotificationsForUser(userId: Long): Int {
+    override fun deleteAllNotificationsForUser(userId: UserId): Int {
         try {
-            val query = Query(Criteria.where("userId").isEqualTo(userId))
+            val query = Query(Criteria.where("userId").isEqualTo(userId.value))
             val count = mongoTemplate.count(query, "notifications")
-            val result = notificationMongoRepository.deleteByUserId(userId)
+            val result = notificationMongoRepository.deleteByUserId(userId.value)
 
             return result
         } catch (e: Exception) {
@@ -68,10 +69,13 @@ class DeleteNotificationMongoAdapter(
      * @return 삭제된 알림 개수
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
-    override fun deleteNotificationsByType(userId: Long, type: String): Int {
+    override fun deleteNotificationsByType(
+        userId: UserId,
+        type: String
+    ): Int {
         try {
             val query = Query.query(
-                Criteria.where("userId").isEqualTo(userId)
+                Criteria.where("userId").isEqualTo(userId.value)
                     .and("type").isEqualTo(type)
             )
 
@@ -93,9 +97,13 @@ class DeleteNotificationMongoAdapter(
      * @return 삭제된 알림 개수
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
-    override fun deleteNotificationsBySource(userId: Long, sourceType: String, sourceId: String?): Int {
+    override fun deleteNotificationsBySource(
+        userId: UserId,
+        sourceType: String,
+        sourceId: String?
+    ): Int {
         try {
-            val criteria = Criteria.where("userId").isEqualTo(userId)
+            val criteria = Criteria.where("userId").isEqualTo(userId.value)
                 .and("sourceType").isEqualTo(sourceType)
 
             if (sourceId != null) {

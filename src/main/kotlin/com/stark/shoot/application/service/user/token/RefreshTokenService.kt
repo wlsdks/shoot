@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.user.token
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.token.RefreshTokenUseCase
 import com.stark.shoot.application.port.out.user.token.RefreshTokenPort
+import com.stark.shoot.domain.chat.user.RefreshTokenValue
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import com.stark.shoot.infrastructure.exception.web.InvalidRefreshTokenException
@@ -26,11 +27,13 @@ class RefreshTokenService(
         // 헤더에서 리프레시 토큰 추출
         val refreshToken = extractTokenFromHeader(refreshTokenHeader)
 
+        val tokenValue = RefreshTokenValue.from(refreshToken)
+
         // 리프레시 토큰 유효성 검증
-        validateRefreshToken(refreshToken)
+        validateRefreshToken(tokenValue)
 
         // 리프레시 토큰 사용 기록 업데이트
-        refreshTokenPort.updateTokenUsage(refreshToken)
+        refreshTokenPort.updateTokenUsage(tokenValue)
 
         // 리프레시 토큰에서 userId와 username 추출
         val userId = jwtProvider.extractId(refreshToken)
@@ -57,7 +60,7 @@ class RefreshTokenService(
     /**
      * 리프레시 토큰 유효성 검증
      */
-    private fun validateRefreshToken(refreshToken: String) {
+    private fun validateRefreshToken(refreshToken: RefreshTokenValue) {
         // 토큰 형식 및 서명 검증
         if (!jwtProvider.isRefreshTokenValid(refreshToken)) {
             throw InvalidRefreshTokenException("유효하지 않은 리프레시 토큰 형식입니다.")

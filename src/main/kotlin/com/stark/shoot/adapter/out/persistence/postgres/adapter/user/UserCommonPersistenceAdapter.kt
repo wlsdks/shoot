@@ -6,6 +6,7 @@ import com.stark.shoot.application.port.out.user.UserCreatePort
 import com.stark.shoot.application.port.out.user.UserDeletePort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
@@ -48,9 +49,9 @@ class UserCommonPersistenceAdapter(
      * @param userId 사용자 ID
      */
     override fun deleteUser(
-        userId: Long
+        userId: UserId
     ) {
-        val userDocument = userRepository.findById(userId)
+        val userDocument = userRepository.findById(userId.value)
             .orElseThrow { IllegalArgumentException("User not found") }
         val userDomain = userMapper.toDomain(userDocument)
         val deletedUser = userDomain.copy(isDeleted = true)

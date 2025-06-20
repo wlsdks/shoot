@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.web.notification
 
 import com.stark.shoot.adapter.`in`.web.dto.notification.NotificationResponse
 import com.stark.shoot.application.port.`in`.notification.NotificationQueryUseCase
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
 import io.swagger.v3.oas.annotations.Operation
@@ -28,7 +29,8 @@ class NotificationQueryController(
         @RequestParam(defaultValue = "20") limit: Int,
         @RequestParam(defaultValue = "0") offset: Int
     ): ResponseEntity<List<NotificationResponse>> {
-        val notifications = notificationQueryUseCase.getNotificationsForUser(userId, limit, offset)
+        val notifications = notificationQueryUseCase
+            .getNotificationsForUser(UserId.from(userId), limit, offset)
         return ResponseEntity.ok(NotificationResponse.from(notifications))
     }
 
@@ -47,7 +49,8 @@ class NotificationQueryController(
         @RequestParam(defaultValue = "20") limit: Int,
         @RequestParam(defaultValue = "0") offset: Int
     ): ResponseEntity<List<NotificationResponse>> {
-        val notifications = notificationQueryUseCase.getUnreadNotificationsForUser(userId, limit, offset)
+        val notifications = notificationQueryUseCase
+            .getUnreadNotificationsForUser(UserId.from(userId), limit, offset)
         return ResponseEntity.ok(NotificationResponse.from(notifications))
     }
 
@@ -60,7 +63,7 @@ class NotificationQueryController(
     )
     @GetMapping("/unread/count")
     fun getUnreadNotificationCount(@RequestParam userId: Long): ResponseEntity<Int> {
-        val count = notificationQueryUseCase.getUnreadNotificationCount(userId)
+        val count = notificationQueryUseCase.getUnreadNotificationCount(UserId.from(userId))
         return ResponseEntity.ok(count)
     }
 
@@ -81,7 +84,8 @@ class NotificationQueryController(
         @RequestParam(defaultValue = "0") offset: Int
     ): ResponseEntity<List<NotificationResponse>> {
         val notificationType = NotificationType.valueOf(type)
-        val notifications = notificationQueryUseCase.getNotificationsByType(userId, notificationType, limit, offset)
+        val notifications = notificationQueryUseCase
+            .getNotificationsByType(UserId.from(userId), notificationType, limit, offset)
         return ResponseEntity.ok(NotificationResponse.from(notifications))
     }
 
@@ -103,7 +107,8 @@ class NotificationQueryController(
         @RequestParam(defaultValue = "0") offset: Int
     ): ResponseEntity<List<NotificationResponse>> {
         val source = SourceType.valueOf(sourceType)
-        val notifications = notificationQueryUseCase.getNotificationsBySource(userId, source, sourceId, limit, offset)
+        val notifications = notificationQueryUseCase
+            .getNotificationsBySource(UserId.from(userId), source, sourceId, limit, offset)
         return ResponseEntity.ok(NotificationResponse.from(notifications))
     }
 

@@ -37,10 +37,10 @@ class CreateChatRoomService(
         friendId: UserId
     ): ChatRoomResponse {
         // 1. 사용자와 친구가 존재하는지 확인
-        val user = findUserPort.findUserById(userId.value)
+        val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${userId.value}")
 
-        val friend = findUserPort.findUserById(friendId.value)
+        val friend = findUserPort.findUserById(friendId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendId.value}")
 
         // 2. 이미 존재하는 1:1 채팅방이 있는지 확인 (도메인 객체의 정적 메서드 사용)

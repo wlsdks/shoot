@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.sse
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType
@@ -30,7 +31,7 @@ class ChatUnreadCountController(
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
     )
     fun streamUpdates(@PathVariable userId: Long): SseEmitter {
-        return sseEmitterUseCase.createEmitter(userId)
+        return sseEmitterUseCase.createEmitter(UserId.from(userId))
     }
 
 }

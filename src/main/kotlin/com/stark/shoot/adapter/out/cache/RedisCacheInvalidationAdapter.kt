@@ -3,9 +3,9 @@ package com.stark.shoot.adapter.out.cache
 import com.stark.shoot.application.port.out.cache.CacheInvalidationPort
 import com.stark.shoot.application.port.out.user.friend.FriendCachePort
 import com.stark.shoot.domain.common.vo.UserId
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
-import io.github.oshai.kotlinlogging.KotlinLogging
 
 /**
  * Redis를 사용한 캐시 무효화 어댑터
@@ -24,8 +24,11 @@ class RedisCacheInvalidationAdapter(
      *
      * @param userId 사용자 ID
      */
-    override fun invalidateRecommendationCache(userId: Long) {
+    override fun invalidateRecommendationCache(userId: UserId) {
         try {
+            // 사용자 ID를 문자열로 변환
+            val userId = userId.value
+
             // 추천 친구 캐시 키 패턴
             val cacheKeyPattern = "friend_recommend:$userId:*"
 
@@ -42,7 +45,7 @@ class RedisCacheInvalidationAdapter(
             friendCachePort.invalidateUserCache(UserId.from(userId))
         } catch (e: Exception) {
             // 캐시 삭제 실패는 치명적인 오류가 아니므로 로깅만 하고 계속 진행
-            logger.warn(e) { "캐시 삭제 실패: userId=$userId" }
+            logger.warn(e) { "캐시 삭제 실패: userId=${userId.value}" }
         }
     }
 
@@ -51,9 +54,10 @@ class RedisCacheInvalidationAdapter(
      *
      * @param userIds 사용자 ID 목록
      */
-    override fun invalidateRecommendationCaches(userIds: Collection<Long>) {
+    override fun invalidateRecommendationCaches(userIds: Collection<UserId>) {
         userIds.forEach { userId ->
             invalidateRecommendationCache(userId)
         }
     }
+
 }

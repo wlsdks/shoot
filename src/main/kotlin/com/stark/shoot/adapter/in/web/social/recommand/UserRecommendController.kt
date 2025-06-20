@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.`in`.web.social.recommand
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -28,7 +29,7 @@ class UserRecommendController(
         @RequestParam(defaultValue = "2") maxDepth: Int,
         @RequestParam(defaultValue = "0") skip: Int
     ): ResponseDto<List<FriendResponse>> {
-        val recommendations = recommendFriendsUseCase.getRecommendedFriends(userId, skip, limit)
+        val recommendations = recommendFriendsUseCase.getRecommendedFriends(UserId.from(userId), skip, limit)
         return ResponseDto.success(recommendations)
     }
 

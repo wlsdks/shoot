@@ -22,12 +22,12 @@ class UserCodePersistenceAdapter(
         // ID로 기존 엔티티를 찾아서 업데이트
         user.id?.let { userId ->
             // 사용자가 존재하는지 확인
-            if (!userRepository.existsById(userId)) {
-                throw IllegalArgumentException("User not found with ID: $userId")
+            if (!userRepository.existsById(userId.value)) {
+                throw IllegalArgumentException("User not found with ID: ${userId.value}")
             }
 
             // JPQL 쿼리로 userCode 필드만 업데이트
-            userRepository.updateUserCode(userId, user.userCode.value)
+            userRepository.updateUserCode(userId.value, user.userCode.value)
         } ?: throw IllegalArgumentException("User ID cannot be null for update operation")
     }
 

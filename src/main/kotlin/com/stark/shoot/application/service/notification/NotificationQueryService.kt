@@ -2,6 +2,7 @@ package com.stark.shoot.application.service.notification
 
 import com.stark.shoot.application.port.`in`.notification.NotificationQueryUseCase
 import com.stark.shoot.application.port.out.notification.LoadNotificationPort
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
@@ -22,7 +23,7 @@ class NotificationQueryService(
      * @return 알림 목록
      */
     override fun getNotificationsForUser(
-        userId: Long,
+        userId: UserId,
         limit: Int,
         offset: Int
     ): List<Notification> {
@@ -39,7 +40,7 @@ class NotificationQueryService(
      * @return 읽지 않은 알림 목록
      */
     override fun getUnreadNotificationsForUser(
-        userId: Long,
+        userId: UserId,
         limit: Int,
         offset: Int
     ): List<Notification> {
@@ -57,7 +58,7 @@ class NotificationQueryService(
      * @return 알림 목록
      */
     override fun getNotificationsByType(
-        userId: Long,
+        userId: UserId,
         type: NotificationType,
         limit: Int,
         offset: Int
@@ -77,7 +78,7 @@ class NotificationQueryService(
      * @return 알림 목록
      */
     override fun getNotificationsBySource(
-        userId: Long,
+        userId: UserId,
         sourceType: SourceType,
         sourceId: String?,
         limit: Int,
@@ -92,7 +93,7 @@ class NotificationQueryService(
      * @param userId 사용자 ID
      * @return 읽지 않은 알림 개수
      */
-    override fun getUnreadNotificationCount(userId: Long): Int {
+    override fun getUnreadNotificationCount(userId: UserId): Int {
         return loadNotificationPort.countUnreadNotifications(userId)
     }
 

@@ -1,5 +1,6 @@
 package com.stark.shoot.infrastructure.config.jwt
 
+import com.stark.shoot.domain.chat.user.RefreshTokenValue
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
@@ -78,21 +79,23 @@ class JwtProvider(
         userId: String,
         username: String,
         expirationMinutes: Long = refreshExpiration
-    ): String {
+    ): RefreshTokenValue {
         val now = System.currentTimeMillis()
         val expirationTime = now + expirationMinutes * 60 * 1000 // 분 단위를 밀리초로 변환
 
-        return Jwts.builder()
-            .subject(userId) // sub에 id 설정
-            .claim("username", username) // username 추가
-            .claim("tokenType", "refresh") // 리프레시 토큰임을 명시
-            .issuedAt(Date(now))
-            .expiration(Date(expirationTime))
-            .id(UUID.randomUUID().toString()) // JWT ID 추가
-            .issuer(issuer) // 발급자 추가
-            .audience().add(audience).and() // 대상자 추가
-            .signWith(secretKey, Jwts.SIG.HS256) // 알고리즘 명시
-            .compact()
+        return RefreshTokenValue.from(
+            Jwts.builder()
+                .subject(userId) // sub에 id 설정
+                .claim("username", username) // username 추가
+                .claim("tokenType", "refresh") // 리프레시 토큰임을 명시
+                .issuedAt(Date(now))
+                .expiration(Date(expirationTime))
+                .id(UUID.randomUUID().toString()) // JWT ID 추가
+                .issuer(issuer) // 발급자 추가
+                .audience().add(audience).and() // 대상자 추가
+                .signWith(secretKey, Jwts.SIG.HS256) // 알고리즘 명시
+                .compact()
+        )
     }
 
     /**
@@ -167,12 +170,12 @@ class JwtProvider(
      * 2. 올바른 서명을 포함
      * 3. "tokenType" 클레임이 "refresh"인지 확인
      */
-    fun isRefreshTokenValid(token: String): Boolean {
+    fun isRefreshTokenValid(token: RefreshTokenValue): Boolean {
         try {
-            val claims = extractAllClaims(token)
+            val claims = extractAllClaims(token.value)
             val tokenType = claims.get("tokenType", String::class.java)
 
-            return !isTokenExpired(token) && tokenType == "refresh"
+            return !isTokenExpired(token.value) && tokenType == "refresh"
         } catch (e: Exception) {
             return false
         }

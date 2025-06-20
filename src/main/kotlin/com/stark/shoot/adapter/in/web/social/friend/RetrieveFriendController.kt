@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.`in`.web.social.friend
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,7 +23,7 @@ class RetrieveFriendController(
     fun getMyFriends(
         @RequestParam userId: Long
     ): ResponseDto<List<FriendResponse>> {
-        val friends = findFriendUseCase.getFriends(userId)
+        val friends = findFriendUseCase.getFriends(UserId.from(userId))
         return ResponseDto.success(friends)
     }
 
@@ -31,7 +32,7 @@ class RetrieveFriendController(
     fun getIncomingFriendRequests(
         @RequestParam userId: Long
     ): ResponseDto<List<FriendResponse>> {
-        val incomingRequests = findFriendUseCase.getIncomingFriendRequests(userId)
+        val incomingRequests = findFriendUseCase.getIncomingFriendRequests(UserId.from(userId))
         return ResponseDto.success(incomingRequests)
     }
 
@@ -40,7 +41,7 @@ class RetrieveFriendController(
     fun getOutgoingFriendRequests(
         @RequestParam userId: Long
     ): ResponseDto<List<FriendResponse>> {
-        val outgoingRequests = findFriendUseCase.getOutgoingFriendRequests(userId)
+        val outgoingRequests = findFriendUseCase.getOutgoingFriendRequests(UserId.from(userId))
         return ResponseDto.success(outgoingRequests)
     }
 

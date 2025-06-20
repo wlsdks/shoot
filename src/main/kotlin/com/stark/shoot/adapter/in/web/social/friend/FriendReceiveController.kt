@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.web.social.friend
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.application.port.`in`.user.friend.FriendReceiveUseCase
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.PostMapping
@@ -22,7 +23,11 @@ class FriendReceiveController(
         @RequestParam userId: Long,
         @RequestParam requesterId: Long
     ): ResponseDto<Unit> {
-        friendReceiveUseCase.acceptFriendRequest(userId, requesterId)
+        friendReceiveUseCase.acceptFriendRequest(
+            UserId.from(userId),
+            UserId.from(requesterId)
+        )
+
         return ResponseDto.success(Unit, "친구 요청을 수락했습니다.")
     }
 
@@ -32,7 +37,11 @@ class FriendReceiveController(
         @RequestParam userId: Long,
         @RequestParam requesterId: Long
     ): ResponseDto<Unit> {
-        friendReceiveUseCase.rejectFriendRequest(userId, requesterId)
+        friendReceiveUseCase.rejectFriendRequest(
+            UserId.from(userId),
+            UserId.from(requesterId)
+        )
+
         return ResponseDto.success(Unit, "친구 요청을 거절했습니다.")
     }
 

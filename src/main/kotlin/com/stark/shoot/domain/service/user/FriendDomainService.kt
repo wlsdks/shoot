@@ -3,6 +3,7 @@ package com.stark.shoot.domain.service.user
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import com.stark.shoot.domain.chat.event.FriendRemovedEvent
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.common.vo.UserId
 
 /**
  * 친구 관련 도메인 서비스
@@ -21,8 +22,8 @@ class FriendDomainService {
      * @throws IllegalArgumentException 유효하지 않은 요청인 경우
      */
     fun validateFriendRequest(
-        currentUserId: Long,
-        targetUserId: Long,
+        currentUserId: UserId,
+        targetUserId: UserId,
         isFriend: Boolean,
         hasOutgoingRequest: Boolean,
         hasIncomingRequest: Boolean
@@ -57,7 +58,7 @@ class FriendDomainService {
      */
     fun validateFriendAccept(
         currentUser: User,
-        requesterId: Long
+        requesterId: UserId
     ) {
         // 친구 요청 존재 여부 확인
         if (!currentUser.incomingFriendRequestIds.contains(requesterId)) {
@@ -76,7 +77,7 @@ class FriendDomainService {
     fun processFriendAccept(
         currentUser: User,
         requester: User,
-        requesterId: Long
+        requesterId: UserId
     ): FriendAcceptResult {
         // 도메인 객체의 메서드를 사용하여 친구 요청 수락
         val updatedCurrentUser = currentUser.acceptFriendRequest(requesterId)
@@ -86,8 +87,8 @@ class FriendDomainService {
 
         // 이벤트 생성 (양쪽 사용자에게 친구 추가 알림)
         val events = listOf(
-            FriendAddedEvent.create(userId = currentUser.id!!, friendId = requesterId),
-            FriendAddedEvent.create(userId = requesterId, friendId = currentUser.id!!)
+            FriendAddedEvent.create(userId = currentUser.id.value, friendId = requesterId.value),
+            FriendAddedEvent.create(userId = requesterId.value, friendId = currentUser.id.value)
         )
 
         return FriendAcceptResult(
@@ -108,7 +109,7 @@ class FriendDomainService {
     fun processFriendReject(
         currentUser: User,
         requester: User,
-        requesterId: Long
+        requesterId: UserId
     ): FriendRejectResult {
         // 도메인 객체의 메서드를 사용하여 친구 요청 거절
         val updatedCurrentUser = currentUser.rejectFriendRequest(requesterId)
@@ -133,7 +134,7 @@ class FriendDomainService {
     fun processFriendRemoval(
         currentUser: User,
         friend: User,
-        friendId: Long
+        friendId: UserId
     ): FriendRemovalResult {
         // 도메인 객체의 메서드를 사용하여 친구 관계 제거
         val updatedCurrentUser = currentUser.removeFriend(friendId)
@@ -143,8 +144,8 @@ class FriendDomainService {
 
         // 이벤트 생성 (양쪽 사용자에게 친구 제거 알림)
         val events = listOf(
-            FriendRemovedEvent.create(userId = currentUser.id!!, friendId = friendId),
-            FriendRemovedEvent.create(userId = friendId, friendId = currentUser.id!!)
+            FriendRemovedEvent.create(userId = currentUser.id.value, friendId = friendId.value),
+            FriendRemovedEvent.create(userId = friendId.value, friendId = currentUser.id.value)
         )
 
         return FriendRemovalResult(

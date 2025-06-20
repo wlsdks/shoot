@@ -6,6 +6,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.UserCreateUseCase
 import com.stark.shoot.application.port.`in`.user.UserDeleteUseCase
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
@@ -47,7 +48,7 @@ class UserController(
         authentication: Authentication
     ): ResponseDto<Unit> {
         val userId = authentication.name.toLong()
-        userDeleteUseCase.deleteUser(userId)
+        userDeleteUseCase.deleteUser(UserId.from(userId))
         return ResponseDto.success(Unit, "회원 탈퇴가 완료되었습니다.")
     }
 

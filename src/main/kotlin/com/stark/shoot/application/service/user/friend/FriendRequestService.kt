@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.service.user.FriendDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
@@ -25,8 +26,8 @@ class FriendRequestService(
      * @param targetUserId 친구 요청을 받을 사용자 ID
      */
     override fun sendFriendRequest(
-        currentUserId: Long,
-        targetUserId: Long
+        currentUserId: UserId,
+        targetUserId: UserId
     ) {
         // 사용자 존재 여부 확인
         if (!findUserPort.existsById(currentUserId)) {
@@ -64,8 +65,8 @@ class FriendRequestService(
      * @param targetUserId 친구 요청을 받은 사용자 ID
      */
     override fun cancelFriendRequest(
-        currentUserId: Long,
-        targetUserId: Long
+        currentUserId: UserId,
+        targetUserId: UserId
     ) {
         // 두 사용자 존재 여부 확인
         if (!findUserPort.existsById(currentUserId)) {

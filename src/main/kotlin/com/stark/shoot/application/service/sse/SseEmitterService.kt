@@ -4,6 +4,8 @@ import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
 import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import com.stark.shoot.domain.chat.event.FriendRemovedEvent
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PreDestroy
@@ -17,14 +19,14 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Server-Sent Events (SSE) 서비스 구현
- * 
+ *
  * 이 서비스는 클라이언트와의 실시간 단방향 통신을 위한 SSE 연결을 관리합니다.
  * 주요 기능:
  * - 사용자별 SSE 연결 생성 및 관리
  * - 채팅방 업데이트, 채팅방 생성, 친구 추가 등의 이벤트 전송
  * - 연결 상태 유지를 위한 하트비트 전송
  * - 오래된 연결 자동 정리
- * 
+ *
  * 이 구현은 다음과 같은 최적화를 포함합니다:
  * - 사용자별 개별 스케줄러를 통한 하트비트 전송
  * - 연결 오류 시 자동 정리 및 오류 응답
@@ -51,7 +53,7 @@ class SseEmitterService : SseEmitterUseCase {
 
     /**
      * 새로운 SSE 이미터 생성
-     * 
+     *
      * 사용자 ID를 기반으로 새로운 SSE 연결을 생성합니다.
      * 이 메서드는 다음 작업을 수행합니다:
      * 1. 기존에 존재하는 동일 사용자의 연결을 정리
@@ -59,13 +61,11 @@ class SseEmitterService : SseEmitterUseCase {
      * 3. 하트비트 스케줄러 설정
      * 4. 이벤트 리스너 설정 (완료, 타임아웃, 에러)
      * 5. 초기 연결 이벤트 전송
-     * 
+     *
      * 연결 중 오류가 발생하면 오류 정보를 포함한 짧은 타임아웃의 이미터를 반환합니다.
      */
-    override fun createEmitter(userId: Long): SseEmitter {
+    override fun createEmitter(userId: UserId): SseEmitter {
         return try {
-            logger.info { "Creating new SSE emitter for user: $userId" }
-
             // 기존 이미터 정리
             cleanupEmitter(userId)
 
@@ -80,7 +80,7 @@ class SseEmitterService : SseEmitterUseCase {
                 emitter = emitter,
                 scheduler = scheduler
             )
-            emitters[userId] = emitterData
+            emitters[userId.value] = emitterData
 
             // 이벤트 리스너 설정
             setupEmitterListeners(userId, emitter)
@@ -90,7 +90,7 @@ class SseEmitterService : SseEmitterUseCase {
 
             emitter
         } catch (e: Exception) {
-            logger.error(e) { "SSE 연결 실패: $userId - ${e.message}" }
+            logger.error(e) { "SSE 연결 실패: ${userId.value} - ${e.message}" }
             sendErrorResponse(e, userId)
         }
     }
@@ -98,16 +98,17 @@ class SseEmitterService : SseEmitterUseCase {
     /**
      * 이미터 이벤트 리스너 설정
      */
-    private fun setupEmitterListeners(userId: Long, emitter: SseEmitter) {
+    private fun setupEmitterListeners(
+        userId: UserId,
+        emitter: SseEmitter
+    ) {
         // 완료 리스너
         emitter.onCompletion {
-            logger.debug { "SSE connection completed for user: $userId" }
             cleanupEmitter(userId)
         }
 
         // 타임아웃 리스너
         emitter.onTimeout {
-            logger.debug { "SSE connection timeout for user: $userId" }
             cleanupEmitter(userId)
         }
 
@@ -115,12 +116,8 @@ class SseEmitterService : SseEmitterUseCase {
         emitter.onError { error ->
             if (error.message?.contains("disconnected client") == true ||
                 error.message?.contains("Broken pipe") == true
-            ) {
-                logger.debug { "Client disconnected (normal): $userId" }
-            } else {
-                logger.error { "SSE connection error for user: $userId, error: ${error.message}" }
-            }
-            cleanupEmitter(userId)
+            )
+                cleanupEmitter(userId)
         }
     }
 
@@ -144,7 +141,10 @@ class SseEmitterService : SseEmitterUseCase {
     /**
      * 하트비트 스케줄러 생성
      */
-    private fun createHeartbeatScheduler(userId: Long): ScheduledExecutorService {
+    private fun createHeartbeatScheduler(userId: UserId): ScheduledExecutorService {
+        // 사용자 ID를 Long으로 변환
+        val userId = userId.value
+
         val scheduler = Executors.newSingleThreadScheduledExecutor { runnable ->
             val thread = Thread(runnable, "sse-heartbeat-$userId")
             thread.isDaemon = true
@@ -173,7 +173,7 @@ class SseEmitterService : SseEmitterUseCase {
                 } else {
                     logger.warn { "Failed to send heartbeat to user: $userId, error: ${e.message}" }
                 }
-                cleanupEmitter(userId)
+                cleanupEmitter(UserId.from(userId))
             }
         }, 5, 15, TimeUnit.SECONDS)
 
@@ -183,7 +183,10 @@ class SseEmitterService : SseEmitterUseCase {
     /**
      * 이미터 자원 정리
      */
-    private fun cleanupEmitter(userId: Long) {
+    private fun cleanupEmitter(userId: UserId) {
+        // 사용자 ID를 Long으로 변환
+        val userId = userId.value
+
         emitters[userId]?.let { emitterData ->
             try {
                 // 스케줄러 종료
@@ -204,13 +207,13 @@ class SseEmitterService : SseEmitterUseCase {
 
     /**
      * 주기적으로 오래된 이미터 정리 (5분마다 실행)
-     * 
+     *
      * 이 메서드는 Spring의 스케줄링 기능을 사용하여 5분마다 자동으로 실행됩니다.
      * 오래된 SSE 연결을 감지하고 정리하여 리소스 누수를 방지합니다.
-     * 
+     *
      * 다음 기준으로 오래된 연결을 판단합니다:
      * - 마지막 이벤트 시간이 1시간 이상 경과한 연결
-     * 
+     *
      * 이 메커니즘은 클라이언트가 연결을 명시적으로 종료하지 않는 경우에도
      * 서버 측에서 리소스를 적절히 정리할 수 있도록 합니다.
      */
@@ -226,30 +229,34 @@ class SseEmitterService : SseEmitterUseCase {
         if (staleEmitters.isNotEmpty()) {
             logger.info { "Cleaning up ${staleEmitters.size} stale SSE connections" }
             staleEmitters.forEach { userId ->
-                cleanupEmitter(userId)
+                cleanupEmitter(UserId.from(userId))
             }
         }
     }
 
     /**
      * 공통 이벤트 전송 로직
-     * 
+     *
      * 모든 이벤트 전송에 사용되는 공통 로직을 구현한 헬퍼 메서드입니다.
      * 이 메서드는 다음 작업을 수행합니다:
      * 1. 사용자 ID에 해당하는 이미터 조회
      * 2. 이벤트 데이터와 함께 이벤트 전송
      * 3. 마지막 이벤트 시간 업데이트
      * 4. 로깅
-     * 
+     *
      * 이벤트 전송 중 오류가 발생하면 로깅 후 해당 이미터를 정리합니다.
      * 이 메서드를 사용하면 각 이벤트 전송 메서드에서 중복 코드를 줄일 수 있습니다.
      */
     private fun sendEvent(
-        userId: Long,
+        userId: UserId,
         eventName: String,
         data: Map<String, Any>,
         logMessage: String
     ) {
+        // 사용자 ID를 Long으로 변환
+        val userId = userId.value
+
+        // 이미터 데이터 조회
         val emitterData = emitters[userId] ?: return
 
         try {
@@ -266,17 +273,22 @@ class SseEmitterService : SseEmitterUseCase {
             logger.debug { logMessage }
         } catch (e: Exception) {
             logger.error { "Failed to send $eventName event to user: $userId, error: ${e.message}" }
-            cleanupEmitter(userId)
+            cleanupEmitter(UserId.from(userId))
         }
     }
 
     /**
      * 사용자에게 채팅방 업데이트 전송
      */
-    override fun sendUpdate(userId: Long, roomId: Long, unreadCount: Int, lastMessage: String?) {
+    override fun sendUpdate(
+        userId: UserId,
+        roomId: ChatRoomId,
+        unreadCount: Int,
+        lastMessage: String?
+    ) {
         val data = mapOf(
             "type" to "chat_update",
-            "roomId" to roomId,
+            "roomId" to roomId.value,
             "unreadCount" to unreadCount,
             "lastMessage" to (lastMessage ?: ""),
             "timestamp" to System.currentTimeMillis()
@@ -286,7 +298,7 @@ class SseEmitterService : SseEmitterUseCase {
             userId = userId,
             eventName = "update",
             data = data,
-            logMessage = "Sent update to user: $userId, roomId: $roomId, unreadCount: $unreadCount"
+            logMessage = "Sent update to user: ${userId.value}, roomId: ${roomId.value}, unreadCount: $unreadCount"
         )
     }
 
@@ -294,7 +306,8 @@ class SseEmitterService : SseEmitterUseCase {
      * 채팅방 생성 이벤트 전송
      */
     override fun sendChatRoomCreatedEvent(event: ChatRoomCreatedEvent) {
-        val userId = event.userId
+        val userId = UserId.from(event.userId)
+
         val data = mapOf(
             "type" to "room_created",
             "roomId" to event.roomId,
@@ -305,7 +318,7 @@ class SseEmitterService : SseEmitterUseCase {
             userId = userId,
             eventName = "chatRoomCreated",
             data = data,
-            logMessage = "Sent chatRoomCreated event to user: $userId, roomId: ${event.roomId}"
+            logMessage = "Sent chatRoomCreated event to user: ${userId.value}, roomId: ${event.roomId}"
         )
     }
 
@@ -313,7 +326,8 @@ class SseEmitterService : SseEmitterUseCase {
      * 친구 추가 이벤트 전송
      */
     override fun sendFriendAddedEvent(event: FriendAddedEvent) {
-        val userId = event.userId
+        val userId = UserId.from(event.userId)
+
         val data = mapOf(
             "type" to "friend_added",
             "friendId" to event.friendId,
@@ -324,7 +338,7 @@ class SseEmitterService : SseEmitterUseCase {
             userId = userId,
             eventName = "friendAdded",
             data = data,
-            logMessage = "Sent friendAdded event to user: $userId, friendId: ${event.friendId}"
+            logMessage = "Sent friendAdded event to user: ${userId.value}, friendId: ${event.friendId}"
         )
     }
 
@@ -332,7 +346,8 @@ class SseEmitterService : SseEmitterUseCase {
      * 친구 삭제 이벤트 전송
      */
     override fun sendFriendRemovedEvent(event: FriendRemovedEvent) {
-        val userId = event.userId
+        val userId = UserId.from(event.userId)
+
         val data = mapOf(
             "type" to "friend_removed",
             "friendId" to event.friendId,
@@ -343,7 +358,7 @@ class SseEmitterService : SseEmitterUseCase {
             userId = userId,
             eventName = "friendRemoved",
             data = data,
-            logMessage = "Sent friendRemoved event to user: $userId, friendId: ${event.friendId}"
+            logMessage = "Sent friendRemoved event to user: ${userId.value}, friendId: ${event.friendId}"
         )
     }
 
@@ -356,7 +371,7 @@ class SseEmitterService : SseEmitterUseCase {
 
         val userIds = emitters.keys.toList()
         userIds.forEach { userId ->
-            cleanupEmitter(userId)
+            cleanupEmitter(UserId.from(userId))
         }
     }
 
@@ -370,7 +385,7 @@ class SseEmitterService : SseEmitterUseCase {
      */
     private fun sendErrorResponse(
         e: Exception,
-        userId: Long
+        userId: UserId
     ): SseEmitter {
         // 예외 유형에 따른 더 구체적인 오류 메시지 생성
         val errorType = when {
@@ -386,8 +401,8 @@ class SseEmitterService : SseEmitterUseCase {
         }
 
         // 구조화된 로깅으로 더 많은 컨텍스트 제공
-        logger.error(e) { 
-            "SSE 연결 오류 - 유형: $errorType, 사용자: $userId, 원인: ${e.message ?: "알 수 없음"}" 
+        logger.error(e) {
+            "SSE 연결 오류 - 유형: $errorType, 사용자: ${userId.value}, 원인: ${e.message ?: "알 수 없음"}"
         }
 
         val errorEmitter = SseEmitter(3000L) // 짧은 타임아웃

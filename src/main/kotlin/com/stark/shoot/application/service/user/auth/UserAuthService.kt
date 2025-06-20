@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.exception.web.UnauthorizedException
@@ -27,7 +28,7 @@ class UserAuthService(
             throw UnauthorizedException("인증되지 않은 사용자입니다.")
         }
 
-        val userId = authentication.name.toLong()
+        val userId = UserId.from(authentication.name.toLong())
 
         val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("해당 사용자를 찾을 수 없습니다: $userId")

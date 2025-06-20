@@ -7,6 +7,7 @@ import com.stark.shoot.application.port.`in`.user.profile.UserUpdateProfileUseCa
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
@@ -26,7 +27,7 @@ class UserUpdateProfileService(
      * @return 수정된 사용자 정보
      */
     override fun updateProfile(
-        userId: Long,
+        userId: UserId,
         request: UpdateProfileRequest
     ): User {
         // 사용자 정보 조회
@@ -52,7 +53,7 @@ class UserUpdateProfileService(
      * @return 수정된 사용자 정보
      */
     override fun setProfileImage(
-        userId: Long,
+        userId: UserId,
         request: SetProfileImageRequest
     ): User {
         // 사용자 정보 조회
@@ -75,7 +76,7 @@ class UserUpdateProfileService(
      * @return 수정된 사용자 정보
      */
     override fun setBackgroundImage(
-        userId: Long,
+        userId: UserId,
         request: SetBackgroundImageRequest
     ): User {
         // 사용자 정보 조회
@@ -89,4 +90,5 @@ class UserUpdateProfileService(
 
         return userUpdatePort.updateUser(updatedUser)
     }
+
 }

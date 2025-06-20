@@ -6,6 +6,8 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.RefreshTokenR
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.token.RefreshTokenPort
 import com.stark.shoot.domain.chat.user.RefreshToken
+import com.stark.shoot.domain.chat.user.RefreshTokenValue
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
@@ -23,20 +25,20 @@ class RefreshTokenPersistenceAdapter(
      * 새 리프레시 토큰 생성 및 저장
      */
     override fun createRefreshToken(
-        userId: Long,
-        token: String,
+        userId: UserId,
+        token: RefreshTokenValue,
         deviceInfo: String?,
         ipAddress: String?
     ): RefreshToken {
-        val userEntity = userRepository.findById(userId)
-            .orElseThrow { ResourceNotFoundException("User not found: $userId") }
+        val userEntity = userRepository.findById(userId.value)
+            .orElseThrow { ResourceNotFoundException("User not found: ${userId.value}") }
 
         // 토큰 만료 시간 설정 (30일)
         val expirationDate = Instant.now().plusSeconds(30 * 24 * 60 * 60)
 
         val refreshTokenEntity = RefreshTokenEntity(
             user = userEntity,
-            token = token,
+            token = token.value,
             expirationDate = expirationDate,
             deviceInfo = deviceInfo,
             ipAddress = ipAddress,
@@ -52,9 +54,9 @@ class RefreshTokenPersistenceAdapter(
      * 토큰 문자열로 리프레시 토큰 조회
      */
     override fun findByToken(
-        token: String
+        token: RefreshTokenValue
     ): RefreshToken? {
-        return refreshTokenRepository.findByToken(token)?.let {
+        return refreshTokenRepository.findByToken(token.value)?.let {
             refreshTokenMapper.toDomain(it)
         }
     }
@@ -63,9 +65,10 @@ class RefreshTokenPersistenceAdapter(
      * 리프레시 토큰 사용 시간 업데이트
      */
     override fun updateTokenUsage(
-        token: String
+        token: RefreshTokenValue
     ): RefreshToken? {
-        val tokenEntity = refreshTokenRepository.findByToken(token) ?: return null
+        val tokenEntity = refreshTokenRepository.findByToken(token.value)
+            ?: return null
 
         // 사용 시간 업데이트
         tokenEntity.lastUsedAt = Instant.now()
@@ -78,9 +81,10 @@ class RefreshTokenPersistenceAdapter(
      * 리프레시 토큰 취소
      */
     override fun revokeToken(
-        token: String
+        token: RefreshTokenValue
     ): Boolean {
-        val tokenEntity = refreshTokenRepository.findByToken(token) ?: return false
+        val tokenEntity = refreshTokenRepository.findByToken(token.value)
+            ?: return false
 
         // 토큰 취소 처리
         tokenEntity.isRevoked = true
@@ -93,9 +97,9 @@ class RefreshTokenPersistenceAdapter(
      * 사용자의 모든 리프레시 토큰 취소
      */
     override fun revokeAllUserTokens(
-        userId: Long
+        userId: UserId
     ): Int {
-        return refreshTokenRepository.revokeAllByUserId(userId)
+        return refreshTokenRepository.revokeAllByUserId(userId.value)
     }
 
     /**

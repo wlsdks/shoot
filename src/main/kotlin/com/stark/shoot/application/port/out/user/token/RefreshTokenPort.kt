@@ -1,6 +1,8 @@
 package com.stark.shoot.application.port.out.user.token
 
 import com.stark.shoot.domain.chat.user.RefreshToken
+import com.stark.shoot.domain.chat.user.RefreshTokenValue
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.exception.web.InvalidRefreshTokenException
 import com.stark.shoot.infrastructure.exception.web.MongoOperationException
 import java.time.Instant
@@ -21,8 +23,8 @@ interface RefreshTokenPort {
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
     fun createRefreshToken(
-        userId: Long,
-        token: String,
+        userId: UserId,
+        token: RefreshTokenValue,
         deviceInfo: String? = null,
         ipAddress: String? = null
     ): RefreshToken
@@ -34,7 +36,7 @@ interface RefreshTokenPort {
      * @return RefreshToken 객체 또는 null
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
-    fun findByToken(token: String): RefreshToken?
+    fun findByToken(token: RefreshTokenValue): RefreshToken?
 
     /**
      * 리프레시 토큰 사용 시간 업데이트
@@ -44,7 +46,7 @@ interface RefreshTokenPort {
      * @throws InvalidRefreshTokenException 토큰이 존재하지 않는 경우
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
-    fun updateTokenUsage(token: String): RefreshToken?
+    fun updateTokenUsage(token: RefreshTokenValue): RefreshToken?
 
     /**
      * 리프레시 토큰 취소
@@ -53,7 +55,7 @@ interface RefreshTokenPort {
      * @throws InvalidRefreshTokenException 토큰이 존재하지 않는 경우
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
-    fun revokeToken(token: String): Boolean
+    fun revokeToken(token: RefreshTokenValue): Boolean
 
     /**
      * 사용자의 모든 리프레시 토큰 취소
@@ -61,7 +63,7 @@ interface RefreshTokenPort {
      * @param userId 사용자 ID
      * @throws MongoOperationException 데이터베이스 작업 실패 시
      */
-    fun revokeAllUserTokens(userId: Long) : Int
+    fun revokeAllUserTokens(userId: UserId): Int
 
     /**
      * 만료된 리프레시 토큰 정리

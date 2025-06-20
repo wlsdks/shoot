@@ -5,6 +5,7 @@ import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.service.user.FriendDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
@@ -28,8 +29,8 @@ class FriendReceiveService(
      * @param requesterId 친구 요청을 보낸 사용자 ID
      */
     override fun acceptFriendRequest(
-        currentUserId: Long,
-        requesterId: Long
+        currentUserId: UserId,
+        requesterId: UserId
     ) {
         // 사용자 조회 및 유효성 검증
         val (currentUser, requester) = retrieveAndValidateUsers(
@@ -67,8 +68,8 @@ class FriendReceiveService(
      * @param requesterId 친구 요청을 보낸 사용자 ID
      */
     override fun rejectFriendRequest(
-        currentUserId: Long,
-        requesterId: Long
+        currentUserId: UserId,
+        requesterId: UserId
     ) {
         // 사용자 조회 및 유효성 검증
         val (currentUser, requester) = retrieveAndValidateUsers(
@@ -101,8 +102,8 @@ class FriendReceiveService(
      * @return Pair<User, User> 현재 사용자와 요청자 객체 쌍
      */
     private fun retrieveAndValidateUsers(
-        currentUserId: Long,
-        requesterId: Long,
+        currentUserId: UserId,
+        requesterId: UserId,
         validationErrorMessage: String
     ): Pair<User, User> {
         // 사용자 조회 (친구 요청 정보 포함)
@@ -121,5 +122,5 @@ class FriendReceiveService(
 
         return Pair(currentUser, requester)
     }
-    
+
 }

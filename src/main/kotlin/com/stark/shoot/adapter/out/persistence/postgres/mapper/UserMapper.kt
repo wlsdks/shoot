@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.out.persistence.postgres.mapper
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.domain.chat.user.*
+import com.stark.shoot.domain.common.vo.UserId
 import org.springframework.stereotype.Component
 
 @Component
@@ -24,7 +25,7 @@ class UserMapper {
 
     fun toDomain(userEntity: UserEntity): User {
         return User(
-            id = userEntity.id,
+            id = userEntity.id?.let { UserId.from(it) },
             username = Username.from(userEntity.username),
             nickname = Nickname.from(userEntity.nickname),
             status = userEntity.status,

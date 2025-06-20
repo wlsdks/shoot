@@ -50,7 +50,7 @@ class RecommendFriendJpaAdapter(
             // 이미 추천된 사용자들의 ID를 제외 목록에 추가
             val updatedExcludeIds = excludeIds.toMutableSet()
             recommendedUsers.forEach { user ->
-                user.id?.let { longId -> updatedExcludeIds.add(UserId.from(longId)) }
+                user.id?.let { userId -> updatedExcludeIds.add(userId) }
             }
 
             val randomUsers = findRandomUsers(updatedExcludeIds, limit - recommendedUsers.size)
@@ -72,7 +72,7 @@ class RecommendFriendJpaAdapter(
         val allFriendIds = outgoingFriendIds.union(incomingFriendIds)
 
         return recommendedUsers.filter { user ->
-            user.id?.let { longId -> !allFriendIds.contains(UserId.from(longId)) } ?: true
+            user.id?.let { userId -> !allFriendIds.contains(userId) } ?: true
         }
     }
 

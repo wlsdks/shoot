@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.*
 import com.stark.shoot.application.port.`in`.user.FindUserUseCase
 import com.stark.shoot.application.port.`in`.user.profile.UserUpdateProfileUseCase
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -28,7 +29,7 @@ class UserProfileController(
         @RequestBody request: UpdateProfileRequest
     ): ResponseDto<UserResponse> {
         val userId = authentication.name.toLong()
-        val user = userUpdateProfileUseCase.updateProfile(userId, request)
+        val user = userUpdateProfileUseCase.updateProfile(UserId.from(userId), request)
         return ResponseDto.success(user.toResponse(), "프로필이 성공적으로 업데이트되었습니다.")
     }
 
@@ -42,7 +43,7 @@ class UserProfileController(
         @RequestBody request: SetProfileImageRequest
     ): ResponseDto<UserResponse> {
         val userId = authentication.name.toLong()
-        val user = userUpdateProfileUseCase.setProfileImage(userId, request)
+        val user = userUpdateProfileUseCase.setProfileImage(UserId.from(userId), request)
         return ResponseDto.success(user.toResponse(), "프로필 사진이 성공적으로 설정되었습니다.")
     }
 
@@ -56,7 +57,7 @@ class UserProfileController(
         @RequestBody request: SetBackgroundImageRequest
     ): ResponseDto<UserResponse> {
         val userId = authentication.name.toLong()
-        val user = userUpdateProfileUseCase.setBackgroundImage(userId, request)
+        val user = userUpdateProfileUseCase.setBackgroundImage(UserId.from(userId), request)
         return ResponseDto.success(user.toResponse(), "배경 이미지가 성공적으로 설정되었습니다.")
     }
 
@@ -68,7 +69,7 @@ class UserProfileController(
     fun getUserProfile(
         @PathVariable userId: Long
     ): ResponseDto<UserResponse> {
-        val user = findUserUseCase.findById(userId)
+        val user = findUserUseCase.findById(UserId.from(userId))
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
         return ResponseDto.success(user.toResponse(), "프로필 정보를 성공적으로 조회했습니다.")
     }

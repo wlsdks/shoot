@@ -3,6 +3,9 @@ package com.stark.shoot.application.service.user
 import com.stark.shoot.application.port.`in`.user.FindUserUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.chat.user.UserCode
+import com.stark.shoot.domain.chat.user.Username
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase
@@ -16,7 +19,7 @@ class FindUserService(
      * @param id 사용자 ID
      * @return 사용자 정보
      */
-    override fun findById(userId: Long): User? {
+    override fun findById(userId: UserId): User? {
         return findUserPort.findUserById(userId)
     }
 
@@ -26,7 +29,7 @@ class FindUserService(
      * @param username 사용자명
      * @return 사용자 정보
      */
-    override fun findByUsername(username: String): User? {
+    override fun findByUsername(username: Username): User? {
         return findUserPort.findByUsername(username)
     }
 
@@ -36,7 +39,7 @@ class FindUserService(
      * @param userCode 사용자 코드
      * @return 사용자 정보
      */
-    override fun findByUserCode(userCode: String): User? {
+    override fun findByUserCode(userCode: UserCode): User? {
         return findUserPort.findByUserCode(userCode)
     }
 

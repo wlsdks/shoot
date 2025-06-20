@@ -1,18 +1,11 @@
 package com.stark.shoot.domain.chat.user
 
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.exception.InvalidUserDataException
 import java.time.Instant
 
-// 값 객체
-import com.stark.shoot.domain.chat.user.UserCode
-import com.stark.shoot.domain.chat.user.Username
-import com.stark.shoot.domain.chat.user.Nickname
-import com.stark.shoot.domain.chat.user.ProfileImageUrl
-import com.stark.shoot.domain.chat.user.BackgroundImageUrl
-import com.stark.shoot.domain.chat.user.UserBio
-
 data class User(
-    val id: Long? = null,
+    val id: UserId? = null,
     var username: Username,
     var nickname: Nickname,
     var status: UserStatus = UserStatus.OFFLINE,
@@ -29,10 +22,10 @@ data class User(
     var updatedAt: Instant? = null,
 
     // 소셜 기능 관련 필드 (필요시 사용)
-    var friendIds: Set<Long> = emptySet(),                 // 이미 친구인 사용자들의 id 목록
-    var incomingFriendRequestIds: Set<Long> = emptySet(),  // 받은 친구 요청의 사용자 id 목록
-    var outgoingFriendRequestIds: Set<Long> = emptySet(),  // 보낸 친구 요청의 사용자 id 목록
-    var blockedUserIds: Set<Long> = emptySet(),             // 차단한 사용자 id 목록
+    var friendIds: Set<UserId> = emptySet(),                 // 이미 친구인 사용자들의 id 목록
+    var incomingFriendRequestIds: Set<UserId> = emptySet(),  // 받은 친구 요청의 사용자 id 목록
+    var outgoingFriendRequestIds: Set<UserId> = emptySet(),  // 보낸 친구 요청의 사용자 id 목록
+    var blockedUserIds: Set<UserId> = emptySet(),             // 차단한 사용자 id 목록
 ) {
 
     companion object {
@@ -103,7 +96,7 @@ data class User(
      * @param friendId 추가할 친구 ID
      * @return 업데이트된 User 객체
      */
-    fun addFriend(friendId: Long): User {
+    fun addFriend(friendId: UserId): User {
         val updatedFriendIds = this.friendIds.toMutableSet()
         updatedFriendIds.add(friendId)
 
@@ -127,7 +120,7 @@ data class User(
      * @param userId 수락할 친구 요청의 사용자 ID
      * @return 업데이트된 User 객체
      */
-    fun acceptFriendRequest(userId: Long): User {
+    fun acceptFriendRequest(userId: UserId): User {
         // 요청이 없는 경우 처리
         if (!incomingFriendRequestIds.contains(userId)) {
             return this
@@ -152,7 +145,7 @@ data class User(
      * @param userId 거절할 친구 요청의 사용자 ID
      * @return 업데이트된 User 객체
      */
-    fun rejectFriendRequest(userId: Long): User {
+    fun rejectFriendRequest(userId: UserId): User {
         val updatedIncomingRequests = this.incomingFriendRequestIds.toMutableSet()
         updatedIncomingRequests.remove(userId)
 
@@ -168,7 +161,7 @@ data class User(
      * @param userId 취소할 친구 요청의 사용자 ID
      * @return 업데이트된 User 객체
      */
-    fun cancelFriendRequest(userId: Long): User {
+    fun cancelFriendRequest(userId: UserId): User {
         val updatedOutgoingRequests = this.outgoingFriendRequestIds.toMutableSet()
         updatedOutgoingRequests.remove(userId)
 
@@ -197,7 +190,7 @@ data class User(
      * @param friendId 제거할 친구 ID
      * @return 업데이트된 User 객체
      */
-    fun removeFriend(friendId: Long): User {
+    fun removeFriend(friendId: UserId): User {
         // 친구 목록에서 제거
         val updatedFriendIds = this.friendIds.toMutableSet()
         updatedFriendIds.remove(friendId)
@@ -212,7 +205,7 @@ data class User(
      * 사용자를 차단합니다.
      * 친구 관계와 친구 요청을 모두 제거합니다.
      */
-    fun blockUser(userId: Long): User {
+    fun blockUser(userId: UserId): User {
         if (blockedUserIds.contains(userId)) {
             return this
         }
@@ -241,7 +234,7 @@ data class User(
     /**
      * 차단을 해제합니다.
      */
-    fun unblockUser(userId: Long): User {
+    fun unblockUser(userId: UserId): User {
         if (!blockedUserIds.contains(userId)) {
             return this
         }

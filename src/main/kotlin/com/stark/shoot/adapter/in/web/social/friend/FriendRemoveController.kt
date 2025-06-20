@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.friend.FriendRemoveUseCase
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.Authentication
@@ -26,7 +27,7 @@ class FriendRemoveController(
         @PathVariable friendId: Long
     ): ResponseDto<UserResponse> {
         val userId = authentication.name.toLong()
-        val user = friendRemoveUseCase.removeFriend(userId, friendId)
+        val user = friendRemoveUseCase.removeFriend(UserId.from(userId), UserId.from(friendId))
         return ResponseDto.success(user.toResponse(), "친구가 삭제되었습니다.")
     }
 

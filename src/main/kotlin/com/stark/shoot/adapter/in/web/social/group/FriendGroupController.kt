@@ -5,6 +5,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.FriendGroupResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.group.FindFriendGroupUseCase
 import com.stark.shoot.application.port.`in`.user.group.ManageFriendGroupUseCase
+import com.stark.shoot.domain.common.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
@@ -24,7 +25,7 @@ class FriendGroupController(
         @RequestParam name: String,
         @RequestParam(required = false) description: String?
     ): ResponseDto<FriendGroupResponse> {
-        val group = manageUseCase.createGroup(ownerId, name, description)
+        val group = manageUseCase.createGroup(UserId.from(ownerId), name, description)
         return ResponseDto.success(group.toResponse())
     }
 
@@ -54,7 +55,7 @@ class FriendGroupController(
         @PathVariable groupId: Long,
         @PathVariable memberId: Long
     ): ResponseDto<FriendGroupResponse> {
-        val group = manageUseCase.addMember(groupId, memberId)
+        val group = manageUseCase.addMember(groupId, UserId.from(memberId))
         return ResponseDto.success(group.toResponse())
     }
 
@@ -64,7 +65,7 @@ class FriendGroupController(
         @PathVariable groupId: Long,
         @PathVariable memberId: Long
     ): ResponseDto<FriendGroupResponse> {
-        val group = manageUseCase.removeMember(groupId, memberId)
+        val group = manageUseCase.removeMember(groupId, UserId.from(memberId))
         return ResponseDto.success(group.toResponse())
     }
 
@@ -85,7 +86,10 @@ class FriendGroupController(
     @Operation(summary = "내 그룹 목록")
     @GetMapping
     fun getGroups(@RequestParam ownerId: Long): ResponseDto<List<FriendGroupResponse>> {
-        val groups = findUseCase.getGroups(ownerId).map { it.toResponse() }
+        val groups = findUseCase.getGroups(UserId.from(ownerId))
+            .map { it.toResponse() }
+
         return ResponseDto.success(groups)
     }
+
 }

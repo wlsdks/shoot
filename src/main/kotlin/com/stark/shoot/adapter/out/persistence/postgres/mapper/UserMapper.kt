@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.out.persistence.postgres.mapper
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.chat.user.UserCode
 import org.springframework.stereotype.Component
 
 @Component
@@ -12,7 +13,7 @@ class UserMapper {
             username = user.username,
             nickname = user.nickname,
             status = user.status,
-            userCode = user.userCode,
+            userCode = user.userCode.value,
             profileImageUrl = user.profileImageUrl,
             backgroundImageUrl = user.backgroundImageUrl,
             lastSeenAt = user.lastSeenAt,
@@ -40,7 +41,7 @@ class UserMapper {
             incomingFriendRequestIds = emptySet(),
             outgoingFriendRequestIds = emptySet(),
             blockedUserIds = emptySet(),
-            userCode = userEntity.userCode
+            userCode = UserCode.from(userEntity.userCode)
         )
     }
 

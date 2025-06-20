@@ -2,7 +2,9 @@ package com.stark.shoot.domain.chat.user
 
 import com.stark.shoot.domain.exception.InvalidUserDataException
 import java.time.Instant
-import java.util.*
+
+// 값 객체
+import com.stark.shoot.domain.chat.user.UserCode
 
 data class User(
     val id: Long? = null,
@@ -10,7 +12,7 @@ data class User(
     var nickname: String,
     var status: UserStatus = UserStatus.OFFLINE,
     var passwordHash: String? = null,
-    var userCode: String,
+    var userCode: UserCode,
     val createdAt: Instant = Instant.now(),
 
     // 필요한 경우에만 남길 선택적 필드
@@ -58,7 +60,7 @@ data class User(
                 username = username,
                 nickname = nickname,
                 passwordHash = passwordEncoder(rawPassword),
-                userCode = generateUserCode(),
+                userCode = UserCode.generate(),
                 bio = bio,
                 profileImageUrl = profileImageUrl
             )
@@ -69,8 +71,8 @@ data class User(
          *
          * @return 생성된 8자리 사용자 코드
          */
-        private fun generateUserCode(): String {
-            return UUID.randomUUID().toString().substring(0, 8).uppercase()
+        private fun generateUserCode(): UserCode {
+            return UserCode.generate()
         }
 
         /**

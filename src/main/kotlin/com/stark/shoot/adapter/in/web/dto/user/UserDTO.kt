@@ -58,6 +58,6 @@ fun User.toResponse() = UserResponse(
     profileImageUrl = profileImageUrl,
     backgroundImageUrl = backgroundImageUrl,
     bio = bio,
-    userCode = userCode,
+    userCode = userCode.value,
     lastSeenAt = lastSeenAt
 )

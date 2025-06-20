@@ -5,11 +5,11 @@ import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.application.port.out.user.code.UpdateUserCodePort
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.domain.chat.user.UserCode
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.apache.kafka.common.errors.DuplicateResourceException
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 @Transactional
 @UseCase
@@ -43,7 +43,7 @@ class ManageUserCodeService(
         }
 
         // 유저 코드 업데이트
-        val updatedUser = user.copy(id = user.id, userCode = newCode)
+        val updatedUser = user.copy(id = user.id, userCode = UserCode.from(newCode))
         updateUserCodePort.updateUserCode(updatedUser)
     }
 
@@ -60,7 +60,7 @@ class ManageUserCodeService(
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
 
         // 새로운 랜덤 코드 생성
-        val randomCode = generateRandomUserCode()
+        val randomCode = UserCode.generate()
 
         // 유저 코드 업데이트
         val updatedUser = user.copy(id = user.id, userCode = randomCode)
@@ -74,28 +74,12 @@ class ManageUserCodeService(
      * @throws InvalidInputException 유효하지 않은 코드인 경우
      */
     private fun validateUserCode(code: String) {
-        // 길이 검사 (4~12자)
-        if (code.length < 4 || code.length > 12) {
-            throw InvalidInputException("유저 코드는 4~12자 사이여야 합니다.")
-        }
-
-        // 영문자, 숫자만 허용 (정규식 패턴 검사)
-        if (!code.matches(Regex("^[a-zA-Z0-9]+$"))) {
-            throw InvalidInputException("유저 코드는 영문자와 숫자만 포함할 수 있습니다.")
+        try {
+            UserCode.from(code)
+        } catch (e: IllegalArgumentException) {
+            throw InvalidInputException(e.message ?: "Invalid code")
         }
     }
 
-    /**
-     * 랜덤 유저 코드 생성
-     *
-     * @return 생성된 랜덤 코드
-     */
-    private fun generateRandomUserCode(): String {
-        // UUID에서 8자리 코드 생성 (영문자와 숫자로 구성)
-        return UUID.randomUUID().toString()
-            .replace("-", "")
-            .substring(0, 8)
-            .uppercase()
-    }
 
 }

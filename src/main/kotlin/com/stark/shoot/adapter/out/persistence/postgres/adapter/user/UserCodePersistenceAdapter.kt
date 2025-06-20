@@ -27,7 +27,7 @@ class UserCodePersistenceAdapter(
             }
 
             // JPQL 쿼리로 userCode 필드만 업데이트
-            userRepository.updateUserCode(userId, user.userCode)
+            userRepository.updateUserCode(userId, user.userCode.value)
         } ?: throw IllegalArgumentException("User ID cannot be null for update operation")
     }
 

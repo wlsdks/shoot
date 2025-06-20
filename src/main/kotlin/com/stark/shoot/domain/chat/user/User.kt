@@ -6,11 +6,12 @@ import java.time.Instant
 // 값 객체
 import com.stark.shoot.domain.chat.user.UserCode
 import com.stark.shoot.domain.chat.user.Username
+import com.stark.shoot.domain.chat.user.Nickname
 
 data class User(
     val id: Long? = null,
     var username: Username,
-    var nickname: String,
+    var nickname: Nickname,
     var status: UserStatus = UserStatus.OFFLINE,
     var passwordHash: String? = null,
     var userCode: UserCode,
@@ -54,12 +55,12 @@ data class User(
         ): User {
             // 유효성 검증 및 값 객체 생성
             val usernameVo = Username.from(username)
-            validateNickname(nickname)
+            val nicknameVo = Nickname.from(nickname)
             validatePassword(rawPassword)
 
             return User(
                 username = usernameVo,
-                nickname = nickname,
+                nickname = nicknameVo,
                 passwordHash = passwordEncoder(rawPassword),
                 userCode = UserCode.generate(),
                 bio = bio,
@@ -76,21 +77,6 @@ data class User(
             return UserCode.generate()
         }
 
-
-        /**
-         * 닉네임 유효성 검증
-         *
-         * @param nickname 검증할 닉네임
-         * @throws InvalidUserDataException 유효하지 않은 닉네임
-         */
-        private fun validateNickname(nickname: String) {
-            if (nickname.isBlank()) {
-                throw InvalidUserDataException("닉네임은 비어있을 수 없습니다.")
-            }
-            if (nickname.length < 2 || nickname.length > 30) {
-                throw InvalidUserDataException("닉네임은 2-30자 사이여야 합니다.")
-            }
-        }
 
         /**
          * 비밀번호 유효성 검증
@@ -283,13 +269,11 @@ data class User(
         backgroundImageUrl: String? = null
     ): User {
         // 닉네임 유효성 검증
-        if (nickname != null) {
-            validateNickname(nickname)
-        }
+        val nicknameVo = nickname?.let { Nickname.from(it) }
 
         // 업데이트된 사용자 정보 반환
         return this.copy(
-            nickname = nickname ?: this.nickname,
+            nickname = nicknameVo ?: this.nickname,
             bio = bio ?: this.bio,
             profileImageUrl = profileImageUrl ?: this.profileImageUrl,
             backgroundImageUrl = backgroundImageUrl ?: this.backgroundImageUrl,

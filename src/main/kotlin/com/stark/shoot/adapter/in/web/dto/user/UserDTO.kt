@@ -53,7 +53,7 @@ data class UserResponse(
 fun User.toResponse() = UserResponse(
     id = id.toString(),
     username = username.value,
-    nickname = nickname,
+    nickname = nickname.value,
     status = status,
     profileImageUrl = profileImageUrl,
     backgroundImageUrl = backgroundImageUrl,

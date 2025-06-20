@@ -77,7 +77,7 @@ class CreateChatRoomService(
         val newChatRoom = ChatRoom.createDirectChat(
             userId = userId,
             friendId = friendId,
-            friendName = friend.nickname
+            friendName = friend.nickname.value
         )
 
         // 채팅방 저장

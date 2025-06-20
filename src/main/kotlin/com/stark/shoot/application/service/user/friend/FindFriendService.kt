@@ -30,8 +30,8 @@ class FindFriendService(
                 ?: throw ResourceNotFoundException("Friend not found: $friendId")
             FriendResponse(
                 id = friend.id ?: 0L,
-                username = friend.username ?: "",
-                nickname = friend.nickname ?: "",
+                username = friend.username.value,
+                nickname = friend.nickname.value,
                 profileImageUrl = friend.profileImageUrl
             )
         }
@@ -56,8 +56,8 @@ class FindFriendService(
                 ?: throw ResourceNotFoundException("Requester not found: $requesterId")
             FriendResponse(
                 id = requester.id ?: 0L,
-                username = requester.username ?: "",
-                nickname = requester.nickname ?: "",
+                username = requester.username.value,
+                nickname = requester.nickname.value,
                 profileImageUrl = requester.profileImageUrl
             )
         }
@@ -82,8 +82,8 @@ class FindFriendService(
                 ?: throw ResourceNotFoundException("Target not found: $targetId")
             FriendResponse(
                 id = target.id ?: 0L,
-                username = target.username ?: "",
-                nickname = target.nickname ?: "",
+                username = target.username.value,
+                nickname = target.nickname.value,
                 profileImageUrl = target.profileImageUrl
             )
         }

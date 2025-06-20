@@ -3,6 +3,8 @@ package com.stark.shoot.adapter.out.persistence.mongodb.document.notification
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
+import com.stark.shoot.domain.notification.NotificationTitle
+import com.stark.shoot.domain.notification.NotificationMessage
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
@@ -41,8 +43,8 @@ data class NotificationDocument(
         return Notification(
             id = id,
             userId = userId,
-            title = title,
-            message = message,
+            title = NotificationTitle.from(title),
+            message = NotificationMessage.from(message),
             type = NotificationType.valueOf(type),
             sourceId = sourceId,
             sourceType = SourceType.valueOf(sourceType),
@@ -58,8 +60,8 @@ data class NotificationDocument(
             return NotificationDocument(
                 id = notification.id,
                 userId = notification.userId,
-                title = notification.title,
-                message = notification.message,
+                title = notification.title.value,
+                message = notification.message.value,
                 type = notification.type.name,
                 sourceId = notification.sourceId,
                 sourceType = notification.sourceType.name,

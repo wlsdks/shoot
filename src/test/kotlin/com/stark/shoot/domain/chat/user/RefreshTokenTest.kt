@@ -1,6 +1,7 @@
 package com.stark.shoot.domain.chat.user
 
 import org.assertj.core.api.Assertions.assertThat
+import com.stark.shoot.domain.chat.user.RefreshTokenValue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -19,7 +20,7 @@ class RefreshTokenTest {
         fun `필수 속성으로 리프레시 토큰을 생성할 수 있다`() {
             // given
             val userId = 1L
-            val token = "refresh_token_value"
+            val token = RefreshTokenValue.from("refresh_token_value")
             val expirationDate = Instant.now().plus(7, ChronoUnit.DAYS)
             
             // when
@@ -47,7 +48,7 @@ class RefreshTokenTest {
             // given
             val id = 1L
             val userId = 2L
-            val token = "refresh_token_value"
+            val token = RefreshTokenValue.from("refresh_token_value")
             val expirationDate = Instant.now().plus(7, ChronoUnit.DAYS)
             val deviceInfo = "Android 12, Samsung Galaxy S21"
             val ipAddress = "192.168.1.1"
@@ -91,7 +92,7 @@ class RefreshTokenTest {
             // given
             val refreshToken = RefreshToken(
                 userId = 1L,
-                token = "valid_token",
+                token = RefreshTokenValue.from("valid_token"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS),
                 isRevoked = false
             )
@@ -109,7 +110,7 @@ class RefreshTokenTest {
             // given
             val refreshToken = RefreshToken(
                 userId = 1L,
-                token = "expired_token",
+                token = RefreshTokenValue.from("expired_token"),
                 expirationDate = Instant.now().minus(1, ChronoUnit.DAYS),
                 isRevoked = false
             )
@@ -127,7 +128,7 @@ class RefreshTokenTest {
             // given
             val refreshToken = RefreshToken(
                 userId = 1L,
-                token = "revoked_token",
+                token = RefreshTokenValue.from("revoked_token"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS),
                 isRevoked = true
             )
@@ -145,7 +146,7 @@ class RefreshTokenTest {
             // given
             val refreshToken = RefreshToken(
                 userId = 1L,
-                token = "expired_and_revoked_token",
+                token = RefreshTokenValue.from("expired_and_revoked_token"),
                 expirationDate = Instant.now().minus(1, ChronoUnit.DAYS),
                 isRevoked = true
             )
@@ -168,7 +169,7 @@ class RefreshTokenTest {
             // given
             val refreshToken = RefreshToken(
                 userId = 1L,
-                token = "token",
+                token = RefreshTokenValue.from("token"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS)
             )
             val beforeUpdate = Instant.now().minusMillis(100)
@@ -200,7 +201,7 @@ class RefreshTokenTest {
             val oldLastUsedAt = Instant.now().minus(1, ChronoUnit.HOURS)
             val refreshToken = RefreshToken(
                 userId = 1L,
-                token = "token",
+                token = RefreshTokenValue.from("token"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS),
                 lastUsedAt = oldLastUsedAt
             )
@@ -228,7 +229,7 @@ class RefreshTokenTest {
             // given
             val refreshToken = RefreshToken(
                 userId = 1L,
-                token = "token_to_revoke",
+                token = RefreshTokenValue.from("token_to_revoke"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS),
                 isRevoked = false
             )
@@ -256,7 +257,7 @@ class RefreshTokenTest {
             // given
             val refreshToken = RefreshToken(
                 userId = 1L,
-                token = "already_revoked_token",
+                token = RefreshTokenValue.from("already_revoked_token"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS),
                 isRevoked = true
             )

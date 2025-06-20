@@ -34,7 +34,7 @@ class SaveChatRoomPersistenceAdapter(
 
             // 업데이트된 도메인 객체를 사용하여 엔티티 업데이트
             existingEntity.update(
-                title = chatRoom.title,
+                title = chatRoom.title?.value,
                 type = chatRoom.type,
                 announcement = chatRoom.announcement,
                 lastMessageId = chatRoom.lastMessageId?.toLongOrNull(),

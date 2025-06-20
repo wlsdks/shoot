@@ -23,8 +23,8 @@ data class NotificationResponse(
             return NotificationResponse(
                 id = notification.id,
                 userId = notification.userId,
-                title = notification.title,
-                message = notification.message,
+                title = notification.title.value,
+                message = notification.message.value,
                 type = notification.type.name,
                 sourceId = notification.sourceId,
                 sourceType = notification.sourceType.name,

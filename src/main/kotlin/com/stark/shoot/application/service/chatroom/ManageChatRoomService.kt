@@ -7,6 +7,7 @@ import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.service.chatroom.ChatRoomParticipantDomainService
+import com.stark.shoot.domain.chat.room.ChatRoomTitle
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
@@ -132,7 +133,7 @@ class ManageChatRoomService(
     ): Boolean {
         return withChatRoom(roomId) { chatRoom ->
             // 제목 업데이트 (도메인 객체의 update 메서드 사용)
-            val updatedRoom = chatRoom.update(title = title)
+            val updatedRoom = chatRoom.update(title = ChatRoomTitle.from(title))
 
             // 결과 반환 (업데이트된 채팅방과 성공 여부)
             Pair(updatedRoom, true)

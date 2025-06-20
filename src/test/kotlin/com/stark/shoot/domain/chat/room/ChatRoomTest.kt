@@ -1,6 +1,7 @@
 package com.stark.shoot.domain.chat.room
 
 import com.stark.shoot.domain.exception.FavoriteLimitExceededException
+import com.stark.shoot.domain.chat.room.ChatRoomTitle
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -23,13 +24,13 @@ class ChatRoomTest {
 
             // when
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = participants
             )
 
             // then
-            assertThat(chatRoom.title).isEqualTo("테스트 채팅방")
+            assertThat(chatRoom.title?.value).isEqualTo("테스트 채팅방")
             assertThat(chatRoom.type).isEqualTo(ChatRoomType.GROUP)
             assertThat(chatRoom.participants).containsExactlyInAnyOrderElementsOf(participants)
             assertThat(chatRoom.lastMessageId).isNull()
@@ -49,7 +50,7 @@ class ChatRoomTest {
             val chatRoom = ChatRoom.createDirectChat(userId, friendId, friendName)
 
             // then
-            assertThat(chatRoom.title).isEqualTo("${friendName}님과의 대화")
+            assertThat(chatRoom.title?.value).isEqualTo("${friendName}님과의 대화")
             assertThat(chatRoom.type).isEqualTo(ChatRoomType.INDIVIDUAL)
             assertThat(chatRoom.participants).containsExactlyInAnyOrder(userId, friendId)
             assertThat(chatRoom.lastMessageId).isNull()
@@ -68,7 +69,7 @@ class ChatRoomTest {
             // given
             val chatRoom = ChatRoom(
                 id = 1L,
-                title = "원래 제목",
+                title = ChatRoomTitle.from("원래 제목"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L)
             )
@@ -79,7 +80,7 @@ class ChatRoomTest {
 
             // when
             val updatedChatRoom = chatRoom.update(
-                title = newTitle,
+                title = ChatRoomTitle.from(newTitle),
                 announcement = newAnnouncement,
                 lastMessageId = newLastMessageId,
                 lastActiveAt = newLastActiveAt
@@ -87,7 +88,7 @@ class ChatRoomTest {
 
             // then
             assertThat(updatedChatRoom.id).isEqualTo(chatRoom.id)
-            assertThat(updatedChatRoom.title).isEqualTo(newTitle)
+            assertThat(updatedChatRoom.title?.value).isEqualTo(newTitle)
             assertThat(updatedChatRoom.type).isEqualTo(chatRoom.type)
             assertThat(updatedChatRoom.announcement).isEqualTo(newAnnouncement)
             assertThat(updatedChatRoom.lastMessageId).isEqualTo(newLastMessageId)
@@ -100,7 +101,7 @@ class ChatRoomTest {
         fun `공지사항만 업데이트할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L)
             )
@@ -119,7 +120,7 @@ class ChatRoomTest {
         fun `공지사항을 삭제할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L),
                 announcement = "기존 공지사항"
@@ -143,7 +144,7 @@ class ChatRoomTest {
         fun `참여자를 추가할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L)
             )
@@ -162,7 +163,7 @@ class ChatRoomTest {
         fun `이미 참여 중인 사용자를 추가하면 변경이 없다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L)
             )
@@ -181,7 +182,7 @@ class ChatRoomTest {
         fun `참여자를 제거할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L, 3L)
             )
@@ -200,7 +201,7 @@ class ChatRoomTest {
         fun `참여하지 않은 사용자를 제거하면 변경이 없다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L)
             )
@@ -219,7 +220,7 @@ class ChatRoomTest {
         fun `여러 참여자를 한번에 추가할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L)
             )
@@ -238,7 +239,7 @@ class ChatRoomTest {
         fun `여러 참여자를 한번에 제거할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L, 3L, 4L, 5L)
             )
@@ -257,7 +258,7 @@ class ChatRoomTest {
         fun `참여자 목록을 한번에 업데이트할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L, 3L)
             )
@@ -282,7 +283,7 @@ class ChatRoomTest {
         fun `참여자 변경 사항을 계산할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L, 3L),
                 pinnedParticipants = mutableSetOf(1L)
@@ -306,7 +307,7 @@ class ChatRoomTest {
         fun `변경 사항이 없으면 빈 결과를 반환한다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L),
                 pinnedParticipants = mutableSetOf(1L)
@@ -334,7 +335,7 @@ class ChatRoomTest {
         fun `채팅방을 즐겨찾기에 추가할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L)
             )
@@ -355,7 +356,7 @@ class ChatRoomTest {
             // given
             val userId = 1L
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(userId, 2L),
                 pinnedParticipants = mutableSetOf(userId)
@@ -376,7 +377,7 @@ class ChatRoomTest {
             // given
             val userId = 1L
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(userId, 2L),
                 pinnedParticipants = mutableSetOf(userId)
@@ -396,7 +397,7 @@ class ChatRoomTest {
         fun `즐겨찾기 최대 개수를 초과하면 예외가 발생한다`() {
             // given
             val chatRoom = ChatRoom(
-                title = "테스트 채팅방",
+                title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L)
             )

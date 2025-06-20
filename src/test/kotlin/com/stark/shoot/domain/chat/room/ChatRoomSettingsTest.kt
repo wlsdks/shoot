@@ -5,6 +5,9 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
+/** 새 값 객체 사용을 위한 import */
+import com.stark.shoot.domain.chat.room.RetentionDays
+
 @DisplayName("채팅방 설정 테스트")
 class ChatRoomSettingsTest {
 
@@ -30,7 +33,7 @@ class ChatRoomSettingsTest {
         fun `사용자 지정 값으로 채팅방 설정을 생성할 수 있다`() {
             // given
             val isNotificationEnabled = false
-            val retentionDays = 30
+            val retentionDays = RetentionDays.from(30)
             val isEncrypted = true
             val customSettings = mapOf("theme" to "dark", "fontSize" to 14)
             
@@ -98,7 +101,7 @@ class ChatRoomSettingsTest {
         fun `메시지 보존 기간을 설정할 수 있다`() {
             // given
             val settings = ChatRoomSettings(retentionDays = null)
-            val newRetentionDays = 14
+            val newRetentionDays = RetentionDays.from(14)
             
             // when
             val updatedSettings = settings.updateRetentionPolicy(newRetentionDays)
@@ -115,7 +118,7 @@ class ChatRoomSettingsTest {
         @DisplayName("메시지 보존 기간을 무기한으로 설정할 수 있다")
         fun `메시지 보존 기간을 무기한으로 설정할 수 있다`() {
             // given
-            val settings = ChatRoomSettings(retentionDays = 30)
+            val settings = ChatRoomSettings(retentionDays = RetentionDays.from(30))
             
             // when
             val updatedSettings = settings.updateRetentionPolicy(null)

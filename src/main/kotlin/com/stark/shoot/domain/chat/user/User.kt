@@ -7,6 +7,9 @@ import java.time.Instant
 import com.stark.shoot.domain.chat.user.UserCode
 import com.stark.shoot.domain.chat.user.Username
 import com.stark.shoot.domain.chat.user.Nickname
+import com.stark.shoot.domain.chat.user.ProfileImageUrl
+import com.stark.shoot.domain.chat.user.BackgroundImageUrl
+import com.stark.shoot.domain.chat.user.UserBio
 
 data class User(
     val id: Long? = null,
@@ -18,10 +21,10 @@ data class User(
     val createdAt: Instant = Instant.now(),
 
     // 필요한 경우에만 남길 선택적 필드
-    var profileImageUrl: String? = null,
-    var backgroundImageUrl: String? = null,
+    var profileImageUrl: ProfileImageUrl? = null,
+    var backgroundImageUrl: BackgroundImageUrl? = null,
     var lastSeenAt: Instant? = null,
-    var bio: String? = null,
+    var bio: UserBio? = null,
     var isDeleted: Boolean = false,
     var updatedAt: Instant? = null,
 
@@ -63,8 +66,8 @@ data class User(
                 nickname = nicknameVo,
                 passwordHash = passwordEncoder(rawPassword),
                 userCode = UserCode.generate(),
-                bio = bio,
-                profileImageUrl = profileImageUrl
+                bio = bio?.let { UserBio.from(it) },
+                profileImageUrl = profileImageUrl?.let { ProfileImageUrl.from(it) }
             )
         }
 
@@ -270,13 +273,16 @@ data class User(
     ): User {
         // 닉네임 유효성 검증
         val nicknameVo = nickname?.let { Nickname.from(it) }
+        val bioVo = bio?.let { UserBio.from(it) }
+        val profileUrlVo = profileImageUrl?.let { ProfileImageUrl.from(it) }
+        val backgroundUrlVo = backgroundImageUrl?.let { BackgroundImageUrl.from(it) }
 
         // 업데이트된 사용자 정보 반환
         return this.copy(
             nickname = nicknameVo ?: this.nickname,
-            bio = bio ?: this.bio,
-            profileImageUrl = profileImageUrl ?: this.profileImageUrl,
-            backgroundImageUrl = backgroundImageUrl ?: this.backgroundImageUrl,
+            bio = bioVo ?: this.bio,
+            profileImageUrl = profileUrlVo ?: this.profileImageUrl,
+            backgroundImageUrl = backgroundUrlVo ?: this.backgroundImageUrl,
             updatedAt = Instant.now()
         )
     }
@@ -289,7 +295,7 @@ data class User(
      */
     fun changeProfileImage(imageUrl: String): User {
         return this.copy(
-            profileImageUrl = imageUrl,
+            profileImageUrl = ProfileImageUrl.from(imageUrl),
             updatedAt = Instant.now()
         )
     }
@@ -302,7 +308,7 @@ data class User(
      */
     fun changeBackgroundImage(imageUrl: String): User {
         return this.copy(
-            backgroundImageUrl = imageUrl,
+            backgroundImageUrl = BackgroundImageUrl.from(imageUrl),
             updatedAt = Instant.now()
         )
     }

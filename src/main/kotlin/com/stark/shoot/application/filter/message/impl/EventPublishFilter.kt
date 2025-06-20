@@ -28,7 +28,7 @@ class EventPublishFilter(
             ?: return chain.proceed(message) // 채팅방 정보가 없으면 다음 필터로 진행
 
         // 채팅방 ID가 null인 경우 처리
-        val roomId = chatRoom.id ?: run {
+        val roomId = chatRoom.id?.value ?: run {
             logger.warn { "채팅방 ID가 null입니다. 이벤트를 발행하지 않고 다음 필터로 진행합니다." }
             return chain.proceed(message)
         }

@@ -38,7 +38,7 @@ data class ChatRoomResponse(
                 chatRoom.title?.value ?: "채팅방"
             }
             return ChatRoomResponse(
-                roomId = chatRoom.id ?: 0L,
+                roomId = chatRoom.id?.value ?: 0L,
                 title = roomTitle,
                 lastMessage = null, // lastMessage 정보가 도메인에 없으므로 null 처리
                 unreadMessages = 0, // unreadMessages 정보가 도메인에 없으므로 기본값 0 처리

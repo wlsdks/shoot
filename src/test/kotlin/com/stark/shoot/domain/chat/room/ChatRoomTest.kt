@@ -3,6 +3,8 @@ package com.stark.shoot.domain.chat.room
 import com.stark.shoot.domain.exception.FavoriteLimitExceededException
 import com.stark.shoot.domain.chat.room.ChatRoomTitle
 import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
+import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.common.vo.MessageId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -69,14 +71,14 @@ class ChatRoomTest {
         fun `채팅방 정보를 업데이트할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                id = 1L,
+                id = ChatRoomId.from(1L),
                 title = ChatRoomTitle.from("원래 제목"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L)
             )
             val newTitle = "새 제목"
             val newAnnouncement = ChatRoomAnnouncement.from("새 공지사항")
-            val newLastMessageId = "message123"
+            val newLastMessageId = MessageId.from("message123")
             val newLastActiveAt = Instant.now().plusSeconds(3600)
 
             // when
@@ -560,7 +562,7 @@ class ChatRoomTest {
                 title = "채팅방",
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L),
-                lastMessageId = "message123"
+                lastMessageId = MessageId.from("message123")
             )
             val chatRoomWithoutMessage = ChatRoom(
                 title = "채팅방",

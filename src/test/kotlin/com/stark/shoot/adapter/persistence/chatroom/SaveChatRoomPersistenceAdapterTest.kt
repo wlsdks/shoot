@@ -40,7 +40,7 @@ class SaveChatRoomPersistenceAdapterTest @Autowired constructor(
 
         assertThat(saved.id).isNotNull
         assertThat(chatRoomRepository.count()).isEqualTo(1)
-        val participants = chatRoomUserRepository.findByChatRoomId(saved.id!!)
+        val participants = chatRoomUserRepository.findByChatRoomId(saved.id!!.value)
         assertThat(participants).hasSize(2)
         val pinned = participants.first { it.user.id == user1.id }
         assertThat(pinned.isPinned).isTrue()

@@ -1,5 +1,7 @@
 package com.stark.shoot.domain.chat.bookmark
 
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import java.time.Instant
 
 /**
@@ -7,7 +9,7 @@ import java.time.Instant
  */
 data class MessageBookmark(
     val id: String? = null,
-    val messageId: String,
-    val userId: Long,
+    val messageId: MessageId,
+    val userId: UserId,
     val createdAt: Instant = Instant.now(),
 )

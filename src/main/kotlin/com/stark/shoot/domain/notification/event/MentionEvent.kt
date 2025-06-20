@@ -2,15 +2,16 @@ package com.stark.shoot.domain.notification.event
 
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
+import com.stark.shoot.domain.common.vo.UserId
 import java.time.Instant
 
 class MentionEvent(
     id: String? = null,
     val roomId: Long,
     val messageId: String,
-    val senderId: Long,
+    val senderId: UserId,
     val senderName: String,
-    val mentionedUserIds: Set<Long>,
+    val mentionedUserIds: Set<UserId>,
     val messageContent: String,
     timestamp: Instant = Instant.now(),
     metadata: Map<String, Any> = emptyMap()
@@ -23,7 +24,7 @@ class MentionEvent(
     metadata = metadata
 ) {
 
-    override fun getRecipients(): Set<Long> = mentionedUserIds
+    override fun getRecipients(): Set<UserId> = mentionedUserIds
 
     override fun getTitle(): String = "$senderName mentioned you"
 

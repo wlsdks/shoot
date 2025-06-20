@@ -6,6 +6,7 @@ import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
 import com.stark.shoot.domain.notification.NotificationTitle
 import com.stark.shoot.domain.notification.NotificationMessage
+import com.stark.shoot.domain.common.vo.UserId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
@@ -43,7 +44,7 @@ data class NotificationDocument(
     fun toDomain(): Notification {
         return Notification(
             id = id?.let { NotificationId.from(it) },
-            userId = userId,
+            userId = UserId.from(userId),
             title = NotificationTitle.from(title),
             message = NotificationMessage.from(message),
             type = NotificationType.valueOf(type),
@@ -60,7 +61,7 @@ data class NotificationDocument(
         fun fromDomain(notification: Notification): NotificationDocument {
             return NotificationDocument(
                 id = notification.id?.value,
-                userId = notification.userId,
+                userId = notification.userId.value,
                 title = notification.title.value,
                 message = notification.message.value,
                 type = notification.type.name,

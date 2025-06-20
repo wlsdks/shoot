@@ -2,6 +2,7 @@ package com.stark.shoot.domain.notification.event
 
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
+import com.stark.shoot.domain.common.vo.UserId
 import java.time.Instant
 
 abstract class NotificationEvent(
@@ -13,7 +14,7 @@ abstract class NotificationEvent(
     val metadata: Map<String, Any> = emptyMap()
 ) {
 
-    abstract fun getRecipients(): Set<Long>
+    abstract fun getRecipients(): Set<UserId>
 
     abstract fun getTitle(): String
 

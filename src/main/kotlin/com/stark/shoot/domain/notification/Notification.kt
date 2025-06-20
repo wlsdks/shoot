@@ -5,6 +5,7 @@ import com.stark.shoot.domain.notification.event.NotificationEvent
 import com.stark.shoot.domain.notification.NotificationTitle
 import com.stark.shoot.domain.notification.NotificationId
 import com.stark.shoot.domain.notification.NotificationMessage
+import com.stark.shoot.domain.common.vo.UserId
 import java.time.Instant
 
 /**
@@ -15,7 +16,7 @@ import java.time.Instant
  */
 class Notification(
     val id: NotificationId? = null,
-    val userId: Long,
+    val userId: UserId,
     val title: NotificationTitle,
     val message: NotificationMessage,
     val type: NotificationType,
@@ -62,7 +63,7 @@ class Notification(
      * @param userId 확인할 사용자 ID
      * @return 사용자에게 속하면 true, 아니면 false
      */
-    fun belongsToUser(userId: Long): Boolean {
+    fun belongsToUser(userId: UserId): Boolean {
         return this.userId == userId
     }
 
@@ -72,7 +73,7 @@ class Notification(
      * @param userId 확인할 사용자 ID
      * @throws NotificationException 알림이 해당 사용자의 것이 아닌 경우
      */
-    fun validateOwnership(userId: Long) {
+    fun validateOwnership(userId: UserId) {
         if (!belongsToUser(userId)) {
             throw NotificationException("알림이 해당 사용자의 것이 아닙니다: ${this.id}", "NOTIFICATION_OWNERSHIP_INVALID")
         }
@@ -118,7 +119,7 @@ class Notification(
          * @return 생성된 알림 객체
          */
         fun fromChatEvent(
-            userId: Long,
+            userId: UserId,
             title: String,
             message: String,
             type: NotificationType,
@@ -143,7 +144,7 @@ class Notification(
          * @param recipientId 수신자 ID
          * @return 생성된 알림 객체
          */
-        fun fromEvent(event: NotificationEvent, recipientId: Long): Notification {
+        fun fromEvent(event: NotificationEvent, recipientId: UserId): Notification {
             return Notification(
                 userId = recipientId,
                 title = NotificationTitle.from(event.getTitle()),
@@ -168,7 +169,7 @@ class Notification(
          * @return 생성된 알림 객체
          */
         fun create(
-            userId: Long,
+            userId: UserId,
             title: String,
             message: String,
             type: NotificationType,

@@ -2,15 +2,16 @@ package com.stark.shoot.domain.notification.event
 
 import com.stark.shoot.domain.notification.NotificationType
 import com.stark.shoot.domain.notification.SourceType
+import com.stark.shoot.domain.common.vo.UserId
 import java.time.Instant
 
 class NewMessageEvent(
     id: String? = null,
     val roomId: Long,
-    val senderId: Long,
+    val senderId: UserId,
     val senderName: String,
     val messageContent: String,
-    val recipientIds: Set<Long>,
+    val recipientIds: Set<UserId>,
     timestamp: Instant = Instant.now(),
     metadata: Map<String, Any> = emptyMap()
 ) : NotificationEvent(
@@ -22,7 +23,7 @@ class NewMessageEvent(
     metadata = metadata
 ) {
 
-    override fun getRecipients(): Set<Long> = recipientIds
+    override fun getRecipients(): Set<UserId> = recipientIds
 
     override fun getTitle(): String = "New message from $senderName"
 

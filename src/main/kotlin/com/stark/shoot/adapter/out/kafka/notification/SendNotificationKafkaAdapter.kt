@@ -31,7 +31,7 @@ class SendNotificationKafkaAdapter(
     override fun sendNotification(notification: Notification) {
         try {
             // 사용자 ID를 파티션 키로 사용하여 같은 사용자의 알림이 순서대로 처리되도록 함
-            val key = notification.userId.toString()
+            val key = notification.userId.value.toString()
             val notificationJson = objectMapper.writeValueAsString(notification)
             
             // Kafka 토픽에 알림 발행
@@ -42,7 +42,7 @@ class SendNotificationKafkaAdapter(
                     logger.error(ex) { "Kafka를 통한 알림 전송 중 오류가 발생했습니다: ${ex.message}" }
                     throw KafkaPublishException("Kafka를 통한 알림 전송 중 오류가 발생했습니다: ${ex.message}", ex)
                 } else {
-                    logger.info { "알림이 Kafka 토픽에 발행되었습니다: userId=${notification.userId}, type=${notification.type}, offset=${result.recordMetadata.offset()}" }
+                    logger.info { "알림이 Kafka 토픽에 발행되었습니다: userId=${notification.userId.value}, type=${notification.type}, offset=${result.recordMetadata.offset()}" }
                 }
             }
         } catch (e: Exception) {

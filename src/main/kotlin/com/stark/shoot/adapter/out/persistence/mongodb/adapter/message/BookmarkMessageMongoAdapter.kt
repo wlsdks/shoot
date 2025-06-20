@@ -5,6 +5,8 @@ import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMon
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.MessageBookmarkMongoRepository
 import com.stark.shoot.application.port.out.message.BookmarkMessagePort
 import com.stark.shoot.domain.chat.bookmark.MessageBookmark
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.types.ObjectId
 
@@ -20,12 +22,12 @@ class BookmarkMessageMongoAdapter(
         return saved.toDomain()
     }
 
-    override fun deleteBookmark(messageId: String, userId: Long) {
-        bookmarkRepository.deleteByMessageIdAndUserId(messageId, userId)
+    override fun deleteBookmark(messageId: MessageId, userId: UserId) {
+        bookmarkRepository.deleteByMessageIdAndUserId(messageId.value, userId.value)
     }
 
-    override fun findBookmarksByUser(userId: Long, roomId: Long?): List<MessageBookmark> {
-        val documents = bookmarkRepository.findByUserId(userId)
+    override fun findBookmarksByUser(userId: UserId, roomId: Long?): List<MessageBookmark> {
+        val documents = bookmarkRepository.findByUserId(userId.value)
         if (roomId == null) {
             return documents.map { it.toDomain() }
         }
@@ -36,7 +38,7 @@ class BookmarkMessageMongoAdapter(
         }.map { it.toDomain() }
     }
 
-    override fun exists(messageId: String, userId: Long): Boolean {
-        return bookmarkRepository.existsByMessageIdAndUserId(messageId, userId)
+    override fun exists(messageId: MessageId, userId: UserId): Boolean {
+        return bookmarkRepository.existsByMessageIdAndUserId(messageId.value, userId.value)
     }
 }

@@ -1,5 +1,7 @@
 package com.stark.shoot.domain.chat.bookmark
 
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -14,11 +16,14 @@ class MessageBookmarkTest {
     inner class CreateBookmark {
         @Test
         fun `필수 정보로 북마크를 생성할 수 있다`() {
-            val bookmark = MessageBookmark(messageId = "m1", userId = 1L)
+            val bookmark = MessageBookmark(
+                messageId = MessageId.from("m1"),
+                userId = UserId.from(1L)
+            )
 
             assertThat(bookmark.id).isNull()
-            assertThat(bookmark.messageId).isEqualTo("m1")
-            assertThat(bookmark.userId).isEqualTo(1L)
+            assertThat(bookmark.messageId).isEqualTo(MessageId.from("m1"))
+            assertThat(bookmark.userId).isEqualTo(UserId.from(1L))
             assertThat(bookmark.createdAt).isNotNull()
         }
 
@@ -27,14 +32,14 @@ class MessageBookmarkTest {
             val now = Instant.now()
             val bookmark = MessageBookmark(
                 id = "b1",
-                messageId = "m1",
-                userId = 2L,
+                messageId = MessageId.from("m1"),
+                userId = UserId.from(2L),
                 createdAt = now
             )
 
             assertThat(bookmark.id).isEqualTo("b1")
-            assertThat(bookmark.messageId).isEqualTo("m1")
-            assertThat(bookmark.userId).isEqualTo(2L)
+            assertThat(bookmark.messageId).isEqualTo(MessageId.from("m1"))
+            assertThat(bookmark.userId).isEqualTo(UserId.from(2L))
             assertThat(bookmark.createdAt).isEqualTo(now)
         }
     }

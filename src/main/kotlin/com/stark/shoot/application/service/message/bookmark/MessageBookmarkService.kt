@@ -4,6 +4,8 @@ import com.stark.shoot.application.port.`in`.message.bookmark.BookmarkMessageUse
 import com.stark.shoot.application.port.out.message.BookmarkMessagePort
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.bookmark.MessageBookmark
+import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId
@@ -18,13 +20,13 @@ class MessageBookmarkService(
 
     private val logger = KotlinLogging.logger {}
 
-    override fun bookmarkMessage(messageId: String, userId: Long): MessageBookmark {
+    override fun bookmarkMessage(messageId: MessageId, userId: UserId): MessageBookmark {
         if (bookmarkPort.exists(messageId, userId)) {
             logger.debug { "이미 북마크된 메시지입니다: messageId=$messageId, userId=$userId" }
             throw IllegalArgumentException("이미 북마크된 메시지입니다.")
         }
 
-        loadMessagePort.findById(messageId.toObjectId())
+        loadMessagePort.findById(messageId.value.toObjectId())
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
         val bookmark = MessageBookmark(
@@ -35,11 +37,11 @@ class MessageBookmarkService(
         return bookmarkPort.saveBookmark(bookmark)
     }
 
-    override fun removeBookmark(messageId: String, userId: Long) {
+    override fun removeBookmark(messageId: MessageId, userId: UserId) {
         bookmarkPort.deleteBookmark(messageId, userId)
     }
 
-    override fun getBookmarks(userId: Long, roomId: Long?): List<MessageBookmark> {
+    override fun getBookmarks(userId: UserId, roomId: Long?): List<MessageBookmark> {
         return bookmarkPort.findBookmarksByUser(userId, roomId)
     }
 }

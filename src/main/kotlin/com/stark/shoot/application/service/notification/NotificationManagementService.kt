@@ -3,8 +3,8 @@ package com.stark.shoot.application.service.notification
 import com.stark.shoot.application.port.`in`.notification.NotificationManagementUseCase
 import com.stark.shoot.application.port.out.notification.LoadNotificationPort
 import com.stark.shoot.application.port.out.notification.SaveNotificationPort
-import com.stark.shoot.domain.common.vo.UserId
-import com.stark.shoot.domain.exception.NotificationException
+import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.infrastructure.exception.NotificationException
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.domain.notification.type.NotificationType

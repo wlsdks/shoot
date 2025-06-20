@@ -1,6 +1,6 @@
 package com.stark.shoot.infrastructure.config.kafka
 
-import com.stark.shoot.domain.chat.event.ChatEvent
+import com.stark.shoot.domain.event.MessageEvent
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -32,7 +32,7 @@ class KafkaConsumerConfig {
     private var concurrency: Int = 1
 
     @Bean
-    fun consumerFactory(): ConsumerFactory<String, ChatEvent> {
+    fun consumerFactory(): ConsumerFactory<String, MessageEvent> {
         // 호스트명을 가져와 인스턴스별 고유 그룹 ID 생성
         val hostname = try {
             InetAddress.getLocalHost().hostName
@@ -48,9 +48,9 @@ class KafkaConsumerConfig {
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
 
             // 디시리얼라이저 설정
-            JsonDeserializer.TRUSTED_PACKAGES to "com.stark.shoot.domain.chat.event",
-            JsonDeserializer.TYPE_MAPPINGS to "chatEvent:com.stark.shoot.domain.chat.event.ChatEvent",
-            JsonDeserializer.VALUE_DEFAULT_TYPE to ChatEvent::class.java.name,
+            JsonDeserializer.TRUSTED_PACKAGES to "com.stark.shoot.domain.event",
+            JsonDeserializer.TYPE_MAPPINGS to "chatEvent:com.stark.shoot.domain.event.MessageEvent",
+            JsonDeserializer.VALUE_DEFAULT_TYPE to MessageEvent::class.java.name,
 
             // 오프셋 설정
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest",
@@ -69,16 +69,16 @@ class KafkaConsumerConfig {
         return DefaultKafkaConsumerFactory(
             configProps,
             StringDeserializer(),
-            JsonDeserializer(ChatEvent::class.java, false)
+            JsonDeserializer(MessageEvent::class.java, false)
         )
     }
 
     @Bean
     fun kafkaListenerContainerFactory(
-        consumerFactory: ConsumerFactory<String, ChatEvent>,
+        consumerFactory: ConsumerFactory<String, MessageEvent>,
         errorHandler: DefaultErrorHandler
-    ): ConcurrentKafkaListenerContainerFactory<String, ChatEvent> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, ChatEvent>()
+    ): ConcurrentKafkaListenerContainerFactory<String, MessageEvent> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, MessageEvent>()
         factory.consumerFactory = consumerFactory
         factory.setCommonErrorHandler(errorHandler)
 
@@ -98,7 +98,7 @@ class KafkaConsumerConfig {
     }
 
     @Bean
-    fun kafkaErrorHandler(kafkaTemplate: KafkaTemplate<String, ChatEvent>): DefaultErrorHandler {
+    fun kafkaErrorHandler(kafkaTemplate: KafkaTemplate<String, MessageEvent>): DefaultErrorHandler {
         // 재시도 설정: 1초 간격으로 3회 재시도
         val fixedBackOff = FixedBackOff(1000L, 3)
 

@@ -4,9 +4,9 @@ import com.stark.shoot.application.port.`in`.user.friend.FriendRemoveUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
-import com.stark.shoot.domain.chat.user.User
-import com.stark.shoot.domain.common.vo.UserId
-import com.stark.shoot.domain.service.user.FriendDomainService
+import com.stark.shoot.domain.user.User
+import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional

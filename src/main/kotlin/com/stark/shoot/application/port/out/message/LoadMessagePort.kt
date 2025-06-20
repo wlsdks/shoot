@@ -1,11 +1,10 @@
 package com.stark.shoot.application.port.out.message
 
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.user.vo.UserId
 import kotlinx.coroutines.flow.Flow
-import org.bson.types.ObjectId
 
 interface LoadMessagePort {
     fun findById(messageId: MessageId): ChatMessage?

@@ -7,7 +7,7 @@ import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.ChatMessageMetadata
+import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import org.springframework.stereotype.Component
 
 @Component

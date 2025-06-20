@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.out.user.friend
 
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.vo.UserId
 
 interface UpdateFriendPort {
     fun addOutgoingFriendRequest(userId: UserId, targetUserId: UserId)

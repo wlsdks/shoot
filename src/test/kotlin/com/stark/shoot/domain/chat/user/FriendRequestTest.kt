@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.chat.user
 
+import com.stark.shoot.domain.user.FriendRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.`in`.web.notification
 
 import com.stark.shoot.adapter.`in`.web.dto.notification.NotificationResponse
 import com.stark.shoot.application.port.`in`.notification.NotificationQueryUseCase
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
 import io.swagger.v3.oas.annotations.Operation

@@ -9,8 +9,8 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepositor
 import com.stark.shoot.application.port.out.user.group.DeleteFriendGroupPort
 import com.stark.shoot.application.port.out.user.group.LoadFriendGroupPort
 import com.stark.shoot.application.port.out.user.group.SaveFriendGroupPort
-import com.stark.shoot.domain.chat.user.FriendGroup
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.FriendGroup
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 

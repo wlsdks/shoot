@@ -10,9 +10,9 @@ import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.MessageContent
-import com.stark.shoot.domain.chat.message.SyncDirection
-import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.chat.message.vo.MessageContent
+import com.stark.shoot.domain.chat.message.type.SyncDirection
+import com.stark.shoot.domain.chat.message.vo.MessageId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList

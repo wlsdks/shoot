@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.out.notification
 
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.infrastructure.exception.web.MongoOperationException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException

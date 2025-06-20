@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.out.persistence.postgres.entity
 
-import com.stark.shoot.domain.chat.user.UserStatus
+import com.stark.shoot.domain.user.type.UserStatus
 import jakarta.persistence.*
 import java.time.Instant
 

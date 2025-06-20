@@ -5,9 +5,9 @@ import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.message.ForwardMessageToUserUseCase
 import com.stark.shoot.application.port.`in`.message.ForwardMessageUseCase
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 // fixme: 이 클래스는 서비스에서 서비스를 호출하므로 리팩토링이 필요함

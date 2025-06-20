@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.sse
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType

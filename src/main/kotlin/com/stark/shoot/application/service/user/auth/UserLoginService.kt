@@ -5,7 +5,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.token.RefreshTokenPort
-import com.stark.shoot.domain.chat.user.Username
+import com.stark.shoot.domain.user.vo.Username
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import org.springframework.security.crypto.password.PasswordEncoder

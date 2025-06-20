@@ -1,8 +1,14 @@
 package com.stark.shoot.domain.chat.event
 
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.type.MessageType
-import com.stark.shoot.domain.chat.event.FriendRemovedEvent
+import com.stark.shoot.domain.event.ChatRoomCreatedEvent
+import com.stark.shoot.domain.event.FriendAddedEvent
+import com.stark.shoot.domain.event.FriendRemovedEvent
+import com.stark.shoot.domain.event.MessageBulkReadEvent
+import com.stark.shoot.domain.event.MessageEvent
+import com.stark.shoot.domain.event.MessagePinEvent
+import com.stark.shoot.domain.event.MessageReactionEvent
+import com.stark.shoot.domain.event.MessageUnreadCountUpdatedEvent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -12,7 +18,7 @@ class EventFactoryTest {
     @Test
     fun `ChatEvent fromMessage 함수는 메시지를 기반으로 이벤트를 생성한다`() {
         val message = ChatMessage.create(roomId = 1L, senderId = 2L, text = "hi")
-        val event = ChatEvent.fromMessage(message)
+        val event = MessageEvent.fromMessage(message)
 
         assertThat(event.type).isEqualTo(EventType.MESSAGE_CREATED)
         assertThat(event.data).isEqualTo(message)
@@ -20,15 +26,15 @@ class EventFactoryTest {
 
     @Test
     fun `ChatBulkReadEvent create 함수는 주어진 값으로 이벤트를 생성한다`() {
-        val event = ChatBulkReadEvent.create(1L, listOf("m1", "m2"), 3L)
-        assertThat(event).isEqualTo(ChatBulkReadEvent(1L, listOf("m1", "m2"), 3L))
+        val event = MessageBulkReadEvent.create(1L, listOf("m1", "m2"), 3L)
+        assertThat(event).isEqualTo(MessageBulkReadEvent(1L, listOf("m1", "m2"), 3L))
     }
 
     @Test
     fun `ChatUnreadCountUpdatedEvent create 함수는 주어진 값으로 이벤트를 생성한다`() {
         val counts = mapOf(1L to 2)
-        val event = ChatUnreadCountUpdatedEvent.create(1L, counts)
-        assertThat(event).isEqualTo(ChatUnreadCountUpdatedEvent(1L, counts, null))
+        val event = MessageUnreadCountUpdatedEvent.create(1L, counts)
+        assertThat(event).isEqualTo(MessageUnreadCountUpdatedEvent(1L, counts, null))
     }
 
     @Test

@@ -1,14 +1,14 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.mapper
 
 import com.stark.shoot.adapter.`in`.web.dto.message.UrlPreviewDto
-import com.stark.shoot.domain.chat.message.UrlPreview
+import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import org.springframework.stereotype.Component
 
 @Component
 class UrlPreviewMapper {
 
     fun domainToDto(
-        urlPreview: UrlPreview?
+        urlPreview: ChatMessageMetadata.UrlPreview?
     ): UrlPreviewDto {
         if (urlPreview != null) {
             return UrlPreviewDto(

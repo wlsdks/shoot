@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.dto.user
 
-import com.stark.shoot.domain.chat.user.FriendGroup
+import com.stark.shoot.domain.user.FriendGroup
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
 
 @ApplicationDto

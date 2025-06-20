@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.`in`.event.notification
 
 import com.stark.shoot.application.port.out.notification.SaveNotificationPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
-import com.stark.shoot.domain.chat.event.ChatEvent
+import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.notification.Notification
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -33,7 +33,7 @@ class ChatEventNotificationListener(
      * @param event 처리할 채팅 이벤트
      */
     @EventListener
-    fun handleChatEvent(event: ChatEvent) {
+    fun handleChatEvent(event: MessageEvent) {
         handleMessageCreated(event)
     }
 
@@ -43,7 +43,7 @@ class ChatEventNotificationListener(
      *
      * @param event 처리할 채팅 이벤트
      */
-    private fun handleMessageCreated(event: ChatEvent) {
+    private fun handleMessageCreated(event: MessageEvent) {
         val message = event.data
 
         try {

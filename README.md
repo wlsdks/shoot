@@ -322,7 +322,7 @@ private fun pollMessages() {
 ```kotlin
 // Kafka로 메시지 이벤트 발행
 private fun sendToKafka(message: ChatMessageRequest): CompletableFuture<Void> {
-    val chatEvent = ChatEvent(
+    val messageEvent = ChatEvent(
         type = EventType.MESSAGE_CREATED,
         data = chatMessage
     )
@@ -330,7 +330,7 @@ private fun sendToKafka(message: ChatMessageRequest): CompletableFuture<Void> {
     return kafkaMessagePublishPort.publishChatEvent(
         topic = "chat-messages",
         key = message.roomId,
-        event = chatEvent
+        event = messageEvent
     ).thenAccept {
         // Kafka 발행 성공 시 상태 업데이트
         val statusUpdate = MessageStatusResponse(

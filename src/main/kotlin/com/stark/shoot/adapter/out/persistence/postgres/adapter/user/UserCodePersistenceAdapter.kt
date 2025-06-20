@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.user
 
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.code.UpdateUserCodePort
-import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.user.User
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter

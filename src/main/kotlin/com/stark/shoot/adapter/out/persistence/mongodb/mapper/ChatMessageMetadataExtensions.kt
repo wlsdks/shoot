@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.mapper
 
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageMetadataResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageMetadataDocument
-import com.stark.shoot.domain.chat.message.ChatMessageMetadata
+import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 
 fun ChatMessageMetadata.toMessageMetadataDocument(): MessageMetadataDocument {
     return MessageMetadataDocument(

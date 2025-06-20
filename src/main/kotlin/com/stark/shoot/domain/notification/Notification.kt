@@ -1,11 +1,13 @@
 package com.stark.shoot.domain.notification
 
-import com.stark.shoot.domain.exception.NotificationException
-import com.stark.shoot.domain.notification.event.NotificationEvent
-import com.stark.shoot.domain.notification.vo.NotificationTitle
+import com.stark.shoot.domain.event.NotificationEvent
+import com.stark.shoot.domain.notification.type.NotificationType
+import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.domain.notification.vo.NotificationMessage
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.notification.vo.NotificationTitle
+import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.infrastructure.exception.NotificationException
 import java.time.Instant
 
 /**

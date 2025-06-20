@@ -1,8 +1,8 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.document.message.bookmark
 
 import com.stark.shoot.domain.chat.bookmark.MessageBookmark
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.user.vo.UserId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document

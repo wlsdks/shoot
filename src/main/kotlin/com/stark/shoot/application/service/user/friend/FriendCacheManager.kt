@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.application.port.out.cache.CacheInvalidationPort
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.vo.UserId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 

@@ -1,12 +1,12 @@
 package com.stark.shoot.adapter.`in`.web.dto.message
 
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.ChatMessageMetadata
-import com.stark.shoot.domain.chat.message.MessageContent
+import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
+import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.type.MessageStatus
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.user.vo.UserId
 
 fun ChatMessageMetadataRequest.toDomain(): ChatMessageMetadata {
     return ChatMessageMetadata(

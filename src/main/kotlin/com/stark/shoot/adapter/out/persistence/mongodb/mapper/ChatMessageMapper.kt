@@ -8,11 +8,13 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.ChatMess
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.AttachmentDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageMetadataDocument
-import com.stark.shoot.domain.chat.message.*
+import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
+import com.stark.shoot.domain.chat.message.vo.MessageContent
+import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.user.vo.UserId
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 
@@ -104,7 +106,7 @@ class ChatMessageMapper {
     }
 
     // Attachment <-> AttachmentDocument 변환
-    private fun toAttachmentDocument(domain: Attachment): AttachmentDocument {
+    private fun toAttachmentDocument(domain: MessageContent.Attachment): AttachmentDocument {
         return AttachmentDocument(
             id = domain.id,
             filename = domain.filename,
@@ -116,8 +118,8 @@ class ChatMessageMapper {
         )
     }
 
-    private fun toAttachment(document: AttachmentDocument): Attachment {
-        return Attachment(
+    private fun toAttachment(document: AttachmentDocument): MessageContent.Attachment {
+        return MessageContent.Attachment(
             id = document.id,
             filename = document.filename,
             contentType = document.contentType,
@@ -129,7 +131,7 @@ class ChatMessageMapper {
     }
 
     // 도메인 Attachment를 AttachmentDto로 변환
-    private fun toAttachmentDto(attachment: Attachment): AttachmentDto {
+    private fun toAttachmentDto(attachment: MessageContent.Attachment): AttachmentDto {
         return AttachmentDto(
             id = attachment.id,
             filename = attachment.filename,
@@ -169,7 +171,7 @@ class ChatMessageMapper {
     }
 
     // UrlPreview 도메인 객체를 DTO로 변환하는 매퍼
-    private fun toUrlPreviewDto(preview: UrlPreview): UrlPreviewDto {
+    private fun toUrlPreviewDto(preview: ChatMessageMetadata.UrlPreview): UrlPreviewDto {
         return UrlPreviewDto(
             url = preview.url,
             title = preview.title,

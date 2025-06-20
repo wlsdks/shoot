@@ -6,9 +6,9 @@ import com.stark.shoot.adapter.`in`.web.dto.chatroom.TitleRequest
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
-import com.stark.shoot.domain.chat.room.vo.ChatRoomTitle
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
+import com.stark.shoot.domain.user.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*

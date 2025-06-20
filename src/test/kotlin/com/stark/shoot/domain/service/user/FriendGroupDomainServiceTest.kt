@@ -1,8 +1,6 @@
 package com.stark.shoot.domain.service.user
 
-import com.stark.shoot.domain.chat.user.FriendGroup
-import com.stark.shoot.domain.chat.user.FriendGroupName
-import com.stark.shoot.domain.service.user.group.FriendGroupDomainService
+import com.stark.shoot.domain.user.service.group.FriendGroupDomainService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

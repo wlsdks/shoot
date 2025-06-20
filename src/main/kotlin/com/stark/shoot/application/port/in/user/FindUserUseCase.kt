@@ -1,9 +1,9 @@
 package com.stark.shoot.application.port.`in`.user
 
-import com.stark.shoot.domain.chat.user.User
-import com.stark.shoot.domain.chat.user.UserCode
-import com.stark.shoot.domain.chat.user.Username
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.User
+import com.stark.shoot.domain.user.vo.UserCode
+import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.user.vo.Username
 
 interface FindUserUseCase {
     fun findById(userId: UserId): User?

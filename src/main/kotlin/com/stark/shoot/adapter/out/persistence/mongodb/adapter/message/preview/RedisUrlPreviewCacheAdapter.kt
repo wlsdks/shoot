@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message.preview
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
-import com.stark.shoot.domain.chat.message.UrlPreview
+import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.config.redis.RedisUtilService
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -28,13 +28,13 @@ class RedisUrlPreviewCacheAdapter(
      */
     override fun getCachedUrlPreview(
         url: String
-    ): UrlPreview? {
+    ): ChatMessageMetadata.UrlPreview? {
         try {
             val key = generateKey(url)
             val cachedValue = redisTemplate.opsForValue().get(key)
 
             if (cachedValue != null) {
-                return objectMapper.readValue(cachedValue, UrlPreview::class.java)
+                return objectMapper.readValue(cachedValue, ChatMessageMetadata.UrlPreview::class.java)
             }
             return null
         } catch (e: Exception) {
@@ -51,7 +51,7 @@ class RedisUrlPreviewCacheAdapter(
      */
     override fun cacheUrlPreview(
         url: String,
-        preview: UrlPreview
+        preview: ChatMessageMetadata.UrlPreview
     ) {
         try {
             val key = generateKey(url)

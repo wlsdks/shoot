@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.user
 import com.stark.shoot.adapter.`in`.web.dto.user.CreateUserRequest
 import com.stark.shoot.application.port.`in`.user.UserCreateUseCase
 import com.stark.shoot.application.port.out.user.UserCreatePort
-import com.stark.shoot.domain.chat.user.User
+import com.stark.shoot.domain.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.transaction.annotation.Transactional

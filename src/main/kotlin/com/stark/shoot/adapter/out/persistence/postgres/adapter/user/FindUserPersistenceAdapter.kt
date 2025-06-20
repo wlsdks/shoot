@@ -6,11 +6,11 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequest
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.domain.chat.user.FriendRequestStatus
-import com.stark.shoot.domain.chat.user.User
-import com.stark.shoot.domain.chat.user.UserCode
-import com.stark.shoot.domain.chat.user.Username
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.User
+import com.stark.shoot.domain.user.type.FriendRequestStatus
+import com.stark.shoot.domain.user.vo.UserCode
+import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.user.vo.Username
 import com.stark.shoot.infrastructure.annotation.Adapter
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext

@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.`in`.web.message.reaction
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionListResponse
 import com.stark.shoot.application.port.`in`.message.reaction.GetMessageReactionUseCase
-import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.chat.message.vo.MessageId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping

@@ -9,9 +9,9 @@ import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCa
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.LoadThreadPort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.SyncDirection
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
-import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.chat.message.type.SyncDirection
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow

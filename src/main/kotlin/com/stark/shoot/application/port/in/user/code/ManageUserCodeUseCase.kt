@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.user.code
 
-import com.stark.shoot.domain.chat.user.UserCode
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.vo.UserCode
+import com.stark.shoot.domain.user.vo.UserId
 
 interface ManageUserCodeUseCase {
     fun updateUserCode(userId: UserId, newCode: UserCode)

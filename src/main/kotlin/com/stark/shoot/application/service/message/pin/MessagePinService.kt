@@ -6,9 +6,9 @@ import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.common.vo.UserId
-import com.stark.shoot.domain.service.message.MessagePinDomainService
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging

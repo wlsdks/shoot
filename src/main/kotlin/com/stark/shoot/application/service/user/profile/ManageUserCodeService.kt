@@ -4,8 +4,8 @@ import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
 import com.stark.shoot.application.port.out.user.code.UpdateUserCodePort
-import com.stark.shoot.domain.chat.user.UserCode
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.vo.UserCode
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.apache.kafka.common.errors.DuplicateResourceException

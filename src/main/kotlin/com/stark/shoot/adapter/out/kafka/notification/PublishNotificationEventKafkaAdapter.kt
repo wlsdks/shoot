@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.out.kafka.notification
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.application.port.out.notification.PublishNotificationEventPort
-import com.stark.shoot.domain.notification.event.NotificationEvent
+import com.stark.shoot.domain.event.NotificationEvent
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.KafkaPublishException
 import io.github.oshai.kotlinlogging.KotlinLogging

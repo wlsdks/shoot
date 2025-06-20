@@ -4,10 +4,9 @@ import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.service.message.MessageEditDomainService
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chat.message.service.MessageEditDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 @UseCase

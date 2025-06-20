@@ -3,8 +3,8 @@ package com.stark.shoot.application.service.user.block
 import com.stark.shoot.application.port.`in`.user.block.UserBlockUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
-import com.stark.shoot.domain.common.vo.UserId
-import com.stark.shoot.domain.service.user.block.UserBlockDomainService
+import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.user.service.block.UserBlockDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional

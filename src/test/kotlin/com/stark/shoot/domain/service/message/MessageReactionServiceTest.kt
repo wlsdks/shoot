@@ -1,9 +1,10 @@
 package com.stark.shoot.domain.service.message
 
-import com.stark.shoot.domain.chat.event.MessageReactionEvent
+import com.stark.shoot.domain.event.MessageReactionEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.MessageContent
-import com.stark.shoot.domain.chat.message.ReactionToggleResult
+import com.stark.shoot.domain.chat.message.service.MessageReactionService
+import com.stark.shoot.domain.chat.message.vo.MessageContent
+import com.stark.shoot.domain.chat.message.vo.ReactionToggleResult
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.reaction.vo.MessageReactions

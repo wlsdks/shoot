@@ -3,10 +3,10 @@ package com.stark.shoot.application.service.message.thread
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.MessageContent
+import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
-import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.infrastructure.util.toObjectId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

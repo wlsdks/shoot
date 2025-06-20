@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.chat.bookmark
 
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

@@ -2,16 +2,15 @@ package com.stark.shoot.adapter.`in`.kafka
 
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
-import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
-import com.stark.shoot.domain.chat.event.ChatEvent
-import com.stark.shoot.domain.chat.event.type.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.ChatMessageMetadata
-import com.stark.shoot.domain.chat.message.UrlPreview
+import com.stark.shoot.domain.chat.message.type.MessageStatus
+import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
+import com.stark.shoot.domain.event.MessageEvent
+import com.stark.shoot.domain.event.type.EventType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
@@ -35,7 +34,7 @@ class MessageKafkaConsumer(
         containerFactory = "kafkaListenerContainerFactory" // 명시적으로 컨테이너 팩토리 지정
     )
     fun consumeMessage(
-        @Payload event: ChatEvent,
+        @Payload event: MessageEvent,
         acknowledgment: Acknowledgment
     ) {
         if (event.type == EventType.MESSAGE_CREATED) {
@@ -101,11 +100,11 @@ class MessageKafkaConsumer(
     /**
      * 메시지 처리 중 오류 발생 시 클라이언트에 에러 메시지를 전송합니다.
      *
-     * @param event ChatEvent 객체
+     * @param event MessageEvent 객체
      * @param e Exception 객체
      */
     private fun sendErrorResponse(
-        event: ChatEvent,
+        event: MessageEvent,
         e: Exception
     ) {
         val tempId = event.data.metadata.tempId
@@ -164,7 +163,7 @@ class MessageKafkaConsumer(
      */
     private fun updateMessageWithPreview(
         message: ChatMessage,
-        preview: UrlPreview
+        preview: ChatMessageMetadata.UrlPreview
     ): ChatMessage {
         val updatedMetadata = message.metadata
         val currentContent = message.content

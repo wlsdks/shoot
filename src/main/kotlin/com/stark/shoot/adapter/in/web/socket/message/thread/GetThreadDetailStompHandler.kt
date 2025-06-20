@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.`in`.web.socket.message.thread
 
 import com.stark.shoot.adapter.`in`.web.socket.dto.ThreadDetailRequestDto
 import com.stark.shoot.application.port.`in`.message.thread.GetThreadDetailUseCase
-import com.stark.shoot.domain.common.vo.MessageId
+import com.stark.shoot.domain.chat.message.vo.MessageId
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate

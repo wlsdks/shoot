@@ -7,12 +7,12 @@ import com.stark.shoot.application.port.out.chatroom.ReadStatusPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
-import com.stark.shoot.domain.chat.event.ChatBulkReadEvent
-import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
+import com.stark.shoot.domain.event.MessageBulkReadEvent
+import com.stark.shoot.domain.event.MessageUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -318,7 +318,7 @@ class MessageReadService(
         try {
             webSocketMessageBroker.sendMessage(
                 "/topic/read-bulk/$roomId",
-                ChatBulkReadEvent.create(roomId, messageIds, userId)
+                MessageBulkReadEvent.create(roomId, messageIds, userId)
             )
             logger.debug { "일괄 읽음 알림 전송 완료: roomId=$roomId, userId=$userId, 메시지 수=${messageIds.size}" }
         } catch (e: Exception) {
@@ -340,7 +340,7 @@ class MessageReadService(
         lastMessage: String
     ) {
         try {
-            val event = ChatUnreadCountUpdatedEvent.create(
+            val event = MessageUnreadCountUpdatedEvent.create(
                 roomId = roomId,
                 unreadCounts = mapOf(userId to 0),
                 lastMessage = lastMessage

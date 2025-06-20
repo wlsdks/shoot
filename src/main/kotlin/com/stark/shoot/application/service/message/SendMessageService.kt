@@ -11,18 +11,17 @@ import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
 import com.stark.shoot.application.port.out.message.PublishMessagePort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
-import com.stark.shoot.domain.chat.event.ChatEvent
-import com.stark.shoot.domain.chat.event.type.EventType
+import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chat.message.service.MessageDomainService
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
-import java.util.*
 
 @UseCase
 class SendMessageService(
@@ -32,7 +31,7 @@ class SendMessageService(
     private val publishMessagePort: PublishMessagePort,
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val applicationCoroutineScope: ApplicationCoroutineScope,
-    private val messageDomainService: com.stark.shoot.domain.service.message.MessageDomainService
+    private val messageDomainService: MessageDomainService
 ) : SendMessageUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -302,7 +301,7 @@ class SendMessageService(
      */
     private fun createDomainEvent(
         chatMessage: ChatMessage
-    ): ChatEvent {
+    ): MessageEvent {
         return messageDomainService.createMessageEvent(chatMessage)
     }
 
@@ -310,13 +309,13 @@ class SendMessageService(
      * Kafka에 도메인 이벤트를 발행합니다.
      *
      * @param roomId 채팅방 ID
-     * @param chatEvent 도메인 이벤트
+     * @param messageEvent 도메인 이벤트
      * @param tempId 임시 메시지 ID
      * @return 임시 메시지 ID
      */
     private suspend fun publishKafkaMessageSuspend(
         roomId: Long,
-        chatEvent: ChatEvent,
+        messageEvent: MessageEvent,
         tempId: String?
     ): String? {
         try {
@@ -328,7 +327,7 @@ class SendMessageService(
             kafkaMessagePublishPort.publishChatEventSuspend(
                 topic = topic,
                 key = key,
-                event = chatEvent
+                event = messageEvent
             )
             return tempId
         } catch (e: Exception) {

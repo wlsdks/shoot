@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.out.notification
 
-import com.stark.shoot.domain.notification.event.NotificationEvent
+import com.stark.shoot.domain.event.NotificationEvent
 import com.stark.shoot.infrastructure.exception.web.KafkaPublishException
 
 interface PublishNotificationEventPort {

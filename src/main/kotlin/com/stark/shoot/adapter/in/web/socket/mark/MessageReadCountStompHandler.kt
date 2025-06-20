@@ -2,9 +2,9 @@ package com.stark.shoot.adapter.`in`.web.socket.mark
 
 import com.stark.shoot.adapter.`in`.web.dto.message.read.ChatReadRequest
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.user.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller

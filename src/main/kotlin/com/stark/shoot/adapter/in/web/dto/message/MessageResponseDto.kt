@@ -1,8 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.dto.message
 
-import com.stark.shoot.domain.chat.message.UrlPreview
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
+import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
 import java.time.Instant
 
@@ -50,7 +50,7 @@ data class MessageMetadataResponseDto(
     val tempId: String? = null,
     val needsUrlPreview: Boolean = false,
     val previewUrl: String? = null,
-    val urlPreview: UrlPreview? = null,
+    val urlPreview: ChatMessageMetadata.UrlPreview? = null,
     var readAt: Instant? = null
 )
 

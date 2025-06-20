@@ -1,8 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.mapper
 
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
-import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chatroom.ChatRoom
+import com.stark.shoot.domain.user.vo.UserId
 import org.springframework.stereotype.Component
 
 /**

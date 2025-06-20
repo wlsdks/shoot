@@ -3,6 +3,7 @@ package com.stark.shoot.domain.chat.message
 import org.assertj.core.api.Assertions.assertThat
 import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
 import com.stark.shoot.adapter.`in`.web.dto.message.toResponseDto
+import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

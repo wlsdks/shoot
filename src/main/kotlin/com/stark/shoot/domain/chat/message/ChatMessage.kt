@@ -2,11 +2,11 @@ package com.stark.shoot.domain.chat.message
 
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
-import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
+import com.stark.shoot.domain.chat.message.vo.*
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.common.vo.UserId
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
+import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.user.vo.UserId
 import java.time.Instant
 
 data class ChatMessage(
@@ -256,7 +256,7 @@ data class ChatMessage(
      * @param urlPreview URL 미리보기 정보
      * @return 업데이트된 ChatMessage 객체
      */
-    fun setUrlPreview(urlPreview: UrlPreview): ChatMessage {
+    fun setUrlPreview(urlPreview: ChatMessageMetadata.UrlPreview): ChatMessage {
         val updatedMetadata = this.metadata.copy(
             urlPreview = urlPreview,
             needsUrlPreview = false
@@ -338,7 +338,7 @@ data class ChatMessage(
         fun processUrlPreview(
             message: ChatMessage,
             extractUrls: (String) -> List<String>,
-            getCachedPreview: (String) -> UrlPreview?
+            getCachedPreview: (String) -> ChatMessageMetadata.UrlPreview?
         ): ChatMessage {
             // 텍스트 메시지가 아니면 처리하지 않음
             if (message.content.type != MessageType.TEXT) {

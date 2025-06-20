@@ -4,13 +4,12 @@ import com.stark.shoot.application.filter.common.MessageProcessingFilter
 import com.stark.shoot.application.filter.message.chain.MessageProcessingChain
 import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.stereotype.Component
 
 /**
  * 채팅방 로딩 필터
- * 
+ *
  * 메시지 처리 과정에서 여러 필터가 채팅방 정보를 필요로 하므로,
  * 이 필터에서 한 번만 로딩하고 필터 체인 컨텍스트에 저장하여 재사용합니다.
  */

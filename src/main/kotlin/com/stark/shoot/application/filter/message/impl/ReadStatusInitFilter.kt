@@ -5,7 +5,7 @@ import com.stark.shoot.application.filter.message.chain.MessageProcessingChain
 import com.stark.shoot.application.filter.message.impl.ChatRoomLoadFilter.Companion.CHAT_ROOM_CONTEXT_KEY
 import com.stark.shoot.application.port.out.chatroom.ReadStatusPort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.ChatRoom
+import com.stark.shoot.domain.chatroom.ChatRoom
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 

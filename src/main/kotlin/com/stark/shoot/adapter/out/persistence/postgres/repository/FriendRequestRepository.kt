@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.out.persistence.postgres.repository
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendRequestEntity
-import com.stark.shoot.domain.chat.user.FriendRequestStatus
+import com.stark.shoot.domain.user.type.FriendRequestStatus
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface FriendRequestRepository : JpaRepository<FriendRequestEntity, Long> {

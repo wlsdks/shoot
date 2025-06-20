@@ -4,14 +4,13 @@ import com.stark.shoot.domain.chat.user.UserStatus
 import com.stark.shoot.domain.chat.user.UserCode
 import com.stark.shoot.domain.chat.user.Username
 import com.stark.shoot.domain.chat.user.Nickname
-import com.stark.shoot.domain.exception.InvalidUserDataException
+import com.stark.shoot.infrastructure.exception.InvalidUserDataException
+import com.stark.shoot.domain.user.User
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 @DisplayName("사용자 테스트")
 class UserTest {

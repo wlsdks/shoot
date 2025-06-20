@@ -6,13 +6,12 @@ import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
-import com.stark.shoot.domain.chat.event.MessageReactionEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.message.MessageContent
-import com.stark.shoot.domain.chat.message.ReactionToggleResult
+import com.stark.shoot.domain.chat.message.vo.MessageContent
+import com.stark.shoot.domain.chat.message.vo.ReactionToggleResult
 import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
-import com.stark.shoot.domain.service.message.MessageReactionService
+import com.stark.shoot.domain.chat.message.service.MessageReactionService
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.toObjectId

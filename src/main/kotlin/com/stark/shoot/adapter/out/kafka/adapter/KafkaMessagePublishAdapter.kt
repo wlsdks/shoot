@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.out.kafka.adapter
 
 import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
-import com.stark.shoot.domain.chat.event.ChatEvent
+import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.infrastructure.exception.web.KafkaPublishException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.future.await
@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture
 
 @Component
 class KafkaMessagePublishAdapter(
-    private val kafkaTemplate: KafkaTemplate<String, ChatEvent>
+    private val kafkaTemplate: KafkaTemplate<String, MessageEvent>
 ) : KafkaMessagePublishPort {
 
     private val logger = KotlinLogging.logger {}
@@ -22,7 +22,7 @@ class KafkaMessagePublishAdapter(
     override fun publishChatEvent(
         topic: String,
         key: String,
-        event: ChatEvent
+        event: MessageEvent
     ): CompletableFuture<Void> {
         return kafkaTemplate.send(topic, key, event)
             .thenAccept { result ->
@@ -40,7 +40,7 @@ class KafkaMessagePublishAdapter(
     override suspend fun publishChatEventSuspend(
         topic: String,
         key: String,
-        event: ChatEvent
+        event: MessageEvent
     ) {
         try {
             val result = kafkaTemplate.send(topic, key, event).await()

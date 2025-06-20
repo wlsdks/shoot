@@ -1,11 +1,11 @@
 package com.stark.shoot.domain.chat.room
 
-import com.stark.shoot.domain.exception.FavoriteLimitExceededException
-import com.stark.shoot.domain.chat.room.vo.ChatRoomTitle
-import com.stark.shoot.domain.chat.room.vo.ChatRoomAnnouncement
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
-import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.infrastructure.exception.FavoriteLimitExceededException
+import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
+import com.stark.shoot.domain.chatroom.vo.ChatRoomAnnouncement
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chatroom.ChatRoom
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

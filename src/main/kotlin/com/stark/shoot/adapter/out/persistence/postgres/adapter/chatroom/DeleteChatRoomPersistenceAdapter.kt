@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom
 
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
 import com.stark.shoot.application.port.out.chatroom.DeleteChatRoomPort
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import io.github.oshai.kotlinlogging.KotlinLogging
 

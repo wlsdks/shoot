@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.dto.user
 
-import com.stark.shoot.domain.chat.user.User
-import com.stark.shoot.domain.chat.user.UserStatus
+import com.stark.shoot.domain.user.User
+import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content

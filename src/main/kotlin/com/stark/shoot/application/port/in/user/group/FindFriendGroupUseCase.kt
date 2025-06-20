@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.user.group
 
-import com.stark.shoot.domain.chat.user.FriendGroup
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.FriendGroup
+import com.stark.shoot.domain.user.vo.UserId
 
 interface FindFriendGroupUseCase {
     fun getGroup(groupId: Long): FriendGroup?

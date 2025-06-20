@@ -1,8 +1,8 @@
 package com.stark.shoot.adapter.out.persistence.postgres.mapper
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.RefreshTokenEntity
-import com.stark.shoot.domain.chat.user.RefreshToken
-import com.stark.shoot.domain.chat.user.RefreshTokenValue
+import com.stark.shoot.domain.user.RefreshToken
+import com.stark.shoot.domain.user.vo.RefreshTokenValue
 import org.springframework.stereotype.Component
 
 @Component

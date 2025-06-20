@@ -1,17 +1,17 @@
 package com.stark.shoot.infrastructure.config.domain
 
-import com.stark.shoot.domain.chat.room.service.ChatRoomDomainService
+import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.notification.service.NotificationDomainService
-import com.stark.shoot.domain.service.chatroom.ChatRoomEventService
-import com.stark.shoot.domain.service.chatroom.ChatRoomMetadataDomainService
-import com.stark.shoot.domain.service.message.MessageDomainService
-import com.stark.shoot.domain.service.message.MessageEditDomainService
-import com.stark.shoot.domain.service.message.MessageForwardDomainService
-import com.stark.shoot.domain.service.message.MessagePinDomainService
-import com.stark.shoot.domain.service.message.MessageReactionService
-import com.stark.shoot.domain.service.user.FriendDomainService
-import com.stark.shoot.domain.service.user.block.UserBlockDomainService
-import com.stark.shoot.domain.service.user.group.FriendGroupDomainService
+import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
+import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
+import com.stark.shoot.domain.chat.message.service.MessageDomainService
+import com.stark.shoot.domain.chat.message.service.MessageEditDomainService
+import com.stark.shoot.domain.chat.message.service.MessageForwardDomainService
+import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
+import com.stark.shoot.domain.chat.message.service.MessageReactionService
+import com.stark.shoot.domain.user.service.FriendDomainService
+import com.stark.shoot.domain.user.service.block.UserBlockDomainService
+import com.stark.shoot.domain.user.service.group.FriendGroupDomainService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 

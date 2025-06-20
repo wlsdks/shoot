@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.`in`.web.dto.message.schedule
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageMetadataResponseDto
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
-import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
+import com.stark.shoot.domain.chat.message.type.ScheduledMessageStatus
 import java.time.Instant
 
 @ApplicationDto

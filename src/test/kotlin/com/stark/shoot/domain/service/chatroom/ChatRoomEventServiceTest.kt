@@ -1,8 +1,9 @@
 package com.stark.shoot.domain.service.chatroom
 
-import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
-import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.type.ChatRoomType
+import com.stark.shoot.domain.event.ChatRoomCreatedEvent
+import com.stark.shoot.domain.chatroom.ChatRoom
+import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
+import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

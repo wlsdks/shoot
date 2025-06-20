@@ -6,8 +6,8 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequest
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
-import com.stark.shoot.domain.chat.user.FriendRequestStatus
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.type.FriendRequestStatus
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import java.time.Instant

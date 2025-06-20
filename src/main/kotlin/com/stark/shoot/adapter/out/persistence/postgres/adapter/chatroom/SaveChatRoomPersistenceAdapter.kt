@@ -6,11 +6,11 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepos
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
-import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.vo.ChatRoomAnnouncement
-import com.stark.shoot.domain.chat.room.vo.ChatRoomId
-import com.stark.shoot.domain.chat.room.vo.ChatRoomTitle
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chatroom.ChatRoom
+import com.stark.shoot.domain.chatroom.vo.ChatRoomAnnouncement
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter

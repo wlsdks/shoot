@@ -1,7 +1,7 @@
 package com.stark.shoot.infrastructure.config.security.service
 
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.domain.chat.user.Username
+import com.stark.shoot.domain.user.vo.Username
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.stereotype.Service

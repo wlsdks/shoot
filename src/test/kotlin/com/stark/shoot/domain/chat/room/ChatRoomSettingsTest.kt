@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 
 /** 새 값 객체 사용을 위한 import */
 import com.stark.shoot.domain.chat.room.RetentionDays
+import com.stark.shoot.domain.chatroom.ChatRoomSettings
 
 @DisplayName("채팅방 설정 테스트")
 class ChatRoomSettingsTest {

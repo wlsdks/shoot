@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message.preview
 
 import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
-import com.stark.shoot.domain.chat.message.UrlPreview
+import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.infrastructure.annotation.Adapter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jsoup.Jsoup
@@ -15,7 +15,7 @@ class JsoupUrlContentAdapter : LoadUrlContentPort {
 
     override fun fetchUrlContent(
         url: String
-    ): UrlPreview? {
+    ): ChatMessageMetadata.UrlPreview? {
         try {
             // Jsoup으로 URL 내용 파싱 (타임아웃 3초 설정)
             val document = Jsoup.connect(url)
@@ -54,7 +54,7 @@ class JsoupUrlContentAdapter : LoadUrlContentPort {
                 return null
             }
 
-            return UrlPreview(
+            return ChatMessageMetadata.UrlPreview(
                 url = url,
                 title = normalizedTitle,
                 description = normalizedDesc,

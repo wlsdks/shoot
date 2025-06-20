@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.user.token
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.token.RefreshTokenUseCase
 import com.stark.shoot.application.port.out.user.token.RefreshTokenPort
-import com.stark.shoot.domain.chat.user.RefreshTokenValue
+import com.stark.shoot.domain.user.vo.RefreshTokenValue
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import com.stark.shoot.infrastructure.exception.web.InvalidRefreshTokenException

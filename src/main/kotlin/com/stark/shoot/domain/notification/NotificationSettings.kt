@@ -1,7 +1,8 @@
 package com.stark.shoot.domain.notification
 
+import com.stark.shoot.domain.notification.type.NotificationType
+import com.stark.shoot.domain.user.vo.UserId
 import java.time.Instant
-import com.stark.shoot.domain.common.vo.UserId
 
 /**
  * 사용자별 알림 설정을 관리하는 애그리게이트

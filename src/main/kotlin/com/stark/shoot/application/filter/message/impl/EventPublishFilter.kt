@@ -4,10 +4,9 @@ import com.stark.shoot.application.filter.common.MessageProcessingFilter
 import com.stark.shoot.application.filter.message.chain.MessageProcessingChain
 import com.stark.shoot.application.filter.message.impl.ChatRoomLoadFilter.Companion.CHAT_ROOM_CONTEXT_KEY
 import com.stark.shoot.application.port.out.event.EventPublisher
-import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
+import com.stark.shoot.domain.event.MessageUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chatroom.ChatRoom
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
@@ -39,7 +38,7 @@ class EventPublishFilter(
 
         // 읽지 않은 메시지 수 이벤트 발행
         eventPublisher.publish(
-            ChatUnreadCountUpdatedEvent.create(
+            MessageUnreadCountUpdatedEvent.create(
                 roomId = roomId,
                 unreadCounts = unreadCounts,
                 lastMessage = message.content.text

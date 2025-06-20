@@ -6,11 +6,11 @@ import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.service.ChatRoomDomainService
-import com.stark.shoot.domain.chat.user.User
-import com.stark.shoot.domain.common.vo.UserId
-import com.stark.shoot.domain.service.chatroom.ChatRoomEventService
+import com.stark.shoot.domain.chatroom.ChatRoom
+import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
+import com.stark.shoot.domain.user.User
+import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional

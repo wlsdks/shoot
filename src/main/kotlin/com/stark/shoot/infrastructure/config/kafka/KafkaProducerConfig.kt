@@ -1,6 +1,6 @@
 package com.stark.shoot.infrastructure.config.kafka
 
-import com.stark.shoot.domain.chat.event.ChatEvent
+import com.stark.shoot.domain.event.MessageEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -25,14 +25,14 @@ class KafkaProducerConfig {
 
     @Bean
     fun kafkaTemplate(
-        producerFactory: ProducerFactory<String, ChatEvent>
-    ): KafkaTemplate<String, ChatEvent> {
+        producerFactory: ProducerFactory<String, MessageEvent>
+    ): KafkaTemplate<String, MessageEvent> {
         val template = KafkaTemplate(producerFactory)
 
         // 프로듀서 리스너 설정 (메시지 전송 결과 확인)
-        template.setProducerListener(object : ProducerListener<String, ChatEvent> {
+        template.setProducerListener(object : ProducerListener<String, MessageEvent> {
             override fun onSuccess(
-                producerRecord: ProducerRecord<String, ChatEvent>,
+                producerRecord: ProducerRecord<String, MessageEvent>,
                 recordMetadata: RecordMetadata
             ) {
                 // 성공 로그는 DEBUG 레벨로 설정 (운영 환경에서는 너무 많은 로그 방지)
@@ -40,7 +40,7 @@ class KafkaProducerConfig {
             }
 
             override fun onError(
-                producerRecord: ProducerRecord<String, ChatEvent>,
+                producerRecord: ProducerRecord<String, MessageEvent>,
                 recordMetadata: RecordMetadata?,
                 exception: Exception
             ) {
@@ -52,7 +52,7 @@ class KafkaProducerConfig {
     }
 
     @Bean
-    fun producerFactory(): ProducerFactory<String, ChatEvent> {
+    fun producerFactory(): ProducerFactory<String, MessageEvent> {
         val configProps = mapOf(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,

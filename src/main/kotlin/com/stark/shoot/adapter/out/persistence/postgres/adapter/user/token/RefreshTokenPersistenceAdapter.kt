@@ -5,9 +5,9 @@ import com.stark.shoot.adapter.out.persistence.postgres.mapper.RefreshTokenMappe
 import com.stark.shoot.adapter.out.persistence.postgres.repository.RefreshTokenRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.token.RefreshTokenPort
-import com.stark.shoot.domain.chat.user.RefreshToken
-import com.stark.shoot.domain.chat.user.RefreshTokenValue
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.RefreshToken
+import com.stark.shoot.domain.user.vo.RefreshTokenValue
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional

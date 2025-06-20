@@ -1,6 +1,6 @@
 package com.stark.shoot.infrastructure.config.jwt
 
-import com.stark.shoot.domain.chat.user.RefreshTokenValue
+import com.stark.shoot.domain.user.vo.RefreshTokenValue
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts

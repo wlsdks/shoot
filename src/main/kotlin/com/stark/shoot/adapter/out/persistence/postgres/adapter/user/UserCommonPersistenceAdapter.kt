@@ -5,8 +5,8 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepositor
 import com.stark.shoot.application.port.out.user.UserCreatePort
 import com.stark.shoot.application.port.out.user.UserDeletePort
 import com.stark.shoot.application.port.out.user.UserUpdatePort
-import com.stark.shoot.domain.chat.user.User
-import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.user.User
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter

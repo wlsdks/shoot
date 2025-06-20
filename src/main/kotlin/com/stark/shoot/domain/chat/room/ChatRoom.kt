@@ -2,6 +2,7 @@ package com.stark.shoot.domain.chat.room
 
 import com.stark.shoot.domain.exception.FavoriteLimitExceededException
 import com.stark.shoot.domain.chat.room.ChatRoomTitle
+import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -16,7 +17,7 @@ data class ChatRoom(
     val createdAt: Instant = Instant.now(),
 
     // 필요한 경우에만 남길 선택적 필드
-    val announcement: String? = null,
+    val announcement: ChatRoomAnnouncement? = null,
     val pinnedParticipants: MutableSet<Long> = mutableSetOf(),
     val updatedAt: Instant? = null,
 ) {
@@ -120,7 +121,7 @@ data class ChatRoom(
         id: Long? = this.id,
         title: ChatRoomTitle? = this.title,
         type: ChatRoomType = this.type,
-        announcement: String? = this.announcement,
+        announcement: ChatRoomAnnouncement? = this.announcement,
         lastMessageId: String? = this.lastMessageId,
         lastActiveAt: Instant = this.lastActiveAt
     ): ChatRoom {
@@ -272,7 +273,7 @@ data class ChatRoom(
      * @param announcement 새 공지사항 (null인 경우 공지사항 삭제)
      * @return 업데이트된 ChatRoom 객체
      */
-    fun updateAnnouncement(announcement: String?): ChatRoom {
+    fun updateAnnouncement(announcement: ChatRoomAnnouncement?): ChatRoom {
         return this.copy(
             announcement = announcement,
             updatedAt = Instant.now()

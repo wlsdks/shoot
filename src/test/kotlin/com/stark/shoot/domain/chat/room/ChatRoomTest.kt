@@ -2,6 +2,7 @@ package com.stark.shoot.domain.chat.room
 
 import com.stark.shoot.domain.exception.FavoriteLimitExceededException
 import com.stark.shoot.domain.chat.room.ChatRoomTitle
+import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -74,7 +75,7 @@ class ChatRoomTest {
                 participants = mutableSetOf(1L, 2L)
             )
             val newTitle = "새 제목"
-            val newAnnouncement = "새 공지사항"
+            val newAnnouncement = ChatRoomAnnouncement.from("새 공지사항")
             val newLastMessageId = "message123"
             val newLastActiveAt = Instant.now().plusSeconds(3600)
 
@@ -105,7 +106,7 @@ class ChatRoomTest {
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L)
             )
-            val newAnnouncement = "새 공지사항"
+            val newAnnouncement = ChatRoomAnnouncement.from("새 공지사항")
 
             // when
             val updatedChatRoom = chatRoom.updateAnnouncement(newAnnouncement)
@@ -123,7 +124,7 @@ class ChatRoomTest {
                 title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(1L, 2L),
-                announcement = "기존 공지사항"
+                announcement = ChatRoomAnnouncement.from("기존 공지사항")
             )
 
             // when

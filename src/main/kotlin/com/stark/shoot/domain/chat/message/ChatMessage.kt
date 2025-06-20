@@ -2,11 +2,11 @@ package com.stark.shoot.domain.chat.message
 
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
-import com.stark.shoot.domain.chat.reaction.MessageReactions
-import com.stark.shoot.domain.chat.reaction.ReactionType
+import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
+import com.stark.shoot.domain.chat.reaction.type.ReactionType
 import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.domain.common.vo.UserId
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import java.time.Instant
 
 data class ChatMessage(

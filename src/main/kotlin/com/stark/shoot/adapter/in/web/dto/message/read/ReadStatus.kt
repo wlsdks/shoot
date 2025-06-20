@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.dto.message.read
 
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.domain.common.vo.UserId
 import java.time.Instant

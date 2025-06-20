@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.message.pin
 import com.stark.shoot.application.port.`in`.message.pin.GetPinnedMessageUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase

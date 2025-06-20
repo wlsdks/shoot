@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.service.chatroom
 
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.ChatRoomType
+import com.stark.shoot.domain.chat.room.type.ChatRoomType
 import com.stark.shoot.domain.service.chatroom.ChatRoomParticipantDomainService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

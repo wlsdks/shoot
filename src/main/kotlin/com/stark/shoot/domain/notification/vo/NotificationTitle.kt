@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.notification
+package com.stark.shoot.domain.notification.vo
 
 @JvmInline
 value class NotificationTitle private constructor(val value: String) {

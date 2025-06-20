@@ -3,7 +3,7 @@ package com.stark.shoot.application.port.`in`.chatroom
 import com.stark.shoot.domain.chat.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chat.event.FriendAddedEvent
 import com.stark.shoot.domain.chat.event.FriendRemovedEvent
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import com.stark.shoot.domain.common.vo.UserId
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 

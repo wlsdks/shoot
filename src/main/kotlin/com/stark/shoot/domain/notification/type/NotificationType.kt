@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.notification
+package com.stark.shoot.domain.notification.type
 
 enum class NotificationType(
     val description: String = "",

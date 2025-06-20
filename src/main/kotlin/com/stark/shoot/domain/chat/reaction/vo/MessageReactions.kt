@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.chat.reaction
+package com.stark.shoot.domain.chat.reaction.vo
 
 /**
  * 메시지 반응을 관리하는 값 객체입니다.

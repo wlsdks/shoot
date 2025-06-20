@@ -10,7 +10,7 @@ import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.domain.chat.event.ChatBulkReadEvent
 import com.stark.shoot.domain.chat.event.ChatUnreadCountUpdatedEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase

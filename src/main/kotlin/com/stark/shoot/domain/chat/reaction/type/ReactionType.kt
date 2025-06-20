@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.chat.reaction
+package com.stark.shoot.domain.chat.reaction.type
 
 enum class ReactionType(
     val code: String,

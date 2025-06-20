@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.chat.room
+package com.stark.shoot.domain.chat.room.vo
 
 @JvmInline
 value class ChatRoomId private constructor(val value: Long) {

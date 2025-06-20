@@ -1,5 +1,5 @@
 @file:JvmName("Username")
-package com.stark.shoot.domain.chat.user
+package com.stark.shoot.domain.chat.user.vo
 
 import com.stark.shoot.domain.exception.InvalidUserDataException
 

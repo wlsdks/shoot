@@ -12,9 +12,9 @@ import com.stark.shoot.application.port.out.message.PublishMessagePort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.domain.chat.event.ChatEvent
-import com.stark.shoot.domain.chat.event.EventType
+import com.stark.shoot.domain.chat.event.type.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase

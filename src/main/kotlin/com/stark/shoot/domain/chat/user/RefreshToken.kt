@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.chat.user
 
 import java.time.Instant
-import com.stark.shoot.domain.chat.user.RefreshTokenValue
+import com.stark.shoot.domain.chat.user.vo.RefreshTokenValue
 
 data class RefreshToken(
     val id: Long? = null,

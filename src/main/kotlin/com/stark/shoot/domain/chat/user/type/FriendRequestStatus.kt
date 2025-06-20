@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.chat.user
+package com.stark.shoot.domain.chat.user.type
 
 /**
  * 친구 요청 상태를 나타내는 열거형

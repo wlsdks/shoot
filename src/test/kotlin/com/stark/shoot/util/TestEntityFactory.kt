@@ -5,7 +5,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomUserEntit
 import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomUserRole
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.ChatRoomType
+import com.stark.shoot.domain.chat.room.type.ChatRoomType
 import com.stark.shoot.domain.chat.user.UserStatus
 import java.time.Instant
 

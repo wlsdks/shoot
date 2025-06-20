@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
 import com.stark.shoot.adapter.`in`.web.socket.dto.MessageSyncInfoDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.ReactionDto
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.reaction.ReactionType
+import com.stark.shoot.domain.chat.reaction.type.ReactionType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import java.time.Instant

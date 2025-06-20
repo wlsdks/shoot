@@ -12,7 +12,7 @@ import com.stark.shoot.application.port.out.message.ScheduledMessagePort
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.ChatRoomType
+import com.stark.shoot.domain.chat.room.type.ChatRoomType
 import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
 import com.stark.shoot.domain.common.vo.MessageId
 import org.assertj.core.api.Assertions.assertThat

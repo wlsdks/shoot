@@ -1,8 +1,8 @@
 package com.stark.shoot.domain.notification.service
 
 import com.stark.shoot.domain.notification.Notification
-import com.stark.shoot.domain.notification.NotificationType
-import com.stark.shoot.domain.notification.SourceType
+import com.stark.shoot.domain.notification.type.NotificationType
+import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.notification.event.NotificationEvent
 import com.stark.shoot.domain.common.vo.UserId
 import kotlin.test.Test

@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.chat.user
+package com.stark.shoot.domain.chat.user.type
 
 enum class UserStatus {
     OFFLINE,

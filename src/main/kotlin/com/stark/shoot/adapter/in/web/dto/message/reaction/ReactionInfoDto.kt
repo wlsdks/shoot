@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.web.dto.message.reaction
 
-import com.stark.shoot.domain.chat.reaction.ReactionType
+import com.stark.shoot.domain.chat.reaction.type.ReactionType
 
 data class ReactionInfoDto(
     val reactionType: String,     // 리액션 타입 코드

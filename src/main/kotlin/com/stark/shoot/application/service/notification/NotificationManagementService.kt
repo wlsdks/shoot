@@ -6,9 +6,9 @@ import com.stark.shoot.application.port.out.notification.SaveNotificationPort
 import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.exception.NotificationException
 import com.stark.shoot.domain.notification.Notification
-import com.stark.shoot.domain.notification.NotificationId
-import com.stark.shoot.domain.notification.NotificationType
-import com.stark.shoot.domain.notification.SourceType
+import com.stark.shoot.domain.notification.vo.NotificationId
+import com.stark.shoot.domain.notification.type.NotificationType
+import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.notification.service.NotificationDomainService
 import com.stark.shoot.infrastructure.exception.web.MongoOperationException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException

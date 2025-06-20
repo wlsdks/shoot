@@ -1,6 +1,13 @@
 package com.stark.shoot.domain.chat.user
 
 import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chat.user.vo.Username
+import com.stark.shoot.domain.chat.user.vo.Nickname
+import com.stark.shoot.domain.chat.user.vo.UserCode
+import com.stark.shoot.domain.chat.user.vo.ProfileImageUrl
+import com.stark.shoot.domain.chat.user.vo.BackgroundImageUrl
+import com.stark.shoot.domain.chat.user.vo.UserBio
+import com.stark.shoot.domain.chat.user.type.UserStatus
 import com.stark.shoot.domain.exception.InvalidUserDataException
 import java.time.Instant
 

@@ -6,9 +6,9 @@ import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
 import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
-import com.stark.shoot.domain.chat.room.ChatRoomId
-import com.stark.shoot.domain.chat.room.ChatRoomTitle
+import com.stark.shoot.domain.chat.room.vo.ChatRoomAnnouncement
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomTitle
 import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.service.chatroom.ChatRoomParticipantDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase

@@ -1,11 +1,11 @@
 package com.stark.shoot.adapter.`in`.event.notification
 
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.notification.Notification
-import com.stark.shoot.domain.notification.NotificationType
+import com.stark.shoot.domain.notification.type.NotificationType
 import org.springframework.stereotype.Component
 
 /**

@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.dto.chatroom
 
 import com.stark.shoot.domain.chat.room.ChatRoom
-import com.stark.shoot.domain.chat.room.ChatRoomType
+import com.stark.shoot.domain.chat.room.type.ChatRoomType
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

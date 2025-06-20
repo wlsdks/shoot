@@ -2,8 +2,8 @@ package com.stark.shoot.application.port.`in`.notification
 
 import com.stark.shoot.domain.common.vo.UserId
 import com.stark.shoot.domain.notification.Notification
-import com.stark.shoot.domain.notification.NotificationType
-import com.stark.shoot.domain.notification.SourceType
+import com.stark.shoot.domain.notification.type.NotificationType
+import com.stark.shoot.domain.notification.type.SourceType
 
 interface NotificationQueryUseCase {
 

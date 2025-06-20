@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.chat.event
+package com.stark.shoot.domain.chat.event.type
 
 enum class EventType(
     private val code: String,

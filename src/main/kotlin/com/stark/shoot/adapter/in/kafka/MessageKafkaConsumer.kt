@@ -8,7 +8,7 @@ import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
 import com.stark.shoot.domain.chat.event.ChatEvent
-import com.stark.shoot.domain.chat.event.EventType
+import com.stark.shoot.domain.chat.event.type.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.UrlPreview

@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.message.thread
 
 import com.stark.shoot.adapter.`in`.web.dto.message.thread.ThreadSummaryDto
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
 
 interface GetThreadsUseCase {

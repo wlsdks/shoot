@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.chat.message
 
-import com.stark.shoot.domain.chat.reaction.MessageReactions
+import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
 import com.stark.shoot.domain.common.vo.UserId
 
 /**

@@ -1,6 +1,7 @@
 package com.stark.shoot.domain.chat.user
 
 import com.stark.shoot.domain.common.vo.UserId
+import com.stark.shoot.domain.chat.user.vo.FriendGroupName
 import java.time.Instant
 
 /**

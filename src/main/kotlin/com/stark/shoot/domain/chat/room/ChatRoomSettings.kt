@@ -1,5 +1,7 @@
 package com.stark.shoot.domain.chat.room
 
+import com.stark.shoot.domain.chat.room.vo.RetentionDays
+
 data class ChatRoomSettings(
     val isNotificationEnabled: Boolean = true,
     val retentionDays: RetentionDays? = null,

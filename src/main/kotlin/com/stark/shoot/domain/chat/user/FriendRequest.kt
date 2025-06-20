@@ -1,6 +1,7 @@
 package com.stark.shoot.domain.chat.user
 
 import java.time.Instant
+import com.stark.shoot.domain.chat.user.type.FriendRequestStatus
 
 /**
  * 친구 요청 애그리게이트

@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.out.message
 
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
 
 interface LoadThreadPort {

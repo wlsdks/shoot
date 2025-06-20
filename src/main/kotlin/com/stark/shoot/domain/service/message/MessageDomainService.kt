@@ -1,11 +1,11 @@
 package com.stark.shoot.domain.service.message
 
 import com.stark.shoot.domain.chat.event.ChatEvent
-import com.stark.shoot.domain.chat.event.EventType
+import com.stark.shoot.domain.chat.event.type.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.UrlPreview
 import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import com.stark.shoot.domain.common.vo.UserId
 import java.util.*
 

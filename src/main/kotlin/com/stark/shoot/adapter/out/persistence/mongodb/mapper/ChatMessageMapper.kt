@@ -9,9 +9,9 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageMetadataDocument
 import com.stark.shoot.domain.chat.message.*
-import com.stark.shoot.domain.chat.reaction.MessageReactions
+import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
 import com.stark.shoot.domain.common.vo.MessageId
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import com.stark.shoot.domain.common.vo.UserId
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component

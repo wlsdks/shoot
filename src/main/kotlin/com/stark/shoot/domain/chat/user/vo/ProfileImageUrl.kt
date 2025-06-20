@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.chat.user
+package com.stark.shoot.domain.chat.user.vo
 
 @JvmInline
 value class ProfileImageUrl private constructor(val value: String) {

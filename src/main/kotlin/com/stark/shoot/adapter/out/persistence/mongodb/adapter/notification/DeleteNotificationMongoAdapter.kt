@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.notification
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.NotificationMongoRepository
 import com.stark.shoot.application.port.out.notification.DeleteNotificationPort
 import com.stark.shoot.domain.common.vo.UserId
-import com.stark.shoot.domain.notification.NotificationId
+import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.MongoOperationException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException

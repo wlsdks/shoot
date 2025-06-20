@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.chat.user
+package com.stark.shoot.domain.chat.user.vo
 
 @JvmInline
 value class FriendGroupName private constructor(val value: String) {

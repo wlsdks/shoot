@@ -1,9 +1,9 @@
 package com.stark.shoot.domain.chat.room
 
 import com.stark.shoot.domain.exception.FavoriteLimitExceededException
-import com.stark.shoot.domain.chat.room.ChatRoomTitle
-import com.stark.shoot.domain.chat.room.ChatRoomAnnouncement
-import com.stark.shoot.domain.chat.room.ChatRoomId
+import com.stark.shoot.domain.chat.room.vo.ChatRoomTitle
+import com.stark.shoot.domain.chat.room.vo.ChatRoomAnnouncement
+import com.stark.shoot.domain.chat.room.vo.ChatRoomId
 import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.domain.common.vo.UserId
 import org.assertj.core.api.Assertions.assertThat

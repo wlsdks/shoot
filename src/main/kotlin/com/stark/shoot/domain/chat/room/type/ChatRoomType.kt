@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.chat.room
+package com.stark.shoot.domain.chat.room.type
 
 /**
  * 채팅방 유형을 나타내는 열거형

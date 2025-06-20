@@ -3,6 +3,7 @@ package com.stark.shoot.domain.chat.user
 import org.assertj.core.api.Assertions.assertThat
 import com.stark.shoot.domain.chat.user.RefreshTokenValue
 import com.stark.shoot.domain.user.RefreshToken
+import com.stark.shoot.domain.user.vo.UserId
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -20,7 +21,7 @@ class RefreshTokenTest {
         @DisplayName("필수 속성으로 리프레시 토큰을 생성할 수 있다")
         fun `필수 속성으로 리프레시 토큰을 생성할 수 있다`() {
             // given
-            val userId = 1L
+            val userId = UserId.from(1L)
             val token = RefreshTokenValue.from("refresh_token_value")
             val expirationDate = Instant.now().plus(7, ChronoUnit.DAYS)
             
@@ -48,7 +49,7 @@ class RefreshTokenTest {
         fun `모든 속성으로 리프레시 토큰을 생성할 수 있다`() {
             // given
             val id = 1L
-            val userId = 2L
+            val userId = UserId.from(2L)
             val token = RefreshTokenValue.from("refresh_token_value")
             val expirationDate = Instant.now().plus(7, ChronoUnit.DAYS)
             val deviceInfo = "Android 12, Samsung Galaxy S21"
@@ -92,7 +93,7 @@ class RefreshTokenTest {
         fun `만료되지 않고 취소되지 않은 토큰은 유효하다`() {
             // given
             val refreshToken = RefreshToken(
-                userId = 1L,
+                userId = UserId.from(1L),
                 token = RefreshTokenValue.from("valid_token"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS),
                 isRevoked = false
@@ -110,7 +111,7 @@ class RefreshTokenTest {
         fun `만료된 토큰은 유효하지 않다`() {
             // given
             val refreshToken = RefreshToken(
-                userId = 1L,
+                userId = UserId.from(1L),
                 token = RefreshTokenValue.from("expired_token"),
                 expirationDate = Instant.now().minus(1, ChronoUnit.DAYS),
                 isRevoked = false
@@ -128,7 +129,7 @@ class RefreshTokenTest {
         fun `취소된 토큰은 유효하지 않다`() {
             // given
             val refreshToken = RefreshToken(
-                userId = 1L,
+                userId = UserId.from(1L),
                 token = RefreshTokenValue.from("revoked_token"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS),
                 isRevoked = true
@@ -146,7 +147,7 @@ class RefreshTokenTest {
         fun `만료되고 취소된 토큰은 유효하지 않다`() {
             // given
             val refreshToken = RefreshToken(
-                userId = 1L,
+                userId = UserId.from(1L),
                 token = RefreshTokenValue.from("expired_and_revoked_token"),
                 expirationDate = Instant.now().minus(1, ChronoUnit.DAYS),
                 isRevoked = true
@@ -169,7 +170,7 @@ class RefreshTokenTest {
         fun `마지막 사용 시간을 현재 시간으로 업데이트할 수 있다`() {
             // given
             val refreshToken = RefreshToken(
-                userId = 1L,
+                userId = UserId.from(1L),
                 token = RefreshTokenValue.from("token"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS)
             )
@@ -201,7 +202,7 @@ class RefreshTokenTest {
             // given
             val oldLastUsedAt = Instant.now().minus(1, ChronoUnit.HOURS)
             val refreshToken = RefreshToken(
-                userId = 1L,
+                userId = UserId.from(1L),
                 token = RefreshTokenValue.from("token"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS),
                 lastUsedAt = oldLastUsedAt
@@ -229,7 +230,7 @@ class RefreshTokenTest {
         fun `토큰을 취소할 수 있다`() {
             // given
             val refreshToken = RefreshToken(
-                userId = 1L,
+                userId = UserId.from(1L),
                 token = RefreshTokenValue.from("token_to_revoke"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS),
                 isRevoked = false
@@ -257,7 +258,7 @@ class RefreshTokenTest {
         fun `이미 취소된 토큰도 다시 취소할 수 있다`() {
             // given
             val refreshToken = RefreshToken(
-                userId = 1L,
+                userId = UserId.from(1L),
                 token = RefreshTokenValue.from("already_revoked_token"),
                 expirationDate = Instant.now().plus(7, ChronoUnit.DAYS),
                 isRevoked = true

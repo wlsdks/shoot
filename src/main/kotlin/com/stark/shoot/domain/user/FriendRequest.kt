@@ -6,10 +6,12 @@ import com.stark.shoot.domain.user.type.FriendRequestStatus
 /**
  * 친구 요청 애그리게이트
  */
+import com.stark.shoot.domain.user.vo.UserId
+
 data class FriendRequest(
     val id: Long? = null,
-    val senderId: Long,
-    val receiverId: Long,
+    val senderId: UserId,
+    val receiverId: UserId,
     val status: FriendRequestStatus = FriendRequestStatus.PENDING,
     val createdAt: Instant = Instant.now(),
     val respondedAt: Instant? = null,

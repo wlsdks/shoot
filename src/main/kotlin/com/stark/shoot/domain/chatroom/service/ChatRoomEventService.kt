@@ -16,13 +16,13 @@ class ChatRoomEventService {
      * @return 생성된 도메인 이벤트 목록
      */
     fun createChatRoomCreatedEvents(chatRoom: ChatRoom): List<ChatRoomCreatedEvent> {
-        val roomId = chatRoom.id?.value ?: throw IllegalArgumentException("채팅방 ID가 없습니다.")
+        val roomId = chatRoom.id ?: throw IllegalArgumentException("채팅방 ID가 없습니다.")
 
         // 각 참여자에 대한 이벤트 생성
         return chatRoom.participants.map { participantId ->
             ChatRoomCreatedEvent.create(
                 roomId = roomId,
-                userId = participantId.value
+                userId = participantId
             )
         }
     }

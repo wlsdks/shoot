@@ -2,10 +2,11 @@ package com.stark.shoot.domain.user
 
 import java.time.Instant
 import com.stark.shoot.domain.user.vo.RefreshTokenValue
+import com.stark.shoot.domain.user.vo.UserId
 
 data class RefreshToken(
     val id: Long? = null,
-    val userId: Long,                 // 사용자 ID 참조
+    val userId: UserId,                 // 사용자 ID 참조
     val token: RefreshTokenValue,     // 리프레시 토큰 값
     val expirationDate: Instant,      // 만료 시간
     val deviceInfo: String? = null,   // 디바이스 정보 (선택적)

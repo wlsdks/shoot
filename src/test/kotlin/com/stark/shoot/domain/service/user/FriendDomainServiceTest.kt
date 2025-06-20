@@ -22,32 +22,34 @@ class FriendDomainServiceTest {
         @Test
         fun `자신에게 요청하면 예외`() {
             assertThrows<IllegalArgumentException> {
-                service.validateFriendRequest(1L,1L,false,false,false)
+                service.validateFriendRequest(UserId.from(1L), UserId.from(1L), false, false, false)
             }
         }
     }
 
     @Test
     fun `친구 요청 수락을 처리할 수 있다`() {
-        val current = User(id=1L, username=Username.from("a"), nickname=Nickname.from("A"), userCode=UserCode.from("A1"), incomingFriendRequestIds=setOf(2L))
-        val requester = User(id=2L, username=Username.from("b"), nickname=Nickname.from("B"), userCode=UserCode.from("B1"))
-        val result = service.processFriendAccept(current, requester, 2L)
-        assertThat(result.updatedCurrentUser.friendIds).contains(2L)
-        assertThat(result.updatedRequester.friendIds).contains(1L)
+        val current = User(id=UserId.from(1L), username=Username.from("a"), nickname=Nickname.from("A"), userCode=UserCode.from("A1"), incomingFriendRequestIds=setOf(UserId.from(2L)))
+        val requester = User(id=UserId.from(2L), username=Username.from("b"), nickname=Nickname.from("B"), userCode=UserCode.from("B1"))
+        val result = service.processFriendAccept(current, requester, UserId.from(2L))
+        assertThat(result.updatedCurrentUser.friendIds).contains(UserId.from(2L))
+        assertThat(result.updatedRequester.friendIds).contains(UserId.from(1L))
         assertThat(result.events).containsExactly(
-            FriendAddedEvent.create(1L,2L), FriendAddedEvent.create(2L,1L)
+            FriendAddedEvent.create(UserId.from(1L), UserId.from(2L)),
+            FriendAddedEvent.create(UserId.from(2L), UserId.from(1L))
         )
     }
 
     @Test
     fun `친구 관계 삭제를 처리할 수 있다`() {
-        val current = User(id=1L, username=Username.from("a"), nickname=Nickname.from("A"), userCode=UserCode.from("A1"), friendIds=setOf(2L))
-        val friend = User(id=2L, username=Username.from("b"), nickname=Nickname.from("B"), userCode=UserCode.from("B1"), friendIds=setOf(1L))
-        val result = service.processFriendRemoval(current, friend, 2L)
-        assertThat(result.updatedCurrentUser.friendIds).doesNotContain(2L)
-        assertThat(result.updatedFriend.friendIds).doesNotContain(1L)
+        val current = User(id=UserId.from(1L), username=Username.from("a"), nickname=Nickname.from("A"), userCode=UserCode.from("A1"), friendIds=setOf(UserId.from(2L)))
+        val friend = User(id=UserId.from(2L), username=Username.from("b"), nickname=Nickname.from("B"), userCode=UserCode.from("B1"), friendIds=setOf(UserId.from(1L)))
+        val result = service.processFriendRemoval(current, friend, UserId.from(2L))
+        assertThat(result.updatedCurrentUser.friendIds).doesNotContain(UserId.from(2L))
+        assertThat(result.updatedFriend.friendIds).doesNotContain(UserId.from(1L))
         assertThat(result.events).containsExactly(
-            FriendRemovedEvent.create(1L,2L), FriendRemovedEvent.create(2L,1L)
+            FriendRemovedEvent.create(UserId.from(1L), UserId.from(2L)),
+            FriendRemovedEvent.create(UserId.from(2L), UserId.from(1L))
         )
     }
 }

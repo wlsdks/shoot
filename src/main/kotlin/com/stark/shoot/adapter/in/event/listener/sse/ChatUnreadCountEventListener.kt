@@ -21,8 +21,8 @@ class ChatUnreadCountEventListener(
     fun handle(event: MessageUnreadCountUpdatedEvent) {
         event.unreadCounts.forEach { (userId, count) ->
             sseEmitterUseCase.sendUpdate(
-                UserId.from(userId),
-                ChatRoomId.from(event.roomId),
+                userId,
+                event.roomId,
                 count,
                 event.lastMessage
             )

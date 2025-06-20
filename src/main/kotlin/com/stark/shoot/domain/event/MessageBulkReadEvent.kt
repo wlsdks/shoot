@@ -1,9 +1,13 @@
 package com.stark.shoot.domain.event
 
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.user.vo.UserId
+
 data class MessageBulkReadEvent(
-    val roomId: Long,
-    val messageIds: List<String>,
-    val userId: Long,
+    val roomId: ChatRoomId,
+    val messageIds: List<MessageId>,
+    val userId: UserId,
     override val occurredOn: Long = System.currentTimeMillis()
 ) : DomainEvent {
     companion object {
@@ -16,9 +20,9 @@ data class MessageBulkReadEvent(
          * @return 생성된 MessageBulkReadEvent 객체
          */
         fun create(
-            roomId: Long,
-            messageIds: List<String>,
-            userId: Long
+            roomId: ChatRoomId,
+            messageIds: List<MessageId>,
+            userId: UserId
         ): MessageBulkReadEvent {
             return MessageBulkReadEvent(
                 roomId = roomId,

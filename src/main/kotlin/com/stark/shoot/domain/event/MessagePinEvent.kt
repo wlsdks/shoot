@@ -1,12 +1,15 @@
 package com.stark.shoot.domain.event
 
 import com.stark.shoot.domain.event.DomainEvent
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.user.vo.UserId
 
 data class MessagePinEvent(
-    val messageId: String,
-    val roomId: Long,
+    val messageId: MessageId,
+    val roomId: ChatRoomId,
     val isPinned: Boolean,
-    val userId: Long,
+    val userId: UserId,
     override val occurredOn: Long = System.currentTimeMillis()
 ) : DomainEvent {
     companion object {
@@ -20,10 +23,10 @@ data class MessagePinEvent(
          * @return 생성된 MessagePinEvent 객체
          */
         fun create(
-            messageId: String,
-            roomId: Long,
+            messageId: MessageId,
+            roomId: ChatRoomId,
             isPinned: Boolean,
-            userId: Long
+            userId: UserId
         ): MessagePinEvent {
             return MessagePinEvent(
                 messageId = messageId,

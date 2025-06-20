@@ -306,11 +306,11 @@ class SseEmitterService : SseEmitterUseCase {
      * 채팅방 생성 이벤트 전송
      */
     override fun sendChatRoomCreatedEvent(event: ChatRoomCreatedEvent) {
-        val userId = UserId.from(event.userId)
+        val userId = event.userId
 
         val data = mapOf(
             "type" to "room_created",
-            "roomId" to event.roomId,
+            "roomId" to event.roomId.value,
             "timestamp" to System.currentTimeMillis()
         )
 
@@ -318,7 +318,7 @@ class SseEmitterService : SseEmitterUseCase {
             userId = userId,
             eventName = "chatRoomCreated",
             data = data,
-            logMessage = "Sent chatRoomCreated event to user: ${userId.value}, roomId: ${event.roomId}"
+            logMessage = "Sent chatRoomCreated event to user: ${userId.value}, roomId: ${event.roomId.value}"
         )
     }
 
@@ -326,11 +326,11 @@ class SseEmitterService : SseEmitterUseCase {
      * 친구 추가 이벤트 전송
      */
     override fun sendFriendAddedEvent(event: FriendAddedEvent) {
-        val userId = UserId.from(event.userId)
+        val userId = event.userId
 
         val data = mapOf(
             "type" to "friend_added",
-            "friendId" to event.friendId,
+            "friendId" to event.friendId.value,
             "timestamp" to System.currentTimeMillis()
         )
 
@@ -338,7 +338,7 @@ class SseEmitterService : SseEmitterUseCase {
             userId = userId,
             eventName = "friendAdded",
             data = data,
-            logMessage = "Sent friendAdded event to user: ${userId.value}, friendId: ${event.friendId}"
+            logMessage = "Sent friendAdded event to user: ${userId.value}, friendId: ${event.friendId.value}"
         )
     }
 
@@ -346,11 +346,11 @@ class SseEmitterService : SseEmitterUseCase {
      * 친구 삭제 이벤트 전송
      */
     override fun sendFriendRemovedEvent(event: FriendRemovedEvent) {
-        val userId = UserId.from(event.userId)
+        val userId = event.userId
 
         val data = mapOf(
             "type" to "friend_removed",
-            "friendId" to event.friendId,
+            "friendId" to event.friendId.value,
             "timestamp" to System.currentTimeMillis()
         )
 
@@ -358,7 +358,7 @@ class SseEmitterService : SseEmitterUseCase {
             userId = userId,
             eventName = "friendRemoved",
             data = data,
-            logMessage = "Sent friendRemoved event to user: ${userId.value}, friendId: ${event.friendId}"
+            logMessage = "Sent friendRemoved event to user: ${userId.value}, friendId: ${event.friendId.value}"
         )
     }
 

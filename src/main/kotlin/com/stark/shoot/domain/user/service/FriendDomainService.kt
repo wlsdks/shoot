@@ -87,8 +87,8 @@ class FriendDomainService {
 
         // 이벤트 생성 (양쪽 사용자에게 친구 추가 알림)
         val events = listOf(
-            FriendAddedEvent.create(userId = currentUser.id.value, friendId = requesterId.value),
-            FriendAddedEvent.create(userId = requesterId.value, friendId = currentUser.id.value)
+            FriendAddedEvent.create(userId = currentUser.id, friendId = requesterId),
+            FriendAddedEvent.create(userId = requesterId, friendId = currentUser.id)
         )
 
         return FriendAcceptResult(
@@ -144,8 +144,8 @@ class FriendDomainService {
 
         // 이벤트 생성 (양쪽 사용자에게 친구 제거 알림)
         val events = listOf(
-            FriendRemovedEvent.create(userId = currentUser.id.value, friendId = friendId.value),
-            FriendRemovedEvent.create(userId = friendId.value, friendId = currentUser.id.value)
+            FriendRemovedEvent.create(userId = currentUser.id, friendId = friendId),
+            FriendRemovedEvent.create(userId = friendId, friendId = currentUser.id)
         )
 
         return FriendRemovalResult(

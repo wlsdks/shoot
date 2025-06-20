@@ -1,6 +1,7 @@
 package com.stark.shoot.domain.chat.user
 
 import java.time.Instant
+import com.stark.shoot.domain.chat.user.FriendGroupName
 
 /**
  * 친구를 그룹화하여 관리하기 위한 애그리게이트
@@ -8,7 +9,7 @@ import java.time.Instant
 data class FriendGroup(
     val id: Long? = null,
     val ownerId: Long,
-    val name: String,
+    val name: FriendGroupName,
     val description: String? = null,
     val memberIds: Set<Long> = emptySet(),
     val createdAt: Instant = Instant.now(),
@@ -16,8 +17,8 @@ data class FriendGroup(
 ) {
     /** 그룹 이름 변경 */
     fun rename(newName: String): FriendGroup {
-        require(newName.isNotBlank()) { "그룹 이름은 비어있을 수 없습니다." }
-        return copy(name = newName, updatedAt = Instant.now())
+        val nameVo = FriendGroupName.from(newName)
+        return copy(name = nameVo, updatedAt = Instant.now())
     }
 
     /** 그룹 설명 업데이트 */

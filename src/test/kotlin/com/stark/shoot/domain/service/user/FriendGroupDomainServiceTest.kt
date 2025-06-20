@@ -1,6 +1,7 @@
 package com.stark.shoot.domain.service.user
 
 import com.stark.shoot.domain.chat.user.FriendGroup
+import com.stark.shoot.domain.chat.user.FriendGroupName
 import com.stark.shoot.domain.service.user.group.FriendGroupDomainService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -20,6 +21,6 @@ class FriendGroupDomainServiceTest {
     fun `그룹 이름을 변경할 수 있다`() {
         val group = service.create(1L, "g1", null)
         val updated = service.rename(group, "new")
-        assertThat(updated.name).isEqualTo("new")
+        assertThat(updated.name.value).isEqualTo("new")
     }
 }

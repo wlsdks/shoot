@@ -40,12 +40,12 @@ class FriendSearchService(
         // 필터링된 사용자 목록
         return allUsers.filter { user ->
             user.id != null && !excludedIds.contains(user.id) &&
-                    (user.username.contains(query, ignoreCase = true) ||
+                    (user.username.value.contains(query, ignoreCase = true) ||
                             user.nickname.contains(query, ignoreCase = true))
         }.map { user ->
             FriendResponse(
                 id = user.id ?: 0L,
-                username = user.username,
+                username = user.username.value,
                 nickname = user.nickname,
                 profileImageUrl = user.profileImageUrl
             )

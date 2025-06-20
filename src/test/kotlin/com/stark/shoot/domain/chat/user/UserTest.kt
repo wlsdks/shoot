@@ -2,6 +2,7 @@ package com.stark.shoot.domain.chat.user
 
 import com.stark.shoot.domain.chat.user.UserStatus
 import com.stark.shoot.domain.chat.user.UserCode
+import com.stark.shoot.domain.chat.user.Username
 import com.stark.shoot.domain.exception.InvalidUserDataException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -36,7 +37,7 @@ class UserTest {
             )
             
             // then
-            assertThat(user.username).isEqualTo(username)
+            assertThat(user.username.value).isEqualTo(username)
             assertThat(user.nickname).isEqualTo(nickname)
             assertThat(user.passwordHash).isEqualTo("encoded_$rawPassword")
             assertThat(user.status).isEqualTo(UserStatus.OFFLINE)
@@ -71,7 +72,7 @@ class UserTest {
             )
             
             // then
-            assertThat(user.username).isEqualTo(username)
+            assertThat(user.username.value).isEqualTo(username)
             assertThat(user.nickname).isEqualTo(nickname)
             assertThat(user.passwordHash).isEqualTo("encoded_$rawPassword")
             assertThat(user.bio).isEqualTo(bio)
@@ -265,7 +266,7 @@ class UserTest {
             // given
             val user = User(
                 id = 1L,
-                username = "testuser",
+                username = Username.from("testuser"),
                 nickname = "테스트유저",
                 userCode = UserCode.from("ABCD1234")
             )
@@ -285,7 +286,7 @@ class UserTest {
             // given
             val user = User(
                 id = 1L,
-                username = "testuser",
+                username = Username.from("testuser"),
                 nickname = "테스트유저",
                 userCode = UserCode.from("ABCD1234"),
                 outgoingFriendRequestIds = setOf(2L, 3L),
@@ -310,7 +311,7 @@ class UserTest {
             // given
             val user = User(
                 id = 1L,
-                username = "testuser",
+                username = Username.from("testuser"),
                 nickname = "테스트유저",
                 userCode = UserCode.from("ABCD1234"),
                 incomingFriendRequestIds = setOf(2L, 3L)
@@ -333,7 +334,7 @@ class UserTest {
             // given
             val user = User(
                 id = 1L,
-                username = "testuser",
+                username = Username.from("testuser"),
                 nickname = "테스트유저",
                 userCode = UserCode.from("ABCD1234"),
                 incomingFriendRequestIds = setOf(2L, 3L)
@@ -353,7 +354,7 @@ class UserTest {
             // given
             val user = User(
                 id = 1L,
-                username = "testuser",
+                username = Username.from("testuser"),
                 nickname = "테스트유저",
                 userCode = UserCode.from("ABCD1234"),
                 incomingFriendRequestIds = setOf(2L, 3L)
@@ -376,7 +377,7 @@ class UserTest {
             // given
             val user = User(
                 id = 1L,
-                username = "testuser",
+                username = Username.from("testuser"),
                 nickname = "테스트유저",
                 userCode = UserCode.from("ABCD1234"),
                 outgoingFriendRequestIds = setOf(2L, 3L)
@@ -403,7 +404,7 @@ class UserTest {
             // given
             val user = User(
                 id = 1L,
-                username = "testuser",
+                username = Username.from("testuser"),
                 nickname = "테스트유저",
                 userCode = UserCode.from("ABCD1234"),
                 status = UserStatus.ONLINE

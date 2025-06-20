@@ -18,7 +18,7 @@ class UserDetailsServiceImpl(
             ?: throw IllegalArgumentException("User not found")
 
         // UserDetails로 변환
-        return CustomUserDetails(user.id.toString(), user.username)
+        return CustomUserDetails(user.id.toString(), user.username.value)
     }
 
 }

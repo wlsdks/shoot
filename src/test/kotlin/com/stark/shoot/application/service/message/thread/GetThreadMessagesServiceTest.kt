@@ -6,6 +6,7 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
+import com.stark.shoot.domain.common.vo.MessageId
 import com.stark.shoot.infrastructure.util.toObjectId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -35,12 +36,12 @@ class GetThreadMessagesServiceTest {
             // given
             val threadId = "5f9f1b9b9c9d1b9b9c9d1b9b"
             val message = ChatMessage(
-                id = "5f9f1b9b9c9d1b9b9c9d1b9c",
+                id = MessageId.from("5f9f1b9b9c9d1b9b9c9d1b9c"),
                 roomId = 1L,
                 senderId = 2L,
                 content = MessageContent("hello", MessageType.TEXT),
                 status = MessageStatus.SAVED,
-                threadId = threadId,
+                threadId = MessageId.from(threadId),
                 createdAt = Instant.now()
             )
 

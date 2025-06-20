@@ -4,6 +4,7 @@ import com.stark.shoot.domain.chat.event.ChatEvent
 import com.stark.shoot.domain.chat.event.EventType
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.UrlPreview
+import com.stark.shoot.domain.common.vo.MessageId
 import java.util.*
 
 /**
@@ -25,7 +26,7 @@ class MessageDomainService {
         senderId: Long,
         contentText: String,
         contentType: com.stark.shoot.domain.chat.message.type.MessageType,
-        threadId: String? = null,
+        threadId: MessageId? = null,
         extractUrls: (String) -> List<String>,
         getCachedPreview: (String) -> UrlPreview?
     ): ChatMessage {

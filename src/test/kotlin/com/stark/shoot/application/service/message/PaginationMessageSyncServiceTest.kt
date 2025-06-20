@@ -12,6 +12,7 @@ import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.MessageContent
 import com.stark.shoot.domain.chat.message.SyncDirection
+import com.stark.shoot.domain.common.vo.MessageId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
@@ -209,7 +210,7 @@ class PaginationMessageSyncServiceTest {
     
     private fun createChatMessage(id: String, roomId: Long): ChatMessage {
         return ChatMessage(
-            id = id,
+            id = MessageId.from(id),
             roomId = roomId,
             senderId = 3L,
             content = MessageContent("테스트 메시지 $id", MessageType.TEXT),

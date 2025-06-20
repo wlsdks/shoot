@@ -10,6 +10,7 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageMetadataDocument
 import com.stark.shoot.domain.chat.message.*
 import com.stark.shoot.domain.chat.reaction.MessageReactions
+import com.stark.shoot.domain.common.vo.MessageId
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 
@@ -22,8 +23,8 @@ class ChatMessageMapper {
             senderId = domain.senderId,
             content = toMessageContentDocument(domain.content),
             status = domain.status,
-            threadId = domain.threadId?.let { ObjectId(it) },
-            replyToMessageId = domain.replyToMessageId?.let { ObjectId(it) },
+            threadId = domain.threadId?.let { ObjectId(it.value) },
+            replyToMessageId = domain.replyToMessageId?.let { ObjectId(it.value) },
             reactions = domain.reactions.mapValues { (_, userIds) ->
                 userIds.map { it }.toSet()
             },
@@ -34,20 +35,20 @@ class ChatMessageMapper {
             pinnedBy = domain.pinnedBy,
             pinnedAt = domain.pinnedAt
         ).apply {
-            id = domain.id?.let { ObjectId(it) }
+            id = domain.id?.let { ObjectId(it.value) }
             createdAt = domain.createdAt
         }
     }
 
     fun toDomain(document: ChatMessageDocument): ChatMessage {
         return ChatMessage(
-            id = document.id?.toString(),
+            id = document.id?.toString()?.let { MessageId.from(it) },
             roomId = document.roomId,
             senderId = document.senderId,
             content = toMessageContent(document.content),
             status = document.status,
-            threadId = document.threadId?.toString(),
-            replyToMessageId = document.replyToMessageId?.toString(),
+            threadId = document.threadId?.toString()?.let { MessageId.from(it) },
+            replyToMessageId = document.replyToMessageId?.toString()?.let { MessageId.from(it) },
             messageReactions = MessageReactions(document.reactions.mapValues { (_, userIds) ->
                 userIds.map { it }.toSet()
             }),
@@ -140,7 +141,7 @@ class ChatMessageMapper {
     // 도메인 모델(ChatMessage)을 MessageResponseDto로 변환
     fun toDto(message: ChatMessage): MessageResponseDto {
         return MessageResponseDto(
-            id = message.id ?: "",
+            id = message.id?.value ?: "",
             roomId = message.roomId,
             senderId = message.senderId,
             content = MessageContentResponseDto(
@@ -152,8 +153,8 @@ class ChatMessageMapper {
                 urlPreview = message.content.metadata?.urlPreview?.let { toUrlPreviewDto(it) }
             ),
             status = message.status,
-            threadId = message.threadId,
-            replyToMessageId = message.replyToMessageId,
+            threadId = message.threadId?.value,
+            replyToMessageId = message.replyToMessageId?.value,
             reactions = message.reactions,
             mentions = message.mentions,
             createdAt = message.createdAt,

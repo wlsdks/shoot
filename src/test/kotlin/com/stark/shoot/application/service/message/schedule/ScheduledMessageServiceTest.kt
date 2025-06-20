@@ -14,6 +14,7 @@ import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.domain.chat.room.ChatRoom
 import com.stark.shoot.domain.chat.room.ChatRoomType
 import com.stark.shoot.domain.chat.message.ScheduledMessageStatus
+import com.stark.shoot.domain.common.vo.MessageId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -221,7 +222,7 @@ class ScheduledMessageServiceTest {
             override fun findById(id: org.bson.types.ObjectId): ScheduledMessage? {
                 // In test environment, we'll return a message regardless of the ObjectId
                 return ScheduledMessage(
-                    id = messageId,
+                    id = MessageId.from(messageId),
                     roomId = 1L,
                     senderId = 2L,
                     content = MessageContent(
@@ -259,7 +260,7 @@ class ScheduledMessageServiceTest {
         }
 
         // given
-        val messageId = "507f1f77bcf86cd799439011" // Use a valid ObjectId string
+            val messageId = "507f1f77bcf86cd799439011" // Use a valid ObjectId string
         val userId = 2L
 
         val testScheduledMessagePort = TestScheduledMessagePort()
@@ -279,14 +280,14 @@ class ScheduledMessageServiceTest {
         // then
         // Verify the result is not null and has the expected properties
         assertThat(result).isNotNull
-        assertThat(result.id).isEqualTo(messageId)
+        assertThat(result.id?.value).isEqualTo(messageId)
         assertThat(result.senderId).isEqualTo(userId)
         assertThat(result.status).isEqualTo(ScheduledMessageStatus.CANCELED)
 
         // Verify the saved message has the expected properties
         val savedMessage = testScheduledMessagePort.savedMessage
         assertThat(savedMessage).isNotNull
-        assertThat(savedMessage?.id).isEqualTo(messageId)
+        assertThat(savedMessage?.id?.value).isEqualTo(messageId)
         assertThat(savedMessage?.senderId).isEqualTo(userId)
         assertThat(savedMessage?.status).isEqualTo(ScheduledMessageStatus.CANCELED)
     }
@@ -311,7 +312,7 @@ class ScheduledMessageServiceTest {
             override fun findById(id: org.bson.types.ObjectId): ScheduledMessage? {
                 // In test environment, we'll return a message regardless of the ObjectId
                 return ScheduledMessage(
-                    id = messageId,
+                    id = MessageId.from(messageId),
                     roomId = 1L,
                     senderId = 2L,
                     content = MessageContent(
@@ -371,7 +372,7 @@ class ScheduledMessageServiceTest {
         // then
         // Verify the result is not null and has the expected properties
         assertThat(result).isNotNull
-        assertThat(result.id).isEqualTo(messageId)
+        assertThat(result.id?.value).isEqualTo(messageId)
         assertThat(result.senderId).isEqualTo(userId)
         assertThat(result.content.text).isEqualTo(newContent)
         assertThat(result.scheduledAt).isEqualTo(newScheduledAt)
@@ -380,7 +381,7 @@ class ScheduledMessageServiceTest {
         // Verify the saved message has the expected properties
         val savedMessage = testScheduledMessagePort.savedMessage
         assertThat(savedMessage).isNotNull
-        assertThat(savedMessage?.id).isEqualTo(messageId)
+        assertThat(savedMessage?.id?.value).isEqualTo(messageId)
         assertThat(savedMessage?.senderId).isEqualTo(userId)
         assertThat(savedMessage?.content?.text).isEqualTo(newContent)
         assertThat(savedMessage?.scheduledAt).isEqualTo(newScheduledAt)
@@ -402,7 +403,7 @@ class ScheduledMessageServiceTest {
                 // 테스트용 예약 메시지 목록 생성
                 val messages = listOf(
                     ScheduledMessage(
-                        id = "message-1",
+                        id = MessageId.from("message-1"),
                         roomId = 1L,
                         senderId = userId,
                         content = MessageContent(
@@ -413,7 +414,7 @@ class ScheduledMessageServiceTest {
                         status = ScheduledMessageStatus.PENDING
                     ),
                     ScheduledMessage(
-                        id = "message-2",
+                        id = MessageId.from("message-2"),
                         roomId = 2L,
                         senderId = userId,
                         content = MessageContent(
@@ -424,7 +425,7 @@ class ScheduledMessageServiceTest {
                         status = ScheduledMessageStatus.PENDING
                     ),
                     ScheduledMessage(
-                        id = "message-3",
+                        id = MessageId.from("message-3"),
                         roomId = 1L,
                         senderId = userId,
                         content = MessageContent(
@@ -487,7 +488,7 @@ class ScheduledMessageServiceTest {
 
         // then - 대기 중인 메시지만 반환되어야 함 (PENDING 상태)
         assertThat(allResults).hasSize(2)
-        assertThat(allResults.map { it.id }).containsExactlyInAnyOrder("message-1", "message-2")
+        assertThat(allResults.map { it.id?.value }).containsExactlyInAnyOrder("message-1", "message-2")
         assertThat(allResults.all { it.senderId == userId }).isTrue()
         assertThat(allResults.all { it.status == ScheduledMessageStatus.PENDING }).isTrue()
 
@@ -496,7 +497,7 @@ class ScheduledMessageServiceTest {
 
         // then - 해당 채팅방의 대기 중인 메시지만 반환되어야 함
         assertThat(roomResults).hasSize(1)
-        assertThat(roomResults[0].id).isEqualTo("message-1")
+        assertThat(roomResults[0].id?.value).isEqualTo("message-1")
         assertThat(roomResults[0].roomId).isEqualTo(1L)
         assertThat(roomResults[0].senderId).isEqualTo(userId)
         assertThat(roomResults[0].status).isEqualTo(ScheduledMessageStatus.PENDING)
@@ -520,7 +521,7 @@ class ScheduledMessageServiceTest {
             override fun findById(id: org.bson.types.ObjectId): ScheduledMessage? {
                 // In test environment, we'll return a message regardless of the ObjectId
                 return ScheduledMessage(
-                    id = messageId,
+                    id = MessageId.from(messageId),
                     roomId = 1L,
                     senderId = 2L,
                     content = MessageContent(
@@ -578,14 +579,14 @@ class ScheduledMessageServiceTest {
         // then
         // Verify the result is not null and has the expected properties
         assertThat(result).isNotNull
-        assertThat(result.id).isEqualTo(messageId)
+        assertThat(result.id?.value).isEqualTo(messageId)
         assertThat(result.senderId).isEqualTo(userId)
         assertThat(result.status).isEqualTo(ScheduledMessageStatus.SENT)
 
         // Verify the saved message has the expected properties
         val savedMessage = testScheduledMessagePort.savedMessage
         assertThat(savedMessage).isNotNull
-        assertThat(savedMessage?.id).isEqualTo(messageId)
+        assertThat(savedMessage?.id?.value).isEqualTo(messageId)
         assertThat(savedMessage?.senderId).isEqualTo(userId)
         assertThat(savedMessage?.status).isEqualTo(ScheduledMessageStatus.SENT)
     }

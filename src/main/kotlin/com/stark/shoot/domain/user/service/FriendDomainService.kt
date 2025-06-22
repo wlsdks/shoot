@@ -94,40 +94,6 @@ class FriendDomainService {
     }
 
     /**
-     * 친구 요청 거절 처리를 수행합니다.
-     *
-     * @param friendRequest 거절할 친구 요청
-     * @return 처리 결과 (업데이트된 친구 요청)
-     */
-    fun processFriendReject(
-        friendRequest: FriendRequest
-    ): FriendRejectResult {
-        // 친구 요청 상태 변경
-        val updatedRequest = friendRequest.reject()
-
-        return FriendRejectResult(
-            updatedRequest = updatedRequest
-        )
-    }
-
-    /**
-     * 친구 요청 취소 처리를 수행합니다.
-     *
-     * @param friendRequest 취소할 친구 요청
-     * @return 처리 결과 (업데이트된 친구 요청)
-     */
-    fun processFriendCancel(
-        friendRequest: FriendRequest
-    ): FriendCancelResult {
-        // 친구 요청 상태 변경
-        val updatedRequest = friendRequest.cancel()
-
-        return FriendCancelResult(
-            updatedRequest = updatedRequest
-        )
-    }
-
-    /**
      * 친구 관계 제거 처리를 수행합니다.
      *
      * @param userId 현재 사용자 ID
@@ -156,20 +122,6 @@ data class FriendAcceptResult(
     val updatedRequest: FriendRequest,
     val friendships: List<Friendship>,
     val events: List<FriendAddedEvent>
-)
-
-/**
- * 친구 요청 거절 결과
- */
-data class FriendRejectResult(
-    val updatedRequest: FriendRequest
-)
-
-/**
- * 친구 요청 취소 결과
- */
-data class FriendCancelResult(
-    val updatedRequest: FriendRequest
 )
 
 /**

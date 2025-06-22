@@ -1,8 +1,8 @@
 package com.stark.shoot.application.service.notification
 
 import com.stark.shoot.application.port.`in`.notification.NotificationManagementUseCase
-import com.stark.shoot.application.port.out.notification.LoadNotificationPort
-import com.stark.shoot.application.port.out.notification.SaveNotificationPort
+import com.stark.shoot.application.port.out.notification.NotificationCommandPort
+import com.stark.shoot.application.port.out.notification.NotificationQueryPort
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.service.NotificationDomainService
 import com.stark.shoot.domain.notification.type.NotificationType
@@ -26,8 +26,8 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @Service
 class NotificationManagementService(
-    private val loadNotificationPort: LoadNotificationPort,
-    private val saveNotificationPort: SaveNotificationPort,
+    private val notificationQueryPort: NotificationQueryPort,
+    private val notificationCommandPort: NotificationCommandPort,
     private val notificationDomainService: NotificationDomainService
 ) : NotificationManagementUseCase {
 
@@ -47,7 +47,7 @@ class NotificationManagementService(
         userId: UserId
     ): Notification {
         // 알림 조회
-        val notification = loadNotificationPort.loadNotificationById(notificationId)
+        val notification = notificationQueryPort.loadNotificationById(notificationId)
             ?: throw ResourceNotFoundException("알림을 찾을 수 없습니다: $notificationId")
 
         // 도메인 모델의 메서드를 사용하여 소유권 검증
@@ -62,7 +62,7 @@ class NotificationManagementService(
         val updatedNotification = notification.markAsRead()
 
         // 저장
-        val savedNotification = saveNotificationPort.saveNotification(updatedNotification)
+        val savedNotification = notificationCommandPort.saveNotification(updatedNotification)
 
         return savedNotification
     }
@@ -75,7 +75,7 @@ class NotificationManagementService(
      */
     override fun markAllAsRead(userId: UserId): Int {
         // 읽지 않은 알림 조회
-        val notifications = loadNotificationPort.loadUnreadNotificationsForUser(userId, Int.MAX_VALUE, 0)
+        val notifications = notificationQueryPort.loadUnreadNotificationsForUser(userId, Int.MAX_VALUE, 0)
 
         if (notifications.isEmpty()) {
             return 0
@@ -85,7 +85,7 @@ class NotificationManagementService(
         val updatedNotifications = notificationDomainService.markNotificationsAsRead(notifications)
 
         // 저장
-        saveNotificationPort.saveNotifications(updatedNotifications)
+        notificationCommandPort.saveNotifications(updatedNotifications)
 
         return updatedNotifications.size
     }
@@ -102,7 +102,7 @@ class NotificationManagementService(
         type: NotificationType
     ): Int {
         // 특정 타입의 알림 조회
-        val notifications = loadNotificationPort.loadNotificationsByType(userId, type, Int.MAX_VALUE, 0)
+        val notifications = notificationQueryPort.loadNotificationsByType(userId, type, Int.MAX_VALUE, 0)
 
         // 읽지 않은 알림만 필터링
         val unreadNotifications = notificationDomainService.filterUnread(notifications)
@@ -115,7 +115,7 @@ class NotificationManagementService(
         val updatedNotifications = notificationDomainService.markNotificationsAsRead(unreadNotifications)
 
         // 저장
-        saveNotificationPort.saveNotifications(updatedNotifications)
+        notificationCommandPort.saveNotifications(updatedNotifications)
 
         return updatedNotifications.size
     }
@@ -134,7 +134,7 @@ class NotificationManagementService(
         sourceId: String?
     ): Int {
         // 특정 소스의 알림 조회
-        val notifications = loadNotificationPort.loadNotificationsBySource(
+        val notifications = notificationQueryPort.loadNotificationsBySource(
             userId, sourceType, sourceId, Int.MAX_VALUE, 0
         )
 
@@ -149,7 +149,7 @@ class NotificationManagementService(
         val updatedNotifications = notificationDomainService.markNotificationsAsRead(unreadNotifications)
 
         // 저장
-        saveNotificationPort.saveNotifications(updatedNotifications)
+        notificationCommandPort.saveNotifications(updatedNotifications)
 
         return updatedNotifications.size
     }
@@ -169,7 +169,7 @@ class NotificationManagementService(
         userId: UserId
     ): Boolean {
         // 알림 조회
-        val notification = loadNotificationPort.loadNotificationById(notificationId)
+        val notification = notificationQueryPort.loadNotificationById(notificationId)
             ?: throw ResourceNotFoundException("알림을 찾을 수 없습니다: $notificationId")
 
         // 도메인 모델의 메서드를 사용하여 소유권 검증
@@ -177,7 +177,7 @@ class NotificationManagementService(
 
         // 알림 삭제 (소프트 삭제 방식)
         val deletedNotification = notification.markAsDeleted()
-        saveNotificationPort.saveNotification(deletedNotification)
+        notificationCommandPort.saveNotification(deletedNotification)
 
         return true
     }
@@ -191,7 +191,7 @@ class NotificationManagementService(
      */
     override fun deleteAllNotifications(userId: UserId): Int {
         // 사용자의 모든 알림 조회
-        val notifications = loadNotificationPort.loadNotificationsForUser(userId, Int.MAX_VALUE, 0)
+        val notifications = notificationQueryPort.loadNotificationsForUser(userId, Int.MAX_VALUE, 0)
 
         if (notifications.isEmpty()) {
             return 0
@@ -201,7 +201,7 @@ class NotificationManagementService(
         val deletedNotifications = notificationDomainService.markNotificationsAsDeleted(notifications)
 
         // 저장
-        saveNotificationPort.saveNotifications(deletedNotifications)
+        notificationCommandPort.saveNotifications(deletedNotifications)
 
         return deletedNotifications.size
     }

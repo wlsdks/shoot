@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.notification
 
 import com.stark.shoot.application.port.`in`.notification.NotificationQueryUseCase
-import com.stark.shoot.application.port.out.notification.LoadNotificationPort
+import com.stark.shoot.application.port.out.notification.NotificationQueryPort
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class NotificationQueryService(
-    private val loadNotificationPort: LoadNotificationPort
+    private val notificationQueryPort: NotificationQueryPort
 ) : NotificationQueryUseCase {
 
     /**
@@ -27,7 +27,7 @@ class NotificationQueryService(
         limit: Int,
         offset: Int
     ): List<Notification> {
-        return loadNotificationPort.loadNotificationsForUser(userId, limit, offset)
+        return notificationQueryPort.loadNotificationsForUser(userId, limit, offset)
     }
 
     /**
@@ -44,7 +44,7 @@ class NotificationQueryService(
         limit: Int,
         offset: Int
     ): List<Notification> {
-        return loadNotificationPort.loadUnreadNotificationsForUser(userId, limit, offset)
+        return notificationQueryPort.loadUnreadNotificationsForUser(userId, limit, offset)
     }
 
     /**
@@ -63,7 +63,7 @@ class NotificationQueryService(
         limit: Int,
         offset: Int
     ): List<Notification> {
-        return loadNotificationPort.loadNotificationsByType(userId, type, limit, offset)
+        return notificationQueryPort.loadNotificationsByType(userId, type, limit, offset)
     }
 
     /**
@@ -84,7 +84,7 @@ class NotificationQueryService(
         limit: Int,
         offset: Int
     ): List<Notification> {
-        return loadNotificationPort.loadNotificationsBySource(userId, sourceType, sourceId, limit, offset)
+        return notificationQueryPort.loadNotificationsBySource(userId, sourceType, sourceId, limit, offset)
     }
 
     /**
@@ -94,7 +94,7 @@ class NotificationQueryService(
      * @return 읽지 않은 알림 개수
      */
     override fun getUnreadNotificationCount(userId: UserId): Int {
-        return loadNotificationPort.countUnreadNotifications(userId)
+        return notificationQueryPort.countUnreadNotifications(userId)
     }
 
 }

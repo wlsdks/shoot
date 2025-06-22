@@ -1,9 +1,8 @@
 package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
-import com.stark.shoot.application.port.out.chatroom.DeleteChatRoomPort
-import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
-import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.service.ChatRoomParticipantDomainService
@@ -18,9 +17,8 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @UseCase
 class ManageChatRoomService(
-    private val loadChatRoomPort: LoadChatRoomPort,
-    private val saveChatRoomPort: SaveChatRoomPort,
-    private val deleteChatRoomPort: DeleteChatRoomPort,
+    private val chatRoomQueryPort: ChatRoomQueryPort,
+    private val chatRoomCommandPort: ChatRoomCommandPort,
     private val findUserPort: FindUserPort,
     private val participantDomainService: ChatRoomParticipantDomainService
 ) : ManageChatRoomUseCase {
@@ -39,14 +37,14 @@ class ManageChatRoomService(
         operation: (ChatRoom) -> Pair<ChatRoom, T>
     ): T {
         // 채팅방 조회
-        val chatRoom = loadChatRoomPort.findById(roomId)
+        val chatRoom = chatRoomQueryPort.findById(roomId)
             ?: throw ResourceNotFoundException(errorMessage)
 
         // 작업 수행
         val (updatedRoom, result) = operation(chatRoom)
 
         // 변경사항 저장
-        saveChatRoomPort.save(updatedRoom)
+        chatRoomCommandPort.save(updatedRoom)
 
         return result
     }
@@ -96,7 +94,7 @@ class ManageChatRoomService(
 
             // 채팅방이 삭제 대상이면 삭제 처리
             if (result.shouldDeleteRoom) {
-                deleteChatRoomPort.deleteById(roomId)
+                chatRoomCommandPort.deleteById(roomId)
             }
 
             // 결과 반환 (업데이트된 채팅방과 성공 여부)

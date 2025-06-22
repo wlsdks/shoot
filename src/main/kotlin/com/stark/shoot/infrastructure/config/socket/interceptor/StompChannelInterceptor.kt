@@ -2,7 +2,7 @@ package com.stark.shoot.infrastructure.config.socket.interceptor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
-import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.user.vo.UserId
@@ -29,7 +29,7 @@ import kotlin.concurrent.write
  * STOMP 명령어(SEND, SUBSCRIBE 등)를 확인하고 권한 로직을 수행할 수 있습니다.
  */
 class StompChannelInterceptor(
-    private val loadChatRoomPort: LoadChatRoomPort,
+    private val chatRoomQueryPort: ChatRoomQueryPort,
     private val findUserPort: FindUserPort,
     private val objectMapper: ObjectMapper
 ) : ChannelInterceptor {
@@ -148,7 +148,7 @@ class StompChannelInterceptor(
                             // 캐시에 없으면 채팅방 존재 여부 확인 후 캐싱
                             try {
                                 // roomId는 이미 Long 타입이므로 직접 사용
-                                val room = loadChatRoomPort.findById(ChatRoomId.from(roomId))
+                                val room = chatRoomQueryPort.findById(ChatRoomId.from(roomId))
                                 if (room != null) {
                                     roomCache.put(roomIdStr, true, 5) // 5분 캐싱
                                 } else {

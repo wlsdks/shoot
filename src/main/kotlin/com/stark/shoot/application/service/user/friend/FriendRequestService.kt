@@ -2,7 +2,9 @@ package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
+import com.stark.shoot.application.port.out.user.friend.FriendRequestPort
+import com.stark.shoot.domain.user.FriendRequest
+import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -14,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class FriendRequestService(
     private val findUserPort: FindUserPort,
-    private val updateFriendPort: UpdateFriendPort,
+    private val friendRequestPort: FriendRequestPort,
     private val friendDomainService: FriendDomainService,
     private val friendCacheManager: FriendCacheManager
 ) : FriendRequestUseCase {
@@ -51,8 +53,9 @@ class FriendRequestService(
             throw InvalidInputException(e.message ?: "친구 요청 유효성 검증 실패")
         }
 
-        // 친구 요청 추가
-        updateFriendPort.addOutgoingFriendRequest(currentUserId, targetUserId)
+        // 친구 요청 애그리게이트 생성 및 저장
+        val request = FriendRequest(senderId = currentUserId, receiverId = targetUserId)
+        friendRequestPort.saveFriendRequest(request)
 
         // 캐시 무효화 (FriendCacheManager 사용)
         friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)
@@ -81,8 +84,8 @@ class FriendRequestService(
             throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
         }
 
-        // 단순히 요청 상태를 취소로 변경
-        updateFriendPort.removeOutgoingFriendRequest(currentUserId, targetUserId)
+        // 요청 상태를 취소로 변경
+        friendRequestPort.updateStatus(currentUserId, targetUserId, FriendRequestStatus.CANCELLED)
 
         // 캐시 무효화 (FriendCacheManager 사용)
         friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)

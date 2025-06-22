@@ -1,10 +1,10 @@
 package com.stark.shoot.domain.notification
 
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.exception.NotificationException
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
-import com.stark.shoot.domain.user.vo.UserId
 
 class NotificationTest {
     @Test

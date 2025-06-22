@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend
 
-import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendRequestEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendshipMappingEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository

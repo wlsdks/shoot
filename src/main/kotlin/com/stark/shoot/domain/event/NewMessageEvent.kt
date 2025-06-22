@@ -1,9 +1,9 @@
 package com.stark.shoot.domain.event
 
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.user.vo.UserId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import java.time.Instant
 
 class NewMessageEvent(

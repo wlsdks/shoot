@@ -2,7 +2,6 @@ package com.stark.shoot.domain.chat.message
 
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
-import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy

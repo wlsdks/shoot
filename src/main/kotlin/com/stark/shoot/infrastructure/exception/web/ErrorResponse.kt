@@ -1,6 +1,5 @@
 package com.stark.shoot.infrastructure.exception.web
 
-import java.time.Instant
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
 
 @ApplicationDto

@@ -1,9 +1,9 @@
 package com.stark.shoot.domain.user
 
-import java.time.Instant
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.FriendRequestId
 import com.stark.shoot.domain.user.vo.UserId
+import java.time.Instant
 
 /**
  * 친구 요청 애그리게이트

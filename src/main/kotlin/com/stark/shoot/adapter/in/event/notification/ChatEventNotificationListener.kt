@@ -2,8 +2,8 @@ package com.stark.shoot.adapter.`in`.event.notification
 
 import com.stark.shoot.application.port.out.notification.SaveNotificationPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
-import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.notification.Notification
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener

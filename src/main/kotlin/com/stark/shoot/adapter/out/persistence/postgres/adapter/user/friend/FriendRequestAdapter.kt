@@ -3,9 +3,7 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendRequestEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
-import com.stark.shoot.application.port.out.user.friend.FriendRequestCommandPort
 import com.stark.shoot.application.port.out.user.friend.FriendRequestPort
-import com.stark.shoot.application.port.out.user.friend.FriendRequestQueryPort
 import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.FriendRequestId

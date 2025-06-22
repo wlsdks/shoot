@@ -1,11 +1,11 @@
 package com.stark.shoot.domain.service.user
 
+import com.stark.shoot.domain.chat.user.Nickname
+import com.stark.shoot.domain.chat.user.UserCode
+import com.stark.shoot.domain.chat.user.Username
 import com.stark.shoot.domain.event.FriendAddedEvent
 import com.stark.shoot.domain.event.FriendRemovedEvent
 import com.stark.shoot.domain.user.User
-import com.stark.shoot.domain.chat.user.UserCode
-import com.stark.shoot.domain.chat.user.Username
-import com.stark.shoot.domain.chat.user.Nickname
 import com.stark.shoot.domain.user.service.FriendDomainService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

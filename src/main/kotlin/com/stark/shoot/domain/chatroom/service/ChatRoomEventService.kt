@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.chatroom.service
 
-import com.stark.shoot.domain.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.chatroom.ChatRoom
+import com.stark.shoot.domain.event.ChatRoomCreatedEvent
 
 /**
  * 채팅방 이벤트 관련 도메인 서비스

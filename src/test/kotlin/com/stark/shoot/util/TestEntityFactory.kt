@@ -4,9 +4,9 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomUserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomUserRole
+import com.stark.shoot.domain.chat.user.UserStatus
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
-import com.stark.shoot.domain.chat.user.UserStatus
 import java.time.Instant
 
 object TestEntityFactory {

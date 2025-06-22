@@ -1,6 +1,5 @@
 package com.stark.shoot.domain.event
 
-import com.stark.shoot.domain.event.DomainEvent
 import com.stark.shoot.domain.user.vo.UserId
 
 /**

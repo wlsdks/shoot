@@ -1,9 +1,9 @@
 package com.stark.shoot.domain.notification
 
+import com.stark.shoot.domain.user.vo.UserId
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import com.stark.shoot.domain.user.vo.UserId
 
 class NotificationSettingsTest {
     @Test

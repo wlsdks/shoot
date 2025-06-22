@@ -1,8 +1,8 @@
 package com.stark.shoot.domain.user
 
-import java.time.Instant
 import com.stark.shoot.domain.user.vo.RefreshTokenValue
 import com.stark.shoot.domain.user.vo.UserId
+import java.time.Instant
 
 data class RefreshToken(
     val id: Long? = null,

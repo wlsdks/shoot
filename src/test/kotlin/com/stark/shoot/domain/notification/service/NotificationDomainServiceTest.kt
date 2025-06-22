@@ -1,9 +1,9 @@
 package com.stark.shoot.domain.notification.service
 
+import com.stark.shoot.domain.event.NotificationEvent
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
-import com.stark.shoot.domain.event.NotificationEvent
 import com.stark.shoot.domain.user.vo.UserId
 import kotlin.test.Test
 import kotlin.test.assertEquals

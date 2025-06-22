@@ -2,8 +2,6 @@ package com.stark.shoot.adapter.`in`.event.listener.sse
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
 import com.stark.shoot.domain.event.MessageUnreadCountUpdatedEvent
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component

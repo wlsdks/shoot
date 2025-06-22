@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.user.vo
 
-import java.util.UUID
+import java.util.*
 
 /**
  * 사용자 코드를 나타내는 값 객체

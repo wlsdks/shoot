@@ -7,7 +7,6 @@ import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.RedisOperationException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
-import org.springframework.data.redis.core.RedisTemplate
 
 @Adapter
 class SendNotificationRedisAdapter(

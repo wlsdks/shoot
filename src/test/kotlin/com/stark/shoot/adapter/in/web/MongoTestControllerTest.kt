@@ -4,8 +4,8 @@ import com.mongodb.client.MongoDatabase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.springframework.data.mongodb.core.MongoTemplate
 
 @DisplayName("MongoTestController 단위 테스트")

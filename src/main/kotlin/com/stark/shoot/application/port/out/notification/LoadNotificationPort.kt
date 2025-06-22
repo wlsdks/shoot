@@ -1,10 +1,10 @@
 package com.stark.shoot.application.port.out.notification
 
-import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.notification.vo.NotificationId
+import com.stark.shoot.domain.user.vo.UserId
 
 interface LoadNotificationPort {
 

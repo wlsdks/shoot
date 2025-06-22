@@ -14,7 +14,7 @@ import jakarta.persistence.PersistenceContext
 import java.util.*
 
 @Adapter
-class RecommendFriendJpaAdapter(
+class RecommendFriendAdapter(
     private val friendshipMappingRepository: FriendshipMappingRepository,
     private val friendRequestRepository: FriendRequestRepository,
     private val userMapper: UserMapper

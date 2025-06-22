@@ -2,7 +2,8 @@ package com.stark.shoot.application.service.user.block
 
 import com.stark.shoot.application.port.`in`.user.block.UserBlockUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.friend.BlockedUserPort
+import com.stark.shoot.application.port.out.user.friend.BlockedUserCommandPort
+import com.stark.shoot.application.port.out.user.friend.BlockedUserQueryPort
 import com.stark.shoot.domain.user.service.block.UserBlockDomainService
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -13,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class UserBlockService(
     private val findUserPort: FindUserPort,
-    private val blockedUserPort: BlockedUserPort,
+    private val blockedUserCommandPort: BlockedUserCommandPort,
+    private val blockedUserQueryPort: BlockedUserQueryPort,
     private val userBlockDomainService: UserBlockDomainService,
 ) : UserBlockUseCase {
 
@@ -30,11 +32,17 @@ class UserBlockService(
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId")
         }
 
+        // 이미 차단 관계가 존재하는지 확인
+        if (blockedUserQueryPort.isUserBlocked(currentUserId, targetUserId)) {
+            // 이미 차단된 경우 아무 작업도 수행하지 않음
+            return
+        }
+
         // 도메인 서비스를 사용하여 차단 관계 생성
         val blockedUser = userBlockDomainService.block(currentUserId, targetUserId)
 
         // 차단 관계 저장
-        blockedUserPort.blockUser(blockedUser)
+        blockedUserCommandPort.blockUser(blockedUser)
     }
 
     override fun unblockUser(
@@ -54,7 +62,7 @@ class UserBlockService(
         userBlockDomainService.unblock(currentUserId, targetUserId)
 
         // 차단 관계 삭제
-        blockedUserPort.unblockUser(currentUserId, targetUserId)
+        blockedUserCommandPort.unblockUser(currentUserId, targetUserId)
     }
 
 }

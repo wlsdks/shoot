@@ -4,6 +4,7 @@ import com.stark.shoot.domain.user.BlockedUser
 import com.stark.shoot.domain.user.vo.UserId
 
 class UserBlockDomainService {
+
     /**
      * 사용자 차단 처리
      *
@@ -11,7 +12,10 @@ class UserBlockDomainService {
      * @param targetId 차단할 사용자 ID
      * @return 생성된 차단 관계
      */
-    fun block(userId: UserId, targetId: UserId): BlockedUser {
+    fun block(
+        userId: UserId,
+        targetId: UserId
+    ): BlockedUser {
         require(userId != targetId) { "자신을 차단할 수 없습니다." }
         return BlockedUser.create(userId, targetId)
     }
@@ -22,7 +26,11 @@ class UserBlockDomainService {
      * @param userId 차단을 해제하는 사용자 ID
      * @param targetId 차단 해제할 사용자 ID
      */
-    fun unblock(userId: UserId, targetId: UserId) {
+    fun unblock(
+        userId: UserId,
+        targetId: UserId
+    ) {
         // 차단 해제는 단순히 차단 관계를 삭제하는 것이므로 별도의 도메인 로직이 필요 없음
     }
+
 }

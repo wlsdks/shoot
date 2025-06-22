@@ -74,7 +74,9 @@ class FriendRequestAdapter(
         }
     }
 
-    override fun createRequest(friendRequest: FriendRequest): FriendRequest {
+    override fun createRequest(
+        friendRequest: FriendRequest
+    ): FriendRequest {
         val sender = userRepository.findById(friendRequest.senderId.value)
             .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendRequest.senderId.value}") }
 
@@ -93,7 +95,9 @@ class FriendRequestAdapter(
         return mapToDomain(savedEntity)
     }
 
-    override fun saveFriendRequest(request: FriendRequest) {
+    override fun saveFriendRequest(
+        request: FriendRequest
+    ) {
         val sender = userRepository.findById(request.senderId.value)
             .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${'$'}{request.senderId.value}") }
 
@@ -119,7 +123,9 @@ class FriendRequestAdapter(
         }
     }
 
-    private fun mapToDomain(entity: FriendRequestEntity): FriendRequest {
+    private fun mapToDomain(
+        entity: FriendRequestEntity
+    ): FriendRequest {
         return FriendRequest(
             id = entity.id?.let { FriendRequestId.from(it) },
             senderId = UserId.from(entity.sender.id),

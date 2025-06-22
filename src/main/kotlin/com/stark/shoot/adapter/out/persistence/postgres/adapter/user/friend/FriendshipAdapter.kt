@@ -16,8 +16,11 @@ class FriendshipAdapter(
     private val userRepository: UserRepository
 ) : FriendshipPort {
 
-    override fun findAllFriendships(userId: UserId): List<Friendship> {
-        return friendshipMappingRepository.findAllByUserId(userId.value).map { mapToDomain(it) }
+    override fun findAllFriendships(
+        userId: UserId
+    ): List<Friendship> {
+        return friendshipMappingRepository.findAllByUserId(userId.value)
+            .map { mapToDomain(it) }
     }
 
     override fun isFriend(
@@ -27,7 +30,9 @@ class FriendshipAdapter(
         return friendshipMappingRepository.existsByUserIdAndFriendId(userId.value, friendId.value)
     }
 
-    override fun createFriendship(friendship: Friendship): Friendship {
+    override fun createFriendship(
+        friendship: Friendship
+    ): Friendship {
         val user = userRepository.findById(friendship.userId.value)
             .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendship.userId.value}") }
 
@@ -39,6 +44,7 @@ class FriendshipAdapter(
             // 이미 친구인 경우 기존 엔티티 반환
             val existingEntity = friendshipMappingRepository.findAllByUserId(friendship.userId.value)
                 .first { it.friend.id == friendship.friendId.value }
+
             return mapToDomain(existingEntity)
         }
 
@@ -58,7 +64,9 @@ class FriendshipAdapter(
         friendshipMappingRepository.deleteByUserIdAndFriendId(userId.value, friendId.value)
     }
 
-    private fun mapToDomain(entity: FriendshipMappingEntity): Friendship {
+    private fun mapToDomain(
+        entity: FriendshipMappingEntity
+    ): Friendship {
         return Friendship(
             id = entity.id?.let { FriendshipId.from(it) },
             userId = UserId.from(entity.user.id),
@@ -66,4 +74,5 @@ class FriendshipAdapter(
             createdAt = entity.createdAt
         )
     }
+
 }

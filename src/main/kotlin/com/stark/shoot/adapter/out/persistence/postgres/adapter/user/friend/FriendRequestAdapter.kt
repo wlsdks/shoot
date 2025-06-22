@@ -9,7 +9,6 @@ import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.FriendRequestId
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import java.time.Instant
 
 @Adapter
@@ -77,11 +76,9 @@ class FriendRequestAdapter(
     override fun createRequest(
         friendRequest: FriendRequest
     ): FriendRequest {
-        val sender = userRepository.findById(friendRequest.senderId.value)
-            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendRequest.senderId.value}") }
-
-        val receiver = userRepository.findById(friendRequest.receiverId.value)
-            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendRequest.receiverId.value}") }
+        // 애플리케이션 서비스에서 이미 사용자 존재 여부를 확인했으므로 여기서는 존재한다고 가정
+        val sender = userRepository.getReferenceById(friendRequest.senderId.value)
+        val receiver = userRepository.getReferenceById(friendRequest.receiverId.value)
 
         // 새로운 친구 요청 생성 및 저장
         val entity = FriendRequestEntity(
@@ -98,11 +95,9 @@ class FriendRequestAdapter(
     override fun saveFriendRequest(
         request: FriendRequest
     ) {
-        val sender = userRepository.findById(request.senderId.value)
-            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${'$'}{request.senderId.value}") }
-
-        val receiver = userRepository.findById(request.receiverId.value)
-            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${'$'}{request.receiverId.value}") }
+        // 애플리케이션 서비스에서 이미 사용자 존재 여부를 확인했으므로 여기서는 존재한다고 가정
+        val sender = userRepository.getReferenceById(request.senderId.value)
+        val receiver = userRepository.getReferenceById(request.receiverId.value)
 
         val entity = FriendRequestEntity(sender, receiver, request.status)
         friendRequestRepository.save(entity)

@@ -8,7 +8,6 @@ import com.stark.shoot.domain.user.Friendship
 import com.stark.shoot.domain.user.vo.FriendshipId
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 @Adapter
 class FriendshipAdapter(
@@ -33,12 +32,6 @@ class FriendshipAdapter(
     override fun createFriendship(
         friendship: Friendship
     ): Friendship {
-        val user = userRepository.findById(friendship.userId.value)
-            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendship.userId.value}") }
-
-        val friend = userRepository.findById(friendship.friendId.value)
-            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendship.friendId.value}") }
-
         // 이미 친구 관계가 존재하는지 확인
         if (friendshipMappingRepository.existsByUserIdAndFriendId(friendship.userId.value, friendship.friendId.value)) {
             // 이미 친구인 경우 기존 엔티티 반환
@@ -47,6 +40,10 @@ class FriendshipAdapter(
 
             return mapToDomain(existingEntity)
         }
+
+        // 애플리케이션 서비스에서 이미 사용자 존재 여부를 확인했으므로 여기서는 존재한다고 가정
+        val user = userRepository.getReferenceById(friendship.userId.value)
+        val friend = userRepository.getReferenceById(friendship.friendId.value)
 
         // 새로운 친구 관계 생성 및 저장
         val entity = FriendshipMappingEntity(

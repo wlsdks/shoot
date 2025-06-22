@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.LoginRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.token.RefreshTokenPort
+import com.stark.shoot.application.port.out.user.token.RefreshTokenCommandPort
 import com.stark.shoot.domain.user.vo.Username
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class UserLoginService(
     private val findUserPort: FindUserPort,
-    private val refreshTokenPort: RefreshTokenPort,
+    private val refreshTokenCommandPort: RefreshTokenCommandPort,
     private val passwordEncoder: PasswordEncoder,
     private val jwtProvider: JwtProvider,
 ) : UserLoginUseCase {
@@ -43,7 +43,7 @@ class UserLoginService(
         val refreshToken = jwtProvider.generateRefreshToken(userId.toString(), user.username.value, 43200) // 30일
 
         // 리프레시 토큰 저장 (기본 정보만)
-        refreshTokenPort.createRefreshToken(
+        refreshTokenCommandPort.createRefreshToken(
             userId = userId,
             token = refreshToken
         )

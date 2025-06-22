@@ -2,7 +2,8 @@ package com.stark.shoot.application.service.user.token
 
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.token.RefreshTokenUseCase
-import com.stark.shoot.application.port.out.user.token.RefreshTokenPort
+import com.stark.shoot.application.port.out.user.token.RefreshTokenCommandPort
+import com.stark.shoot.application.port.out.user.token.RefreshTokenQueryPort
 import com.stark.shoot.domain.user.vo.RefreshTokenValue
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
@@ -11,7 +12,8 @@ import java.time.Instant
 
 @UseCase
 class RefreshTokenService(
-    private val refreshTokenPort: RefreshTokenPort,
+    private val refreshTokenCommandPort: RefreshTokenCommandPort,
+    private val refreshTokenQueryPort: RefreshTokenQueryPort,
     private val jwtProvider: JwtProvider
 ) : RefreshTokenUseCase {
 
@@ -33,7 +35,7 @@ class RefreshTokenService(
         validateRefreshToken(tokenValue)
 
         // 리프레시 토큰 사용 기록 업데이트
-        refreshTokenPort.updateTokenUsage(tokenValue)
+        refreshTokenCommandPort.updateTokenUsage(tokenValue)
 
         // 리프레시 토큰에서 userId와 username 추출
         val userId = jwtProvider.extractId(refreshToken)
@@ -67,7 +69,7 @@ class RefreshTokenService(
         }
 
         // DB에 저장된 토큰 확인
-        val storedToken = refreshTokenPort.findByToken(refreshToken)
+        val storedToken = refreshTokenQueryPort.findByToken(refreshToken)
             ?: throw InvalidRefreshTokenException("존재하지 않는 리프레시 토큰입니다.")
 
         // 토큰 상태 확인 (취소 여부)

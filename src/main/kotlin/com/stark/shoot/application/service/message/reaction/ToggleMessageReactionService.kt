@@ -3,8 +3,8 @@ package com.stark.shoot.application.service.message.reaction
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionResponse
 import com.stark.shoot.application.port.`in`.message.reaction.ToggleMessageReactionUseCase
 import com.stark.shoot.application.port.out.event.EventPublisher
-import com.stark.shoot.application.port.out.message.LoadMessagePort
-import com.stark.shoot.application.port.out.message.SaveMessagePort
+import com.stark.shoot.application.port.out.message.MessageCommandPort
+import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.service.MessageReactionService
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.message.vo.ReactionToggleResult
@@ -18,8 +18,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 
 @UseCase
 class ToggleMessageReactionService(
-    private val loadMessagePort: LoadMessagePort,
-    private val saveMessagePort: SaveMessagePort,
+    private val messageQueryPort: MessageQueryPort,
+    private val messageCommandPort: MessageCommandPort,
     private val messagingTemplate: SimpMessagingTemplate,
     private val eventPublisher: EventPublisher,
     private val messageReactionService: MessageReactionService
@@ -44,7 +44,7 @@ class ToggleMessageReactionService(
             ?: throw InvalidInputException("지원하지 않는 리액션 타입입니다: $reactionType")
 
         // 메시지 조회 (없으면 예외 발생)
-        val message = loadMessagePort.findById(messageId)
+        val message = messageQueryPort.findById(messageId)
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
 
         // 도메인 객체에 토글 로직 위임
@@ -54,7 +54,7 @@ class ToggleMessageReactionService(
         handleNotificationsAndEvents(messageId, result)
 
         // 저장 및 반환
-        val savedMessage = saveMessagePort.save(result.message)
+        val savedMessage = messageCommandPort.save(result.message)
 
         // 응답 생성
         // savedMessage.reactions는 ChatMessage의 getter를 통해 messageReactions.reactions에 접근

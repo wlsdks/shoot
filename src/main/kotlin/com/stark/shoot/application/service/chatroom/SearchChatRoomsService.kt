@@ -3,14 +3,14 @@ package com.stark.shoot.application.service.chatroom
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.adapter.`in`.web.mapper.ChatRoomResponseMapper
 import com.stark.shoot.application.port.`in`.chatroom.SearchChatRoomsUseCase
-import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase
 class SearchChatRoomsService(
-    private val loadChatRoomPort: LoadChatRoomPort,
+    private val chatRoomQueryPort: ChatRoomQueryPort,
     private val chatRoomDomainService: ChatRoomDomainService,
     private val chatRoomResponseMapper: ChatRoomResponseMapper
 ) : SearchChatRoomsUseCase {
@@ -31,7 +31,7 @@ class SearchChatRoomsService(
         unreadOnly: Boolean?
     ): List<ChatRoomResponse> {
         // 사용자가 참여한 채팅방 목록을 조회
-        val chatRooms = loadChatRoomPort.findByParticipantId(userId)
+        val chatRooms = chatRoomQueryPort.findByParticipantId(userId)
 
         // 필터링된 채팅방 목록을 반환
         val filteredRooms = chatRoomDomainService.filterChatRooms(chatRooms, query, type, unreadOnly)

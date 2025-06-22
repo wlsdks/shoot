@@ -1,10 +1,10 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.port.`in`.message.ForwardMessageUseCase
-import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
-import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
-import com.stark.shoot.application.port.out.message.LoadMessagePort
-import com.stark.shoot.application.port.out.message.SaveMessagePort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
+import com.stark.shoot.application.port.out.message.MessageCommandPort
+import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageForwardDomainService
 import com.stark.shoot.domain.chat.message.vo.MessageId
@@ -16,10 +16,10 @@ import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 @UseCase
 class ForwardMessageService(
-    private val loadMessagePort: LoadMessagePort,
-    private val saveMessagePort: SaveMessagePort,
-    private val loadChatRoomPort: LoadChatRoomPort,
-    private val saveChatRoomPort: SaveChatRoomPort,
+    private val messageQueryPort: MessageQueryPort,
+    private val messageCommandPort: MessageCommandPort,
+    private val chatRoomQueryPort: ChatRoomQueryPort,
+    private val chatRoomCommandPort: ChatRoomCommandPort,
     private val messageForwardDomainService: MessageForwardDomainService,
     private val chatRoomMetadataDomainService: ChatRoomMetadataDomainService
 ) : ForwardMessageUseCase {
@@ -33,7 +33,7 @@ class ForwardMessageService(
         forwardingUserId: UserId
     ): ChatMessage {
         // 1. 원본 메시지 조회
-        val originalMessage = (loadMessagePort.findById(originalMessageId))
+        val originalMessage = (messageQueryPort.findById(originalMessageId))
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$originalMessageId")
 
         // 2. 도메인 서비스를 사용하여 전달할 메시지 내용 생성
@@ -47,7 +47,7 @@ class ForwardMessageService(
         )
 
         // 4. 메시지 저장
-        val savedForwardMessage = saveMessagePort.save(forwardedMessage)
+        val savedForwardMessage = messageCommandPort.save(forwardedMessage)
 
         // 5. 대상 채팅방 메타데이터 업데이트
         updateChatRoomMetadata(targetRoomId, savedForwardMessage)
@@ -67,7 +67,7 @@ class ForwardMessageService(
         savedForwardMessage: ChatMessage
     ) {
         // 대상 채팅방 조회
-        val chatRoom = loadChatRoomPort.findById(targetRoomId)
+        val chatRoom = chatRoomQueryPort.findById(targetRoomId)
             ?: throw ResourceNotFoundException("대상 채팅방을 찾을 수 없습니다. id=$targetRoomId")
 
         // 도메인 서비스를 사용하여 채팅방 메타데이터 업데이트
@@ -77,7 +77,7 @@ class ForwardMessageService(
         )
 
         // 저장
-        saveChatRoomPort.save(updatedRoom)
+        chatRoomCommandPort.save(updatedRoom)
     }
 
 }

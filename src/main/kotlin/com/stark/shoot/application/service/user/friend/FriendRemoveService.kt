@@ -1,11 +1,9 @@
 package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendRemoveUseCase
-import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.FriendshipPort
 import com.stark.shoot.domain.user.User
-import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -16,8 +14,6 @@ import org.springframework.transaction.annotation.Transactional
 class FriendRemoveService(
     private val findUserPort: FindUserPort,
     private val friendshipPort: FriendshipPort,
-    private val eventPublisher: EventPublisher,
-    private val friendDomainService: FriendDomainService,
     private val friendCacheManager: FriendCacheManager
 ) : FriendRemoveUseCase {
 
@@ -38,14 +34,6 @@ class FriendRemoveService(
         // 친구 정보 조회
         val friend = findUserPort.findUserById(friendId)
             ?: throw ResourceNotFoundException("User not found: $friendId")
-
-        // 도메인 서비스를 사용하여 친구 관계 제거 처리
-        val result = friendDomainService.processFriendRemoval(userId, friendId)
-
-        // 이벤트 발행
-        result.events.forEach { event ->
-            eventPublisher.publish(event)
-        }
 
         // 친구 관계 제거
         friendshipPort.removeFriendship(userId, friendId)

@@ -32,13 +32,7 @@ class FriendRequestService(
         targetUserId: UserId
     ) {
         // 사용자 존재 여부 확인
-        if (!findUserPort.existsById(currentUserId)) {
-            throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
-        }
-
-        if (!findUserPort.existsById(targetUserId)) {
-            throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId")
-        }
+        validateUserExistence(currentUserId, targetUserId)
 
         // 도메인 서비스를 사용하여 친구 요청 유효성 검증
         try {
@@ -71,13 +65,8 @@ class FriendRequestService(
         currentUserId: UserId,
         targetUserId: UserId
     ) {
-        // 두 사용자 존재 여부 확인
-        if (!findUserPort.existsById(currentUserId)) {
-            throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
-        }
-        if (!findUserPort.existsById(targetUserId)) {
-            throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId")
-        }
+        // 사용자 존재 여부 확인
+        validateUserExistence(currentUserId, targetUserId)
 
         // 친구 요청 존재 여부 확인
         if (!findUserPort.checkOutgoingFriendRequest(currentUserId, targetUserId)) {
@@ -89,6 +78,26 @@ class FriendRequestService(
 
         // 캐시 무효화 (FriendCacheManager 사용)
         friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)
+    }
+
+
+    /**
+     * 두 사용자의 존재 여부를 확인합니다.
+     *
+     * @param currentUserId 현재 사용자 ID
+     * @param targetUserId 친구 요청을 받을 사용자 ID
+     */
+    private fun validateUserExistence(
+        currentUserId: UserId,
+        targetUserId: UserId
+    ) {
+        // 두 사용자 존재 여부 확인
+        if (!findUserPort.existsById(currentUserId)) {
+            throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
+        }
+        if (!findUserPort.existsById(targetUserId)) {
+            throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId")
+        }
     }
 
 }

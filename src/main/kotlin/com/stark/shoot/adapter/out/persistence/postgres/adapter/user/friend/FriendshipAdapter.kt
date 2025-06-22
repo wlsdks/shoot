@@ -20,7 +20,10 @@ class FriendshipAdapter(
         return friendshipMappingRepository.findAllByUserId(userId.value).map { mapToDomain(it) }
     }
 
-    override fun isFriend(userId: UserId, friendId: UserId): Boolean {
+    override fun isFriend(
+        userId: UserId,
+        friendId: UserId
+    ): Boolean {
         return friendshipMappingRepository.existsByUserIdAndFriendId(userId.value, friendId.value)
     }
 
@@ -48,7 +51,10 @@ class FriendshipAdapter(
         return mapToDomain(savedEntity)
     }
 
-    override fun removeFriendship(userId: UserId, friendId: UserId) {
+    override fun removeFriendship(
+        userId: UserId,
+        friendId: UserId
+    ) {
         friendshipMappingRepository.deleteByUserIdAndFriendId(userId.value, friendId.value)
     }
 

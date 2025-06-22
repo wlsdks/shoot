@@ -1,7 +1,6 @@
 package com.stark.shoot.domain.user.service
 
 import com.stark.shoot.domain.event.FriendAddedEvent
-import com.stark.shoot.domain.event.FriendRemovedEvent
 import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.Friendship
 import com.stark.shoot.domain.user.vo.UserId
@@ -93,26 +92,6 @@ class FriendDomainService {
         )
     }
 
-    /**
-     * 친구 관계 제거 처리를 수행합니다.
-     *
-     * @param userId 현재 사용자 ID
-     * @param friendId 제거할 친구 ID
-     * @return 처리 결과 (이벤트 목록)
-     */
-    fun processFriendRemoval(
-        userId: UserId,
-        friendId: UserId
-    ): FriendRemovalResult {
-        // 이벤트 생성 (양쪽 사용자에게 친구 제거 알림)
-        val events = listOf(
-            FriendRemovedEvent.create(userId = userId, friendId = friendId),
-            FriendRemovedEvent.create(userId = friendId, friendId = userId)
-        )
-
-        return FriendRemovalResult(events = events)
-    }
-
 }
 
 /**
@@ -122,11 +101,4 @@ data class FriendAcceptResult(
     val updatedRequest: FriendRequest,
     val friendships: List<Friendship>,
     val events: List<FriendAddedEvent>
-)
-
-/**
- * 친구 관계 제거 결과
- */
-data class FriendRemovalResult(
-    val events: List<FriendRemovedEvent>
 )

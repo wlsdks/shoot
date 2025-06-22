@@ -7,11 +7,11 @@ import org.springframework.stereotype.Service
 
 @Service
 class FriendRemovedEventListener(
-    private val sseEmitterUseCase: SseEmitterUseCase
+//    private val sseEmitterUseCase: SseEmitterUseCase
 ) {
 
     @EventListener
     fun handleFriendRemovedEvent(event: FriendRemovedEvent) {
-        sseEmitterUseCase.sendFriendRemovedEvent(event)
+//        sseEmitterUseCase.sendFriendRemovedEvent(event)
     }
 }

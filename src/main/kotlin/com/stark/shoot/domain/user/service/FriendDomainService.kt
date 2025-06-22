@@ -2,12 +2,13 @@ package com.stark.shoot.domain.user.service
 
 import com.stark.shoot.domain.event.FriendAddedEvent
 import com.stark.shoot.domain.event.FriendRemovedEvent
-import com.stark.shoot.domain.user.User
+import com.stark.shoot.domain.user.FriendRequest
+import com.stark.shoot.domain.user.Friendship
 import com.stark.shoot.domain.user.vo.UserId
 
 /**
  * 친구 관련 도메인 서비스
- * 친구 요청, 수락, 거절 등의 도메인 로직을 담당합니다.
+ * 친구 요청, 수락, 거절, 제거 등의 도메인 로직을 담당합니다.
  */
 class FriendDomainService {
 
@@ -50,50 +51,44 @@ class FriendDomainService {
     }
 
     /**
-     * 친구 요청 수락 유효성을 검증합니다.
+     * 친구 요청 생성
      *
-     * @param currentUser 현재 사용자
-     * @param requesterId 요청자 ID
-     * @throws IllegalArgumentException 유효하지 않은 요청인 경우
+     * @param senderId 요청을 보낸 사용자 ID
+     * @param receiverId 요청을 받은 사용자 ID
+     * @return 생성된 친구 요청
      */
-    fun validateFriendAccept(
-        currentUser: User,
-        requesterId: UserId
-    ) {
-        // 친구 요청 존재 여부 확인
-        if (!currentUser.incomingFriendRequestIds.contains(requesterId)) {
-            throw IllegalArgumentException("해당 친구 요청이 존재하지 않습니다.")
-        }
+    fun createFriendRequest(
+        senderId: UserId,
+        receiverId: UserId
+    ): FriendRequest {
+        return FriendRequest.create(senderId, receiverId)
     }
 
     /**
      * 친구 요청 수락 처리를 수행합니다.
      *
-     * @param currentUser 현재 사용자
-     * @param requester 요청자
-     * @param requesterId 요청자 ID
-     * @return 처리 결과 (업데이트된 사용자, 업데이트된 요청자, 이벤트 목록)
+     * @param friendRequest 수락할 친구 요청
+     * @return 처리 결과 (업데이트된 친구 요청, 생성된 친구 관계, 이벤트 목록)
      */
     fun processFriendAccept(
-        currentUser: User,
-        requester: User,
-        requesterId: UserId
+        friendRequest: FriendRequest
     ): FriendAcceptResult {
-        // 도메인 객체의 메서드를 사용하여 친구 요청 수락
-        val updatedCurrentUser = currentUser.acceptFriendRequest(requesterId)
+        // 친구 요청 상태 변경
+        val updatedRequest = friendRequest.accept()
 
-        // 요청자의 친구 목록에도 추가
-        val updatedRequester = requester.addFriend(currentUser.id!!)
+        // 양방향 친구 관계 생성
+        val friendship1 = Friendship.create(friendRequest.receiverId, friendRequest.senderId)
+        val friendship2 = Friendship.create(friendRequest.senderId, friendRequest.receiverId)
 
         // 이벤트 생성 (양쪽 사용자에게 친구 추가 알림)
         val events = listOf(
-            FriendAddedEvent.create(userId = currentUser.id, friendId = requesterId),
-            FriendAddedEvent.create(userId = requesterId, friendId = currentUser.id)
+            FriendAddedEvent.create(userId = friendRequest.receiverId, friendId = friendRequest.senderId),
+            FriendAddedEvent.create(userId = friendRequest.senderId, friendId = friendRequest.receiverId)
         )
 
         return FriendAcceptResult(
-            updatedCurrentUser = updatedCurrentUser,
-            updatedRequester = updatedRequester,
+            updatedRequest = updatedRequest,
+            friendships = listOf(friendship1, friendship2),
             events = events
         )
     }
@@ -101,58 +96,85 @@ class FriendDomainService {
     /**
      * 친구 요청 거절 처리를 수행합니다.
      *
-     * @param currentUser 현재 사용자
-     * @param requester 요청자
-     * @param requesterId 요청자 ID
-     * @return 처리 결과 (업데이트된 사용자, 업데이트된 요청자)
+     * @param friendRequest 거절할 친구 요청
+     * @return 처리 결과 (업데이트된 친구 요청)
      */
     fun processFriendReject(
-        currentUser: User,
-        requester: User,
-        requesterId: UserId
+        friendRequest: FriendRequest
     ): FriendRejectResult {
-        // 도메인 객체의 메서드를 사용하여 친구 요청 거절
-        val updatedCurrentUser = currentUser.rejectFriendRequest(requesterId)
-
-        // 요청자의 발신 요청 목록에서도 제거
-        val updatedRequester = requester.cancelFriendRequest(currentUser.id!!)
+        // 친구 요청 상태 변경
+        val updatedRequest = friendRequest.reject()
 
         return FriendRejectResult(
-            updatedCurrentUser = updatedCurrentUser,
-            updatedRequester = updatedRequester
+            updatedRequest = updatedRequest
+        )
+    }
+
+    /**
+     * 친구 요청 취소 처리를 수행합니다.
+     *
+     * @param friendRequest 취소할 친구 요청
+     * @return 처리 결과 (업데이트된 친구 요청)
+     */
+    fun processFriendCancel(
+        friendRequest: FriendRequest
+    ): FriendCancelResult {
+        // 친구 요청 상태 변경
+        val updatedRequest = friendRequest.cancel()
+
+        return FriendCancelResult(
+            updatedRequest = updatedRequest
         )
     }
 
     /**
      * 친구 관계 제거 처리를 수행합니다.
      *
-     * @param currentUser 현재 사용자
-     * @param friend 친구 사용자
-     * @param friendId 친구 ID
-     * @return 처리 결과 (업데이트된 사용자, 업데이트된 친구)
+     * @param userId 현재 사용자 ID
+     * @param friendId 제거할 친구 ID
+     * @return 처리 결과 (이벤트 목록)
      */
     fun processFriendRemoval(
-        currentUser: User,
-        friend: User,
+        userId: UserId,
         friendId: UserId
     ): FriendRemovalResult {
-        // 도메인 객체의 메서드를 사용하여 친구 관계 제거
-        val updatedCurrentUser = currentUser.removeFriend(friendId)
-
-        // 친구의 친구 목록에서도 현재 사용자 제거
-        val updatedFriend = friend.removeFriend(currentUser.id!!)
-
         // 이벤트 생성 (양쪽 사용자에게 친구 제거 알림)
         val events = listOf(
-            FriendRemovedEvent.create(userId = currentUser.id, friendId = friendId),
-            FriendRemovedEvent.create(userId = friendId, friendId = currentUser.id)
+            FriendRemovedEvent.create(userId = userId, friendId = friendId),
+            FriendRemovedEvent.create(userId = friendId, friendId = userId)
         )
 
-        return FriendRemovalResult(
-            updatedCurrentUser = updatedCurrentUser,
-            updatedFriend = updatedFriend,
-            events = events
-        )
+        return FriendRemovalResult(events = events)
     }
 
 }
+
+/**
+ * 친구 요청 수락 결과
+ */
+data class FriendAcceptResult(
+    val updatedRequest: FriendRequest,
+    val friendships: List<Friendship>,
+    val events: List<FriendAddedEvent>
+)
+
+/**
+ * 친구 요청 거절 결과
+ */
+data class FriendRejectResult(
+    val updatedRequest: FriendRequest
+)
+
+/**
+ * 친구 요청 취소 결과
+ */
+data class FriendCancelResult(
+    val updatedRequest: FriendRequest
+)
+
+/**
+ * 친구 관계 제거 결과
+ */
+data class FriendRemovalResult(
+    val events: List<FriendRemovedEvent>
+)

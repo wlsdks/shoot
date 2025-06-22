@@ -57,7 +57,7 @@ class ManageUserCodeService(
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
 
         // 새로운 랜덤 코드 생성
-        val randomCode = UserCode.generate()
+        val randomCode = user.generateUserCode()
 
         // 유저 코드 업데이트
         val updatedUser = user.copy(id = user.id, userCode = randomCode)

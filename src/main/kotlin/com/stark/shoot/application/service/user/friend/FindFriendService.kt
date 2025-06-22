@@ -3,13 +3,18 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.friend.FriendRequestPort
+import com.stark.shoot.application.port.out.user.friend.FriendshipPort
+import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 @UseCase
 class FindFriendService(
-    private val findUserPort: FindUserPort
+    private val findUserPort: FindUserPort,
+    private val friendshipPort: FriendshipPort,
+    private val friendRequestPort: FriendRequestPort
 ) : FindFriendUseCase {
 
     /**
@@ -21,12 +26,17 @@ class FindFriendService(
     override fun getFriends(
         currentUserId: UserId
     ): List<FriendResponse> {
-        // 현재 사용자 조회 (친구 관계 정보 포함)
-        val user = findUserPort.findUserWithFriendshipsById(currentUserId)
-            ?: throw ResourceNotFoundException("User not found")
+        // 사용자 존재 여부 확인
+        if (!findUserPort.existsById(currentUserId)) {
+            throw ResourceNotFoundException("User not found: $currentUserId")
+        }
 
-        // 친구 목록은 도메인 User 객체의 friendIds 필드로 관리한다고 가정합니다.
-        return user.friendIds.map { friendId ->
+        // 친구 관계 조회
+        val friendships = friendshipPort.findAllFriendships(currentUserId)
+
+        // 친구 정보 조회 및 응답 생성
+        return friendships.map { friendship ->
+            val friendId = friendship.friendId
             val friend = findUserPort.findUserById(friendId)
                 ?: throw ResourceNotFoundException("Friend not found: $friendId")
 
@@ -48,12 +58,20 @@ class FindFriendService(
     override fun getIncomingFriendRequests(
         currentUserId: UserId
     ): List<FriendResponse> {
-        // 현재 사용자 조회 (친구 요청 정보 포함)
-        val user = findUserPort.findUserWithFriendRequestsById(currentUserId)
-            ?: throw ResourceNotFoundException("User not found")
+        // 사용자 존재 여부 확인
+        if (!findUserPort.existsById(currentUserId)) {
+            throw ResourceNotFoundException("User not found: $currentUserId")
+        }
 
-        // incomingFriendRequestIds는 받은 친구 요청 대상 User ID들의 집합으로 가정합니다.
-        return user.incomingFriendRequestIds.map { requesterId ->
+        // 받은 친구 요청 조회
+        val incomingRequests = friendRequestPort.findAllReceivedRequests(
+            receiverId = currentUserId,
+            status = FriendRequestStatus.PENDING
+        )
+
+        // 요청자 정보 조회 및 응답 생성
+        return incomingRequests.map { request ->
+            val requesterId = request.senderId
             val requester = findUserPort.findUserById(requesterId)
                 ?: throw ResourceNotFoundException("Requester not found: $requesterId")
 
@@ -75,12 +93,20 @@ class FindFriendService(
     override fun getOutgoingFriendRequests(
         currentUserId: UserId
     ): List<FriendResponse> {
-        // 현재 사용자 조회 (친구 요청 정보 포함)
-        val user = findUserPort.findUserWithFriendRequestsById(currentUserId)
-            ?: throw ResourceNotFoundException("User not found")
+        // 사용자 존재 여부 확인
+        if (!findUserPort.existsById(currentUserId)) {
+            throw ResourceNotFoundException("User not found: $currentUserId")
+        }
 
-        // outgoingFriendRequestIds는 보낸 친구 요청 대상 User ID들의 집합으로 가정합니다.
-        return user.outgoingFriendRequestIds.map { targetId ->
+        // 보낸 친구 요청 조회
+        val outgoingRequests = friendRequestPort.findAllSentRequests(
+            senderId = currentUserId,
+            status = FriendRequestStatus.PENDING
+        )
+
+        // 대상자 정보 조회 및 응답 생성
+        return outgoingRequests.map { request ->
+            val targetId = request.receiverId
             val target = findUserPort.findUserById(targetId)
                 ?: throw ResourceNotFoundException("Target not found: $targetId")
 

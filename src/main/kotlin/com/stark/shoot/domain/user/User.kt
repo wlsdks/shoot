@@ -1,13 +1,7 @@
 package com.stark.shoot.domain.user
 
-import com.stark.shoot.domain.user.vo.UserId
-import com.stark.shoot.domain.user.vo.Username
-import com.stark.shoot.domain.user.vo.Nickname
-import com.stark.shoot.domain.user.vo.UserCode
-import com.stark.shoot.domain.user.vo.ProfileImageUrl
-import com.stark.shoot.domain.user.vo.BackgroundImageUrl
-import com.stark.shoot.domain.user.vo.UserBio
 import com.stark.shoot.domain.user.type.UserStatus
+import com.stark.shoot.domain.user.vo.*
 import com.stark.shoot.infrastructure.exception.InvalidUserDataException
 import java.time.Instant
 
@@ -27,12 +21,6 @@ data class User(
     var bio: UserBio? = null,
     var isDeleted: Boolean = false,
     var updatedAt: Instant? = null,
-
-    // 소셜 기능 관련 필드 (필요시 사용)
-    var friendIds: Set<UserId> = emptySet(),                 // 이미 친구인 사용자들의 id 목록
-    var incomingFriendRequestIds: Set<UserId> = emptySet(),  // 받은 친구 요청의 사용자 id 목록
-    var outgoingFriendRequestIds: Set<UserId> = emptySet(),  // 보낸 친구 요청의 사용자 id 목록
-    var blockedUserIds: Set<UserId> = emptySet(),             // 차단한 사용자 id 목록
 ) {
 
     companion object {
@@ -72,16 +60,6 @@ data class User(
         }
 
         /**
-         * 사용자 코드 생성
-         *
-         * @return 생성된 8자리 사용자 코드
-         */
-        private fun generateUserCode(): UserCode {
-            return UserCode.generate()
-        }
-
-
-        /**
          * 비밀번호 유효성 검증
          *
          * @param password 검증할 비밀번호
@@ -98,84 +76,12 @@ data class User(
     }
 
     /**
-     * 친구 추가
+     * 사용자 코드 생성
      *
-     * @param friendId 추가할 친구 ID
-     * @return 업데이트된 User 객체
+     * @return 생성된 8자리 사용자 코드
      */
-    fun addFriend(friendId: UserId): User {
-        val updatedFriendIds = this.friendIds.toMutableSet()
-        updatedFriendIds.add(friendId)
-
-        val updatedOutgoingRequests = this.outgoingFriendRequestIds.toMutableSet()
-        updatedOutgoingRequests.remove(friendId)
-
-        val updatedIncomingRequests = this.incomingFriendRequestIds.toMutableSet()
-        updatedIncomingRequests.remove(friendId)
-
-        return this.copy(
-            friendIds = updatedFriendIds,
-            outgoingFriendRequestIds = updatedOutgoingRequests,
-            incomingFriendRequestIds = updatedIncomingRequests,
-            updatedAt = Instant.now()
-        )
-    }
-
-    /**
-     * 받은 친구 요청 수락
-     *
-     * @param userId 수락할 친구 요청의 사용자 ID
-     * @return 업데이트된 User 객체
-     */
-    fun acceptFriendRequest(userId: UserId): User {
-        // 요청이 없는 경우 처리
-        if (!incomingFriendRequestIds.contains(userId)) {
-            return this
-        }
-
-        val updatedFriendIds = this.friendIds.toMutableSet()
-        updatedFriendIds.add(userId)
-
-        val updatedIncomingRequests = this.incomingFriendRequestIds.toMutableSet()
-        updatedIncomingRequests.remove(userId)
-
-        return this.copy(
-            friendIds = updatedFriendIds,
-            incomingFriendRequestIds = updatedIncomingRequests,
-            updatedAt = Instant.now()
-        )
-    }
-
-    /**
-     * 받은 친구 요청 거절
-     *
-     * @param userId 거절할 친구 요청의 사용자 ID
-     * @return 업데이트된 User 객체
-     */
-    fun rejectFriendRequest(userId: UserId): User {
-        val updatedIncomingRequests = this.incomingFriendRequestIds.toMutableSet()
-        updatedIncomingRequests.remove(userId)
-
-        return this.copy(
-            incomingFriendRequestIds = updatedIncomingRequests,
-            updatedAt = Instant.now()
-        )
-    }
-
-    /**
-     * 보낸 친구 요청 취소
-     *
-     * @param userId 취소할 친구 요청의 사용자 ID
-     * @return 업데이트된 User 객체
-     */
-    fun cancelFriendRequest(userId: UserId): User {
-        val updatedOutgoingRequests = this.outgoingFriendRequestIds.toMutableSet()
-        updatedOutgoingRequests.remove(userId)
-
-        return this.copy(
-            outgoingFriendRequestIds = updatedOutgoingRequests,
-            updatedAt = Instant.now()
-        )
+    fun generateUserCode(): UserCode {
+        return UserCode.generate()
     }
 
     /**
@@ -187,70 +93,6 @@ data class User(
         return this.copy(
             isDeleted = true,
             status = UserStatus.OFFLINE,
-            updatedAt = Instant.now()
-        )
-    }
-
-    /**
-     * 친구 제거
-     *
-     * @param friendId 제거할 친구 ID
-     * @return 업데이트된 User 객체
-     */
-    fun removeFriend(friendId: UserId): User {
-        // 친구 목록에서 제거
-        val updatedFriendIds = this.friendIds.toMutableSet()
-        updatedFriendIds.remove(friendId)
-
-        return this.copy(
-            friendIds = updatedFriendIds,
-            updatedAt = Instant.now()
-        )
-    }
-
-    /**
-     * 사용자를 차단합니다.
-     * 친구 관계와 친구 요청을 모두 제거합니다.
-     */
-    fun blockUser(userId: UserId): User {
-        if (blockedUserIds.contains(userId)) {
-            return this
-        }
-
-        val updatedBlocked = this.blockedUserIds.toMutableSet()
-        updatedBlocked.add(userId)
-
-        val updatedFriends = this.friendIds.toMutableSet()
-        updatedFriends.remove(userId)
-
-        val updatedOutgoing = this.outgoingFriendRequestIds.toMutableSet()
-        updatedOutgoing.remove(userId)
-
-        val updatedIncoming = this.incomingFriendRequestIds.toMutableSet()
-        updatedIncoming.remove(userId)
-
-        return this.copy(
-            blockedUserIds = updatedBlocked,
-            friendIds = updatedFriends,
-            outgoingFriendRequestIds = updatedOutgoing,
-            incomingFriendRequestIds = updatedIncoming,
-            updatedAt = Instant.now()
-        )
-    }
-
-    /**
-     * 차단을 해제합니다.
-     */
-    fun unblockUser(userId: UserId): User {
-        if (!blockedUserIds.contains(userId)) {
-            return this
-        }
-
-        val updatedBlocked = this.blockedUserIds.toMutableSet()
-        updatedBlocked.remove(userId)
-
-        return this.copy(
-            blockedUserIds = updatedBlocked,
             updatedAt = Instant.now()
         )
     }

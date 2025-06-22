@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.FriendRequestPort
-import com.stark.shoot.domain.user.service.FriendDomainService
+import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -52,12 +52,9 @@ class FriendRequestService(
             throw InvalidInputException(e.message ?: "친구 요청 유효성 검증 실패")
         }
 
-        // 이미 대기 중인 요청이 존재하는지 확인
-        val pendingRequest = friendRequestPort.findRequest(
-            senderId = currentUserId,
-            receiverId = targetUserId,
-            status = FriendRequestStatus.PENDING
-        )
+        // 친구 요청 애그리게이트 생성 및 저장
+        val request = FriendRequest(senderId = currentUserId, receiverId = targetUserId)
+        friendRequestPort.saveFriendRequest(request)
 
         if (pendingRequest != null) {
             // 이미 대기 중인 요청이 있으면 그대로 반환
@@ -111,8 +108,8 @@ class FriendRequestService(
         val friendRequest = friendRequestPort.findRequest(currentUserId, targetUserId)
             ?: throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
 
-        // 친구 요청 취소 처리
-        val updatedRequest = friendRequest.cancel()
+        // 요청 상태를 취소로 변경
+        friendRequestPort.updateStatus(currentUserId, targetUserId, FriendRequestStatus.CANCELLED)
 
         // 친구 요청 업데이트
         friendRequestPort.updateRequest(updatedRequest)

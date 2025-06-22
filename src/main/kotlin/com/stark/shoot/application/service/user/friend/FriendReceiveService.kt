@@ -5,6 +5,10 @@ import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.FriendRequestPort
 import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
+import com.stark.shoot.application.port.out.user.friend.FriendRequestPort
+import com.stark.shoot.domain.user.type.FriendRequestStatus
+import com.stark.shoot.domain.user.User
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.service.FriendRejectResult
 import com.stark.shoot.domain.user.type.FriendRequestStatus
@@ -53,8 +57,10 @@ class FriendReceiveService(
         // 도메인 서비스를 사용하여 친구 요청 수락 처리
         val result = friendDomainService.processFriendAccept(friendRequest)
 
-        // 친구 요청 업데이트
-        friendRequestPort.updateRequest(result.updatedRequest)
+        // 친구 요청 상태 업데이트
+        friendRequestPort.updateStatus(requesterId, currentUserId, FriendRequestStatus.ACCEPTED)
+        updateFriendPort.addFriendRelation(currentUserId, requesterId)
+        updateFriendPort.addFriendRelation(requesterId, currentUserId)
 
         // 친구 관계 생성
         result.friendships.forEach { friendship ->
@@ -95,8 +101,8 @@ class FriendReceiveService(
             status = FriendRequestStatus.PENDING
         ) ?: throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
 
-        // 친구 요청 거절 처리
-        val updatedRequest = friendRequest.reject()
+        // 친구 요청 상태 업데이트
+        friendRequestPort.updateStatus(requesterId, currentUserId, FriendRequestStatus.REJECTED)
 
         // 친구 요청 업데이트
         friendRequestPort.updateRequest(updatedRequest)

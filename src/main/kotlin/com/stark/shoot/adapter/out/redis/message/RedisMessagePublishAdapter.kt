@@ -5,8 +5,8 @@ import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.out.message.PublishMessagePort
 import com.stark.shoot.infrastructure.annotation.Adapter
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.connection.stream.StreamRecords
+import org.springframework.data.redis.core.StringRedisTemplate
 
 @Adapter
 class RedisMessagePublishAdapter(

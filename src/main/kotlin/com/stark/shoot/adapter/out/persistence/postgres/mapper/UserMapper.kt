@@ -37,10 +37,6 @@ class UserMapper {
             isDeleted = userEntity.isDeleted,
             createdAt = userEntity.createdAt,
             updatedAt = userEntity.updatedAt,
-            friendIds = emptySet(),
-            incomingFriendRequestIds = emptySet(),
-            outgoingFriendRequestIds = emptySet(),
-            blockedUserIds = emptySet(),
             userCode = UserCode.from(userEntity.userCode)
         )
     }

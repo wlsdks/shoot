@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend
 
-import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendRequestEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendshipMappingEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
@@ -9,7 +8,6 @@ import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import java.time.Instant
 
 @Adapter
@@ -19,53 +17,6 @@ class FriendPersistenceAdapter(
     private val friendshipMappingRepository: FriendshipMappingRepository
 ) : UpdateFriendPort {
 
-    /**
-     * 친구 요청을 추가합니다.
-     * @param userId 요청을 보낸 사용자 ID
-     * @param targetUserId 요청을 받은 사용자 ID
-     */
-    override fun addOutgoingFriendRequest(
-        userId: UserId,
-        targetUserId: UserId
-    ) {
-        val sender = userRepository.findById(userId.value)
-            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${userId.value}") }
-
-        val receiver = userRepository.findById(targetUserId.value)
-            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${targetUserId.value}") }
-
-        // 이미 대기 중인 요청이 존재하는지 확인
-        if (friendRequestRepository.existsBySenderIdAndReceiverIdAndStatus(
-                userId.value,
-                targetUserId.value,
-                FriendRequestStatus.PENDING
-            )
-        ) {
-            return // 이미 대기 중인 요청이 있으면 중복 생성하지 않음
-        }
-
-        // 취소되거나 거절된 요청이 있는지 확인하고 상태를 업데이트
-        val existingRequests = friendRequestRepository
-            .findAllBySenderIdAndReceiverId(userId.value, targetUserId.value)
-
-        if (existingRequests.isNotEmpty()) {
-            // 기존 요청의 상태를 PENDING으로 변경
-            for (entity in existingRequests) {
-                entity.status = FriendRequestStatus.PENDING
-                entity.respondedAt = null
-                friendRequestRepository.save(entity)
-            }
-            return
-        }
-
-        // 새로운 친구 요청 생성 및 저장
-        val request = FriendRequestEntity(
-            sender = sender,
-            receiver = receiver,
-            status = FriendRequestStatus.PENDING
-        )
-        friendRequestRepository.save(request)
-    }
 
     override fun removeOutgoingFriendRequest(
         userId: UserId,
@@ -101,16 +52,14 @@ class FriendPersistenceAdapter(
         userId: UserId,
         friendId: UserId
     ) {
-        val user = userRepository.findById(userId.value)
-            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${userId.value}") }
-
-        val friend = userRepository.findById(friendId.value)
-            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendId.value}") }
-
         // 이미 친구 관계가 존재하는지 확인
         if (friendshipMappingRepository.existsByUserIdAndFriendId(userId.value, friendId.value)) {
             return // 이미 친구 관계면 중복 생성하지 않음
         }
+
+        // 애플리케이션 서비스에서 이미 사용자 존재 여부를 확인했으므로 여기서는 존재한다고 가정
+        val user = userRepository.getReferenceById(userId.value)
+        val friend = userRepository.getReferenceById(friendId.value)
 
         // 새로운 친구 관계 생성 및 저장
         val friendship = FriendshipMappingEntity(user, friend)

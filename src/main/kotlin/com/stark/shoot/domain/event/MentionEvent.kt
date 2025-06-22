@@ -1,10 +1,10 @@
 package com.stark.shoot.domain.event
 
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.user.vo.UserId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.chat.message.vo.MessageId
 import java.time.Instant
 
 class MentionEvent(
@@ -21,7 +21,7 @@ class MentionEvent(
     id = id,
     timestamp = timestamp,
     type = NotificationType.MENTION,
-    sourceId = messageId,
+    sourceId = messageId.value,
     sourceType = SourceType.CHAT,
     metadata = metadata
 ) {

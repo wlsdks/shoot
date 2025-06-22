@@ -112,100 +112,41 @@ class FindUserPersistenceAdapter(
 
     /**
      * 친구 관계 정보를 포함한 사용자 조회
+     * 
+     * 참고: 이 메서드는 더 이상 User 객체에 친구 ID를 설정하지 않습니다.
+     * 대신 FriendshipPort를 사용하여 친구 관계를 조회하세요.
      */
     override fun findUserWithFriendshipsById(userId: UserId): User? {
         val userEntity = userRepository.findById(userId.value)
             .orElse(null) ?: return null
 
-        val user = userMapper.toDomain(userEntity)
-
-        // 내가 친구로 추가한 사용자들 (정방향 친구 관계)
-        val outgoingFriendIds = friendshipMappingRepository.findAllByUserId(userId.value)
-            .map { it.friend.id }
-            .toSet()
-
-        // 나를 친구로 추가한 사용자들 (역방향 친구 관계)
-        val incomingFriendIds = friendshipMappingRepository.findAllByFriendId(userId.value)
-            .map { it.user.id }
-            .toSet()
-
-        // 양방향 친구 관계를 합쳐서 전체 친구 목록 생성
-        val allFriendIds = outgoingFriendIds.union(incomingFriendIds)
-
-        // 도메인 객체에 친구 ID 설정
-        user.friendIds = allFriendIds.map { UserId.from(it) }.toSet()
-
-        return user
+        return userMapper.toDomain(userEntity)
     }
 
     /**
      * 친구 요청 정보를 포함한 사용자 조회
+     * 
+     * 참고: 이 메서드는 더 이상 User 객체에 친구 요청 ID를 설정하지 않습니다.
+     * 대신 FriendRequestPort를 사용하여 친구 요청을 조회하세요.
      */
     override fun findUserWithFriendRequestsById(userId: UserId): User? {
         val userEntity = userRepository.findById(userId.value)
             .orElse(null) ?: return null
 
-        val user = userMapper.toDomain(userEntity)
-
-        // 받은 친구 요청 조회
-        val incomingRequestIds = friendRequestRepository
-            .findAllByReceiverIdAndStatus(userId.value, FriendRequestStatus.PENDING)
-            .map { it.sender.id }
-            .toSet()
-
-        // 보낸 친구 요청 조회
-        val outgoingRequestIds = friendRequestRepository
-            .findAllBySenderIdAndStatus(userId.value, FriendRequestStatus.PENDING)
-            .map { it.receiver.id }
-            .toSet()
-
-        // 도메인 객체에 요청 ID 설정
-        user.incomingFriendRequestIds = incomingRequestIds.map { UserId.from(it) }.toSet()
-        user.outgoingFriendRequestIds = outgoingRequestIds.map { UserId.from(it) }.toSet()
-
-        return user
+        return userMapper.toDomain(userEntity)
     }
 
     /**
      * 모든 관계 정보를 포함한 사용자 조회
+     * 
+     * 참고: 이 메서드는 더 이상 User 객체에 관계 정보를 설정하지 않습니다.
+     * 대신 FriendshipPort와 FriendRequestPort를 사용하여 관계 정보를 조회하세요.
      */
     override fun findUserWithAllRelationshipsById(userId: UserId): User? {
         val userEntity = userRepository.findById(userId.value)
             .orElse(null) ?: return null
 
-        val user = userMapper.toDomain(userEntity)
-
-        // 내가 친구로 추가한 사용자들 (정방향 친구 관계)
-        val outgoingFriendIds = friendshipMappingRepository.findAllByUserId(userId.value)
-            .map { it.friend.id }
-            .toSet()
-
-        // 나를 친구로 추가한 사용자들 (역방향 친구 관계)
-        val incomingFriendIds = friendshipMappingRepository.findAllByFriendId(userId.value)
-            .map { it.user.id }
-            .toSet()
-
-        // 양방향 친구 관계를 합쳐서 전체 친구 목록 생성
-        val allFriendIds = outgoingFriendIds.union(incomingFriendIds)
-
-        // 받은 친구 요청 조회
-        val incomingRequestIds = friendRequestRepository
-            .findAllByReceiverIdAndStatus(userId.value, FriendRequestStatus.PENDING)
-            .map { it.sender.id }
-            .toSet()
-
-        // 보낸 친구 요청 조회
-        val outgoingRequestIds = friendRequestRepository
-            .findAllBySenderIdAndStatus(userId.value, FriendRequestStatus.PENDING)
-            .map { it.receiver.id }
-            .toSet()
-
-        // 도메인 객체에 관계 정보 설정
-        user.friendIds = allFriendIds.map { UserId.from(it) }.toSet()
-        user.incomingFriendRequestIds = incomingRequestIds.map { UserId.from(it) }.toSet()
-        user.outgoingFriendRequestIds = outgoingRequestIds.map { UserId.from(it) }.toSet()
-
-        return user
+        return userMapper.toDomain(userEntity)
     }
 
     /**

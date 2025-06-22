@@ -1,11 +1,11 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.document.notification
 
 import com.stark.shoot.domain.notification.Notification
-import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
-import com.stark.shoot.domain.notification.vo.NotificationTitle
+import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.domain.notification.vo.NotificationMessage
+import com.stark.shoot.domain.notification.vo.NotificationTitle
 import com.stark.shoot.domain.user.vo.UserId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed

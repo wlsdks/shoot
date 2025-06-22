@@ -1,9 +1,9 @@
 package com.stark.shoot.domain.chat.user
 
-import org.assertj.core.api.Assertions.assertThat
 import com.stark.shoot.domain.chat.user.RefreshTokenValue
 import com.stark.shoot.domain.user.RefreshToken
 import com.stark.shoot.domain.user.vo.UserId
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

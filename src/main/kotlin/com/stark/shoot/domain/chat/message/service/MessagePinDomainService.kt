@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.chat.message.service
 
-import com.stark.shoot.domain.event.MessagePinEvent
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.event.MessagePinEvent
 import com.stark.shoot.domain.user.vo.UserId
 
 /**

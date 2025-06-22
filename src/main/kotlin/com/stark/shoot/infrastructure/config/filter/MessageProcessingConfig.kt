@@ -1,8 +1,8 @@
 package com.stark.shoot.infrastructure.config.filter
 
+import com.stark.shoot.application.filter.common.MessageProcessingFilter
 import com.stark.shoot.application.filter.message.chain.DefaultMessageProcessingChain
 import com.stark.shoot.application.filter.message.impl.*
-import com.stark.shoot.application.filter.common.MessageProcessingFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 

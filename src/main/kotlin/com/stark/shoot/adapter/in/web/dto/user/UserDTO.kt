@@ -27,8 +27,6 @@ data class UpdateProfileRequest(
 
 data class SetProfileImageRequest(val profileImageUrl: String)
 data class SetBackgroundImageRequest(val backgroundImageUrl: String)
-data class FindUserRequest(val query: String) // username 또는 userCode로 검색
-data class FriendRequest(val targetUserId: String)
 
 data class UpdateStatusRequest(
     val userId: String, // 추가

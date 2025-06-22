@@ -2,11 +2,11 @@ package com.stark.shoot.adapter.out.persistence.postgres.mapper
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomUserEntity
+import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.vo.ChatRoomAnnouncement
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
-import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.user.vo.UserId
 import org.springframework.stereotype.Component
 

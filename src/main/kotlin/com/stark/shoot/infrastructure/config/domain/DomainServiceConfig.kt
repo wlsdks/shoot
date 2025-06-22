@@ -1,14 +1,10 @@
 package com.stark.shoot.infrastructure.config.domain
 
+import com.stark.shoot.domain.chat.message.service.*
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
-import com.stark.shoot.domain.notification.service.NotificationDomainService
 import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
 import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
-import com.stark.shoot.domain.chat.message.service.MessageDomainService
-import com.stark.shoot.domain.chat.message.service.MessageEditDomainService
-import com.stark.shoot.domain.chat.message.service.MessageForwardDomainService
-import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
-import com.stark.shoot.domain.chat.message.service.MessageReactionService
+import com.stark.shoot.domain.notification.service.NotificationDomainService
 import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.service.block.UserBlockDomainService
 import com.stark.shoot.domain.user.service.group.FriendGroupDomainService

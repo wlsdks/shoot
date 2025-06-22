@@ -4,9 +4,9 @@ import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.ScheduledMessageDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
-import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.domain.chat.message.type.ScheduledMessageStatus
+import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.infrastructure.util.toObjectId
 import org.springframework.stereotype.Component

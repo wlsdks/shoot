@@ -2,7 +2,7 @@ package com.stark.shoot.application.service.user.profile
 
 import com.stark.shoot.application.port.`in`.user.profile.UserStatusUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.UserUpdatePort
+import com.stark.shoot.application.port.out.user.UserCommandPort
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.UserId
@@ -15,7 +15,7 @@ import java.time.Instant
 @Transactional
 @UseCase
 class UserStatusService(
-    private val userUpdatePort: UserUpdatePort,
+    private val userCommandPort: UserCommandPort,
     private val findUserPort: FindUserPort
 ) : UserStatusUseCase {
 
@@ -50,7 +50,7 @@ class UserStatusService(
         )
 
         // 변경된 사용자 정보 저장
-        return userUpdatePort.updateUser(updatedUser)
+        return userCommandPort.updateUser(updatedUser)
     }
 
 }

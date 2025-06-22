@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.user
 
 import com.stark.shoot.application.port.`in`.user.UserDeleteUseCase
-import com.stark.shoot.application.port.out.user.UserDeletePort
+import com.stark.shoot.application.port.out.user.UserCommandPort
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import org.springframework.transaction.annotation.Transactional
@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @UseCase
 class UserDeleteService(
-    private val userDeletePort: UserDeletePort
+    private val userCommandPort: UserCommandPort
 ) : UserDeleteUseCase {
 
     /**
@@ -18,7 +18,7 @@ class UserDeleteService(
      * @param userId 사용자 ID
      */
     override fun deleteUser(userId: UserId) {
-        userDeletePort.deleteUser(userId)
+        userCommandPort.deleteUser(userId)
     }
 
 }

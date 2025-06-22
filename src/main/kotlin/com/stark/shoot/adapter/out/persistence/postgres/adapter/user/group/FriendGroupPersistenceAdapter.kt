@@ -6,9 +6,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.mapper.FriendGroupMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendGroupMemberRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendGroupRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
-import com.stark.shoot.application.port.out.user.group.DeleteFriendGroupPort
-import com.stark.shoot.application.port.out.user.group.LoadFriendGroupPort
-import com.stark.shoot.application.port.out.user.group.SaveFriendGroupPort
+import com.stark.shoot.application.port.out.user.group.FriendGroupPort
 import com.stark.shoot.domain.user.FriendGroup
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
@@ -20,7 +18,7 @@ class FriendGroupPersistenceAdapter(
     private val memberRepository: FriendGroupMemberRepository,
     private val userRepository: UserRepository,
     private val mapper: FriendGroupMapper,
-) : SaveFriendGroupPort, LoadFriendGroupPort, DeleteFriendGroupPort {
+) : FriendGroupPort {
 
     override fun save(group: FriendGroup): FriendGroup {
         val ownerEntity = userRepository.findById(group.ownerId.value)

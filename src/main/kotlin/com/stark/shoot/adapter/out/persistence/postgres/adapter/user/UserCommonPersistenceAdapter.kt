@@ -2,9 +2,7 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.user
 
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
-import com.stark.shoot.application.port.out.user.UserCreatePort
-import com.stark.shoot.application.port.out.user.UserDeletePort
-import com.stark.shoot.application.port.out.user.UserUpdatePort
+import com.stark.shoot.application.port.out.user.UserCommandPort
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
@@ -13,7 +11,7 @@ import com.stark.shoot.infrastructure.annotation.Adapter
 class UserCommonPersistenceAdapter(
     private val userRepository: UserRepository,
     private val userMapper: UserMapper
-) : UserCreatePort, UserDeletePort, UserUpdatePort {
+) : UserCommandPort {
 
     /**
      * 사용자 생성

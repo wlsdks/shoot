@@ -3,13 +3,16 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendRequestEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
+import com.stark.shoot.application.port.out.user.friend.FriendRequestCommandPort
 import com.stark.shoot.application.port.out.user.friend.FriendRequestPort
+import com.stark.shoot.application.port.out.user.friend.FriendRequestQueryPort
 import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.FriendRequestId
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import java.time.Instant
 
 @Adapter
 class FriendRequestAdapter(
@@ -92,18 +95,30 @@ class FriendRequestAdapter(
         return mapToDomain(savedEntity)
     }
 
-    override fun updateRequest(friendRequest: FriendRequest): FriendRequest {
-        val entity = friendRequest.id?.let {
-            friendRequestRepository.findById(it.value).orElseThrow {
-                ResourceNotFoundException("친구 요청을 찾을 수 없습니다: $it")
-            }
-        } ?: throw IllegalArgumentException("친구 요청 ID가 없습니다.")
+    override fun saveFriendRequest(request: FriendRequest) {
+        val sender = userRepository.findById(request.senderId.value)
+            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${'$'}{request.senderId.value}") }
 
-        entity.status = friendRequest.status
-        entity.respondedAt = friendRequest.respondedAt
+        val receiver = userRepository.findById(request.receiverId.value)
+            .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${'$'}{request.receiverId.value}") }
 
-        val savedEntity = friendRequestRepository.save(entity)
-        return mapToDomain(savedEntity)
+        val entity = FriendRequestEntity(sender, receiver, request.status)
+        friendRequestRepository.save(entity)
+    }
+
+    override fun updateStatus(
+        senderId: UserId,
+        receiverId: UserId,
+        status: FriendRequestStatus
+    ) {
+        val requests = friendRequestRepository
+            .findAllBySenderIdAndReceiverId(senderId.value, receiverId.value)
+
+        for (entity in requests) {
+            entity.status = status
+            entity.respondedAt = Instant.now()
+            friendRequestRepository.save(entity)
+        }
     }
 
     private fun mapToDomain(entity: FriendRequestEntity): FriendRequest {

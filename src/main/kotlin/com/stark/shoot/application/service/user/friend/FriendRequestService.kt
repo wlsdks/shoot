@@ -2,8 +2,9 @@ package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.friend.FriendRequestPort
+import com.stark.shoot.application.port.out.user.friend.FriendRequestCommandPort
 import com.stark.shoot.domain.user.FriendRequest
+import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -15,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class FriendRequestService(
     private val findUserPort: FindUserPort,
-    private val friendRequestPort: FriendRequestPort,
+    private val friendRequestCommandPort: FriendRequestCommandPort,
     private val friendDomainService: FriendDomainService,
     private val friendCacheManager: FriendCacheManager
 ) : FriendRequestUseCase {
@@ -54,33 +55,7 @@ class FriendRequestService(
 
         // 친구 요청 애그리게이트 생성 및 저장
         val request = FriendRequest(senderId = currentUserId, receiverId = targetUserId)
-        friendRequestPort.saveFriendRequest(request)
-
-        if (pendingRequest != null) {
-            // 이미 대기 중인 요청이 있으면 그대로 반환
-            return
-        }
-
-        // 취소되거나 거절된 요청이 있는지 확인
-        val existingRequest = friendRequestPort.findRequest(
-            senderId = currentUserId,
-            receiverId = targetUserId
-        )
-
-        if (existingRequest != null) {
-            // 기존 요청의 상태를 PENDING으로 변경
-            val updatedRequest = existingRequest.copy(
-                status = FriendRequestStatus.PENDING,
-                respondedAt = null
-            )
-            friendRequestPort.updateRequest(updatedRequest)
-        } else {
-            // 도메인 서비스를 사용하여 친구 요청 생성
-            val friendRequest = friendDomainService.createFriendRequest(currentUserId, targetUserId)
-
-            // 친구 요청 저장
-            friendRequestPort.createRequest(friendRequest)
-        }
+        friendRequestCommandPort.saveFriendRequest(request)
 
         // 캐시 무효화 (FriendCacheManager 사용)
         friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)
@@ -105,14 +80,12 @@ class FriendRequestService(
         }
 
         // 친구 요청 존재 여부 확인
-        val friendRequest = friendRequestPort.findRequest(currentUserId, targetUserId)
-            ?: throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
+        if (!findUserPort.checkOutgoingFriendRequest(currentUserId, targetUserId)) {
+            throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
+        }
 
         // 요청 상태를 취소로 변경
-        friendRequestPort.updateStatus(currentUserId, targetUserId, FriendRequestStatus.CANCELLED)
-
-        // 친구 요청 업데이트
-        friendRequestPort.updateRequest(updatedRequest)
+        friendRequestCommandPort.updateStatus(currentUserId, targetUserId, FriendRequestStatus.CANCELLED)
 
         // 캐시 무효화 (FriendCacheManager 사용)
         friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)

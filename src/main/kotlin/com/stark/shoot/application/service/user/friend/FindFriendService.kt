@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.friend.FriendRequestPort
+import com.stark.shoot.application.port.out.user.friend.FriendRequestQueryPort
 import com.stark.shoot.application.port.out.user.friend.FriendshipPort
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
@@ -14,7 +14,7 @@ import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 class FindFriendService(
     private val findUserPort: FindUserPort,
     private val friendshipPort: FriendshipPort,
-    private val friendRequestPort: FriendRequestPort
+    private val friendRequestQueryPort: FriendRequestQueryPort
 ) : FindFriendUseCase {
 
     /**
@@ -64,7 +64,7 @@ class FindFriendService(
         }
 
         // 받은 친구 요청 조회
-        val incomingRequests = friendRequestPort.findAllReceivedRequests(
+        val incomingRequests = friendRequestQueryPort.findAllReceivedRequests(
             receiverId = currentUserId,
             status = FriendRequestStatus.PENDING
         )
@@ -99,7 +99,7 @@ class FindFriendService(
         }
 
         // 보낸 친구 요청 조회
-        val outgoingRequests = friendRequestPort.findAllSentRequests(
+        val outgoingRequests = friendRequestQueryPort.findAllSentRequests(
             senderId = currentUserId,
             status = FriendRequestStatus.PENDING
         )

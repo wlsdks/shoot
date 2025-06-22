@@ -2,7 +2,7 @@ package com.stark.shoot.application.service.user.profile
 
 import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.UserUpdatePort
+import com.stark.shoot.application.port.out.user.UserCommandPort
 import com.stark.shoot.application.port.out.user.code.UpdateUserCodePort
 import com.stark.shoot.domain.user.vo.UserCode
 import com.stark.shoot.domain.user.vo.UserId
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 class ManageUserCodeService(
     private val findUserPort: FindUserPort,
     private val updateUserCodePort: UpdateUserCodePort,
-    private val userUpdatePort: UserUpdatePort
+    private val userCommandPort: UserCommandPort
 ) : ManageUserCodeUseCase {
 
     /**
@@ -61,7 +61,7 @@ class ManageUserCodeService(
 
         // 유저 코드 업데이트
         val updatedUser = user.copy(id = user.id, userCode = randomCode)
-        userUpdatePort.updateUser(updatedUser)
+        userCommandPort.updateUser(updatedUser)
     }
 
 }

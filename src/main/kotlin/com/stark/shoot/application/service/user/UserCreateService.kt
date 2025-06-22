@@ -2,7 +2,7 @@ package com.stark.shoot.application.service.user
 
 import com.stark.shoot.adapter.`in`.web.dto.user.CreateUserRequest
 import com.stark.shoot.application.port.`in`.user.UserCreateUseCase
-import com.stark.shoot.application.port.out.user.UserCreatePort
+import com.stark.shoot.application.port.out.user.UserCommandPort
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @UseCase
 class UserCreateService(
-    private val userCreatePort: UserCreatePort,
+    private val userCommandPort: UserCommandPort,
     private val passwordEncoder: PasswordEncoder
 ) : UserCreateUseCase {
 
@@ -35,6 +35,6 @@ class UserCreateService(
         )
 
         // 영속성 계층을 통해 사용자 저장
-        return userCreatePort.createUser(user)
+        return userCommandPort.createUser(user)
     }
 }

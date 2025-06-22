@@ -5,7 +5,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.SetProfileImageRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.UpdateProfileRequest
 import com.stark.shoot.application.port.`in`.user.profile.UserUpdateProfileUseCase
 import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.UserUpdatePort
+import com.stark.shoot.application.port.out.user.UserCommandPort
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class UserUpdateProfileService(
     private val findUserPort: FindUserPort,
-    private val userUpdatePort: UserUpdatePort
+    private val userCommandPort: UserCommandPort
 ) : UserUpdateProfileUseCase {
 
     /**
@@ -42,7 +42,7 @@ class UserUpdateProfileService(
             backgroundImageUrl = request.backgroundImageUrl
         )
 
-        return userUpdatePort.updateUser(updatedUser)
+        return userCommandPort.updateUser(updatedUser)
     }
 
     /**
@@ -65,7 +65,7 @@ class UserUpdateProfileService(
             imageUrl = request.profileImageUrl
         )
 
-        return userUpdatePort.updateUser(updatedUser)
+        return userCommandPort.updateUser(updatedUser)
     }
 
     /**
@@ -88,7 +88,7 @@ class UserUpdateProfileService(
             imageUrl = request.backgroundImageUrl
         )
 
-        return userUpdatePort.updateUser(updatedUser)
+        return userCommandPort.updateUser(updatedUser)
     }
 
 }

@@ -2,7 +2,8 @@ package com.stark.shoot.adapter.out.persistence.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.read.ReadStatus
-import com.stark.shoot.application.port.out.message.ReadStatusPort
+import com.stark.shoot.application.port.out.message.ReadStatusCommandPort
+import com.stark.shoot.application.port.out.message.ReadStatusQueryPort
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.user.vo.UserId
@@ -14,7 +15,7 @@ import java.time.Instant
 class RedisReadStatusAdapter(
     private val redisTemplate: StringRedisTemplate,
     private val objectMapper: ObjectMapper
-) : ReadStatusPort {
+) : ReadStatusCommandPort, ReadStatusQueryPort {
 
     companion object {
         private const val KEY_PREFIX = "read:status:"

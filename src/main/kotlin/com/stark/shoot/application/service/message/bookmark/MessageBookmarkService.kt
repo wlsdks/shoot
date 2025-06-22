@@ -1,7 +1,8 @@
 package com.stark.shoot.application.service.message.bookmark
 
 import com.stark.shoot.application.port.`in`.message.bookmark.BookmarkMessageUseCase
-import com.stark.shoot.application.port.out.message.BookmarkMessagePort
+import com.stark.shoot.application.port.out.message.BookmarkMessageCommandPort
+import com.stark.shoot.application.port.out.message.BookmarkMessageQueryPort
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.bookmark.MessageBookmark
 import com.stark.shoot.domain.chat.message.vo.MessageId
@@ -14,7 +15,8 @@ import java.time.Instant
 
 @UseCase
 class MessageBookmarkService(
-    private val bookmarkPort: BookmarkMessagePort,
+    private val bookmarkCommandPort: BookmarkMessageCommandPort,
+    private val bookmarkQueryPort: BookmarkMessageQueryPort,
     private val loadMessagePort: LoadMessagePort,
 ) : BookmarkMessageUseCase {
 
@@ -24,7 +26,7 @@ class MessageBookmarkService(
         messageId: MessageId,
         userId: UserId
     ): MessageBookmark {
-        if (bookmarkPort.exists(messageId, userId)) {
+        if (bookmarkQueryPort.exists(messageId, userId)) {
             logger.debug { "이미 북마크된 메시지입니다: messageId=$messageId, userId=$userId" }
             throw IllegalArgumentException("이미 북마크된 메시지입니다.")
         }
@@ -38,21 +40,21 @@ class MessageBookmarkService(
             createdAt = Instant.now(),
         )
 
-        return bookmarkPort.saveBookmark(bookmark)
+        return bookmarkCommandPort.saveBookmark(bookmark)
     }
 
     override fun removeBookmark(
         messageId: MessageId,
         userId: UserId
     ) {
-        bookmarkPort.deleteBookmark(messageId, userId)
+        bookmarkCommandPort.deleteBookmark(messageId, userId)
     }
 
     override fun getBookmarks(
         userId: UserId,
         roomId: ChatRoomId?,
     ): List<MessageBookmark> {
-        return bookmarkPort.findBookmarksByUser(userId, roomId)
+        return bookmarkQueryPort.findBookmarksByUser(userId, roomId)
     }
 
 }

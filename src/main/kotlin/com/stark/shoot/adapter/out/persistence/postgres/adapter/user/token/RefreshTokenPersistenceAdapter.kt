@@ -4,7 +4,8 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.RefreshTokenEntit
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.RefreshTokenMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.RefreshTokenRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
-import com.stark.shoot.application.port.out.user.token.RefreshTokenPort
+import com.stark.shoot.application.port.out.user.token.RefreshTokenCommandPort
+import com.stark.shoot.application.port.out.user.token.RefreshTokenQueryPort
 import com.stark.shoot.domain.user.RefreshToken
 import com.stark.shoot.domain.user.vo.RefreshTokenValue
 import com.stark.shoot.domain.user.vo.UserId
@@ -19,7 +20,7 @@ class RefreshTokenPersistenceAdapter(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val userRepository: UserRepository,
     private val refreshTokenMapper: RefreshTokenMapper
-) : RefreshTokenPort {
+) : RefreshTokenCommandPort, RefreshTokenQueryPort {
 
     /**
      * 새 리프레시 토큰 생성 및 저장

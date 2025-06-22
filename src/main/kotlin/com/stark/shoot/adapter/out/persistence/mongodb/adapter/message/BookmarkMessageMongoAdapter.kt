@@ -3,7 +3,8 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.bookmark.MessageBookmarkDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMongoRepository
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.MessageBookmarkMongoRepository
-import com.stark.shoot.application.port.out.message.BookmarkMessagePort
+import com.stark.shoot.application.port.out.message.BookmarkMessageCommandPort
+import com.stark.shoot.application.port.out.message.BookmarkMessageQueryPort
 import com.stark.shoot.domain.chat.bookmark.MessageBookmark
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
@@ -15,7 +16,7 @@ import org.bson.types.ObjectId
 class BookmarkMessageMongoAdapter(
     private val bookmarkRepository: MessageBookmarkMongoRepository,
     private val chatMessageRepository: ChatMessageMongoRepository,
-) : BookmarkMessagePort {
+) : BookmarkMessageCommandPort, BookmarkMessageQueryPort {
 
     override fun saveBookmark(bookmark: MessageBookmark): MessageBookmark {
         val document = MessageBookmarkDocument.fromDomain(bookmark)

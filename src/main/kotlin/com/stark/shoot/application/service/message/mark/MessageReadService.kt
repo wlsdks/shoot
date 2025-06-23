@@ -2,7 +2,7 @@ package com.stark.shoot.application.service.message.mark
 
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
-import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.chatroom.ReadStatusPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
 @UseCase
 class MessageReadService(
     private val saveMessagePort: SaveMessagePort,
-    private val loadChatRoomPort: LoadChatRoomPort,
+    private val chatRoomQueryPort: ChatRoomQueryPort,
     private val readStatusPort: ReadStatusPort,
     private val eventPublisher: EventPublisher,
     private val loadMessagePort: LoadMessagePort,
@@ -148,7 +148,7 @@ class MessageReadService(
 
         try {
             // 채팅방 조회 및 사용자 참여 확인
-            val chatRoom = loadChatRoomPort.findById(roomId)
+            val chatRoom = chatRoomQueryPort.findById(roomId)
                 ?: throw ResourceNotFoundException("채팅방을 찾을 수 없습니다. roomId=$roomId")
 
             if (!chatRoom.participants.contains(userId)) {

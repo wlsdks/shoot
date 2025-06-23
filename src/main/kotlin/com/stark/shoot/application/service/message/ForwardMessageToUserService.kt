@@ -1,11 +1,11 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.port.`in`.message.ForwardMessageToUserUseCase
-import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
-import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.event.EventPublisher
-import com.stark.shoot.application.port.out.message.LoadMessagePort
-import com.stark.shoot.application.port.out.message.SaveMessagePort
+import com.stark.shoot.application.port.out.message.MessageCommandPort
+import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageForwardDomainService
@@ -21,10 +21,10 @@ import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 @UseCase
 class ForwardMessageToUserService(
-    private val loadChatRoomPort: LoadChatRoomPort,
-    private val saveChatRoomPort: SaveChatRoomPort,
-    private val loadMessagePort: LoadMessagePort,
-    private val saveMessagePort: SaveMessagePort,
+    private val chatRoomQueryPort: ChatRoomQueryPort,
+    private val chatRoomCommandPort: ChatRoomCommandPort,
+    private val messageQueryPort: MessageQueryPort,
+    private val messageCommandPort: MessageCommandPort,
     private val findUserPort: FindUserPort,
     private val eventPublisher: EventPublisher,
     private val chatRoomEventService: ChatRoomEventService,
@@ -62,7 +62,7 @@ class ForwardMessageToUserService(
         userId: UserId,
         friendId: UserId
     ): ChatRoom {
-        val existingRooms = loadChatRoomPort.findByParticipantId(userId)
+        val existingRooms = chatRoomQueryPort.findByParticipantId(userId)
         val directRoom = chatRoomDomainService.findDirectChatBetween(
             existingRooms,
             userId,
@@ -80,7 +80,7 @@ class ForwardMessageToUserService(
             friendName = friend.nickname.value
         )
 
-        val savedRoom = saveChatRoomPort.save(newChatRoom)
+        val savedRoom = chatRoomCommandPort.save(newChatRoom)
 
         chatRoomEventService.createChatRoomCreatedEvents(savedRoom).forEach { event ->
             eventPublisher.publish(event)
@@ -94,7 +94,7 @@ class ForwardMessageToUserService(
         targetRoomId: ChatRoomId,
         forwardingUserId: UserId
     ): ChatMessage {
-        val originalMessage = loadMessagePort.findById(originalMessageId)
+        val originalMessage = messageQueryPort.findById(originalMessageId)
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$originalMessageId")
 
         val forwardedContent = messageForwardDomainService.createForwardedContent(originalMessage)
@@ -105,7 +105,7 @@ class ForwardMessageToUserService(
             forwardedContent = forwardedContent
         )
 
-        val savedForwardMessage = saveMessagePort.save(forwardedMessage)
+        val savedForwardMessage = messageCommandPort.save(forwardedMessage)
 
         updateChatRoomMetadata(targetRoomId, savedForwardMessage)
 
@@ -116,7 +116,7 @@ class ForwardMessageToUserService(
         targetRoomId: ChatRoomId,
         savedForwardMessage: ChatMessage
     ) {
-        val chatRoom = loadChatRoomPort.findById(targetRoomId)
+        val chatRoom = chatRoomQueryPort.findById(targetRoomId)
             ?: throw ResourceNotFoundException("대상 채팅방을 찾을 수 없습니다. id=$targetRoomId")
 
         val updatedRoom = chatRoomMetadataDomainService.updateChatRoomWithNewMessage(
@@ -124,7 +124,7 @@ class ForwardMessageToUserService(
             message = savedForwardMessage
         )
 
-        saveChatRoomPort.save(updatedRoom)
+        chatRoomCommandPort.save(updatedRoom)
     }
 
 }

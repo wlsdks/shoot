@@ -8,7 +8,7 @@ import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageRes
 import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ScheduledMessageMapper
 import com.stark.shoot.application.port.`in`.message.schedule.ScheduledMessageUseCase
-import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.message.ScheduledMessagePort
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.domain.chat.message.type.MessageType
@@ -24,7 +24,7 @@ import java.time.Instant
 @UseCase
 class ScheduledMessageService(
     private val scheduledMessagePort: ScheduledMessagePort,
-    private val loadChatRoomPort: LoadChatRoomPort,
+    private val chatRoomQueryPort: ChatRoomQueryPort,
     private val scheduledMessageMapper: ScheduledMessageMapper,
 ) : ScheduledMessageUseCase {
 
@@ -37,7 +37,7 @@ class ScheduledMessageService(
         scheduledAt: Instant
     ): ScheduledMessageResponseDto {
         // 채팅방 존재여부 확인
-        val chatRoom = (loadChatRoomPort.findById(roomId)
+        val chatRoom = (chatRoomQueryPort.findById(roomId)
             ?: throw ApiException("채팅방을 찾을 수 없습니다.", ErrorCode.ROOM_NOT_FOUND))
 
         // 사용자가 채팅방에 속해있는지 확인

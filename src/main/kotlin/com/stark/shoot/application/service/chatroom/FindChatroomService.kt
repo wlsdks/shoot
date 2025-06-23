@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.chatroom
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.adapter.`in`.web.mapper.ChatRoomResponseMapper
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
-import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 @UseCase
 class FindChatroomService(
-    private val loadChatRoomPort: LoadChatRoomPort,
+    private val chatRoomQueryPort: ChatRoomQueryPort,
     private val chatRoomResponseMapper: ChatRoomResponseMapper,
     private val chatRoomDomainService: ChatRoomDomainService
 ) : FindChatRoomUseCase {
@@ -27,7 +27,7 @@ class FindChatroomService(
         userId: UserId
     ): List<ChatRoomResponse> {
         // 사용자가 참여한 채팅방 목록을 조회합니다.
-        val chatRooms = loadChatRoomPort.findByParticipantId(userId)
+        val chatRooms = chatRoomQueryPort.findByParticipantId(userId)
 
         // 채팅방 정보 준비
         val titles = chatRoomDomainService.prepareChatRoomTitles(chatRooms, userId)
@@ -50,7 +50,7 @@ class FindChatroomService(
         userId2: UserId
     ): ChatRoomResponse? {
         // 첫 번째 사용자가 참여한 채팅방 목록을 조회합니다.
-        val chatRooms = loadChatRoomPort.findByParticipantId(userId1)
+        val chatRooms = chatRoomQueryPort.findByParticipantId(userId1)
 
         // 두 사용자 간의 1:1 채팅방을 찾습니다. (도메인 객체의 정적 메서드 사용)
         val directChatRoom = chatRoomDomainService.findDirectChatBetween(chatRooms, userId1, userId2)

@@ -1,10 +1,8 @@
-package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message
+package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message.bookmark
 
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.bookmark.MessageBookmarkDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMongoRepository
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.MessageBookmarkMongoRepository
-import com.stark.shoot.application.port.out.message.BookmarkMessageCommandPort
-import com.stark.shoot.application.port.out.message.BookmarkMessageQueryPort
+import com.stark.shoot.application.port.out.message.bookmark.BookmarkMessageQueryPort
 import com.stark.shoot.domain.chat.bookmark.MessageBookmark
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
@@ -13,23 +11,10 @@ import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.types.ObjectId
 
 @Adapter
-class BookmarkMessageMongoAdapter(
+class BookmarkMessageQueryMongoAdapter(
     private val bookmarkRepository: MessageBookmarkMongoRepository,
     private val chatMessageRepository: ChatMessageMongoRepository,
-) : BookmarkMessageCommandPort, BookmarkMessageQueryPort {
-
-    override fun saveBookmark(bookmark: MessageBookmark): MessageBookmark {
-        val document = MessageBookmarkDocument.fromDomain(bookmark)
-        val saved = bookmarkRepository.save(document)
-        return saved.toDomain()
-    }
-
-    override fun deleteBookmark(
-        messageId: MessageId,
-        userId: UserId
-    ) {
-        bookmarkRepository.deleteByMessageIdAndUserId(messageId.value, userId.value)
-    }
+) : BookmarkMessageQueryPort {
 
     override fun findBookmarksByUser(
         userId: UserId,

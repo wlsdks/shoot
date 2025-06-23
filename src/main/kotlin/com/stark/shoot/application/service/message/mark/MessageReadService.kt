@@ -2,8 +2,8 @@ package com.stark.shoot.application.service.message.mark
 
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
+import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
-import com.stark.shoot.application.port.out.chatroom.ReadStatusPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
 class MessageReadService(
     private val saveMessagePort: SaveMessagePort,
     private val chatRoomQueryPort: ChatRoomQueryPort,
-    private val readStatusPort: ReadStatusPort,
+    private val chatRoomCommandPort: ChatRoomCommandPort,
     private val eventPublisher: EventPublisher,
     private val loadMessagePort: LoadMessagePort,
     private val redisTemplate: StringRedisTemplate,
@@ -79,7 +79,7 @@ class MessageReadService(
         // 병렬로 비동기 작업 처리 (트랜잭션 외부에서 실행되어야 하는 작업들)
         try {
             // 1. 채팅방 사용자의 마지막 읽은 메시지 ID 업데이트
-            readStatusPort.updateLastReadMessageId(roomId, userId, messageId)
+            chatRoomCommandPort.updateLastReadMessageId(roomId, userId, messageId)
 
             // 2. 읽지 않은 메시지 수 업데이트 (Redis 활용) - 원자적 연산 사용
             val unreadKey = createUnreadKey(userId)
@@ -204,7 +204,7 @@ class MessageReadService(
 
             // 마지막으로 읽은 메시지 ID 업데이트
             lastMessage?.id?.let { lastMessageId ->
-                readStatusPort.updateLastReadMessageId(roomId, userId, lastMessageId)
+                chatRoomCommandPort.updateLastReadMessageId(roomId, userId, lastMessageId)
             }
 
             val updatedMessageIds = allUpdatedMessageIds

@@ -1,3 +1,3 @@
 package com.stark.shoot.application.port.out.notification
 
-interface NotificationCommandPort : SaveNotificationPort, DeleteNotificationPort, SendNotificationPort, PublishNotificationEventPort
+interface NotificationCommandPort : SaveNotificationPort, DeleteNotificationPort

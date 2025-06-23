@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.event.notification
 
-import com.stark.shoot.application.port.out.message.LoadMessagePort
-import com.stark.shoot.application.port.out.notification.SaveNotificationPort
+import com.stark.shoot.application.port.out.message.MessageQueryPort
+import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
@@ -21,8 +21,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class ReactionEventNotificationListener(
-    private val loadMessagePort: LoadMessagePort,
-    private val saveNotificationPort: SaveNotificationPort,
+    private val messageQueryPort: MessageQueryPort,
+    private val notificationCommandPort: NotificationCommandPort,
     private val sendNotificationPort: SendNotificationPort,
     private val chatNotificationFactory: ChatNotificationFactory
 ) {
@@ -38,7 +38,7 @@ class ReactionEventNotificationListener(
     fun handleReactionEvent(event: MessageReactionEvent) {
         try {
             // 메시지 조회
-            val message = loadMessagePort.findById(event.messageId)
+            val message = messageQueryPort.findById(event.messageId)
                 ?: run {
                     logger.warn { "메시지를 찾을 수 없습니다: messageId=${event.messageId}" }
                     return
@@ -76,7 +76,7 @@ class ReactionEventNotificationListener(
             )
 
             // 알림 저장 및 전송
-            val savedNotification = saveNotificationPort.saveNotification(notification)
+            val savedNotification = notificationCommandPort.saveNotification(notification)
             sendNotificationPort.sendNotification(savedNotification)
 
             logger.info { "메시지 반응 알림이 생성되고 전송되었습니다: messageId=${event.messageId}, userId=${message.senderId}" }

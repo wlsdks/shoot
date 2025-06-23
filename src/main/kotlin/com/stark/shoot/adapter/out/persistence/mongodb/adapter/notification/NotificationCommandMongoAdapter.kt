@@ -1,25 +1,48 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.adapter.notification
 
+import com.stark.shoot.adapter.out.persistence.mongodb.document.notification.NotificationDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.NotificationMongoRepository
-import com.stark.shoot.application.port.out.notification.DeleteNotificationPort
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.out.notification.NotificationCommandPort
+import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.vo.NotificationId
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.exception.web.MongoOperationException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 
 @Adapter
-class DeleteNotificationMongoAdapter(
+class NotificationCommandMongoAdapter(
     private val notificationMongoRepository: NotificationMongoRepository,
     private val mongoTemplate: MongoTemplate
-) : DeleteNotificationPort {
+) : NotificationCommandPort {
 
-    private val logger = KotlinLogging.logger {}
+    /**
+     * 알림을 저장합니다.
+     *
+     * @param notification 알림 객체
+     * @return 저장된 알림 객체
+     */
+    override fun saveNotification(notification: Notification): Notification {
+        val document = NotificationDocument.fromDomain(notification)
+        val savedDocument = notificationMongoRepository.save(document)
+        return savedDocument.toDomain()
+    }
+
+    /**
+     * 알림 목록을 저장합니다.
+     *
+     * @param notifications 알림 객체 목록
+     * @return 저장된 알림 객체 목록
+     */
+    override fun saveNotifications(notifications: List<Notification>): List<Notification> {
+        val documents = notifications.map { NotificationDocument.fromDomain(it) }
+        val savedDocuments = notificationMongoRepository.saveAll(documents)
+        return savedDocuments.map { it.toDomain() }
+    }
 
     /**
      * 특정 알림을 삭제합니다.
@@ -119,4 +142,5 @@ class DeleteNotificationMongoAdapter(
             throw MongoOperationException("소스별 알림 삭제 중 오류가 발생했습니다: ${e.message}", e)
         }
     }
+
 }

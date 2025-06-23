@@ -1,3 +1,3 @@
 package com.stark.shoot.application.port.out.message
 
-interface MessageCommandPort : SaveMessagePort, PublishMessagePort, BookmarkMessageCommandPort, ReadStatusCommandPort
+interface MessageCommandPort : SaveMessagePort

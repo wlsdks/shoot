@@ -31,10 +31,10 @@ class SendNotificationRedisAdapter(
         try {
             val channel = "$NOTIFICATION_CHANNEL_PREFIX${notification.userId.value}"
             val notificationJson = objectMapper.writeValueAsString(notification)
-            
+
             // Redis pub/sub 채널에 알림 발행
             val result = redisTemplate.convertAndSend(channel, notificationJson)
-            
+
             logger.info { "알림이 Redis 채널에 발행되었습니다: userId=${notification.userId.value}, type=${notification.type}, result=$result" }
         } catch (e: Exception) {
             val errorMessage = "Redis를 통한 알림 전송 중 오류가 발생했습니다: ${e.message}"
@@ -55,21 +55,21 @@ class SendNotificationRedisAdapter(
             logger.info { "전송할 알림이 없습니다." }
             return
         }
-        
+
         try {
             // 사용자별로 알림 그룹화
             val notificationsByUser = notifications.groupBy { it.userId }
-            
+
             // 각 사용자별로 알림 전송
             notificationsByUser.forEach { (userId, userNotifications) ->
                 val channel = "$NOTIFICATION_CHANNEL_PREFIX${userId.value}"
-                
+
                 // 각 알림을 개별적으로 발행
                 userNotifications.forEach { notification ->
                     val notificationJson = objectMapper.writeValueAsString(notification)
                     redisTemplate.convertAndSend(channel, notificationJson)
                 }
-                
+
                 logger.info { "사용자($userId)에게 ${userNotifications.size}개의 알림이 Redis 채널에 발행되었습니다." }
             }
         } catch (e: Exception) {

@@ -112,7 +112,7 @@ class FindUserPersistenceAdapter(
 
     /**
      * 친구 관계 정보를 포함한 사용자 조회
-     * 
+     *
      * 참고: 이 메서드는 더 이상 User 객체에 친구 ID를 설정하지 않습니다.
      * 대신 FriendshipPort를 사용하여 친구 관계를 조회하세요.
      */
@@ -125,7 +125,7 @@ class FindUserPersistenceAdapter(
 
     /**
      * 친구 요청 정보를 포함한 사용자 조회
-     * 
+     *
      * 참고: 이 메서드는 더 이상 User 객체에 친구 요청 ID를 설정하지 않습니다.
      * 대신 FriendRequestPort를 사용하여 친구 요청을 조회하세요.
      */
@@ -138,7 +138,7 @@ class FindUserPersistenceAdapter(
 
     /**
      * 모든 관계 정보를 포함한 사용자 조회
-     * 
+     *
      * 참고: 이 메서드는 더 이상 User 객체에 관계 정보를 설정하지 않습니다.
      * 대신 FriendshipPort와 FriendRequestPort를 사용하여 관계 정보를 조회하세요.
      */

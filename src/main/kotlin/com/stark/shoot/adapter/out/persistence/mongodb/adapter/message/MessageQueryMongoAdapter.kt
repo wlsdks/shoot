@@ -2,8 +2,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message
 
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMongoRepository
-import com.stark.shoot.application.port.out.message.LoadMessagePort
-import com.stark.shoot.application.port.out.message.LoadThreadPort
+import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
@@ -16,15 +15,15 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 
 @Adapter
-class LoadMessageMongoAdapter(
+class MessageQueryMongoAdapter(
     private val chatMessageRepository: ChatMessageMongoRepository,
     private val chatMessageMapper: ChatMessageMapper
-) : LoadMessagePort, LoadThreadPort {
+) : MessageQueryPort {
 
     /**
      * ID로 채팅 메시지 조회
      *
-     * @param id 채팅 메시지 ID
+     * @param messageId 채팅 메시지 ID
      * @return 채팅 메시지
      */
     override fun findById(
@@ -150,74 +149,6 @@ class LoadMessageMongoAdapter(
         // MongoDB 쿼리: {roomId: roomId, "metadata.isPinned": true}
         return chatMessageRepository.findPinnedMessagesByRoomId(roomId.value, pageable)
             .map(chatMessageMapper::toDomain)
-    }
-
-    override fun findByThreadId(
-        threadId: MessageId,
-        limit: Int
-    ): List<ChatMessage> {
-        val pageable = PageRequest.of(
-            0,
-            limit,
-            Sort.by(Sort.Direction.ASC, "_id")
-        )
-
-        return chatMessageRepository.findByThreadId(threadId.value.toObjectId(), pageable)
-            .map(chatMessageMapper::toDomain)
-    }
-
-    override fun findByThreadIdAndBeforeId(
-        threadId: MessageId,
-        beforeMessageId: MessageId,
-        limit: Int
-    ): List<ChatMessage> {
-        val pageable = PageRequest.of(
-            0,
-            limit,
-            Sort.by(Sort.Direction.DESC, "_id")
-        )
-
-        return chatMessageRepository.findByThreadIdAndIdBefore(
-            threadId.value.toObjectId(),
-            beforeMessageId.value.toObjectId(),
-            pageable
-        ).map(chatMessageMapper::toDomain)
-    }
-
-    override fun findThreadRootsByRoomId(
-        roomId: ChatRoomId,
-        limit: Int
-    ): List<ChatMessage> {
-        val pageable = PageRequest.of(
-            0,
-            limit,
-            Sort.by(Sort.Direction.DESC, "_id")
-        )
-
-        return chatMessageRepository.findThreadRootsByRoomId(roomId.value, pageable)
-            .map(chatMessageMapper::toDomain)
-    }
-
-    override fun findThreadRootsByRoomIdAndBeforeId(
-        roomId: ChatRoomId,
-        beforeMessageId: MessageId,
-        limit: Int
-    ): List<ChatMessage> {
-        val pageable = PageRequest.of(
-            0,
-            limit,
-            Sort.by(Sort.Direction.DESC, "_id")
-        )
-
-        return chatMessageRepository.findThreadRootsByRoomIdAndIdBefore(
-            roomId.value,
-            beforeMessageId.value.toObjectId(),
-            pageable
-        ).map(chatMessageMapper::toDomain)
-    }
-
-    override fun countByThreadId(threadId: MessageId): Long {
-        return chatMessageRepository.countByThreadId(threadId.value.toObjectId())
     }
 
     /**

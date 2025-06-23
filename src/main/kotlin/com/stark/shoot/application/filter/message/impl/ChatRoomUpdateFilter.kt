@@ -3,7 +3,7 @@ package com.stark.shoot.application.filter.message.impl
 import com.stark.shoot.application.filter.common.MessageProcessingFilter
 import com.stark.shoot.application.filter.message.chain.MessageProcessingChain
 import com.stark.shoot.application.filter.message.impl.ChatRoomLoadFilter.Companion.CHAT_ROOM_CONTEXT_KEY
-import com.stark.shoot.application.port.out.chatroom.SaveChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chatroom.ChatRoom
 import org.springframework.stereotype.Component
@@ -11,7 +11,7 @@ import java.time.Instant
 
 @Component
 class ChatRoomUpdateFilter(
-    private val saveChatRoomPort: SaveChatRoomPort
+    private val chatRoomCommandPort: ChatRoomCommandPort
 ) : MessageProcessingFilter {
 
     override fun process(
@@ -32,7 +32,7 @@ class ChatRoomUpdateFilter(
                 lastMessageId = message.id,
                 lastActiveAt = now
             )
-            saveChatRoomPort.save(updatedRoom)
+            chatRoomCommandPort.save(updatedRoom)
         }
 
         return chain.proceed(message)

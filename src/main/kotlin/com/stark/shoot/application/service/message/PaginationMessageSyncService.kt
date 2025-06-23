@@ -7,7 +7,7 @@ import com.stark.shoot.adapter.`in`.web.socket.mapper.MessageSyncMapper
 import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
-import com.stark.shoot.application.port.out.message.LoadThreadPort
+import com.stark.shoot.application.port.out.message.thread.LoadThreadPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.SyncDirection
 import com.stark.shoot.domain.chat.message.vo.MessageId

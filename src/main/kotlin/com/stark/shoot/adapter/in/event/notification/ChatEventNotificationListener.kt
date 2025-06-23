@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.event.notification
 
-import com.stark.shoot.application.port.out.notification.SaveNotificationPort
+import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.event.MessageEvent
@@ -20,8 +20,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class ChatEventNotificationListener(
-    private val saveNotificationPort: SaveNotificationPort,
     private val sendNotificationPort: SendNotificationPort,
+    private val notificationCommandPort: NotificationCommandPort,
     private val chatNotificationFactory: ChatNotificationFactory
 ) {
 
@@ -165,7 +165,7 @@ class ChatEventNotificationListener(
         }
 
         // DB에 알림 저장
-        val savedNotifications = saveNotificationPort.saveNotifications(notifications)
+        val savedNotifications = notificationCommandPort.saveNotifications(notifications)
 
         // 실시간 알림 전송
         sendNotificationPort.sendNotifications(savedNotifications)

@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.message.thread.ThreadDetailDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.thread.GetThreadDetailUseCase
 import com.stark.shoot.application.port.out.message.LoadMessagePort
-import com.stark.shoot.application.port.out.message.LoadThreadPort
+import com.stark.shoot.application.port.out.message.thread.LoadThreadPort
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException

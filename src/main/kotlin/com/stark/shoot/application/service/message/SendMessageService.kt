@@ -363,7 +363,7 @@ class SendMessageService(
 
     /**
      * 메시지 처리 중 발생한 오류를 공통으로 처리합니다.
-     * 
+     *
      * @param message 메시지 요청 DTO
      * @param tempId 임시 메시지 ID
      * @param throwable 발생한 예외

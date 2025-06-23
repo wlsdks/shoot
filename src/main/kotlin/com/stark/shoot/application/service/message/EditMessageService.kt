@@ -1,21 +1,19 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
-import com.stark.shoot.application.port.out.message.LoadMessagePort
-import com.stark.shoot.application.port.out.message.SaveMessagePort
+import com.stark.shoot.application.port.out.message.MessageCommandPort
+import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageEditDomainService
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.infrastructure.annotation.UseCase
-import io.github.oshai.kotlinlogging.KotlinLogging
 
 @UseCase
 class EditMessageService(
-    private val loadMessagePort: LoadMessagePort,
-    private val saveMessagePort: SaveMessagePort,
+    private val messageQueryPort: MessageQueryPort,
+    private val messageCommandPort: MessageCommandPort,
     private val messageEditDomainService: MessageEditDomainService
 ) : EditMessageUseCase {
-    private val logger = KotlinLogging.logger {}
 
     /**
      * @apiNote 메시지를 수정합니다.
@@ -29,24 +27,16 @@ class EditMessageService(
         messageId: MessageId,
         newContent: String
     ): ChatMessage {
-        logger.debug { "메시지 수정 요청: messageId=$messageId, newContent=$newContent" }
-
         // 메시지 조회
-        val existingMessage = loadMessagePort.findById(messageId)
+        val existingMessage = messageQueryPort.findById(messageId)
             ?: run {
-                logger.warn { "메시지를 찾을 수 없습니다: messageId=$messageId" }
                 throw IllegalArgumentException("메시지를 찾을 수 없습니다.")
             }
 
         try {
-            // 도메인 서비스를 사용하여 메시지 수정
             val updatedMessage = messageEditDomainService.editMessage(existingMessage, newContent)
-
-            // 업데이트된 메시지 저장 후 반환
-            logger.info { "메시지가 성공적으로 수정되었습니다: messageId=$messageId" }
-            return saveMessagePort.save(updatedMessage)
+            return messageCommandPort.save(updatedMessage)
         } catch (e: IllegalArgumentException) {
-            logger.warn { "메시지 수정 실패: ${e.message}, messageId=$messageId" }
             throw e
         }
     }

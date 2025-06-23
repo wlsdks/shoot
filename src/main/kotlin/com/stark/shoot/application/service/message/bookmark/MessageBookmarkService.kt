@@ -1,9 +1,9 @@
 package com.stark.shoot.application.service.message.bookmark
 
 import com.stark.shoot.application.port.`in`.message.bookmark.BookmarkMessageUseCase
+import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.bookmark.BookmarkMessageCommandPort
 import com.stark.shoot.application.port.out.message.bookmark.BookmarkMessageQueryPort
-import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.domain.chat.bookmark.MessageBookmark
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId

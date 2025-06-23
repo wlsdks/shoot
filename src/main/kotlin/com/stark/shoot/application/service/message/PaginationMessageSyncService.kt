@@ -6,8 +6,8 @@ import com.stark.shoot.adapter.`in`.web.socket.dto.SyncResponseDto
 import com.stark.shoot.adapter.`in`.web.socket.mapper.MessageSyncMapper
 import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
-import com.stark.shoot.application.port.out.message.LoadMessagePort
-import com.stark.shoot.application.port.out.message.thread.LoadThreadPort
+import com.stark.shoot.application.port.out.message.MessageQueryPort
+import com.stark.shoot.application.port.out.message.thread.ThreadQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.SyncDirection
 import com.stark.shoot.domain.chat.message.vo.MessageId
@@ -25,8 +25,8 @@ import java.time.Instant
  */
 @UseCase
 class PaginationMessageSyncService(
-    private val loadMessagePort: LoadMessagePort,
-    private val loadThreadPort: LoadThreadPort,
+    private val messageQueryPort: MessageQueryPort,
+    private val threadQueryPort: ThreadQueryPort,
     private val messagingTemplate: SimpMessagingTemplate,
     private val messageSyncMapper: MessageSyncMapper
 ) : SendSyncMessagesToUserUseCase, GetPaginationMessageUseCase {
@@ -56,7 +56,7 @@ class PaginationMessageSyncService(
             }
             .collect { message ->
                 val replyCount = if (message.threadId == null && message.id != null) {
-                    loadThreadPort.countByThreadId(message.id)
+                    threadQueryPort.countByThreadId(message.id)
                 } else {
                     null
                 }
@@ -81,19 +81,19 @@ class PaginationMessageSyncService(
         return when (request.direction) {
             // 초기 로드 시 메시지 동기화
             SyncDirection.INITIAL -> {
-                loadMessagePort.findByRoomIdAndAfterIdFlow(
+                messageQueryPort.findByRoomIdAndAfterIdFlow(
                     roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
                 )
             }
             // 이전 메시지 동기화
             SyncDirection.BEFORE -> {
-                loadMessagePort.findByRoomIdAndBeforeIdFlow(
+                messageQueryPort.findByRoomIdAndBeforeIdFlow(
                     roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
                 )
             }
             // 이후 메시지 동기화
             SyncDirection.AFTER -> {
-                loadMessagePort.findByRoomIdAndAfterIdFlow(
+                messageQueryPort.findByRoomIdAndAfterIdFlow(
                     roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
                 )
             }

@@ -1,4 +1,4 @@
-package com.stark.shoot.application.service.message
+package com.stark.shoot.application.service.message.forward
 
 import com.stark.shoot.application.port.`in`.message.ForwardMessageToUserUseCase
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort

@@ -3,13 +3,13 @@ package com.stark.shoot.application.service.message.thread
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.thread.GetThreadMessagesUseCase
-import com.stark.shoot.application.port.out.message.thread.LoadThreadPort
+import com.stark.shoot.application.port.out.message.thread.ThreadQueryPort
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase
 class GetThreadMessagesService(
-    private val loadThreadPort: LoadThreadPort,
+    private val threadQueryPort: ThreadQueryPort,
     private val chatMessageMapper: ChatMessageMapper,
 ) : GetThreadMessagesUseCase {
 
@@ -19,9 +19,9 @@ class GetThreadMessagesService(
         limit: Int
     ): List<MessageResponseDto> {
         val messages = if (lastMessageId != null) {
-            loadThreadPort.findByThreadIdAndBeforeId(threadId, lastMessageId, limit)
+            threadQueryPort.findByThreadIdAndBeforeId(threadId, lastMessageId, limit)
         } else {
-            loadThreadPort.findByThreadId(threadId, limit)
+            threadQueryPort.findByThreadId(threadId, limit)
         }
 
         return chatMessageMapper.toDtoList(messages)

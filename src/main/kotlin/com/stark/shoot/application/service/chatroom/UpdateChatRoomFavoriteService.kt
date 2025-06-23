@@ -43,4 +43,5 @@ class UpdateChatRoomFavoriteService(
         val saved = chatRoomCommandPort.save(updatedChatRoom)
         return ChatRoomResponse.from(saved, userId.value)
     }
+
 }

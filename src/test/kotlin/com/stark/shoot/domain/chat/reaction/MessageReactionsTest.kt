@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.chat.reaction
 
+import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

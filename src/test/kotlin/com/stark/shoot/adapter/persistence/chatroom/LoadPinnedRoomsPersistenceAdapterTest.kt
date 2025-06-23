@@ -1,10 +1,12 @@
 package com.stark.shoot.adapter.persistence.chatroom
 
+import com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom.ChatRoomQueryPersistenceAdapter
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.util.TestEntityFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -14,12 +16,12 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 
 @DataJpaTest
-@Import(LoadPinnedRoomsPersistenceAdapter::class, ChatRoomMapper::class)
+@Import(ChatRoomQueryPersistenceAdapter::class, ChatRoomMapper::class)
 class LoadPinnedRoomsPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomUserRepository: ChatRoomUserRepository,
     private val userRepository: UserRepository,
-    private val loadPinnedRoomsPersistenceAdapter: LoadPinnedRoomsPersistenceAdapter
+    private val chatRoomQueryPersistenceAdapter: ChatRoomQueryPersistenceAdapter
 ) {
 
     @Test
@@ -34,8 +36,8 @@ class LoadPinnedRoomsPersistenceAdapterTest @Autowired constructor(
         chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user1, "m1", isPinned = true))
         chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user2, "m1"))
 
-        val rooms = loadPinnedRoomsPersistenceAdapter.findByUserId(user1.id)
+        val rooms = chatRoomQueryPersistenceAdapter.findByUserId(UserId.from(user1.id))
         assertThat(rooms).hasSize(1)
-        assertThat(rooms[0].pinnedParticipants).contains(user1.id)
+        assertThat(rooms[0].pinnedParticipants).contains(UserId.from(user1.id))
     }
 }

@@ -42,7 +42,7 @@ class MessageContentTest {
             // given
             val text = "파일 설명"
             val type = MessageType.FILE
-            val attachment = Attachment(
+            val attachment = MessageContent.Attachment(
                 id = "file-123",
                 url = "https://example.com/file.pdf",
                 filename = "example.pdf",

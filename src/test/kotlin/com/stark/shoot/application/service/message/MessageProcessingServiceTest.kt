@@ -5,6 +5,9 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.MessageContent
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.config.redis.RedisLockManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -48,9 +51,9 @@ class MessageProcessingServiceTest {
         val messageType = MessageType.TEXT
 
         val inputMessage = ChatMessage(
-            id = messageId,
-            roomId = roomId,
-            senderId = senderId,
+            id = MessageId.from(messageId),
+            roomId = ChatRoomId.from(roomId),
+            senderId = UserId.from(senderId),
             content = MessageContent(content, messageType),
             status = MessageStatus.SENDING,
             createdAt = Instant.now()
@@ -99,9 +102,9 @@ class MessageProcessingServiceTest {
         val messageType = MessageType.TEXT
 
         val inputMessage = ChatMessage(
-            id = messageId,
-            roomId = roomId,
-            senderId = senderId,
+            id = MessageId.from(messageId),
+            roomId = ChatRoomId.from(roomId),
+            senderId = UserId.from(senderId),
             content = MessageContent(content, messageType),
             status = MessageStatus.SENDING,
             createdAt = Instant.now()

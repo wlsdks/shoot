@@ -5,9 +5,12 @@ import com.stark.shoot.domain.chat.message.service.MessageReactionService
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.MessageContent
+import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.message.vo.ReactionToggleResult
 import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.event.MessageReactionEvent
+import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -19,9 +22,9 @@ class MessageReactionServiceTest {
     private val service = MessageReactionService()
 
     private fun message() = ChatMessage(
-        id = "m1",
-        roomId = 1L,
-        senderId = 2L,
+        id = MessageId.from("m1"),
+        roomId = ChatRoomId.from(1L),
+        senderId = UserId.from(2L),
         content = MessageContent("hi", MessageType.TEXT),
         status = MessageStatus.SAVED,
         createdAt = Instant.now()
@@ -34,7 +37,7 @@ class MessageReactionServiceTest {
             val result = ReactionToggleResult(
                 reactions = MessageReactions(),
                 message = message(),
-                userId = 1L,
+                userId = UserId.from(1L),
                 reactionType = "heart",
                 isAdded = true,
                 previousReactionType = "like",
@@ -44,7 +47,14 @@ class MessageReactionServiceTest {
             val events = service.processReactionToggleResult(result)
             assertThat(events).hasSize(2)
             assertThat(events[0]).isEqualTo(
-                MessageReactionEvent.create("m1", "1", "1", "like", false, true)
+                MessageReactionEvent.create(
+                    MessageId.from("m1"),
+                    ChatRoomId.from(1L),
+                    UserId.from(1L),
+                    "like",
+                    false,
+                    true
+                )
             )
             assertThat(events[1].isAdded).isTrue()
         }
@@ -54,7 +64,7 @@ class MessageReactionServiceTest {
             val result = ReactionToggleResult(
                 reactions = MessageReactions(),
                 message = message(),
-                userId = 1L,
+                userId = UserId.from(1L),
                 reactionType = "like",
                 isAdded = true,
                 previousReactionType = null,
@@ -64,7 +74,14 @@ class MessageReactionServiceTest {
             val events = service.processReactionToggleResult(result)
             assertThat(events).hasSize(1)
             assertThat(events[0]).isEqualTo(
-                MessageReactionEvent.create("m1", "1", "1", "like", true, false)
+                MessageReactionEvent.create(
+                    MessageId.from("m1"),
+                    ChatRoomId.from(1L),
+                    UserId.from(1L),
+                    "like",
+                    true,
+                    false
+                )
             )
         }
     }

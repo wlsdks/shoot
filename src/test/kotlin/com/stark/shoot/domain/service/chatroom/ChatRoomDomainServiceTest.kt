@@ -1,8 +1,12 @@
 package com.stark.shoot.domain.service.chatroom
 
+import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
+import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -15,40 +19,80 @@ class ChatRoomDomainServiceTest {
     @Test
     fun `채팅방 리스트를 제목으로 필터링할 수 있다`() {
         val rooms = listOf(
-            ChatRoom(id = 1L, title = "hello", type = ChatRoomType.GROUP, participants = mutableSetOf(1L)),
-            ChatRoom(id = 2L, title = "world", type = ChatRoomType.GROUP, participants = mutableSetOf(1L))
+            ChatRoom(
+                id = ChatRoomId.from(1L),
+                title = ChatRoomTitle.from("hello"),
+                type = ChatRoomType.GROUP,
+                participants = mutableSetOf(UserId.from(1L))
+            ),
+            ChatRoom(
+                id = ChatRoomId.from(2L),
+                title = ChatRoomTitle.from("world"),
+                type = ChatRoomType.GROUP,
+                participants = mutableSetOf(UserId.from(1L))
+            )
         )
-        val result = service.filterChatRooms(rooms, "hello", null, null, 1L)
-        assertThat(result.map { it.id }).containsExactly(1L)
+        val result = service.filterChatRooms(rooms, "hello", null, null)
+        assertThat(result.map { it.id }).containsExactly(ChatRoomId.from(1L))
     }
 
     @Test
     fun `채팅방 제목 맵을 준비할 수 있다`() {
         val now = Instant.now()
         val rooms = listOf(
-            ChatRoom(id = 1L, title = "room1", type = ChatRoomType.GROUP, participants = mutableSetOf(1L), lastActiveAt = now),
-            ChatRoom(id = 2L, title = null, type = ChatRoomType.INDIVIDUAL, participants = mutableSetOf(1L,2L), lastActiveAt = now)
+            ChatRoom(
+                id = ChatRoomId.from(1L),
+                title = ChatRoomTitle.from("room1"),
+                type = ChatRoomType.GROUP,
+                participants = mutableSetOf(UserId.from(1L)),
+                lastActiveAt = now
+            ),
+            ChatRoom(
+                id = ChatRoomId.from(2L),
+                title = null,
+                type = ChatRoomType.INDIVIDUAL,
+                participants = mutableSetOf(UserId.from(1L), UserId.from(2L)),
+                lastActiveAt = now
+            )
         )
-        val titles = service.prepareChatRoomTitles(rooms, 1L)
+        val titles = service.prepareChatRoomTitles(rooms, UserId.from(1L))
         assertThat(titles[1L]).isEqualTo("room1")
         assertThat(titles[2L]).isEqualTo("1:1 채팅방")
     }
 
     @Test
     fun `두 사용자 간 1대1 채팅방을 찾을 수 있다`() {
-        val direct = ChatRoom(id = 1L, title = "dm", type = ChatRoomType.INDIVIDUAL, participants = mutableSetOf(1L,2L))
-        val group = ChatRoom(id = 2L, title = "group", type = ChatRoomType.GROUP, participants = mutableSetOf(1L,2L,3L))
+        val direct =
+            ChatRoom(
+                id = ChatRoomId.from(1L),
+                title = ChatRoomTitle.from("dm"),
+                type = ChatRoomType.INDIVIDUAL,
+                participants = mutableSetOf(UserId.from(1L), UserId.from(2L))
+            )
+        val group =
+            ChatRoom(
+                id = ChatRoomId.from(2L),
+                title = ChatRoomTitle.from("group"),
+                type = ChatRoomType.GROUP,
+                participants = mutableSetOf(UserId.from(1L), UserId.from(2L), UserId.from(3L))
+            )
 
-        val found = service.findDirectChatBetween(listOf(direct, group), 1L, 2L)
+        val found = service.findDirectChatBetween(listOf(direct, group), UserId.from(1L), UserId.from(2L))
 
         assertThat(found).isEqualTo(direct)
     }
 
     @Test
     fun `1대1 채팅방이 없으면 null을 반환한다`() {
-        val group = ChatRoom(id = 1L, title = "group", type = ChatRoomType.GROUP, participants = mutableSetOf(1L,2L,3L))
+        val group =
+            ChatRoom(
+                id = ChatRoomId.from(1L),
+                title = ChatRoomTitle.from("group"),
+                type = ChatRoomType.GROUP,
+                participants = mutableSetOf(UserId.from(1L), UserId.from(2L), UserId.from(3L))
+            )
 
-        val found = service.findDirectChatBetween(listOf(group), 1L, 2L)
+        val found = service.findDirectChatBetween(listOf(group), UserId.from(1L), UserId.from(2L))
 
         assertThat(found).isNull()
     }
@@ -56,8 +100,19 @@ class ChatRoomDomainServiceTest {
     @Test
     fun `마지막 메시지 맵을 준비할 수 있다`() {
         val rooms = listOf(
-            ChatRoom(id = 1L, title = "room", type = ChatRoomType.GROUP, participants = mutableSetOf(1L), lastMessageId = "m1"),
-            ChatRoom(id = 2L, title = "none", type = ChatRoomType.GROUP, participants = mutableSetOf(1L))
+            ChatRoom(
+                id = ChatRoomId.from(1L),
+                title = ChatRoomTitle.from("room"),
+                type = ChatRoomType.GROUP,
+                participants = mutableSetOf(UserId.from(1L)),
+                lastMessageId = MessageId.from("m1")
+            ),
+            ChatRoom(
+                id = ChatRoomId.from(2L),
+                title = ChatRoomTitle.from("none"),
+                type = ChatRoomType.GROUP,
+                participants = mutableSetOf(UserId.from(1L))
+            )
         )
 
         val result = service.prepareLastMessages(rooms)
@@ -69,7 +124,12 @@ class ChatRoomDomainServiceTest {
     @Test
     fun `타임스탬프 맵을 준비할 수 있다`() {
         val rooms = listOf(
-            ChatRoom(id = 1L, title = "room", type = ChatRoomType.GROUP, participants = mutableSetOf(1L))
+            ChatRoom(
+                id = ChatRoomId.from(1L),
+                title = ChatRoomTitle.from("room"),
+                type = ChatRoomType.GROUP,
+                participants = mutableSetOf(UserId.from(1L)),
+            )
         )
 
         val result = service.prepareTimestamps(rooms)

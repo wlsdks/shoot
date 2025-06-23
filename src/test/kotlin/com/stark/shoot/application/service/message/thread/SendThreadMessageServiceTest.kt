@@ -17,16 +17,11 @@ import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import com.stark.shoot.infrastructure.util.toObjectId
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.*
 import java.time.Instant
-import kotlin.coroutines.EmptyCoroutineContext
 
 @DisplayName("스레드 메시지 전송 서비스 테스트")
 class SendThreadMessageServiceTest {
@@ -95,15 +90,17 @@ class SendThreadMessageServiceTest {
 
         // Mock the domain service to return a message
         val domainMessage = mock(ChatMessage::class.java)
-        `when`(messageDomainService.createAndProcessMessage(
-            eq(ChatRoomId.from(request.roomId)),
-            eq(UserId.from(request.senderId)),
-            eq(request.content.text),
-            eq(request.content.type),
-            any(),
-            any(),
-            any()
-        )).thenReturn(domainMessage)
+        `when`(
+            messageDomainService.createAndProcessMessage(
+                eq(ChatRoomId.from(request.roomId)),
+                eq(UserId.from(request.senderId)),
+                eq(request.content.text),
+                eq(request.content.type),
+                any(),
+                any(),
+                any()
+            )
+        ).thenReturn(domainMessage)
 
         sendThreadMessageService.sendThreadMessage(request)
 

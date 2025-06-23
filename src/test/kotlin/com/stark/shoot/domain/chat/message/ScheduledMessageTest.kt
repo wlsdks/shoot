@@ -190,7 +190,7 @@ class ScheduledMessageTest {
                 text = text,
                 type = MessageType.FILE,
                 attachments = listOf(
-                    Attachment(
+                    MessageContent.Attachment(
                         id = "attachment123",
                         url = "https://example.com/file.pdf",
                         filename = "file.pdf",
@@ -220,7 +220,7 @@ class ScheduledMessageTest {
         fun `URL 메시지를 예약할 수 있다`() {
             // given
             val text = "https://example.com"
-            val urlPreview = UrlPreview(
+            val urlPreview = ChatMessageMetadata.UrlPreview(
                 url = text,
                 title = "Example Website",
                 description = "This is an example website",

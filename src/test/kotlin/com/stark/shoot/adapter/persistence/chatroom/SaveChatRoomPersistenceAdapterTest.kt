@@ -1,10 +1,12 @@
 package com.stark.shoot.adapter.persistence.chatroom
 
+import com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom.ChatRoomCommandPersistenceAdapter
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.util.TestEntityFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -14,12 +16,12 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 
 @DataJpaTest
-@Import(SaveChatRoomPersistenceAdapter::class, ChatRoomMapper::class)
+@Import(ChatRoomCommandPersistenceAdapter::class, ChatRoomMapper::class)
 class SaveChatRoomPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomUserRepository: ChatRoomUserRepository,
     private val userRepository: UserRepository,
-    private val saveChatRoomPersistenceAdapter: SaveChatRoomPersistenceAdapter
+    private val chatRoomCommandPersistenceAdapter: ChatRoomCommandPersistenceAdapter
 ) {
 
     @Test
@@ -35,7 +37,7 @@ class SaveChatRoomPersistenceAdapterTest @Autowired constructor(
             title = "test"
         )
 
-        val saved = saveChatRoomPersistenceAdapter.save(domainRoom)
+        val saved = chatRoomCommandPersistenceAdapter.save(domainRoom)
 
         assertThat(saved.id).isNotNull
         assertThat(chatRoomRepository.count()).isEqualTo(1)

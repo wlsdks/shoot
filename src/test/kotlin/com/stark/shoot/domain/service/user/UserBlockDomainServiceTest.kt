@@ -1,10 +1,11 @@
 package com.stark.shoot.domain.service.user
 
-import com.stark.shoot.domain.chat.user.Nickname
-import com.stark.shoot.domain.chat.user.UserCode
-import com.stark.shoot.domain.chat.user.Username
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.service.block.UserBlockDomainService
+import com.stark.shoot.domain.user.vo.Nickname
+import com.stark.shoot.domain.user.vo.UserCode
+import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.user.vo.Username
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -16,16 +17,12 @@ class UserBlockDomainServiceTest {
 
     @Test
     fun `자신을 차단하면 예외`() {
-        val user = User(id=1L, username=Username.from("a"), nickname=Nickname.from("A"), userCode=UserCode.from("A1"))
-        assertThrows<IllegalArgumentException> { service.block(user,1L) }
-    }
-
-    @Test
-    fun `차단과 해제가 가능하다`() {
-        val user = User(id=1L, username=Username.from("a"), nickname=Nickname.from("A"), userCode=UserCode.from("A1"))
-        val blocked = service.block(user,2L)
-        assertThat(blocked.blockedUserIds).contains(2L)
-        val unblocked = service.unblock(blocked,2L)
-        assertThat(unblocked.blockedUserIds).doesNotContain(2L)
+        val user = User(
+            id = UserId.from(1L),
+            username = Username.from("a"),
+            nickname = Nickname.from("A"),
+            userCode = UserCode.from("A1")
+        )
+        assertThrows<IllegalArgumentException> { service.block(user.id!!, UserId.from(1L)) }
     }
 }

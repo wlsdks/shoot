@@ -70,7 +70,7 @@ class ChatMessageMetadataTest {
         @DisplayName("URL 미리보기 결과를 포함한 메타데이터를 생성할 수 있다")
         fun `URL 미리보기 결과를 포함한 메타데이터를 생성할 수 있다`() {
             // given
-            val urlPreview = UrlPreview(
+            val urlPreview = ChatMessageMetadata.UrlPreview(
                 url = "https://example.com",
                 title = "Example Domain",
                 description = "This domain is for use in examples",
@@ -122,7 +122,7 @@ class ChatMessageMetadataTest {
                 previewUrl = "https://example.com"
             )
 
-            val urlPreview = UrlPreview(
+            val urlPreview = ChatMessageMetadata.UrlPreview(
                 url = "https://example.com",
                 title = "Example Domain",
                 description = "This domain is for use in examples",
@@ -175,7 +175,7 @@ class ChatMessageMetadataTest {
             val tempId = "temp-123"
             val needsUrlPreview = true
             val previewUrl = "https://example.com"
-            val urlPreview = UrlPreview(
+            val urlPreview = ChatMessageMetadata.UrlPreview(
                 url = "https://example.com",
                 title = "Example Domain",
                 description = "This domain is for use in examples",
@@ -207,7 +207,7 @@ class ChatMessageMetadataTest {
             val tempId = "temp-123"
             val needsUrlPreview = true
             val previewUrl = "https://example.com"
-            val urlPreview = UrlPreview(
+            val urlPreview = ChatMessageMetadata.UrlPreview(
                 url = "https://example.com",
                 title = "Example Domain",
                 description = "This domain is for use in examples",

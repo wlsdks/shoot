@@ -1,11 +1,13 @@
 package com.stark.shoot.domain.notification
 
+import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.user.vo.UserId
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class NotificationSettingsTest {
+
     @Test
     fun defaultAllEnabled() {
         val settings = NotificationSettings(userId = UserId.from(1L))
@@ -26,4 +28,5 @@ class NotificationSettingsTest {
         assertFalse(settings.isEnabled(NotificationType.MENTION))
         assertTrue(settings.isEnabled(NotificationType.NEW_MESSAGE))
     }
+
 }

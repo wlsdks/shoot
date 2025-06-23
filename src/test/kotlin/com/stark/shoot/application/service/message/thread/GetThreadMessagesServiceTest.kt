@@ -1,13 +1,14 @@
 package com.stark.shoot.application.service.message.thread
 
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
-import com.stark.shoot.application.port.out.message.LoadMessagePort
+import com.stark.shoot.application.port.out.message.thread.ThreadQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.infrastructure.util.toObjectId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -18,11 +19,11 @@ import java.time.Instant
 @DisplayName("스레드 메시지 조회 서비스 테스트")
 class GetThreadMessagesServiceTest {
 
-    private val loadMessagePort = mock(LoadMessagePort::class.java)
+    private val threadQueryPort = mock(ThreadQueryPort::class.java)
     private val chatMessageMapper = ChatMessageMapper()
 
     private val getThreadMessagesService = GetThreadMessagesService(
-        loadMessagePort,
+        threadQueryPort,
         chatMessageMapper
     )
 
@@ -37,37 +38,37 @@ class GetThreadMessagesServiceTest {
             val threadId = "5f9f1b9b9c9d1b9b9c9d1b9b"
             val message = ChatMessage(
                 id = MessageId.from("5f9f1b9b9c9d1b9b9c9d1b9c"),
-                roomId = 1L,
-                senderId = 2L,
+                roomId = ChatRoomId.from(1L),
+                senderId = UserId.from(2L),
                 content = MessageContent("hello", MessageType.TEXT),
                 status = MessageStatus.SAVED,
                 threadId = MessageId.from(threadId),
                 createdAt = Instant.now()
             )
 
-            `when`(loadMessagePort.findByThreadId(threadId.toObjectId(), 20)).thenReturn(listOf(message))
+            `when`(threadQueryPort.findByThreadId(MessageId.from(threadId), 20)).thenReturn(listOf(message))
 
             // when
-            val result = getThreadMessagesService.getThreadMessages(threadId, null, 20)
+            val result = getThreadMessagesService.getThreadMessages(MessageId.from(threadId), null, 20)
 
             // then
             assertThat(result).hasSize(1)
             assertThat(result[0].id).isEqualTo(message.id)
 
-            verify(loadMessagePort).findByThreadId(threadId.toObjectId(), 20)
+            verify(threadQueryPort).findByThreadId(MessageId.from(threadId), 20)
         }
 
         @Test
         @DisplayName("스레드 메시지가 없는 경우 빈 목록을 반환한다")
         fun `스레드 메시지가 없는 경우 빈 목록을 반환한다`() {
             val threadId = "5f9f1b9b9c9d1b9b9c9d1b9b"
-            `when`(loadMessagePort.findByThreadId(threadId.toObjectId(), 20)).thenReturn(emptyList())
+            `when`(threadQueryPort.findByThreadId(MessageId.from(threadId), 20)).thenReturn(emptyList())
 
-            val result = getThreadMessagesService.getThreadMessages(threadId, null, 20)
+            val result = getThreadMessagesService.getThreadMessages(MessageId.from(threadId), null, 20)
 
             assertThat(result).isEmpty()
 
-            verify(loadMessagePort).findByThreadId(threadId.toObjectId(), 20)
+            verify(threadQueryPort).findByThreadId(MessageId.from(threadId), 20)
         }
     }
 }

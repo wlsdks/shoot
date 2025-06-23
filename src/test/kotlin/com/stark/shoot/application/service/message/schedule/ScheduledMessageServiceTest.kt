@@ -6,8 +6,10 @@ import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageMetadataResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ScheduledMessageMapper
-import com.stark.shoot.application.port.out.chatroom.LoadChatRoomPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.message.ScheduledMessagePort
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.type.ScheduledMessageStatus
@@ -27,12 +29,12 @@ import java.time.temporal.ChronoUnit
 class ScheduledMessageServiceTest {
 
     private val scheduledMessagePort = mock(ScheduledMessagePort::class.java)
-    private val loadChatRoomPort = mock(LoadChatRoomPort::class.java)
+    private val chatRoomQueryPort = mock(ChatRoomQueryPort::class.java)
     private val scheduledMessageMapper = mock(ScheduledMessageMapper::class.java)
 
     private val sut = ScheduledMessageService(
         scheduledMessagePort,
-        loadChatRoomPort,
+        chatRoomQueryPort,
         scheduledMessageMapper
     )
 
@@ -40,12 +42,14 @@ class ScheduledMessageServiceTest {
     @DisplayName("존재하지 않는 채팅방에 메시지를 예약하면 예외가 발생한다")
     fun `존재하지 않는 채팅방에 메시지를 예약하면 예외가 발생한다`() {
         // given
-        val roomId = 1L
-        val senderId = 2L
+        val roomIdLong = 1L
+        val roomId = ChatRoomId.from(roomIdLong)
+        val senderIdLong = 2L
+        val senderId = UserId.from(senderIdLong)
         val content = "테스트 예약 메시지"
         val scheduledAt = Instant.now().plus(1, ChronoUnit.HOURS)
 
-        doReturn(null).`when`(loadChatRoomPort).findById(roomId)
+        doReturn(null).`when`(chatRoomQueryPort).findById(roomId)
 
         // when & then
         val exception = assertThrows<ApiException> {
@@ -53,7 +57,7 @@ class ScheduledMessageServiceTest {
         }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.ROOM_NOT_FOUND)
-        verify(loadChatRoomPort).findById(roomId)
+        verify(chatRoomQueryPort).findById(roomId)
         verifyNoInteractions(scheduledMessagePort)
         verifyNoInteractions(scheduledMessageMapper)
     }
@@ -62,19 +66,21 @@ class ScheduledMessageServiceTest {
     @DisplayName("채팅방에 속하지 않은 사용자가 메시지를 예약하면 예외가 발생한다")
     fun `채팅방에 속하지 않은 사용자가 메시지를 예약하면 예외가 발생한다`() {
         // given
-        val roomId = 1L
-        val senderId = 2L
+        val roomIdLong = 1L
+        val roomId = ChatRoomId.from(roomIdLong)
+        val senderIdLong = 2L
+        val senderId = UserId.from(senderIdLong)
         val content = "테스트 예약 메시지"
         val scheduledAt = Instant.now().plus(1, ChronoUnit.HOURS)
 
         val chatRoom = ChatRoom(
             id = roomId,
-            title = "테스트 채팅방",
+            title = com.stark.shoot.domain.chatroom.vo.ChatRoomTitle.from("테스트 채팅방"),
             type = ChatRoomType.GROUP,
-            participants = mutableSetOf(3L, 4L) // senderId는 포함되지 않음
+            participants = mutableSetOf(UserId.from(3L), UserId.from(4L)) // senderId는 포함되지 않음
         )
 
-        doReturn(chatRoom).`when`(loadChatRoomPort).findById(roomId)
+        doReturn(chatRoom).`when`(chatRoomQueryPort).findById(roomId)
 
         // when & then
         val exception = assertThrows<ApiException> {
@@ -82,7 +88,7 @@ class ScheduledMessageServiceTest {
         }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.USER_NOT_IN_ROOM)
-        verify(loadChatRoomPort).findById(roomId)
+        verify(chatRoomQueryPort).findById(roomId)
         verifyNoInteractions(scheduledMessagePort)
         verifyNoInteractions(scheduledMessageMapper)
     }
@@ -91,19 +97,21 @@ class ScheduledMessageServiceTest {
     @DisplayName("과거 시간으로 메시지를 예약하면 예외가 발생한다")
     fun `과거 시간으로 메시지를 예약하면 예외가 발생한다`() {
         // given
-        val roomId = 1L
-        val senderId = 2L
+        val roomIdLong = 1L
+        val roomId = ChatRoomId.from(roomIdLong)
+        val senderIdLong = 2L
+        val senderId = UserId.from(senderIdLong)
         val content = "테스트 예약 메시지"
         val scheduledAt = Instant.now().minus(1, ChronoUnit.HOURS) // 과거 시간
 
         val chatRoom = ChatRoom(
             id = roomId,
-            title = "테스트 채팅방",
+            title = com.stark.shoot.domain.chatroom.vo.ChatRoomTitle.from("테스트 채팅방"),
             type = ChatRoomType.GROUP,
-            participants = mutableSetOf(senderId, 3L, 4L)
+            participants = mutableSetOf(senderId, UserId.from(3L), UserId.from(4L))
         )
 
-        doReturn(chatRoom).`when`(loadChatRoomPort).findById(roomId)
+        doReturn(chatRoom).`when`(chatRoomQueryPort).findById(roomId)
 
         // when & then
         val exception = assertThrows<ApiException> {
@@ -111,7 +119,7 @@ class ScheduledMessageServiceTest {
         }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.INVALID_SCHEDULED_TIME)
-        verify(loadChatRoomPort).findById(roomId)
+        verify(chatRoomQueryPort).findById(roomId)
         verifyNoInteractions(scheduledMessagePort)
         verifyNoInteractions(scheduledMessageMapper)
     }
@@ -155,29 +163,31 @@ class ScheduledMessageServiceTest {
         }
 
         // given
-        val roomId = 1L
-        val senderId = 2L
+        val roomIdLong = 1L
+        val roomId = ChatRoomId.from(roomIdLong)
+        val senderIdLong = 2L
+        val senderId = UserId.from(senderIdLong)
         val content = "테스트 예약 메시지"
         val scheduledAt = Instant.now().plus(1, ChronoUnit.HOURS)
 
         val chatRoom = ChatRoom(
             id = roomId,
-            title = "테스트 채팅방",
+            title = com.stark.shoot.domain.chatroom.vo.ChatRoomTitle.from("테스트 채팅방"),
             type = ChatRoomType.GROUP,
-            participants = mutableSetOf(senderId, 3L, 4L)
+            participants = mutableSetOf(senderId, UserId.from(3L), UserId.from(4L))
         )
 
         val testScheduledMessagePort = TestScheduledMessagePort()
         val testScheduledMessageMapper = TestScheduledMessageMapper()
 
-        // Create a mock for LoadChatRoomPort
-        val testLoadChatRoomPort = mock(LoadChatRoomPort::class.java)
-        doReturn(chatRoom).`when`(testLoadChatRoomPort).findById(roomId)
+        // Create a mock for ChatRoomQueryPort
+        val testChatRoomQueryPort = mock(ChatRoomQueryPort::class.java)
+        doReturn(chatRoom).`when`(testChatRoomQueryPort).findById(roomId)
 
         // Create a new service instance with our test implementations
         val testService = ScheduledMessageService(
             testScheduledMessagePort,
-            testLoadChatRoomPort,
+            testChatRoomQueryPort,
             testScheduledMessageMapper
         )
 
@@ -187,21 +197,21 @@ class ScheduledMessageServiceTest {
         // then
         // Verify the result is not null and has the expected properties
         assertThat(result).isNotNull
-        assertThat(result.roomId).isEqualTo(roomId)
-        assertThat(result.senderId).isEqualTo(senderId)
+        assertThat(result.roomId).isEqualTo(roomIdLong)
+        assertThat(result.senderId).isEqualTo(senderIdLong)
         assertThat(result.content.text).isEqualTo(content)
         assertThat(result.scheduledAt).isEqualTo(scheduledAt)
 
         // Verify the saved message has the expected properties
         val savedMessage = testScheduledMessagePort.savedMessage
         assertThat(savedMessage).isNotNull
-        assertThat(savedMessage?.roomId).isEqualTo(roomId)
-        assertThat(savedMessage?.senderId).isEqualTo(senderId)
+        assertThat(savedMessage?.roomId).isEqualTo(roomIdLong)
+        assertThat(savedMessage?.senderId).isEqualTo(senderIdLong)
         assertThat(savedMessage?.content?.text).isEqualTo(content)
         assertThat(savedMessage?.scheduledAt).isEqualTo(scheduledAt)
 
-        // Verify the loadChatRoomPort was called
-        verify(testLoadChatRoomPort).findById(roomId)
+        // Verify the chatRoomQueryPort was called
+        verify(testChatRoomQueryPort).findById(roomId)
     }
 
     @Test
@@ -242,7 +252,7 @@ class ScheduledMessageServiceTest {
         class TestScheduledMessageMapper : ScheduledMessageMapper() {
             override fun toScheduledMessageResponseDto(domain: ScheduledMessage): ScheduledMessageResponseDto {
                 return ScheduledMessageResponseDto(
-                    id = domain.id!!,
+                    id = domain.id!!.value,
                     roomId = domain.roomId,
                     senderId = domain.senderId,
                     content = MessageContentResponseDto(
@@ -260,36 +270,38 @@ class ScheduledMessageServiceTest {
         }
 
         // given
-            val messageId = "507f1f77bcf86cd799439011" // Use a valid ObjectId string
-        val userId = 2L
+        val messageIdStr = "507f1f77bcf86cd799439011" // Use a valid ObjectId string
+        val userIdLong = 2L
+        val userId = UserId.from(userIdLong)
 
         val testScheduledMessagePort = TestScheduledMessagePort()
         val testScheduledMessageMapper = TestScheduledMessageMapper()
-        val testLoadChatRoomPort = mock(LoadChatRoomPort::class.java)
+        val testChatRoomQueryPort = mock(ChatRoomQueryPort::class.java)
 
         // Create a new service instance with our test implementations
         val testService = ScheduledMessageService(
             testScheduledMessagePort,
-            testLoadChatRoomPort,
+            testChatRoomQueryPort,
             testScheduledMessageMapper
         )
 
         // when
-        val result = testService.cancelScheduledMessage(messageId, userId)
+        val result = testService.cancelScheduledMessage(messageIdStr, userId)
 
         // then
         // Verify the result is not null and has the expected properties
         assertThat(result).isNotNull
-        assertThat(result.id?.value).isEqualTo(messageId)
-        assertThat(result.senderId).isEqualTo(userId)
+        assertThat(result.id).isEqualTo(messageIdStr)
+        assertThat(result.senderId).isEqualTo(userIdLong)
         assertThat(result.status).isEqualTo(ScheduledMessageStatus.CANCELED)
 
         // Verify the saved message has the expected properties
         val savedMessage = testScheduledMessagePort.savedMessage
         assertThat(savedMessage).isNotNull
-        assertThat(savedMessage?.id?.value).isEqualTo(messageId)
-        assertThat(savedMessage?.senderId).isEqualTo(userId)
-        assertThat(savedMessage?.status).isEqualTo(ScheduledMessageStatus.CANCELED)
+        assertThat(savedMessage!!.id).isNotNull
+        assertThat(savedMessage.id!!.value).isEqualTo(messageIdStr)
+        assertThat(savedMessage.senderId).isEqualTo(userIdLong)
+        assertThat(savedMessage.status).isEqualTo(ScheduledMessageStatus.CANCELED)
     }
 
     @Test
@@ -332,7 +344,7 @@ class ScheduledMessageServiceTest {
         class TestScheduledMessageMapper : ScheduledMessageMapper() {
             override fun toScheduledMessageResponseDto(domain: ScheduledMessage): ScheduledMessageResponseDto {
                 return ScheduledMessageResponseDto(
-                    id = domain.id!!,
+                    id = domain.id!!.value,
                     roomId = domain.roomId,
                     senderId = domain.senderId,
                     content = MessageContentResponseDto(
@@ -351,29 +363,30 @@ class ScheduledMessageServiceTest {
 
         // given
         val messageId = "507f1f77bcf86cd799439011" // Use a valid ObjectId string
-        val userId = 2L
+        val userIdLong = 2L
+        val userId = UserId.from(userIdLong)
         val newContent = "수정된 예약 메시지"
         val newScheduledAt = Instant.now().plus(2, ChronoUnit.HOURS)
 
         val testScheduledMessagePort = TestScheduledMessagePort()
         val testScheduledMessageMapper = TestScheduledMessageMapper()
-        val testLoadChatRoomPort = mock(LoadChatRoomPort::class.java)
+        val testChatRoomQueryPort = mock(ChatRoomQueryPort::class.java)
 
         // Create a new service instance with our test implementations
         val testService = ScheduledMessageService(
             testScheduledMessagePort,
-            testLoadChatRoomPort,
+            testChatRoomQueryPort,
             testScheduledMessageMapper
         )
 
         // when
-        val result = testService.updateScheduledMessage(messageId, userId, newContent, newScheduledAt)
+        val result = testService.updateScheduledMessage(messageId, userIdLong, newContent, newScheduledAt)
 
         // then
         // Verify the result is not null and has the expected properties
         assertThat(result).isNotNull
-        assertThat(result.id?.value).isEqualTo(messageId)
-        assertThat(result.senderId).isEqualTo(userId)
+        assertThat(result.id).isEqualTo(messageId)
+        assertThat(result.senderId).isEqualTo(userIdLong)
         assertThat(result.content.text).isEqualTo(newContent)
         assertThat(result.scheduledAt).isEqualTo(newScheduledAt)
         assertThat(result.status).isEqualTo(ScheduledMessageStatus.PENDING)
@@ -381,11 +394,12 @@ class ScheduledMessageServiceTest {
         // Verify the saved message has the expected properties
         val savedMessage = testScheduledMessagePort.savedMessage
         assertThat(savedMessage).isNotNull
-        assertThat(savedMessage?.id?.value).isEqualTo(messageId)
-        assertThat(savedMessage?.senderId).isEqualTo(userId)
-        assertThat(savedMessage?.content?.text).isEqualTo(newContent)
-        assertThat(savedMessage?.scheduledAt).isEqualTo(newScheduledAt)
-        assertThat(savedMessage?.status).isEqualTo(ScheduledMessageStatus.PENDING)
+        assertThat(savedMessage!!.id).isNotNull
+        assertThat(savedMessage.id!!.value).isEqualTo(messageId)
+        assertThat(savedMessage.senderId).isEqualTo(userIdLong)
+        assertThat(savedMessage.content.text).isEqualTo(newContent)
+        assertThat(savedMessage.scheduledAt).isEqualTo(newScheduledAt)
+        assertThat(savedMessage.status).isEqualTo(ScheduledMessageStatus.PENDING)
     }
 
     @Test
@@ -452,7 +466,7 @@ class ScheduledMessageServiceTest {
         class TestScheduledMessageMapper : ScheduledMessageMapper() {
             override fun toScheduledMessageResponseDto(domain: ScheduledMessage): ScheduledMessageResponseDto {
                 return ScheduledMessageResponseDto(
-                    id = domain.id!!,
+                    id = domain.id!!.value,
                     roomId = domain.roomId,
                     senderId = domain.senderId,
                     content = MessageContentResponseDto(
@@ -470,36 +484,37 @@ class ScheduledMessageServiceTest {
         }
 
         // given
-        val userId = 2L
+        val userIdLong = 2L
+        val userId = UserId.from(userIdLong)
 
         val testScheduledMessagePort = TestScheduledMessagePort()
         val testScheduledMessageMapper = TestScheduledMessageMapper()
-        val testLoadChatRoomPort = mock(LoadChatRoomPort::class.java)
+        val testChatRoomQueryPort = mock(ChatRoomQueryPort::class.java)
 
         // Create a new service instance with our test implementations
         val testService = ScheduledMessageService(
             testScheduledMessagePort,
-            testLoadChatRoomPort,
+            testChatRoomQueryPort,
             testScheduledMessageMapper
         )
 
         // when - 모든 채팅방의 예약 메시지 조회
-        val allResults = testService.getScheduledMessagesByUser(userId, null)
+        val allResults = testService.getScheduledMessagesByUser(userIdLong, null)
 
         // then - 대기 중인 메시지만 반환되어야 함 (PENDING 상태)
         assertThat(allResults).hasSize(2)
-        assertThat(allResults.map { it.id?.value }).containsExactlyInAnyOrder("message-1", "message-2")
-        assertThat(allResults.all { it.senderId == userId }).isTrue()
+        assertThat(allResults.map { it.id }).containsExactlyInAnyOrder("message-1", "message-2")
+        assertThat(allResults.all { it.senderId == userIdLong }).isTrue()
         assertThat(allResults.all { it.status == ScheduledMessageStatus.PENDING }).isTrue()
 
         // when - 특정 채팅방의 예약 메시지 조회
-        val roomResults = testService.getScheduledMessagesByUser(userId, 1L)
+        val roomResults = testService.getScheduledMessagesByUser(userIdLong, 1L)
 
         // then - 해당 채팅방의 대기 중인 메시지만 반환되어야 함
         assertThat(roomResults).hasSize(1)
-        assertThat(roomResults[0].id?.value).isEqualTo("message-1")
+        assertThat(roomResults[0].id).isEqualTo("message-1")
         assertThat(roomResults[0].roomId).isEqualTo(1L)
-        assertThat(roomResults[0].senderId).isEqualTo(userId)
+        assertThat(roomResults[0].senderId).isEqualTo(userIdLong)
         assertThat(roomResults[0].status).isEqualTo(ScheduledMessageStatus.PENDING)
     }
 
@@ -541,7 +556,7 @@ class ScheduledMessageServiceTest {
         class TestScheduledMessageMapper : ScheduledMessageMapper() {
             override fun toScheduledMessageResponseDto(domain: ScheduledMessage): ScheduledMessageResponseDto {
                 return ScheduledMessageResponseDto(
-                    id = domain.id!!,
+                    id = domain.id!!.value,
                     roomId = domain.roomId,
                     senderId = domain.senderId,
                     content = MessageContentResponseDto(
@@ -560,35 +575,37 @@ class ScheduledMessageServiceTest {
 
         // given
         val messageId = "507f1f77bcf86cd799439011" // Use a valid ObjectId string
-        val userId = 2L
+        val userIdLong = 2L
+        val userId = UserId.from(userIdLong)
 
         val testScheduledMessagePort = TestScheduledMessagePort()
         val testScheduledMessageMapper = TestScheduledMessageMapper()
-        val testLoadChatRoomPort = mock(LoadChatRoomPort::class.java)
+        val testChatRoomQueryPort = mock(ChatRoomQueryPort::class.java)
 
         // Create a new service instance with our test implementations
         val testService = ScheduledMessageService(
             testScheduledMessagePort,
-            testLoadChatRoomPort,
+            testChatRoomQueryPort,
             testScheduledMessageMapper
         )
 
         // when
-        val result = testService.sendScheduledMessageNow(messageId, userId)
+        val result = testService.sendScheduledMessageNow(messageId, userIdLong)
 
         // then
         // Verify the result is not null and has the expected properties
         assertThat(result).isNotNull
-        assertThat(result.id?.value).isEqualTo(messageId)
-        assertThat(result.senderId).isEqualTo(userId)
+        assertThat(result.id).isEqualTo(messageId)
+        assertThat(result.senderId).isEqualTo(userIdLong)
         assertThat(result.status).isEqualTo(ScheduledMessageStatus.SENT)
 
         // Verify the saved message has the expected properties
         val savedMessage = testScheduledMessagePort.savedMessage
         assertThat(savedMessage).isNotNull
-        assertThat(savedMessage?.id?.value).isEqualTo(messageId)
-        assertThat(savedMessage?.senderId).isEqualTo(userId)
-        assertThat(savedMessage?.status).isEqualTo(ScheduledMessageStatus.SENT)
+        assertThat(savedMessage!!.id).isNotNull
+        assertThat(savedMessage.id!!.value).isEqualTo(messageId)
+        assertThat(savedMessage.senderId).isEqualTo(userIdLong)
+        assertThat(savedMessage.status).isEqualTo(ScheduledMessageStatus.SENT)
     }
 
 }

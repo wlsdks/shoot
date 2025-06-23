@@ -16,6 +16,7 @@ class NotificationValueObjectsTest {
             val id = NotificationId.from("id")
             assertThat(id.value).isEqualTo("id")
         }
+
         @Test
         fun `blank 는 예외`() {
             assertThatThrownBy { NotificationId.from("") }
@@ -30,6 +31,7 @@ class NotificationValueObjectsTest {
             val t = NotificationTitle.from("t")
             assertThat(t.value).isEqualTo("t")
         }
+
         @Test
         fun `blank 는 예외`() {
             assertThatThrownBy { NotificationTitle.from(" ") }
@@ -44,6 +46,7 @@ class NotificationValueObjectsTest {
             val m = NotificationMessage.from("m")
             assertThat(m.value).isEqualTo("m")
         }
+
         @Test
         fun `blank 는 예외`() {
             assertThatThrownBy { NotificationMessage.from("") }

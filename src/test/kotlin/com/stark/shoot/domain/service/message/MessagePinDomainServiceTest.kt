@@ -24,23 +24,23 @@ class MessagePinDomainServiceTest {
         @Test
         fun `메시지 ID가 없으면 null을 반환한다`() {
             val message = ChatMessage(
-                roomId = 1L,
+                roomId = ChatRoomId.from(1L),
                 senderId = UserId.from(2L),
                 content = MessageContent("hi", MessageType.TEXT),
                 status = MessageStatus.SAVED,
                 createdAt = Instant.now()
             )
 
-            val event = service.createPinEvent(message, 1L, true)
+            val event = service.createPinEvent(message, UserId.from(1L), true)
             assertThat(event).isNull()
         }
 
         @Test
         fun `메시지 핀 이벤트를 생성할 수 있다`() {
             val message = ChatMessage(
-                id = "m1",
-                roomId = 1L,
-                senderId = 2L,
+                id = MessageId.from("m1"),
+                roomId = ChatRoomId.from(1L),
+                senderId = UserId.from(2L),
                 content = MessageContent("hi", MessageType.TEXT),
                 status = MessageStatus.SAVED,
                 createdAt = Instant.now()

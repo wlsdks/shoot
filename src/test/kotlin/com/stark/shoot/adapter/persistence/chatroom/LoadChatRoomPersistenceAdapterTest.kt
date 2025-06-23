@@ -1,10 +1,13 @@
 package com.stark.shoot.adapter.persistence.chatroom
 
+import com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom.ChatRoomQueryPersistenceAdapter
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.util.TestEntityFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -14,12 +17,12 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 
 @DataJpaTest
-@Import(LoadChatRoomPersistenceAdapter::class, ChatRoomMapper::class)
+@Import(ChatRoomQueryPersistenceAdapter::class, ChatRoomMapper::class)
 class LoadChatRoomPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomUserRepository: ChatRoomUserRepository,
     private val userRepository: UserRepository,
-    private val loadChatRoomPersistenceAdapter: LoadChatRoomPersistenceAdapter
+    private val chatRoomQueryPersistenceAdapter: ChatRoomQueryPersistenceAdapter
 ) {
 
     @Test
@@ -33,10 +36,10 @@ class LoadChatRoomPersistenceAdapterTest @Autowired constructor(
         chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user1, "m1"))
         chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user2, "m1", isPinned = true))
 
-        val room = loadChatRoomPersistenceAdapter.findById(roomEntity.id)
+        val room = chatRoomQueryPersistenceAdapter.findById(ChatRoomId.from(roomEntity.id))
         assertThat(room).isNotNull
-        assertThat(room!!.participants).containsExactlyInAnyOrder(user1.id, user2.id)
-        assertThat(room.pinnedParticipants).contains(user2.id)
+        assertThat(room!!.participants).containsExactlyInAnyOrder(UserId.from(user1.id), UserId.from(user2.id))
+        assertThat(room.pinnedParticipants).contains(UserId.from(user2.id))
     }
 
     @Test
@@ -50,8 +53,8 @@ class LoadChatRoomPersistenceAdapterTest @Autowired constructor(
         chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user1, "m1"))
         chatRoomUserRepository.save(TestEntityFactory.createChatRoomUser(roomEntity, user2, "m1"))
 
-        val rooms = loadChatRoomPersistenceAdapter.findByParticipantId(user1.id)
+        val rooms = chatRoomQueryPersistenceAdapter.findByParticipantId(UserId.from(user1.id))
         assertThat(rooms).hasSize(1)
-        assertThat(rooms[0].participants).contains(user1.id, user2.id)
+        assertThat(rooms[0].participants).contains(UserId.from(user1.id), UserId.from(user2.id))
     }
 }

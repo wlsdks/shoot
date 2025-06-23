@@ -4,6 +4,7 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.event.*
+import com.stark.shoot.domain.event.type.EventType
 import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -28,7 +29,11 @@ class EventFactoryTest {
             UserId.from(3L)
         )
         assertThat(event).isEqualTo(
-            MessageBulkReadEvent(ChatRoomId.from(1L), listOf(MessageId.from("m1"), MessageId.from("m2")), UserId.from(3L))
+            MessageBulkReadEvent(
+                ChatRoomId.from(1L),
+                listOf(MessageId.from("m1"), MessageId.from("m2")),
+                UserId.from(3L)
+            )
         )
     }
 
@@ -72,9 +77,9 @@ class EventFactoryTest {
 
     @Test
     fun `MessageReactionEvent create 함수는 주어진 값으로 이벤트를 생성한다`() {
-        val event = MessageReactionEvent.create("m1", "1", "2", "like", true)
+        val event = MessageReactionEvent.create(MessageId.from("m1"), ChatRoomId.from(1L), UserId.from(2L), "like", true)
         assertThat(event).isEqualTo(
-            MessageReactionEvent("m1", "1", "2", "like", true, false)
+            MessageReactionEvent(MessageId.from("m1"), ChatRoomId.from(1L), UserId.from(2L), "like", true, false)
         )
     }
 }

@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.persistence.chatroom
 
-import com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom.SaveChatRoomPersistenceAdapter
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserRepository

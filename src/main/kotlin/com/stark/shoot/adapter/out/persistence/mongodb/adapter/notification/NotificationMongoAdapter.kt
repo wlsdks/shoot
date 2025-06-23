@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.notification
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.document.notification.NotificationDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.NotificationMongoRepository
+import com.stark.shoot.application.port.out.notification.NotificationPort
 import com.stark.shoot.domain.event.NotificationEvent
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
@@ -101,16 +102,32 @@ class NotificationMongoAdapter(
             .map { it.toDomain() }
     }
 
-    override fun loadNotificationsByType(userId: UserId, type: NotificationType, limit: Int, offset: Int): List<Notification> {
+    override fun loadNotificationsByType(
+        userId: UserId,
+        type: NotificationType,
+        limit: Int,
+        offset: Int
+    ): List<Notification> {
         val pageable = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"))
         return notificationMongoRepository.findByUserIdAndType(userId.value, type.name, pageable)
             .map { it.toDomain() }
     }
 
-    override fun loadNotificationsBySource(userId: UserId, sourceType: SourceType, sourceId: String?, limit: Int, offset: Int): List<Notification> {
+    override fun loadNotificationsBySource(
+        userId: UserId,
+        sourceType: SourceType,
+        sourceId: String?,
+        limit: Int,
+        offset: Int
+    ): List<Notification> {
         val pageable = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"))
         return if (sourceId != null) {
-            notificationMongoRepository.findByUserIdAndSourceTypeAndSourceId(userId.value, sourceType.name, sourceId, pageable)
+            notificationMongoRepository.findByUserIdAndSourceTypeAndSourceId(
+                userId.value,
+                sourceType.name,
+                sourceId,
+                pageable
+            )
                 .map { it.toDomain() }
         } else {
             notificationMongoRepository.findByUserIdAndSourceType(userId.value, sourceType.name, pageable)

@@ -3,7 +3,6 @@ package com.stark.shoot.adapter.out.persistence.mongodb.adapter.message
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.read.ReadStatus
-import com.stark.shoot.adapter.out.persistence.mongodb.document.message.ChatMessageDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.bookmark.MessageBookmarkDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMongoRepository

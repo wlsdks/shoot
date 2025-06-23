@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.persistence.chatroom
 
-import com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom.DeleteChatRoomPersistenceAdapter
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
 import com.stark.shoot.util.TestEntityFactory
 import org.assertj.core.api.Assertions.assertThat

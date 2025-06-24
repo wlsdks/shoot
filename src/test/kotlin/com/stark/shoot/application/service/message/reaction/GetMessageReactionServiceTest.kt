@@ -29,7 +29,7 @@ class GetMessageReactionServiceTest {
     inner class GetReactions {
 
         @Test
-        @DisplayName("메시지 ID로 리액션을 조회할 수 있다")
+        @DisplayName("[happy] 메시지 ID로 리액션을 조회할 수 있다")
         fun `메시지 ID로 리액션을 조회할 수 있다`() {
             // given
             val messageId = MessageId.from("5f9f1b9b9c9d1b9b9c9d1b9b")
@@ -57,7 +57,7 @@ class GetMessageReactionServiceTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 메시지 ID로 조회하면 예외가 발생한다")
+        @DisplayName("[bad] 존재하지 않는 메시지 ID로 조회하면 예외가 발생한다")
         fun `존재하지 않는 메시지 ID로 조회하면 예외가 발생한다`() {
             // given
             val messageId = MessageId.from("5f9f1b9b9c9d1b9b9c9d1b9b")
@@ -77,7 +77,7 @@ class GetMessageReactionServiceTest {
     inner class GetSupportedReactionTypes {
 
         @Test
-        @DisplayName("지원하는 모든 리액션 타입을 조회할 수 있다")
+        @DisplayName("[happy] 지원하는 모든 리액션 타입을 조회할 수 있다")
         fun `지원하는 모든 리액션 타입을 조회할 수 있다`() {
             // when
             val result = getMessageReactionService.getSupportedReactionTypes()

@@ -48,7 +48,7 @@ class ToggleMessageReactionServiceTest {
     inner class ToggleReaction {
 
         @Test
-        @DisplayName("유효한 리액션 타입으로 리액션을 추가할 수 있다")
+        @DisplayName("[happy] 유효한 리액션 타입으로 리액션을 추가할 수 있다")
         fun `유효한 리액션 타입으로 리액션을 추가할 수 있다`() {
             // given
             val messageIdStr = "5f9f1b9b9c9d1b9b9c9d1b9b"
@@ -118,7 +118,7 @@ class ToggleMessageReactionServiceTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 메시지 ID로 토글하면 예외가 발생한다")
+        @DisplayName("[bad] 존재하지 않는 메시지 ID로 토글하면 예외가 발생한다")
         fun `존재하지 않는 메시지 ID로 토글하면 예외가 발생한다`() {
             // given
             val messageIdStr = "5f9f1b9b9c9d1b9b9c9d1b9b"
@@ -141,7 +141,7 @@ class ToggleMessageReactionServiceTest {
         }
 
         @Test
-        @DisplayName("지원하지 않는 리액션 타입으로 토글하면 예외가 발생한다")
+        @DisplayName("[bad] 지원하지 않는 리액션 타입으로 토글하면 예외가 발생한다")
         fun `지원하지 않는 리액션 타입으로 토글하면 예외가 발생한다`() {
             // given
             val messageIdStr = "5f9f1b9b9c9d1b9b9c9d1b9b"

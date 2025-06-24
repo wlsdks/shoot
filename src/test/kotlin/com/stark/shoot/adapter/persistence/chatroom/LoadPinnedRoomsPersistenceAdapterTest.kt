@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Import
 
 @DataJpaTest
 @Import(ChatRoomQueryPersistenceAdapter::class, ChatRoomMapper::class)
+@DisplayName("고정된 채팅방 조회 어댑터 테스트")
 class LoadPinnedRoomsPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomUserRepository: ChatRoomUserRepository,
@@ -25,7 +26,7 @@ class LoadPinnedRoomsPersistenceAdapterTest @Autowired constructor(
 ) {
 
     @Test
-    @DisplayName("사용자가 고정한 채팅방을 조회할 수 있다")
+    @DisplayName("[happy] 사용자가 고정한 채팅방을 조회할 수 있다")
     fun findPinnedRooms() {
         val user1 = userRepository.save(TestEntityFactory.createUser("user1", "u1"))
         val user2 = userRepository.save(TestEntityFactory.createUser("user2", "u2"))

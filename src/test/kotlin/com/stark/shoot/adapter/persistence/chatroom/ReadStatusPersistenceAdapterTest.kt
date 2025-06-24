@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Import
 
 @DataJpaTest
 @Import(ChatRoomCommandPersistenceAdapter::class, ChatRoomMapper::class)
+@DisplayName("채팅방 읽음 상태 어댑터 테스트")
 class ReadStatusPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomUserRepository: ChatRoomUserRepository,
@@ -26,7 +27,7 @@ class ReadStatusPersistenceAdapterTest @Autowired constructor(
 ) {
 
     @Test
-    @DisplayName("마지막 읽은 메시지 ID를 업데이트할 수 있다")
+    @DisplayName("[happy] 마지막 읽은 메시지 ID를 업데이트할 수 있다")
     fun updateLastReadMessageId() {
         val user = userRepository.save(TestEntityFactory.createUser("user", "u1"))
         val room = chatRoomRepository.save(TestEntityFactory.createChatRoomEntity("room"))
@@ -42,7 +43,7 @@ class ReadStatusPersistenceAdapterTest @Autowired constructor(
     }
 
     @Test
-    @DisplayName("긴 메시지 ID(24자 초과)도 업데이트할 수 있다")
+    @DisplayName("[happy] 긴 메시지 ID(24자 초과)도 업데이트할 수 있다")
     fun updateLongLastReadMessageId() {
         val user = userRepository.save(TestEntityFactory.createUser("user", "u1"))
         val room = chatRoomRepository.save(TestEntityFactory.createChatRoomEntity("room"))

@@ -21,7 +21,7 @@ class ChatMessageTest {
     inner class CreateMessage {
 
         @Test
-        @DisplayName("주어진 정보로 메시지를 생성할 수 있다")
+        @DisplayName("[happy] 주어진 정보로 메시지를 생성할 수 있다")
         fun `메시지를 생성할 수 있다`() {
             // given
             val roomId = ChatRoomId.from(1L)
@@ -55,7 +55,7 @@ class ChatMessageTest {
     inner class MarkAsRead {
 
         @Test
-        @DisplayName("사용자가 메시지를 읽음 처리할 수 있다")
+        @DisplayName("[happy] 사용자가 메시지를 읽음 처리할 수 있다")
         fun `사용자가 메시지를 읽음 처리할 수 있다`() {
             // given
             val message = ChatMessage.create(
@@ -81,7 +81,7 @@ class ChatMessageTest {
     inner class UpdatePinStatus {
 
         @Test
-        @DisplayName("메시지를 고정할 수 있다")
+        @DisplayName("[happy] 메시지를 고정할 수 있다")
         fun `메시지를 고정할 수 있다`() {
             // given
             val message = ChatMessage.create(
@@ -102,7 +102,7 @@ class ChatMessageTest {
         }
 
         @Test
-        @DisplayName("고정된 메시지를 해제할 수 있다")
+        @DisplayName("[happy] 고정된 메시지를 해제할 수 있다")
         fun `고정된 메시지를 해제할 수 있다`() {
             // given
             val message = ChatMessage.create(
@@ -129,7 +129,7 @@ class ChatMessageTest {
     inner class PinMessageInRoom {
 
         @Test
-        @DisplayName("채팅방에 고정된 메시지가 없으면 메시지를 고정할 수 있다")
+        @DisplayName("[happy] 채팅방에 고정된 메시지가 없으면 메시지를 고정할 수 있다")
         fun `채팅방에 고정된 메시지가 없으면 메시지를 고정할 수 있다`() {
             // given
             val message = ChatMessage.create(
@@ -151,7 +151,7 @@ class ChatMessageTest {
         }
 
         @Test
-        @DisplayName("채팅방에 이미 고정된 메시지가 있으면 기존 메시지를 해제하고 새 메시지를 고정할 수 있다")
+        @DisplayName("[happy] 채팅방에 이미 고정된 메시지가 있으면 기존 메시지를 해제하고 새 메시지를 고정할 수 있다")
         fun `채팅방에 이미 고정된 메시지가 있으면 기존 메시지를 해제하고 새 메시지를 고정할 수 있다`() {
             // given
             val existingMessage = ChatMessage.create(
@@ -183,7 +183,7 @@ class ChatMessageTest {
         }
 
         @Test
-        @DisplayName("이미 고정된 메시지를 다시 고정하면 변경 없이 그대로 반환한다")
+        @DisplayName("[happy] 이미 고정된 메시지를 다시 고정하면 변경 없이 그대로 반환한다")
         fun `이미 고정된 메시지를 다시 고정하면 변경 없이 그대로 반환한다`() {
             // given
             val message = ChatMessage.create(
@@ -209,7 +209,7 @@ class ChatMessageTest {
     inner class EditMessage {
 
         @Test
-        @DisplayName("텍스트 타입 메시지의 내용을 수정할 수 있다")
+        @DisplayName("[happy] 텍스트 타입 메시지의 내용을 수정할 수 있다")
         fun `텍스트 타입 메시지의 내용을 수정할 수 있다`() {
             // given
             val message = ChatMessage.create(
@@ -230,7 +230,7 @@ class ChatMessageTest {
         }
 
         @Test
-        @DisplayName("빈 내용으로 수정하려고 하면 예외가 발생한다")
+        @DisplayName("[bad] 빈 내용으로 수정하려고 하면 예외가 발생한다")
         fun `빈 내용으로 수정하려고 하면 예외가 발생한다`() {
             // given
             val message = ChatMessage.create(
@@ -248,7 +248,7 @@ class ChatMessageTest {
         }
 
         @Test
-        @DisplayName("삭제된 메시지를 수정하려고 하면 예외가 발생한다")
+        @DisplayName("[bad] 삭제된 메시지를 수정하려고 하면 예외가 발생한다")
         fun `삭제된 메시지를 수정하려고 하면 예외가 발생한다`() {
             // given
             val message = ChatMessage.create(
@@ -267,7 +267,7 @@ class ChatMessageTest {
         }
 
         @Test
-        @DisplayName("텍스트 타입이 아닌 메시지를 수정하려고 하면 예외가 발생한다")
+        @DisplayName("[bad] 텍스트 타입이 아닌 메시지를 수정하려고 하면 예외가 발생한다")
         fun `텍스트 타입이 아닌 메시지를 수정하려고 하면 예외가 발생한다`() {
             // given
             val message = ChatMessage.create(
@@ -290,7 +290,7 @@ class ChatMessageTest {
     inner class MarkAsDeleted {
 
         @Test
-        @DisplayName("메시지를 삭제 상태로 변경할 수 있다")
+        @DisplayName("[happy] 메시지를 삭제 상태로 변경할 수 있다")
         fun `메시지를 삭제 상태로 변경할 수 있다`() {
             // given
             val message = ChatMessage.create(
@@ -314,7 +314,7 @@ class ChatMessageTest {
     inner class ToggleReaction {
 
         @Test
-        @DisplayName("메시지에 반응을 추가할 수 있다")
+        @DisplayName("[happy] 메시지에 반응을 추가할 수 있다")
         fun `메시지에 반응을 추가할 수 있다`() {
             // given
             val message = ChatMessage.create(
@@ -338,7 +338,7 @@ class ChatMessageTest {
         }
 
         @Test
-        @DisplayName("이미 추가한 반응과 같은 반응을 선택하면 제거할 수 있다")
+        @DisplayName("[happy] 이미 추가한 반응과 같은 반응을 선택하면 제거할 수 있다")
         fun `이미 추가한 반응과 같은 반응을 선택하면 제거할 수 있다`() {
             // given
             val message = ChatMessage.create(
@@ -362,7 +362,7 @@ class ChatMessageTest {
         }
 
         @Test
-        @DisplayName("이미 추가한 반응과 다른 반응을 선택하면 기존 반응을 제거하고 새 반응을 추가할 수 있다")
+        @DisplayName("[happy] 이미 추가한 반응과 다른 반응을 선택하면 기존 반응을 제거하고 새 반응을 추가할 수 있다")
         fun `이미 추가한 반응과 다른 반응을 선택하면 기존 반응을 제거하고 새 반응을 추가할 수 있다`() {
             // given
             val message = ChatMessage.create(
@@ -394,7 +394,7 @@ class ChatMessageTest {
     inner class UrlPreview {
 
         @Test
-        @DisplayName("URL 미리보기 정보를 설정할 수 있다")
+        @DisplayName("[happy] URL 미리보기 정보를 설정할 수 있다")
         fun `URL 미리보기 정보를 설정할 수 있다`() {
             // given
             val message = ChatMessage.create(
@@ -421,7 +421,7 @@ class ChatMessageTest {
         }
 
         @Test
-        @DisplayName("URL 미리보기가 필요함을 표시할 수 있다")
+        @DisplayName("[happy] URL 미리보기가 필요함을 표시할 수 있다")
         fun `URL 미리보기가 필요함을 표시할 수 있다`() {
             // given
             val message = ChatMessage.create(
@@ -447,7 +447,7 @@ class ChatMessageTest {
     inner class Expiration {
 
         @Test
-        @DisplayName("만료 시간이 지나면 만료로 판단한다")
+        @DisplayName("[happy] 만료 시간이 지나면 만료로 판단한다")
         fun `만료 시간이 지나면 만료로 판단한다`() {
             val expireAt = Instant.now().minusSeconds(10)
             val message = ChatMessage.create(
@@ -460,7 +460,7 @@ class ChatMessageTest {
         }
 
         @Test
-        @DisplayName("미래의 만료 시간은 만료되지 않은 것으로 판단한다")
+        @DisplayName("[happy] 미래의 만료 시간은 만료되지 않은 것으로 판단한다")
         fun `미래의 만료 시간은 만료되지 않은 것으로 판단한다`() {
             val expireAt = Instant.now().plusSeconds(60)
             val message = ChatMessage.create(

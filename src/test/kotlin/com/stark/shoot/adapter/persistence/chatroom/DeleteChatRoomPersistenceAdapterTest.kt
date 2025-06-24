@@ -14,13 +14,14 @@ import org.springframework.context.annotation.Import
 
 @DataJpaTest
 @Import(ChatRoomCommandPersistenceAdapter::class, ChatRoomMapper::class)
+@DisplayName("채팅방 삭제 어댑터 테스트")
 class DeleteChatRoomPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomCommandPersistenceAdapter: ChatRoomCommandPersistenceAdapter,
 ) {
 
     @Test
-    @DisplayName("채팅방을 삭제할 수 있다")
+    @DisplayName("[happy] 채팅방을 삭제할 수 있다")
     fun deleteChatRoom() {
         val room = chatRoomRepository.save(
             TestEntityFactory.createChatRoomEntity("room")

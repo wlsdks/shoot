@@ -16,7 +16,7 @@ class SpringEventPublisherTest {
     private class TestDomainEvent(override val occurredOn: Long = System.currentTimeMillis()) : DomainEvent
 
     @Test
-    @DisplayName("도메인 이벤트를 발행할 수 있다")
+    @DisplayName("[happy] 도메인 이벤트를 발행할 수 있다")
     fun `도메인 이벤트를 발행할 수 있다`() {
         // given
         val event = TestDomainEvent()
@@ -29,7 +29,7 @@ class SpringEventPublisherTest {
     }
 
     @Test
-    @DisplayName("여러 도메인 이벤트를 발행할 수 있다")
+    @DisplayName("[happy] 여러 도메인 이벤트를 발행할 수 있다")
     fun `여러 도메인 이벤트를 발행할 수 있다`() {
         // given
         val events = listOf(

@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Import
 
 @DataJpaTest
 @Import(ChatRoomQueryPersistenceAdapter::class, ChatRoomMapper::class)
+@DisplayName("채팅방 조회 어댑터 테스트")
 class LoadChatRoomPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomUserRepository: ChatRoomUserRepository,
@@ -26,7 +27,7 @@ class LoadChatRoomPersistenceAdapterTest @Autowired constructor(
 ) {
 
     @Test
-    @DisplayName("ID로 채팅방을 조회할 수 있다")
+    @DisplayName("[happy] ID로 채팅방을 조회할 수 있다")
     fun findById() {
         val user1 = userRepository.save(TestEntityFactory.createUser("user1", "u1"))
         val user2 = userRepository.save(TestEntityFactory.createUser("user2", "u2"))
@@ -43,7 +44,7 @@ class LoadChatRoomPersistenceAdapterTest @Autowired constructor(
     }
 
     @Test
-    @DisplayName("참여자 ID로 채팅방을 조회할 수 있다")
+    @DisplayName("[happy] 참여자 ID로 채팅방을 조회할 수 있다")
     fun findByParticipantId() {
         val user1 = userRepository.save(TestEntityFactory.createUser("user1", "u1"))
         val user2 = userRepository.save(TestEntityFactory.createUser("user2", "u2"))

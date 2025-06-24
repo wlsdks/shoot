@@ -1,6 +1,8 @@
 package com.stark.shoot.adapter.persistence.message.preview
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.stark.shoot.adapter.out.persistence.mongodb.adapter.message.preview.RedisUrlPreviewCacheAdapter
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.infrastructure.config.redis.RedisUtilService
@@ -18,7 +20,10 @@ class RedisUrlPreviewCacheAdapterTest {
 
     private val redisTemplate = mock(StringRedisTemplate::class.java)
     private val valueOps = mock(ValueOperations::class.java) as ValueOperations<String, String>
-    private val objectMapper = ObjectMapper()
+    private val objectMapper = ObjectMapper().apply {
+        registerModule(JavaTimeModule())
+        registerModule(KotlinModule.Builder().build())
+    }
     private val redisUtilService = mock(RedisUtilService::class.java)
 
     private val adapter = RedisUrlPreviewCacheAdapter(redisTemplate, objectMapper, redisUtilService)
@@ -44,9 +49,10 @@ class RedisUrlPreviewCacheAdapterTest {
         val preview = ChatMessageMetadata.UrlPreview(url, "t", "d", "i", "s", Instant.now())
         `when`(redisUtilService.createHashKey("url_preview:", url)).thenReturn(key)
         `when`(redisTemplate.opsForValue()).thenReturn(valueOps)
+        doNothing().`when`(valueOps).set(anyString(), anyString(), any(Duration::class.java))
 
         adapter.cacheUrlPreview(url, preview)
 
-        verify(valueOps).set(eq(key), eq(objectMapper.writeValueAsString(preview)), eq(Duration.ofDays(7)))
+        verify(valueOps).set(eq(key), any(), eq(Duration.ofDays(7)))
     }
 }

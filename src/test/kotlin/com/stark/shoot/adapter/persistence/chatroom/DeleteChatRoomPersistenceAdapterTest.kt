@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.persistence.chatroom
 
 import com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom.ChatRoomCommandPersistenceAdapter
+import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.util.TestEntityFactory
@@ -12,7 +13,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 
 @DataJpaTest
-@Import(ChatRoomCommandPersistenceAdapter::class)
+@Import(ChatRoomCommandPersistenceAdapter::class, ChatRoomMapper::class)
 class DeleteChatRoomPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomCommandPersistenceAdapter: ChatRoomCommandPersistenceAdapter,

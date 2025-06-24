@@ -24,6 +24,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
+import org.mockito.ArgumentMatchers.any
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.time.Instant
 
@@ -81,11 +82,20 @@ class PaginationMessageSyncServiceTest {
                 )
             }
 
-            `when`(messageQueryPort.findByRoomIdAndAfterIdFlow(ChatRoomId.from(roomId), MessageId.from(""), 50)).thenReturn(messageFlow)
+            // For initial load, the service uses a default message ID when lastMessageId is null
+            val defaultMessageId = MessageId.from("default-message-id")
+            `when`(messageQueryPort.findByRoomIdAndAfterIdFlow(ChatRoomId.from(roomId), defaultMessageId, 30)).thenReturn(messageFlow)
+
+            // Mock the threadQueryPort for each message
+            for (message in messages) {
+                message.id?.let { messageId ->
+                    `when`(threadQueryPort.countByThreadId(messageId)).thenReturn(0L)
+                }
+            }
 
             // Mock the mapper for each message
             for (i in messages.indices) {
-                `when`(messageSyncMapper.toSyncInfoDto(messages[i], null)).thenReturn(syncInfoDtos[i])
+                `when`(messageSyncMapper.toSyncInfoDto(messages[i], 0L)).thenReturn(syncInfoDtos[i])
             }
 
             // when
@@ -95,9 +105,12 @@ class PaginationMessageSyncServiceTest {
             assertThat(result).hasSize(3)
             assertThat(result).containsExactlyElementsOf(syncInfoDtos)
 
-            verify(messageQueryPort).findByRoomIdAndAfterIdFlow(ChatRoomId.from(roomId), MessageId.from(""), 50)
+            verify(messageQueryPort).findByRoomIdAndAfterIdFlow(ChatRoomId.from(roomId), defaultMessageId, 30)
             for (message in messages) {
-                verify(messageSyncMapper).toSyncInfoDto(message, null)
+                message.id?.let { messageId ->
+                    verify(threadQueryPort).countByThreadId(messageId)
+                }
+                verify(messageSyncMapper).toSyncInfoDto(message, 0L)
             }
         }
 
@@ -139,9 +152,16 @@ class PaginationMessageSyncServiceTest {
 
             `when`(messageQueryPort.findByRoomIdAndBeforeIdFlow(ChatRoomId.from(roomId), messageId, 30)).thenReturn(messageFlow)
 
+            // Mock the threadQueryPort for each message
+            for (message in messages) {
+                message.id?.let { messageId ->
+                    `when`(threadQueryPort.countByThreadId(messageId)).thenReturn(0L)
+                }
+            }
+
             // Mock the mapper for each message
             for (i in messages.indices) {
-                `when`(messageSyncMapper.toSyncInfoDto(messages[i], null)).thenReturn(syncInfoDtos[i])
+                `when`(messageSyncMapper.toSyncInfoDto(messages[i], 0L)).thenReturn(syncInfoDtos[i])
             }
 
             // when
@@ -153,7 +173,10 @@ class PaginationMessageSyncServiceTest {
 
             verify(messageQueryPort).findByRoomIdAndBeforeIdFlow(ChatRoomId.from(roomId), messageId, 30)
             for (message in messages) {
-                verify(messageSyncMapper).toSyncInfoDto(message, null)
+                message.id?.let { messageId ->
+                    verify(threadQueryPort).countByThreadId(messageId)
+                }
+                verify(messageSyncMapper).toSyncInfoDto(message, 0L)
             }
         }
     }

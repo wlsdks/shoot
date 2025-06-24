@@ -19,9 +19,9 @@ class UserBlockDomainServiceTest {
     fun `자신을 차단하면 예외`() {
         val user = User(
             id = UserId.from(1L),
-            username = Username.from("a"),
-            nickname = Nickname.from("A"),
-            userCode = UserCode.from("A1")
+            username = Username.from("user123"),
+            nickname = Nickname.from("User"),
+            userCode = UserCode.from("USER1234")
         )
         assertThrows<IllegalArgumentException> { service.block(user.id!!, UserId.from(1L)) }
     }

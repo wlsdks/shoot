@@ -53,7 +53,7 @@ class GetThreadMessagesServiceTest {
 
             // then
             assertThat(result).hasSize(1)
-            assertThat(result[0].id).isEqualTo(message.id)
+            assertThat(result[0].id).isEqualTo(message.id.toString())
 
             verify(threadQueryPort).findByThreadId(MessageId.from(threadId), 20)
         }

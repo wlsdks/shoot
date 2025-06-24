@@ -56,7 +56,7 @@ class ChatRoomMetadataDomainServiceTest {
             createdAt = Instant.now()
         )
         val updated = service.updateChatRoomWithNewMessage(room, msg)
-        assertThat(updated.lastMessageId).isEqualTo("m1")
+        assertThat(updated.lastMessageId?.value).isEqualTo("m1")
         assertThat(updated.lastActiveAt).isAfter(room.lastActiveAt)
     }
 

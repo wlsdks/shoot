@@ -41,8 +41,8 @@ class MessageForwardDomainServiceTest {
             content
         )
 
-        assertThat(msg.roomId).isEqualTo(3L)
-        assertThat(msg.senderId).isEqualTo(4L)
+        assertThat(msg.roomId.value).isEqualTo(3L)
+        assertThat(msg.senderId.value).isEqualTo(4L)
         assertThat(msg.content).isEqualTo(content)
         assertThat(msg.status).isEqualTo(MessageStatus.SAVED)
     }

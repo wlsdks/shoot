@@ -70,7 +70,7 @@ class SendThreadMessageServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 스레드에 메시지를 보내면 예외가 발생한다")
+    @DisplayName("[bad] 존재하지 않는 스레드에 메시지를 보내면 예외가 발생한다")
     fun `존재하지 않는 스레드에 메시지를 보내면 예외가 발생한다`() {
         // given
         val request = ChatMessageRequest(
@@ -93,7 +93,7 @@ class SendThreadMessageServiceTest {
     }
 
     @Test
-    @DisplayName("스레드 메시지를 전송할 수 있다")
+    @DisplayName("[happy] 스레드 메시지를 전송할 수 있다")
     @Disabled("Mockito matcher issues")
     fun `스레드 메시지를 전송할 수 있다`() {
         // given

@@ -22,6 +22,7 @@ class ChatRoomMetadataDomainServiceTest {
     private val service = ChatRoomMetadataDomainService()
 
     @Test
+    @DisplayName("[bad] 메시지 ID가 없으면 예외가 발생한다")
     fun `메시지 ID가 없으면 예외가 발생한다`() {
         val room =
             ChatRoom(
@@ -40,6 +41,7 @@ class ChatRoomMetadataDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[happy] 새 메시지로 채팅방 메타데이터를 업데이트할 수 있다")
     fun `새 메시지로 채팅방 메타데이터를 업데이트할 수 있다`() {
         val room = ChatRoom(
             id = ChatRoomId.from(1L),

@@ -12,11 +12,13 @@ class FriendGroupDomainServiceTest {
     private val service = FriendGroupDomainService()
 
     @Test
+    @DisplayName("[bad] 빈 이름으로 그룹을 생성하면 예외가 발생한다")
     fun `빈 이름으로 그룹을 생성하면 예외`() {
         assertThrows<IllegalArgumentException> { service.create(UserId.from(1L), "", null) }
     }
 
     @Test
+    @DisplayName("[happy] 그룹 이름을 변경할 수 있다")
     fun `그룹 이름을 변경할 수 있다`() {
         val group = service.create(UserId.from(1L), "g1", null)
         val updated = service.rename(group, "new")

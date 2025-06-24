@@ -48,7 +48,7 @@ class PaginationMessageSyncServiceTest {
     inner class GetChatMessagesFlow {
 
         @Test
-        @DisplayName("초기 로드 시 메시지를 조회할 수 있다")
+        @DisplayName("[happy] 초기 로드 시 메시지를 조회할 수 있다")
         fun `초기 로드 시 메시지를 조회할 수 있다`() = runBlocking {
             // given
             val roomId = 1L
@@ -115,7 +115,7 @@ class PaginationMessageSyncServiceTest {
         }
 
         @Test
-        @DisplayName("이전 메시지를 조회할 수 있다")
+        @DisplayName("[happy] 이전 메시지를 조회할 수 있다")
         fun `이전 메시지를 조회할 수 있다`() = runBlocking {
             // given
             val roomId = 1L
@@ -186,7 +186,7 @@ class PaginationMessageSyncServiceTest {
     inner class SendMessagesToUser {
 
         @Test
-        @DisplayName("사용자에게 메시지를 전송할 수 있다")
+        @DisplayName("[happy] 사용자에게 메시지를 전송할 수 있다")
         fun `사용자에게 메시지를 전송할 수 있다`() {
             // given
             val roomId = 1L

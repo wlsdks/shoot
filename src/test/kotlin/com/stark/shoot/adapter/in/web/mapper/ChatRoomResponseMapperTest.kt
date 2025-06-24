@@ -16,6 +16,7 @@ class ChatRoomResponseMapperTest {
     private val mapper = ChatRoomResponseMapper()
 
     @Test
+    @DisplayName("[happy] 채팅방을 응답 DTO로 변환한다")
     fun `채팅방을 응답 DTO로 변환한다`() {
         val room = ChatRoom(
             id = ChatRoomId.from(1L),
@@ -42,6 +43,7 @@ class ChatRoomResponseMapperTest {
     }
 
     @Test
+    @DisplayName("[happy] 채팅방 목록을 응답 DTO 목록으로 변환한다")
     fun `채팅방 목록을 응답 DTO 목록으로 변환한다`() {
         val room = ChatRoom(
             id = ChatRoomId.from(2L),

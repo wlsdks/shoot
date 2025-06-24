@@ -33,7 +33,7 @@ class MessageProcessingServiceTest {
     }
 
     @Test
-    @DisplayName("메시지를 처리하고 결과를 반환할 수 있다")
+    @DisplayName("[happy] 메시지를 처리하고 결과를 반환할 수 있다")
     fun `메시지를 처리하고 결과를 반환할 수 있다`() {
         // given
         val messageProcessingChain = mock(DefaultMessageProcessingChain::class.java)
@@ -84,7 +84,7 @@ class MessageProcessingServiceTest {
     }
 
     @Test
-    @DisplayName("처리 중 예외가 발생하면 예외를 전파한다")
+    @DisplayName("[bad] 처리 중 예외가 발생하면 예외를 전파한다")
     fun `처리 중 예외가 발생하면 예외를 전파한다`() {
         // given
         val messageProcessingChain = mock(DefaultMessageProcessingChain::class.java)

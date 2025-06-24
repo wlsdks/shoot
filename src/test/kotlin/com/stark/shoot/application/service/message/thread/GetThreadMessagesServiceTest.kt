@@ -32,7 +32,7 @@ class GetThreadMessagesServiceTest {
     inner class GetThreadMessages {
 
         @Test
-        @DisplayName("스레드의 메시지를 조회할 수 있다")
+        @DisplayName("[happy] 스레드의 메시지를 조회할 수 있다")
         fun `스레드의 메시지를 조회할 수 있다`() {
             // given
             val threadId = "5f9f1b9b9c9d1b9b9c9d1b9b"
@@ -59,7 +59,7 @@ class GetThreadMessagesServiceTest {
         }
 
         @Test
-        @DisplayName("스레드 메시지가 없는 경우 빈 목록을 반환한다")
+        @DisplayName("[happy] 스레드 메시지가 없는 경우 빈 목록을 반환한다")
         fun `스레드 메시지가 없는 경우 빈 목록을 반환한다`() {
             val threadId = "5f9f1b9b9c9d1b9b9c9d1b9b"
             `when`(threadQueryPort.findByThreadId(MessageId.from(threadId), 20)).thenReturn(emptyList())

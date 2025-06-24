@@ -45,7 +45,7 @@ class GetThreadDetailServiceTest {
     inner class GetThreadDetail {
 
         @Test
-        @DisplayName("루트 메시지와 스레드 메시지를 함께 조회할 수 있다")
+        @DisplayName("[happy] 루트 메시지와 스레드 메시지를 함께 조회할 수 있다")
         fun `루트 메시지와 스레드 메시지를 함께 조회할 수 있다`() {
             // given
             val threadId = "5f9f1b9b9c9d1b9b9c9d1b9b"
@@ -82,7 +82,7 @@ class GetThreadDetailServiceTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 스레드는 예외를 발생시킨다")
+        @DisplayName("[bad] 존재하지 않는 스레드는 예외를 발생시킨다")
         fun `존재하지 않는 스레드는 예외를 발생시킨다`() {
             // given
             val threadId = "5f9f1b9b9c9d1b9b9c9d1b9b"

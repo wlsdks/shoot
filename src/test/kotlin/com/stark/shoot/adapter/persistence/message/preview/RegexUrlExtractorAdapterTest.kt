@@ -16,12 +16,14 @@ class RegexUrlExtractorAdapterTest {
     inner class ExtractUrls {
 
         @Test
+        @DisplayName("[happy] 텍스트에서 단일 URL을 추출한다")
         fun `텍스트에서 단일 URL을 추출한다`() {
             val result = adapter.extractUrls("Visit https://example.com for info")
             assertThat(result).containsExactly("https://example.com")
         }
 
         @Test
+        @DisplayName("[happy] 텍스트에서 여러 URL을 추출한다")
         fun `텍스트에서 여러 URL을 추출한다`() {
             val text = "Links: https://a.com https://b.org/path"
             val result = adapter.extractUrls(text)
@@ -29,6 +31,7 @@ class RegexUrlExtractorAdapterTest {
         }
 
         @Test
+        @DisplayName("[happy] URL이 없으면 빈 리스트를 반환한다")
         fun `URL이 없으면 빈 리스트를 반환한다`() {
             val result = adapter.extractUrls("no url here")
             assertThat(result).isEmpty()

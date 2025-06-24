@@ -16,6 +16,7 @@ class UserBlockDomainServiceTest {
     private val service = UserBlockDomainService()
 
     @Test
+    @DisplayName("[bad] 자신을 차단하면 예외가 발생한다")
     fun `자신을 차단하면 예외`() {
         val user = User(
             id = UserId.from(1L),

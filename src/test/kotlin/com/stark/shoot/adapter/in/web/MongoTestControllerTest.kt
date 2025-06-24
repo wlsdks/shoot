@@ -15,6 +15,7 @@ class MongoTestControllerTest {
     private val controller = MongoTestController(mongoTemplate)
 
     @Test
+    @DisplayName("[happy] MongoDB 연결 성공 메시지를 반환한다")
     fun `MongoDB 연결 성공 메시지를 반환한다`() {
         val db = mock(MongoDatabase::class.java)
         `when`(mongoTemplate.db).thenReturn(db)

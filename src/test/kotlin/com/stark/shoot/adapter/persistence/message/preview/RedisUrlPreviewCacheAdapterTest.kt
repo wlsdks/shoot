@@ -29,6 +29,7 @@ class RedisUrlPreviewCacheAdapterTest {
     private val adapter = RedisUrlPreviewCacheAdapter(redisTemplate, objectMapper, redisUtilService)
 
     @Test
+    @DisplayName("[happy] 캐시된 URL 프리뷰를 조회할 수 있다")
     fun `캐시된 URL 프리뷰를 조회할 수 있다`() {
         val url = "https://example.com"
         val key = "url_preview:hash"
@@ -43,6 +44,7 @@ class RedisUrlPreviewCacheAdapterTest {
     }
 
     @Test
+    @DisplayName("[happy] URL 프리뷰를 캐시에 저장할 수 있다")
     fun `URL 프리뷰를 캐시에 저장할 수 있다`() {
         val url = "https://example.com"
         val key = "url_preview:hash"

@@ -18,6 +18,7 @@ class MessageForwardDomainServiceTest {
     private val service = MessageForwardDomainService()
 
     @Test
+    @DisplayName("[happy] 메시지 전달용 내용을 생성할 수 있다")
     fun `메시지 전달용 내용을 생성할 수 있다`() {
         val original = ChatMessage(
             id = MessageId.from("m1"),
@@ -33,6 +34,7 @@ class MessageForwardDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[happy] 전달 메시지를 생성할 수 있다")
     fun `전달 메시지를 생성할 수 있다`() {
         val content = MessageContent("[Forwarded] hi", MessageType.TEXT)
         val msg = service.createForwardedMessage(

@@ -30,6 +30,7 @@ class ChatNotificationFactoryTest {
     }
 
     @Test
+    @DisplayName("[happy] 멘션 알림을 생성한다")
     fun `멘션 알림을 생성한다`() {
         val msg = sampleMessage("hello world")
         val notification = factory.createMentionNotification(1L, msg)
@@ -40,6 +41,7 @@ class ChatNotificationFactoryTest {
     }
 
     @Test
+    @DisplayName("[happy] 메시지 알림을 생성한다")
     fun `메시지 알림을 생성한다`() {
         val msg = sampleMessage("a".repeat(60))
         val notification = factory.createMessageNotification(3L, msg)
@@ -48,6 +50,7 @@ class ChatNotificationFactoryTest {
     }
 
     @Test
+    @DisplayName("[happy] 반응 알림을 생성한다")
     fun `반응 알림을 생성한다`() {
         val notification = factory.createReactionNotification(
             userId = UserId.from(1L),

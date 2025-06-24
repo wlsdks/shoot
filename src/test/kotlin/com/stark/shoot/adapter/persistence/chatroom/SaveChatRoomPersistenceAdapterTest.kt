@@ -25,7 +25,7 @@ class SaveChatRoomPersistenceAdapterTest @Autowired constructor(
 ) {
 
     @Test
-    @DisplayName("새로운 채팅방을 저장하면 참여자 정보까지 함께 저장된다")
+    @DisplayName("[happy] 새로운 채팅방을 저장하면 참여자 정보까지 함께 저장된다")
     fun saveNewChatRoom() {
         val user1 = userRepository.save(TestEntityFactory.createUser("user1", "u1"))
         val user2 = userRepository.save(TestEntityFactory.createUser("user2", "u2"))

@@ -13,10 +13,12 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.junit.jupiter.api.DisplayName
 import org.springframework.context.annotation.Import
 
 @DataJpaTest
 @Import(ChatRoomCommandPersistenceAdapter::class, ChatRoomMapper::class)
+@DisplayName("채팅방 저장 어댑터 테스트")
 class SaveChatRoomPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomUserRepository: ChatRoomUserRepository,

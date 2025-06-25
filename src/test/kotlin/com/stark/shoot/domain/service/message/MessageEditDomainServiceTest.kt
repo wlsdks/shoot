@@ -32,6 +32,7 @@ class MessageEditDomainServiceTest {
     @Nested
     inner class CanEditMessage {
         @Test
+        @DisplayName("[happy] 삭제된 메시지는 수정할 수 없다")
         fun `삭제된 메시지는 수정할 수 없다`() {
             val msg = baseMessage().copy(content = MessageContent("text", MessageType.TEXT, isDeleted = true))
             val result = service.canEditMessage(msg)
@@ -39,6 +40,7 @@ class MessageEditDomainServiceTest {
         }
 
         @Test
+        @DisplayName("[happy] 생성 후 24시간이 지나면 수정할 수 없다")
         fun `생성 후 24시간이 지나면 수정할 수 없다`() {
             val msg = baseMessage(Instant.now().minusSeconds(25 * 3600))
             val result = service.canEditMessage(msg)
@@ -46,6 +48,7 @@ class MessageEditDomainServiceTest {
         }
 
         @Test
+        @DisplayName("[happy] 텍스트 메시지는 수정 가능하다")
         fun `텍스트 메시지는 수정 가능하다`() {
             val msg = baseMessage()
             val result = service.canEditMessage(msg)
@@ -54,6 +57,7 @@ class MessageEditDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[happy] 메시지를 수정할 수 있다")
     fun `메시지를 수정할 수 있다`() {
         val msg = baseMessage()
         val edited = service.editMessage(msg, "new")
@@ -62,6 +66,7 @@ class MessageEditDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[bad] 편집 불가능한 메시지를 수정하면 예외가 발생한다")
     fun `편집 불가능한 메시지를 수정하면 예외가 발생한다`() {
         val msg = baseMessage().copy(content = MessageContent("text", MessageType.FILE))
         assertThrows<IllegalArgumentException> { service.editMessage(msg, "x") }

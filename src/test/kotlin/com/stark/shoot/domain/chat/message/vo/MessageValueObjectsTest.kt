@@ -12,12 +12,14 @@ class MessageValueObjectsTest {
     @Nested
     inner class MessageIdTest {
         @Test
+        @DisplayName("[happy] 정상 생성")
         fun `정상 생성`() {
             val id = MessageId.from("id1")
             assertThat(id.value).isEqualTo("id1")
         }
 
         @Test
+        @DisplayName("[bad] blank 는 예외")
         fun `blank 는 예외`() {
             assertThatThrownBy { MessageId.from(" ") }
                 .isInstanceOf(IllegalArgumentException::class.java)

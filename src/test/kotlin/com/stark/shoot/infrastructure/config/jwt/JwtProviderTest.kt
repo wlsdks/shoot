@@ -16,6 +16,7 @@ class JwtProviderTest {
     )
 
     @Test
+    @DisplayName("[happy] 토큰을 생성하고 값을 추출할 수 있다")
     fun `토큰을 생성하고 값을 추출할 수 있다`() {
         val token = jwtProvider.generateToken("1", "user")
 
@@ -25,6 +26,7 @@ class JwtProviderTest {
     }
 
     @Test
+    @DisplayName("[happy] 리프레시 토큰을 생성하고 검증할 수 있다")
     fun `리프레시 토큰을 생성하고 검증할 수 있다`() {
         val refresh = jwtProvider.generateRefreshToken("1", "user")
 
@@ -33,6 +35,7 @@ class JwtProviderTest {
     }
 
     @Test
+    @DisplayName("[bad] 잘못된 토큰은 유효하지 않다")
     fun `잘못된 토큰은 유효하지 않다`() {
         assertThat(jwtProvider.isTokenValid("wrong.token.value")).isFalse()
     }

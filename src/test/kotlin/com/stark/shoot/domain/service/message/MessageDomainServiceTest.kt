@@ -16,6 +16,7 @@ class MessageDomainServiceTest {
     private val service = MessageDomainService()
 
     @Test
+    @DisplayName("[happy] 메시지를 생성하고 URL 미리보기를 적용할 수 있다")
     fun `메시지를 생성하고 URL 미리보기를 적용할 수 있다`() {
         val result = service.createAndProcessMessage(
             roomId = ChatRoomId.from(1L),
@@ -32,6 +33,7 @@ class MessageDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[happy] 메시지로 이벤트를 생성할 수 있다")
     fun `메시지로 이벤트를 생성할 수 있다`() {
         val message = service.createAndProcessMessage(
             roomId = ChatRoomId.from(1L),

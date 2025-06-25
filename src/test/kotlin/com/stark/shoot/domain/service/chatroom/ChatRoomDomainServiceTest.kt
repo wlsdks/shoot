@@ -17,6 +17,7 @@ class ChatRoomDomainServiceTest {
     private val service = ChatRoomDomainService()
 
     @Test
+    @DisplayName("[happy] 채팅방 리스트를 제목으로 필터링할 수 있다")
     fun `채팅방 리스트를 제목으로 필터링할 수 있다`() {
         val rooms = listOf(
             ChatRoom(
@@ -37,6 +38,7 @@ class ChatRoomDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[happy] 채팅방 제목 맵을 준비할 수 있다")
     fun `채팅방 제목 맵을 준비할 수 있다`() {
         val now = Instant.now()
         val rooms = listOf(
@@ -61,6 +63,7 @@ class ChatRoomDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[happy] 두 사용자 간 1대1 채팅방을 찾을 수 있다")
     fun `두 사용자 간 1대1 채팅방을 찾을 수 있다`() {
         val direct =
             ChatRoom(
@@ -83,6 +86,7 @@ class ChatRoomDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[happy] 1대1 채팅방이 없으면 null을 반환한다")
     fun `1대1 채팅방이 없으면 null을 반환한다`() {
         val group =
             ChatRoom(
@@ -98,6 +102,7 @@ class ChatRoomDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[happy] 마지막 메시지 맵을 준비할 수 있다")
     fun `마지막 메시지 맵을 준비할 수 있다`() {
         val rooms = listOf(
             ChatRoom(
@@ -122,6 +127,7 @@ class ChatRoomDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[happy] 타임스탬프 맵을 준비할 수 있다")
     fun `타임스탬프 맵을 준비할 수 있다`() {
         val rooms = listOf(
             ChatRoom(

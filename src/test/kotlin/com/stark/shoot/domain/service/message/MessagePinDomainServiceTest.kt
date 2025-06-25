@@ -22,6 +22,7 @@ class MessagePinDomainServiceTest {
     @Nested
     inner class CreatePinEvent {
         @Test
+        @DisplayName("[happy] 메시지 ID가 없으면 null을 반환한다")
         fun `메시지 ID가 없으면 null을 반환한다`() {
             val message = ChatMessage(
                 roomId = ChatRoomId.from(1L),
@@ -36,6 +37,7 @@ class MessagePinDomainServiceTest {
         }
 
         @Test
+        @DisplayName("[happy] 메시지 핀 이벤트를 생성할 수 있다")
         fun `메시지 핀 이벤트를 생성할 수 있다`() {
             val message = ChatMessage(
                 id = MessageId.from("m1"),

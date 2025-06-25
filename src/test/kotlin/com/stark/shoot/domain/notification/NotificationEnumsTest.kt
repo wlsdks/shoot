@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 class NotificationEnumsTest {
 
     @Test
+    @DisplayName("[happy] NotificationType enum 모든 값 존재 확인")
     fun `NotificationType enum 모든 값 존재 확인`() {
         val names = NotificationType.values().map { it.name }
         assertThat(names).contains(
@@ -28,6 +29,7 @@ class NotificationEnumsTest {
     }
 
     @Test
+    @DisplayName("[happy] SourceType enum 모든 값 존재 확인")
     fun `SourceType enum 모든 값 존재 확인`() {
         val names = SourceType.values().map { it.name }
         assertThat(names).contains(

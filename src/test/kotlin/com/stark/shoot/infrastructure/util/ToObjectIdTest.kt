@@ -10,6 +10,7 @@ import org.junit.jupiter.api.assertThrows
 class ToObjectIdTest {
 
     @Test
+    @DisplayName("[happy] 문자열을 ObjectId 로 변환한다")
     fun `문자열을 ObjectId 로 변환한다`() {
         val id = ObjectId().toHexString()
         val result = id.toObjectId()
@@ -17,6 +18,7 @@ class ToObjectIdTest {
     }
 
     @Test
+    @DisplayName("[bad] 잘못된 문자열이면 예외가 발생한다")
     fun `잘못된 문자열이면 예외가 발생한다`() {
         assertThrows<IllegalArgumentException> {
             "invalid".toObjectId()

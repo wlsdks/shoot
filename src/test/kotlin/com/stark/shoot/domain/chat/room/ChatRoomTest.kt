@@ -23,7 +23,7 @@ class ChatRoomTest {
     inner class CreateChatRoom {
 
         @Test
-        @DisplayName("기본 속성으로 채팅방을 생성할 수 있다")
+        @DisplayName("[happy] 기본 속성으로 채팅방을 생성할 수 있다")
         fun `기본 속성으로 채팅방을 생성할 수 있다`() {
             // given
             val participants = mutableSetOf(UserId.from(1L), UserId.from(2L))
@@ -45,7 +45,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("1:1 채팅방을 생성할 수 있다")
+        @DisplayName("[happy] 1:1 채팅방을 생성할 수 있다")
         fun `1대1 채팅방을 생성할 수 있다`() {
             // given
             val userId = 1L
@@ -70,7 +70,7 @@ class ChatRoomTest {
     inner class UpdateChatRoom {
 
         @Test
-        @DisplayName("채팅방 정보를 업데이트할 수 있다")
+        @DisplayName("[happy] 채팅방 정보를 업데이트할 수 있다")
         fun `채팅방 정보를 업데이트할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
@@ -103,7 +103,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("공지사항만 업데이트할 수 있다")
+        @DisplayName("[happy] 공지사항만 업데이트할 수 있다")
         fun `공지사항만 업데이트할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
@@ -122,7 +122,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("공지사항을 삭제할 수 있다")
+        @DisplayName("[happy] 공지사항을 삭제할 수 있다")
         fun `공지사항을 삭제할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
@@ -146,7 +146,7 @@ class ChatRoomTest {
     inner class ManageParticipants {
 
         @Test
-        @DisplayName("참여자를 추가할 수 있다")
+        @DisplayName("[happy] 참여자를 추가할 수 있다")
         fun `참여자를 추가할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
@@ -165,7 +165,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("이미 참여 중인 사용자를 추가하면 변경이 없다")
+        @DisplayName("[happy] 이미 참여 중인 사용자를 추가하면 변경이 없다")
         fun `이미 참여 중인 사용자를 추가하면 변경이 없다`() {
             // given
             val chatRoom = ChatRoom(
@@ -184,7 +184,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("참여자를 제거할 수 있다")
+        @DisplayName("[happy] 참여자를 제거할 수 있다")
         fun `참여자를 제거할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
@@ -203,7 +203,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("참여하지 않은 사용자를 제거하면 변경이 없다")
+        @DisplayName("[happy] 참여하지 않은 사용자를 제거하면 변경이 없다")
         fun `참여하지 않은 사용자를 제거하면 변경이 없다`() {
             // given
             val chatRoom = ChatRoom(
@@ -222,7 +222,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("여러 참여자를 한번에 추가할 수 있다")
+        @DisplayName("[happy] 여러 참여자를 한번에 추가할 수 있다")
         fun `여러 참여자를 한번에 추가할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
@@ -241,7 +241,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("여러 참여자를 한번에 제거할 수 있다")
+        @DisplayName("[happy] 여러 참여자를 한번에 제거할 수 있다")
         fun `여러 참여자를 한번에 제거할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
@@ -266,7 +266,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("참여자 목록을 한번에 업데이트할 수 있다")
+        @DisplayName("[happy] 참여자 목록을 한번에 업데이트할 수 있다")
         fun `참여자 목록을 한번에 업데이트할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
@@ -292,7 +292,7 @@ class ChatRoomTest {
     inner class CalculateParticipantChanges {
 
         @Test
-        @DisplayName("참여자 변경 사항을 계산할 수 있다")
+        @DisplayName("[happy] 참여자 변경 사항을 계산할 수 있다")
         fun `참여자 변경 사항을 계산할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
@@ -316,7 +316,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("변경 사항이 없으면 빈 결과를 반환한다")
+        @DisplayName("[happy] 변경 사항이 없으면 빈 결과를 반환한다")
         fun `변경 사항이 없으면 빈 결과를 반환한다`() {
             // given
             val chatRoom = ChatRoom(
@@ -344,7 +344,7 @@ class ChatRoomTest {
     inner class ManageFavorites {
 
         @Test
-        @DisplayName("채팅방을 즐겨찾기에 추가할 수 있다")
+        @DisplayName("[happy] 채팅방을 즐겨찾기에 추가할 수 있다")
         fun `채팅방을 즐겨찾기에 추가할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
@@ -364,7 +364,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("이미 즐겨찾기된 채팅방을 다시 즐겨찾기하면 제거된다")
+        @DisplayName("[happy] 이미 즐겨찾기된 채팅방을 다시 즐겨찾기하면 제거된다")
         fun `이미 즐겨찾기된 채팅방을 다시 즐겨찾기하면 제거된다`() {
             // given
             val userId = UserId.from(1L)
@@ -385,7 +385,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("즐겨찾기를 해제할 수 있다")
+        @DisplayName("[happy] 즐겨찾기를 해제할 수 있다")
         fun `즐겨찾기를 해제할 수 있다`() {
             // given
             val userId = UserId.from(1L)
@@ -406,7 +406,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("즐겨찾기 최대 개수를 초과하면 예외가 발생한다")
+        @DisplayName("[happy] 즐겨찾기 최대 개수를 초과하면 예외가 발생한다")
         fun `즐겨찾기 최대 개수를 초과하면 예외가 발생한다`() {
             // given
             val chatRoom = ChatRoom(
@@ -430,7 +430,7 @@ class ChatRoomTest {
     inner class CheckChatRoomState {
 
         @Test
-        @DisplayName("채팅방이 비어있는지 확인할 수 있다")
+        @DisplayName("[happy] 채팅방이 비어있는지 확인할 수 있다")
         fun `채팅방이 비어있는지 확인할 수 있다`() {
             // given
             val emptyRoom = ChatRoom(
@@ -450,7 +450,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("채팅방이 삭제되어야 하는지 확인할 수 있다")
+        @DisplayName("[happy] 채팅방이 삭제되어야 하는지 확인할 수 있다")
         fun `채팅방이 삭제되어야 하는지 확인할 수 있다`() {
             // given
             val emptyRoom = ChatRoom(
@@ -470,7 +470,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("1대1 채팅방인지 확인할 수 있다")
+        @DisplayName("[happy] 1대1 채팅방인지 확인할 수 있다")
         fun `1대1 채팅방인지 확인할 수 있다`() {
             // given
             val userId1 = UserId.from(1L)
@@ -503,7 +503,7 @@ class ChatRoomTest {
     inner class CreateDisplayInfo {
 
         @Test
-        @DisplayName("1대1 채팅방 제목을 생성할 수 있다")
+        @DisplayName("[happy] 1대1 채팅방 제목을 생성할 수 있다")
         fun `1대1 채팅방 제목을 생성할 수 있다`() {
             // given
             val userId = UserId.from(1L)
@@ -522,7 +522,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("그룹 채팅방 제목을 생성할 수 있다")
+        @DisplayName("[happy] 그룹 채팅방 제목을 생성할 수 있다")
         fun `그룹 채팅방 제목을 생성할 수 있다`() {
             // given
             val userId = UserId.from(1L)
@@ -540,7 +540,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("제목이 없는 경우 기본 제목을 생성한다")
+        @DisplayName("[happy] 제목이 없는 경우 기본 제목을 생성한다")
         fun `제목이 없는 경우 기본 제목을 생성한다`() {
             // given
             val userId = UserId.from(1L)
@@ -565,7 +565,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("마지막 메시지 텍스트를 생성할 수 있다")
+        @DisplayName("[happy] 마지막 메시지 텍스트를 생성할 수 있다")
         fun `마지막 메시지 텍스트를 생성할 수 있다`() {
             // given
             val chatRoomWithMessage = ChatRoom(
@@ -590,7 +590,7 @@ class ChatRoomTest {
         }
 
         @Test
-        @DisplayName("타임스탬프를 포맷팅할 수 있다")
+        @DisplayName("[happy] 타임스탬프를 포맷팅할 수 있다")
         fun `타임스탬프를 포맷팅할 수 있다`() {
             // given
             val now = Instant.now()

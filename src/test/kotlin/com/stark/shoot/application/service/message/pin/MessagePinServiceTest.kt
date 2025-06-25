@@ -24,7 +24,7 @@ import java.time.Instant
 class MessagePinServiceTest {
 
     @Test
-    @DisplayName("존재하지 않는 메시지를 고정하려고 하면 예외가 발생한다")
+    @DisplayName("[happy] 존재하지 않는 메시지를 고정하려고 하면 예외가 발생한다")
     fun `존재하지 않는 메시지를 고정하려고 하면 예외가 발생한다`() {
         // given
         val messageQueryPort = mock(MessageQueryPort::class.java)
@@ -59,7 +59,7 @@ class MessagePinServiceTest {
     }
 
     @Test
-    @DisplayName("이미 고정 해제된 메시지는 변경 없이 반환한다")
+    @DisplayName("[happy] 이미 고정 해제된 메시지는 변경 없이 반환한다")
     fun `이미 고정 해제된 메시지는 변경 없이 반환한다`() {
         // given
         val messageQueryPort = mock(MessageQueryPort::class.java)
@@ -108,7 +108,7 @@ class MessagePinServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 메시지를 해제하려고 하면 예외가 발생한다")
+    @DisplayName("[happy] 존재하지 않는 메시지를 해제하려고 하면 예외가 발생한다")
     fun `존재하지 않는 메시지를 해제하려고 하면 예외가 발생한다`() {
         // given
         val messageQueryPort = mock(MessageQueryPort::class.java)

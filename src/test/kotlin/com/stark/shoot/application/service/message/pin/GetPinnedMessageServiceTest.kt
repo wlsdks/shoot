@@ -29,7 +29,7 @@ class GetPinnedMessageServiceTest {
     inner class GetPinnedMessages {
 
         @Test
-        @DisplayName("채팅방의 고정 메시지를 조회할 수 있다")
+        @DisplayName("[happy] 채팅방의 고정 메시지를 조회할 수 있다")
         fun `채팅방의 고정 메시지를 조회할 수 있다`() {
             // given
             val roomId = ChatRoomId.from(1L)
@@ -60,7 +60,7 @@ class GetPinnedMessageServiceTest {
         }
 
         @Test
-        @DisplayName("고정 메시지가 없는 경우 빈 목록을 반환한다")
+        @DisplayName("[happy] 고정 메시지가 없는 경우 빈 목록을 반환한다")
         fun `고정 메시지가 없는 경우 빈 목록을 반환한다`() {
             // given
             val roomId = ChatRoomId.from(1L)

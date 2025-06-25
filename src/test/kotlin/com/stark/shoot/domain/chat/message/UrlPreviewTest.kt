@@ -16,7 +16,7 @@ class UrlPreviewTest {
     inner class CreateUrlPreview {
 
         @Test
-        @DisplayName("필수 속성으로 URL 미리보기를 생성할 수 있다")
+        @DisplayName("[happy] 필수 속성으로 URL 미리보기를 생성할 수 있다")
         fun `필수 속성으로 URL 미리보기를 생성할 수 있다`() {
             // given
             val url = "https://example.com"
@@ -39,7 +39,7 @@ class UrlPreviewTest {
         }
 
         @Test
-        @DisplayName("모든 속성으로 URL 미리보기를 생성할 수 있다")
+        @DisplayName("[happy] 모든 속성으로 URL 미리보기를 생성할 수 있다")
         fun `모든 속성으로 URL 미리보기를 생성할 수 있다`() {
             // given
             val url = "https://example.com"
@@ -74,7 +74,7 @@ class UrlPreviewTest {
     inner class CheckUrlPreviewInfo {
 
         @Test
-        @DisplayName("URL 정보를 확인할 수 있다")
+        @DisplayName("[happy] URL 정보를 확인할 수 있다")
         fun `URL 정보를 확인할 수 있다`() {
             // given
             val url = "https://example.com"
@@ -90,7 +90,7 @@ class UrlPreviewTest {
         }
 
         @Test
-        @DisplayName("제목 정보를 확인할 수 있다")
+        @DisplayName("[happy] 제목 정보를 확인할 수 있다")
         fun `제목 정보를 확인할 수 있다`() {
             // given
             val title = "Example Website"
@@ -106,7 +106,7 @@ class UrlPreviewTest {
         }
 
         @Test
-        @DisplayName("설명 정보를 확인할 수 있다")
+        @DisplayName("[happy] 설명 정보를 확인할 수 있다")
         fun `설명 정보를 확인할 수 있다`() {
             // given
             val description = "This is an example website"
@@ -122,7 +122,7 @@ class UrlPreviewTest {
         }
 
         @Test
-        @DisplayName("이미지 URL 정보를 확인할 수 있다")
+        @DisplayName("[happy] 이미지 URL 정보를 확인할 수 있다")
         fun `이미지 URL 정보를 확인할 수 있다`() {
             // given
             val imageUrl = "https://example.com/image.jpg"
@@ -138,7 +138,7 @@ class UrlPreviewTest {
         }
 
         @Test
-        @DisplayName("사이트 이름 정보를 확인할 수 있다")
+        @DisplayName("[happy] 사이트 이름 정보를 확인할 수 있다")
         fun `사이트 이름 정보를 확인할 수 있다`() {
             // given
             val siteName = "Example"
@@ -160,7 +160,7 @@ class UrlPreviewTest {
     inner class CheckUrlPreviewFetchedAt {
 
         @Test
-        @DisplayName("생성 시간이 자동으로 설정된다")
+        @DisplayName("[happy] 생성 시간이 자동으로 설정된다")
         fun `생성 시간이 자동으로 설정된다`() {
             // given
             val beforeCreation = Instant.now().minusMillis(100)
@@ -181,7 +181,7 @@ class UrlPreviewTest {
         }
 
         @Test
-        @DisplayName("생성 시간을 명시적으로 설정할 수 있다")
+        @DisplayName("[happy] 생성 시간을 명시적으로 설정할 수 있다")
         fun `생성 시간을 명시적으로 설정할 수 있다`() {
             // given
             val fetchedAt = Instant.now().minus(1, ChronoUnit.HOURS)

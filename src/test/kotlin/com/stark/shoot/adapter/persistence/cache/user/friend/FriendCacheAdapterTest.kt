@@ -14,7 +14,7 @@ class FriendCacheAdapterTest {
     private val adapter = FriendCacheAdapter(recommendFriendService)
 
     @Test
-    @DisplayName("사용자의 친구 추천 캐시를 무효화할 수 있다")
+    @DisplayName("[happy] 사용자의 친구 추천 캐시를 무효화할 수 있다")
     fun `사용자의 친구 추천 캐시를 무효화할 수 있다`() {
         // given
         val userId = UserId.from(1L)
@@ -27,7 +27,7 @@ class FriendCacheAdapterTest {
     }
     
     @Test
-    @DisplayName("여러 사용자의 친구 추천 캐시를 무효화할 수 있다")
+    @DisplayName("[happy] 여러 사용자의 친구 추천 캐시를 무효화할 수 있다")
     fun `여러 사용자의 친구 추천 캐시를 무효화할 수 있다`() {
         // given
         val userIds = listOf(

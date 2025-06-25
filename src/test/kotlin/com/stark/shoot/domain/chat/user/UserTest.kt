@@ -21,7 +21,7 @@ class UserTest {
     inner class CreateUser {
 
         @Test
-        @DisplayName("유효한 정보로 사용자를 생성할 수 있다")
+        @DisplayName("[happy] 유효한 정보로 사용자를 생성할 수 있다")
         fun `유효한 정보로 사용자를 생성할 수 있다`() {
             // given
             val username = "testuser"
@@ -49,7 +49,7 @@ class UserTest {
         }
 
         @Test
-        @DisplayName("선택적 정보를 포함하여 사용자를 생성할 수 있다")
+        @DisplayName("[happy] 선택적 정보를 포함하여 사용자를 생성할 수 있다")
         fun `선택적 정보를 포함하여 사용자를 생성할 수 있다`() {
             // given
             val username = "testuser"
@@ -78,7 +78,7 @@ class UserTest {
         }
 
         @Test
-        @DisplayName("사용자명이 너무 짧으면 예외가 발생한다")
+        @DisplayName("[happy] 사용자명이 너무 짧으면 예외가 발생한다")
         fun `사용자명이 너무 짧으면 예외가 발생한다`() {
             // given
             val username = "ab" // 3자 미만
@@ -100,7 +100,7 @@ class UserTest {
         }
 
         @Test
-        @DisplayName("사용자명이 너무 길면 예외가 발생한다")
+        @DisplayName("[happy] 사용자명이 너무 길면 예외가 발생한다")
         fun `사용자명이 너무 길면 예외가 발생한다`() {
             // given
             val username = "a".repeat(21) // 20자 초과
@@ -122,7 +122,7 @@ class UserTest {
         }
 
         @Test
-        @DisplayName("사용자명이 비어있으면 예외가 발생한다")
+        @DisplayName("[happy] 사용자명이 비어있으면 예외가 발생한다")
         fun `사용자명이 비어있으면 예외가 발생한다`() {
             // given
             val username = ""
@@ -144,7 +144,7 @@ class UserTest {
         }
 
         @Test
-        @DisplayName("닉네임이 너무 짧으면 예외가 발생한다")
+        @DisplayName("[happy] 닉네임이 너무 짧으면 예외가 발생한다")
         fun `닉네임이 너무 짧으면 예외가 발생한다`() {
             // given
             val username = "testuser"
@@ -166,7 +166,7 @@ class UserTest {
         }
 
         @Test
-        @DisplayName("닉네임이 너무 길면 예외가 발생한다")
+        @DisplayName("[happy] 닉네임이 너무 길면 예외가 발생한다")
         fun `닉네임이 너무 길면 예외가 발생한다`() {
             // given
             val username = "testuser"
@@ -188,7 +188,7 @@ class UserTest {
         }
 
         @Test
-        @DisplayName("닉네임이 비어있으면 예외가 발생한다")
+        @DisplayName("[happy] 닉네임이 비어있으면 예외가 발생한다")
         fun `닉네임이 비어있으면 예외가 발생한다`() {
             // given
             val username = "testuser"
@@ -210,7 +210,7 @@ class UserTest {
         }
 
         @Test
-        @DisplayName("비밀번호가 너무 짧으면 예외가 발생한다")
+        @DisplayName("[happy] 비밀번호가 너무 짧으면 예외가 발생한다")
         fun `비밀번호가 너무 짧으면 예외가 발생한다`() {
             // given
             val username = "testuser"
@@ -232,7 +232,7 @@ class UserTest {
         }
 
         @Test
-        @DisplayName("비밀번호가 비어있으면 예외가 발생한다")
+        @DisplayName("[happy] 비밀번호가 비어있으면 예외가 발생한다")
         fun `비밀번호가 비어있으면 예외가 발생한다`() {
             // given
             val username = "testuser"
@@ -259,7 +259,7 @@ class UserTest {
     inner class ManageAccount {
 
         @Test
-        @DisplayName("계정을 삭제할 수 있다")
+        @DisplayName("[happy] 계정을 삭제할 수 있다")
         fun `계정을 삭제할 수 있다`() {
             // given
             val user = User(

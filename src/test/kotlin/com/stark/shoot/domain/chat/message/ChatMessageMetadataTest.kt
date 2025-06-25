@@ -17,7 +17,7 @@ class ChatMessageMetadataTest {
     inner class CreateChatMessageMetadata {
 
         @Test
-        @DisplayName("기본 메타데이터를 생성할 수 있다")
+        @DisplayName("[happy] 기본 메타데이터를 생성할 수 있다")
         fun `기본 메타데이터를 생성할 수 있다`() {
             // when
             val metadata = ChatMessageMetadata()
@@ -31,7 +31,7 @@ class ChatMessageMetadataTest {
         }
 
         @Test
-        @DisplayName("임시 ID를 포함한 메타데이터를 생성할 수 있다")
+        @DisplayName("[happy] 임시 ID를 포함한 메타데이터를 생성할 수 있다")
         fun `임시 ID를 포함한 메타데이터를 생성할 수 있다`() {
             // given
             val tempId = "temp-123"
@@ -48,7 +48,7 @@ class ChatMessageMetadataTest {
         }
 
         @Test
-        @DisplayName("URL 미리보기 정보를 포함한 메타데이터를 생성할 수 있다")
+        @DisplayName("[happy] URL 미리보기 정보를 포함한 메타데이터를 생성할 수 있다")
         fun `URL 미리보기 정보를 포함한 메타데이터를 생성할 수 있다`() {
             // given
             val needsUrlPreview = true
@@ -67,7 +67,7 @@ class ChatMessageMetadataTest {
         }
 
         @Test
-        @DisplayName("URL 미리보기 결과를 포함한 메타데이터를 생성할 수 있다")
+        @DisplayName("[happy] URL 미리보기 결과를 포함한 메타데이터를 생성할 수 있다")
         fun `URL 미리보기 결과를 포함한 메타데이터를 생성할 수 있다`() {
             // given
             val urlPreview = ChatMessageMetadata.UrlPreview(
@@ -93,7 +93,7 @@ class ChatMessageMetadataTest {
         }
 
         @Test
-        @DisplayName("읽은 시간을 포함한 메타데이터를 생성할 수 있다")
+        @DisplayName("[happy] 읽은 시간을 포함한 메타데이터를 생성할 수 있다")
         fun `읽은 시간을 포함한 메타데이터를 생성할 수 있다`() {
             // given
             val readAt = Instant.now()
@@ -113,7 +113,7 @@ class ChatMessageMetadataTest {
     inner class CopyChatMessageMetadata {
 
         @Test
-        @DisplayName("메타데이터를 복사하여 URL 미리보기 정보를 업데이트할 수 있다")
+        @DisplayName("[happy] 메타데이터를 복사하여 URL 미리보기 정보를 업데이트할 수 있다")
         fun `메타데이터를 복사하여 URL 미리보기 정보를 업데이트할 수 있다`() {
             // given
             val originalMetadata = ChatMessageMetadata(
@@ -144,7 +144,7 @@ class ChatMessageMetadataTest {
         }
 
         @Test
-        @DisplayName("메타데이터를 복사하여 읽은 시간을 업데이트할 수 있다")
+        @DisplayName("[happy] 메타데이터를 복사하여 읽은 시간을 업데이트할 수 있다")
         fun `메타데이터를 복사하여 읽은 시간을 업데이트할 수 있다`() {
             // given
             val originalMetadata = ChatMessageMetadata(
@@ -169,7 +169,7 @@ class ChatMessageMetadataTest {
     inner class ConvertChatMessageMetadata {
 
         @Test
-        @DisplayName("메타데이터를 응답 DTO로 변환할 수 있다")
+        @DisplayName("[happy] 메타데이터를 응답 DTO로 변환할 수 있다")
         fun `메타데이터를 응답 DTO로 변환할 수 있다`() {
             // given
             val tempId = "temp-123"
@@ -201,7 +201,7 @@ class ChatMessageMetadataTest {
         }
 
         @Test
-        @DisplayName("메타데이터를 요청 DTO로 변환할 수 있다")
+        @DisplayName("[happy] 메타데이터를 요청 DTO로 변환할 수 있다")
         fun `메타데이터를 요청 DTO로 변환할 수 있다`() {
             // given
             val tempId = "temp-123"

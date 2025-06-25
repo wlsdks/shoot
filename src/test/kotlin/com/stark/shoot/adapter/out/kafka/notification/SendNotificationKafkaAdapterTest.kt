@@ -40,7 +40,7 @@ class SendNotificationKafkaAdapterTest {
     }
 
     @Test
-    @DisplayName("단일 알림을 Kafka로 성공적으로 전송할 수 있다")
+    @DisplayName("[happy] 단일 알림을 Kafka로 성공적으로 전송할 수 있다")
     fun `단일 알림을 Kafka로 성공적으로 전송할 수 있다`() {
         // given
         val notification = createNotification()
@@ -60,7 +60,7 @@ class SendNotificationKafkaAdapterTest {
     }
 
     @Test
-    @DisplayName("JSON 변환 실패 시 예외가 발생한다")
+    @DisplayName("[happy] JSON 변환 실패 시 예외가 발생한다")
     fun `JSON 변환 실패 시 예외가 발생한다`() {
         // given
         val notification = createNotification()
@@ -74,7 +74,7 @@ class SendNotificationKafkaAdapterTest {
     }
 
     @Test
-    @DisplayName("Kafka 전송 실패 시 예외가 발생한다")
+    @DisplayName("[happy] Kafka 전송 실패 시 예외가 발생한다")
     fun `Kafka 전송 실패 시 예외가 발생한다`() {
         // given
         val notification = createNotification()
@@ -93,7 +93,7 @@ class SendNotificationKafkaAdapterTest {
     }
 
     @Test
-    @DisplayName("여러 알림을 Kafka로 성공적으로 전송할 수 있다")
+    @DisplayName("[happy] 여러 알림을 Kafka로 성공적으로 전송할 수 있다")
     fun `여러 알림을 Kafka로 성공적으로 전송할 수 있다`() {
         // given
         val notifications = listOf(
@@ -122,7 +122,7 @@ class SendNotificationKafkaAdapterTest {
     }
 
     @Test
-    @DisplayName("빈 알림 목록은 아무 작업도 수행하지 않는다")
+    @DisplayName("[happy] 빈 알림 목록은 아무 작업도 수행하지 않는다")
     fun `빈 알림 목록은 아무 작업도 수행하지 않는다`() {
         // given
         val notifications = emptyList<Notification>()

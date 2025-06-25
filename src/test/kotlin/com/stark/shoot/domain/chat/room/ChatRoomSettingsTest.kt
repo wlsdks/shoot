@@ -16,7 +16,7 @@ class ChatRoomSettingsTest {
     inner class CreateChatRoomSettings {
 
         @Test
-        @DisplayName("기본 값으로 채팅방 설정을 생성할 수 있다")
+        @DisplayName("[happy] 기본 값으로 채팅방 설정을 생성할 수 있다")
         fun `기본 값으로 채팅방 설정을 생성할 수 있다`() {
             // when
             val settings = ChatRoomSettings()
@@ -29,7 +29,7 @@ class ChatRoomSettingsTest {
         }
 
         @Test
-        @DisplayName("사용자 지정 값으로 채팅방 설정을 생성할 수 있다")
+        @DisplayName("[happy] 사용자 지정 값으로 채팅방 설정을 생성할 수 있다")
         fun `사용자 지정 값으로 채팅방 설정을 생성할 수 있다`() {
             // given
             val isNotificationEnabled = false
@@ -58,7 +58,7 @@ class ChatRoomSettingsTest {
     inner class UpdateNotificationSettings {
 
         @Test
-        @DisplayName("알림을 비활성화할 수 있다")
+        @DisplayName("[happy] 알림을 비활성화할 수 있다")
         fun `알림을 비활성화할 수 있다`() {
             // given
             val settings = ChatRoomSettings(isNotificationEnabled = true)
@@ -75,7 +75,7 @@ class ChatRoomSettingsTest {
         }
 
         @Test
-        @DisplayName("알림을 활성화할 수 있다")
+        @DisplayName("[happy] 알림을 활성화할 수 있다")
         fun `알림을 활성화할 수 있다`() {
             // given
             val settings = ChatRoomSettings(isNotificationEnabled = false)
@@ -97,7 +97,7 @@ class ChatRoomSettingsTest {
     inner class UpdateRetentionPolicy {
 
         @Test
-        @DisplayName("메시지 보존 기간을 설정할 수 있다")
+        @DisplayName("[happy] 메시지 보존 기간을 설정할 수 있다")
         fun `메시지 보존 기간을 설정할 수 있다`() {
             // given
             val settings = ChatRoomSettings(retentionDays = null)
@@ -115,7 +115,7 @@ class ChatRoomSettingsTest {
         }
 
         @Test
-        @DisplayName("메시지 보존 기간을 무기한으로 설정할 수 있다")
+        @DisplayName("[happy] 메시지 보존 기간을 무기한으로 설정할 수 있다")
         fun `메시지 보존 기간을 무기한으로 설정할 수 있다`() {
             // given
             val settings = ChatRoomSettings(retentionDays = RetentionDays.from(30))
@@ -137,7 +137,7 @@ class ChatRoomSettingsTest {
     inner class UpdateEncryption {
 
         @Test
-        @DisplayName("암호화를 활성화할 수 있다")
+        @DisplayName("[happy] 암호화를 활성화할 수 있다")
         fun `암호화를 활성화할 수 있다`() {
             // given
             val settings = ChatRoomSettings(isEncrypted = false)
@@ -154,7 +154,7 @@ class ChatRoomSettingsTest {
         }
 
         @Test
-        @DisplayName("암호화를 비활성화할 수 있다")
+        @DisplayName("[happy] 암호화를 비활성화할 수 있다")
         fun `암호화를 비활성화할 수 있다`() {
             // given
             val settings = ChatRoomSettings(isEncrypted = true)
@@ -176,7 +176,7 @@ class ChatRoomSettingsTest {
     inner class ManageCustomSettings {
 
         @Test
-        @DisplayName("커스텀 설정을 추가할 수 있다")
+        @DisplayName("[happy] 커스텀 설정을 추가할 수 있다")
         fun `커스텀 설정을 추가할 수 있다`() {
             // given
             val settings = ChatRoomSettings()
@@ -196,7 +196,7 @@ class ChatRoomSettingsTest {
         }
 
         @Test
-        @DisplayName("기존 커스텀 설정을 덮어쓸 수 있다")
+        @DisplayName("[happy] 기존 커스텀 설정을 덮어쓸 수 있다")
         fun `기존 커스텀 설정을 덮어쓸 수 있다`() {
             // given
             val initialCustomSettings = mapOf("theme" to "light", "fontSize" to 12)
@@ -218,7 +218,7 @@ class ChatRoomSettingsTest {
         }
 
         @Test
-        @DisplayName("커스텀 설정을 제거할 수 있다")
+        @DisplayName("[happy] 커스텀 설정을 제거할 수 있다")
         fun `커스텀 설정을 제거할 수 있다`() {
             // given
             val initialCustomSettings = mapOf("theme" to "dark", "fontSize" to 14)
@@ -239,7 +239,7 @@ class ChatRoomSettingsTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 커스텀 설정을 제거해도 오류가 발생하지 않는다")
+        @DisplayName("[happy] 존재하지 않는 커스텀 설정을 제거해도 오류가 발생하지 않는다")
         fun `존재하지 않는 커스텀 설정을 제거해도 오류가 발생하지 않는다`() {
             // given
             val initialCustomSettings = mapOf("theme" to "dark")
@@ -258,7 +258,7 @@ class ChatRoomSettingsTest {
         }
 
         @Test
-        @DisplayName("여러 커스텀 설정을 한번에 업데이트할 수 있다")
+        @DisplayName("[happy] 여러 커스텀 설정을 한번에 업데이트할 수 있다")
         fun `여러 커스텀 설정을 한번에 업데이트할 수 있다`() {
             // given
             val initialCustomSettings = mapOf("theme" to "light", "fontSize" to 12)
@@ -280,7 +280,7 @@ class ChatRoomSettingsTest {
         }
 
         @Test
-        @DisplayName("모든 커스텀 설정을 초기화할 수 있다")
+        @DisplayName("[happy] 모든 커스텀 설정을 초기화할 수 있다")
         fun `모든 커스텀 설정을 초기화할 수 있다`() {
             // given
             val initialCustomSettings = mapOf("theme" to "dark", "fontSize" to 14, "language" to "ko")

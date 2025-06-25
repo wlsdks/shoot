@@ -18,7 +18,7 @@ class RefreshTokenTest {
     inner class CreateRefreshToken {
 
         @Test
-        @DisplayName("필수 속성으로 리프레시 토큰을 생성할 수 있다")
+        @DisplayName("[happy] 필수 속성으로 리프레시 토큰을 생성할 수 있다")
         fun `필수 속성으로 리프레시 토큰을 생성할 수 있다`() {
             // given
             val userId = UserId.from(1L)
@@ -45,7 +45,7 @@ class RefreshTokenTest {
         }
 
         @Test
-        @DisplayName("모든 속성으로 리프레시 토큰을 생성할 수 있다")
+        @DisplayName("[happy] 모든 속성으로 리프레시 토큰을 생성할 수 있다")
         fun `모든 속성으로 리프레시 토큰을 생성할 수 있다`() {
             // given
             val id = 1L
@@ -89,7 +89,7 @@ class RefreshTokenTest {
     inner class ValidateRefreshToken {
 
         @Test
-        @DisplayName("만료되지 않고 취소되지 않은 토큰은 유효하다")
+        @DisplayName("[happy] 만료되지 않고 취소되지 않은 토큰은 유효하다")
         fun `만료되지 않고 취소되지 않은 토큰은 유효하다`() {
             // given
             val refreshToken = RefreshToken(
@@ -107,7 +107,7 @@ class RefreshTokenTest {
         }
 
         @Test
-        @DisplayName("만료된 토큰은 유효하지 않다")
+        @DisplayName("[happy] 만료된 토큰은 유효하지 않다")
         fun `만료된 토큰은 유효하지 않다`() {
             // given
             val refreshToken = RefreshToken(
@@ -125,7 +125,7 @@ class RefreshTokenTest {
         }
 
         @Test
-        @DisplayName("취소된 토큰은 유효하지 않다")
+        @DisplayName("[happy] 취소된 토큰은 유효하지 않다")
         fun `취소된 토큰은 유효하지 않다`() {
             // given
             val refreshToken = RefreshToken(
@@ -143,7 +143,7 @@ class RefreshTokenTest {
         }
 
         @Test
-        @DisplayName("만료되고 취소된 토큰은 유효하지 않다")
+        @DisplayName("[happy] 만료되고 취소된 토큰은 유효하지 않다")
         fun `만료되고 취소된 토큰은 유효하지 않다`() {
             // given
             val refreshToken = RefreshToken(
@@ -166,7 +166,7 @@ class RefreshTokenTest {
     inner class UpdateLastUsed {
 
         @Test
-        @DisplayName("마지막 사용 시간을 현재 시간으로 업데이트할 수 있다")
+        @DisplayName("[happy] 마지막 사용 시간을 현재 시간으로 업데이트할 수 있다")
         fun `마지막 사용 시간을 현재 시간으로 업데이트할 수 있다`() {
             // given
             val refreshToken = RefreshToken(
@@ -197,7 +197,7 @@ class RefreshTokenTest {
         }
 
         @Test
-        @DisplayName("이미 사용 시간이 있는 토큰도 업데이트할 수 있다")
+        @DisplayName("[happy] 이미 사용 시간이 있는 토큰도 업데이트할 수 있다")
         fun `이미 사용 시간이 있는 토큰도 업데이트할 수 있다`() {
             // given
             val oldLastUsedAt = Instant.now().minus(1, ChronoUnit.HOURS)
@@ -226,7 +226,7 @@ class RefreshTokenTest {
     inner class RevokeToken {
 
         @Test
-        @DisplayName("토큰을 취소할 수 있다")
+        @DisplayName("[happy] 토큰을 취소할 수 있다")
         fun `토큰을 취소할 수 있다`() {
             // given
             val refreshToken = RefreshToken(
@@ -254,7 +254,7 @@ class RefreshTokenTest {
         }
 
         @Test
-        @DisplayName("이미 취소된 토큰도 다시 취소할 수 있다")
+        @DisplayName("[happy] 이미 취소된 토큰도 다시 취소할 수 있다")
         fun `이미 취소된 토큰도 다시 취소할 수 있다`() {
             // given
             val refreshToken = RefreshToken(

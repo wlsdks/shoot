@@ -36,7 +36,7 @@ class PublishNotificationEventKafkaAdapterTest {
     }
 
     @Test
-    @DisplayName("알림 이벤트를 Kafka로 성공적으로 발행할 수 있다")
+    @DisplayName("[happy] 알림 이벤트를 Kafka로 성공적으로 발행할 수 있다")
     fun `알림 이벤트를 Kafka로 성공적으로 발행할 수 있다`() {
         // given
         val event = createNotificationEvent()
@@ -56,7 +56,7 @@ class PublishNotificationEventKafkaAdapterTest {
     }
 
     @Test
-    @DisplayName("JSON 변환 실패 시 예외가 발생한다")
+    @DisplayName("[happy] JSON 변환 실패 시 예외가 발생한다")
     fun `JSON 변환 실패 시 예외가 발생한다`() {
         // given
         val event = createNotificationEvent()
@@ -70,7 +70,7 @@ class PublishNotificationEventKafkaAdapterTest {
     }
 
     @Test
-    @DisplayName("Kafka 발행 실패 시 예외가 발생한다")
+    @DisplayName("[happy] Kafka 발행 실패 시 예외가 발생한다")
     fun `Kafka 발행 실패 시 예외가 발생한다`() {
         // given
         val event = createNotificationEvent()

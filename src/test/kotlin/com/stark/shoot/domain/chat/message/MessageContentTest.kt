@@ -16,7 +16,7 @@ class MessageContentTest {
     inner class CreateMessageContent {
 
         @Test
-        @DisplayName("기본 텍스트 메시지 내용을 생성할 수 있다")
+        @DisplayName("[happy] 기본 텍스트 메시지 내용을 생성할 수 있다")
         fun `기본 텍스트 메시지 내용을 생성할 수 있다`() {
             // given
             val text = "안녕하세요"
@@ -37,7 +37,7 @@ class MessageContentTest {
         }
 
         @Test
-        @DisplayName("파일 타입 메시지 내용을 생성할 수 있다")
+        @DisplayName("[happy] 파일 타입 메시지 내용을 생성할 수 있다")
         fun `파일 타입 메시지 내용을 생성할 수 있다`() {
             // given
             val text = "파일 설명"
@@ -71,7 +71,7 @@ class MessageContentTest {
         }
 
         @Test
-        @DisplayName("수정된 메시지 내용을 생성할 수 있다")
+        @DisplayName("[happy] 수정된 메시지 내용을 생성할 수 있다")
         fun `수정된 메시지 내용을 생성할 수 있다`() {
             // given
             val text = "수정된 내용"
@@ -93,7 +93,7 @@ class MessageContentTest {
         }
 
         @Test
-        @DisplayName("삭제된 메시지 내용을 생성할 수 있다")
+        @DisplayName("[happy] 삭제된 메시지 내용을 생성할 수 있다")
         fun `삭제된 메시지 내용을 생성할 수 있다`() {
             // given
             val text = "삭제된 메시지입니다"
@@ -115,7 +115,7 @@ class MessageContentTest {
         }
 
         @Test
-        @DisplayName("메타데이터를 포함한 메시지 내용을 생성할 수 있다")
+        @DisplayName("[happy] 메타데이터를 포함한 메시지 내용을 생성할 수 있다")
         fun `메타데이터를 포함한 메시지 내용을 생성할 수 있다`() {
             // given
             val text = "메타데이터 포함 메시지"
@@ -144,7 +144,7 @@ class MessageContentTest {
     inner class CopyMessageContent {
 
         @Test
-        @DisplayName("메시지 내용을 복사하여 수정할 수 있다")
+        @DisplayName("[happy] 메시지 내용을 복사하여 수정할 수 있다")
         fun `메시지 내용을 복사하여 수정할 수 있다`() {
             // given
             val originalContent = MessageContent(
@@ -167,7 +167,7 @@ class MessageContentTest {
         }
 
         @Test
-        @DisplayName("메시지 내용을 복사하여 삭제 상태로 변경할 수 있다")
+        @DisplayName("[happy] 메시지 내용을 복사하여 삭제 상태로 변경할 수 있다")
         fun `메시지 내용을 복사하여 삭제 상태로 변경할 수 있다`() {
             // given
             val originalContent = MessageContent(

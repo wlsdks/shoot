@@ -20,7 +20,7 @@ class ScheduledMessageTest {
     inner class CreateScheduledMessage {
 
         @Test
-        @DisplayName("필수 속성으로 예약 메시지를 생성할 수 있다")
+        @DisplayName("[happy] 필수 속성으로 예약 메시지를 생성할 수 있다")
         fun `필수 속성으로 예약 메시지를 생성할 수 있다`() {
             // given
             val roomId = 1L
@@ -51,7 +51,7 @@ class ScheduledMessageTest {
         }
 
         @Test
-        @DisplayName("모든 속성으로 예약 메시지를 생성할 수 있다")
+        @DisplayName("[happy] 모든 속성으로 예약 메시지를 생성할 수 있다")
         fun `모든 속성으로 예약 메시지를 생성할 수 있다`() {
             // given
             val id = MessageId.from("message123")
@@ -98,7 +98,7 @@ class ScheduledMessageTest {
     inner class CheckScheduledMessageStatus {
 
         @Test
-        @DisplayName("기본 상태는 PENDING이다")
+        @DisplayName("[happy] 기본 상태는 PENDING이다")
         fun `기본 상태는 PENDING이다`() {
             // given
             val scheduledMessage = ScheduledMessage(
@@ -116,7 +116,7 @@ class ScheduledMessageTest {
         }
 
         @Test
-        @DisplayName("상태를 SENT로 설정할 수 있다")
+        @DisplayName("[happy] 상태를 SENT로 설정할 수 있다")
         fun `상태를 SENT로 설정할 수 있다`() {
             // given
             val scheduledMessage = ScheduledMessage(
@@ -135,7 +135,7 @@ class ScheduledMessageTest {
         }
 
         @Test
-        @DisplayName("상태를 CANCELED로 설정할 수 있다")
+        @DisplayName("[happy] 상태를 CANCELED로 설정할 수 있다")
         fun `상태를 CANCELED로 설정할 수 있다`() {
             // given
             val scheduledMessage = ScheduledMessage(
@@ -159,7 +159,7 @@ class ScheduledMessageTest {
     inner class CheckScheduledMessageContent {
 
         @Test
-        @DisplayName("텍스트 메시지를 예약할 수 있다")
+        @DisplayName("[happy] 텍스트 메시지를 예약할 수 있다")
         fun `텍스트 메시지를 예약할 수 있다`() {
             // given
             val text = "테스트 메시지"
@@ -182,7 +182,7 @@ class ScheduledMessageTest {
         }
 
         @Test
-        @DisplayName("파일 메시지를 예약할 수 있다")
+        @DisplayName("[happy] 파일 메시지를 예약할 수 있다")
         fun `파일 메시지를 예약할 수 있다`() {
             // given
             val text = "파일 설명"
@@ -216,7 +216,7 @@ class ScheduledMessageTest {
         }
 
         @Test
-        @DisplayName("URL 메시지를 예약할 수 있다")
+        @DisplayName("[happy] URL 메시지를 예약할 수 있다")
         fun `URL 메시지를 예약할 수 있다`() {
             // given
             val text = "https://example.com"
@@ -255,7 +255,7 @@ class ScheduledMessageTest {
         }
 
         @Test
-        @DisplayName("이모티콘 메시지를 예약할 수 있다")
+        @DisplayName("[happy] 이모티콘 메시지를 예약할 수 있다")
         fun `이모티콘 메시지를 예약할 수 있다`() {
             // given
             val text = "😊"

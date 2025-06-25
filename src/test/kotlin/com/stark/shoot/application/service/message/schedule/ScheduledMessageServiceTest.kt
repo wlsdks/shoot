@@ -39,7 +39,7 @@ class ScheduledMessageServiceTest {
     )
 
     @Test
-    @DisplayName("존재하지 않는 채팅방에 메시지를 예약하면 예외가 발생한다")
+    @DisplayName("[happy] 존재하지 않는 채팅방에 메시지를 예약하면 예외가 발생한다")
     fun `존재하지 않는 채팅방에 메시지를 예약하면 예외가 발생한다`() {
         // given
         val roomIdLong = 1L
@@ -63,7 +63,7 @@ class ScheduledMessageServiceTest {
     }
 
     @Test
-    @DisplayName("채팅방에 속하지 않은 사용자가 메시지를 예약하면 예외가 발생한다")
+    @DisplayName("[happy] 채팅방에 속하지 않은 사용자가 메시지를 예약하면 예외가 발생한다")
     fun `채팅방에 속하지 않은 사용자가 메시지를 예약하면 예외가 발생한다`() {
         // given
         val roomIdLong = 1L
@@ -94,7 +94,7 @@ class ScheduledMessageServiceTest {
     }
 
     @Test
-    @DisplayName("과거 시간으로 메시지를 예약하면 예외가 발생한다")
+    @DisplayName("[happy] 과거 시간으로 메시지를 예약하면 예외가 발생한다")
     fun `과거 시간으로 메시지를 예약하면 예외가 발생한다`() {
         // given
         val roomIdLong = 1L
@@ -125,7 +125,7 @@ class ScheduledMessageServiceTest {
     }
 
     @Test
-    @DisplayName("유효한 정보로 메시지를 예약할 수 있다")
+    @DisplayName("[happy] 유효한 정보로 메시지를 예약할 수 있다")
     fun `유효한 정보로 메시지를 예약할 수 있다`() {
         // Create a custom implementation of ScheduledMessagePort for testing
         class TestScheduledMessagePort : ScheduledMessagePort {
@@ -215,7 +215,7 @@ class ScheduledMessageServiceTest {
     }
 
     @Test
-    @DisplayName("예약된 메시지를 취소할 수 있다")
+    @DisplayName("[happy] 예약된 메시지를 취소할 수 있다")
     fun `예약된 메시지를 취소할 수 있다`() {
         // Create a custom implementation of ScheduledMessagePort for testing
         class TestScheduledMessagePort : ScheduledMessagePort {
@@ -305,7 +305,7 @@ class ScheduledMessageServiceTest {
     }
 
     @Test
-    @DisplayName("예약된 메시지의 내용과 시간을 수정할 수 있다")
+    @DisplayName("[happy] 예약된 메시지의 내용과 시간을 수정할 수 있다")
     fun `예약된 메시지의 내용과 시간을 수정할 수 있다`() {
         // Create a custom implementation of ScheduledMessagePort for testing
         class TestScheduledMessagePort : ScheduledMessagePort {
@@ -403,7 +403,7 @@ class ScheduledMessageServiceTest {
     }
 
     @Test
-    @DisplayName("사용자의 예약된 메시지 목록을 조회할 수 있다")
+    @DisplayName("[happy] 사용자의 예약된 메시지 목록을 조회할 수 있다")
     fun `사용자의 예약된 메시지 목록을 조회할 수 있다`() {
         // Create a custom implementation of ScheduledMessagePort for testing
         class TestScheduledMessagePort : ScheduledMessagePort {
@@ -519,7 +519,7 @@ class ScheduledMessageServiceTest {
     }
 
     @Test
-    @DisplayName("예약된 메시지를 즉시 전송할 수 있다")
+    @DisplayName("[happy] 예약된 메시지를 즉시 전송할 수 있다")
     fun `예약된 메시지를 즉시 전송할 수 있다`() {
         // Create a custom implementation of ScheduledMessagePort for testing
         class TestScheduledMessagePort : ScheduledMessagePort {

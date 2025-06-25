@@ -17,7 +17,7 @@ class RedisCacheInvalidationAdapterTest {
     private val adapter = RedisCacheInvalidationAdapter(redisTemplate, friendCachePort)
 
     @Test
-    @DisplayName("단일 사용자의 추천 캐시를 무효화할 수 있다")
+    @DisplayName("[happy] 단일 사용자의 추천 캐시를 무효화할 수 있다")
     fun `단일 사용자의 추천 캐시를 무효화할 수 있다`() {
         // given
         val userId = UserId.from(1L)
@@ -36,7 +36,7 @@ class RedisCacheInvalidationAdapterTest {
     }
     
     @Test
-    @DisplayName("캐시 키가 없어도 예외가 발생하지 않는다")
+    @DisplayName("[happy] 캐시 키가 없어도 예외가 발생하지 않는다")
     fun `캐시 키가 없어도 예외가 발생하지 않는다`() {
         // given
         val userId = UserId.from(1L)
@@ -54,7 +54,7 @@ class RedisCacheInvalidationAdapterTest {
     }
     
     @Test
-    @DisplayName("Redis 예외가 발생해도 처리를 계속한다")
+    @DisplayName("[happy] Redis 예외가 발생해도 처리를 계속한다")
     fun `Redis 예외가 발생해도 처리를 계속한다`() {
         // given
         val userId = UserId.from(1L)
@@ -73,7 +73,7 @@ class RedisCacheInvalidationAdapterTest {
     }
     
     @Test
-    @DisplayName("여러 사용자의 추천 캐시를 무효화할 수 있다")
+    @DisplayName("[happy] 여러 사용자의 추천 캐시를 무효화할 수 있다")
     fun `여러 사용자의 추천 캐시를 무효화할 수 있다`() {
         // given
         val userIds = listOf(

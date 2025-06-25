@@ -16,6 +16,7 @@ class FriendRequestTest {
     inner class StateChange {
 
         @Test
+        @DisplayName("[happy] 친구 요청을 수락하면 ACCEPTED 상태가 된다")
         fun `친구 요청을 수락하면 ACCEPTED 상태가 된다`() {
             val request = FriendRequest(senderId = UserId.from(1L), receiverId = UserId.from(2L))
             val result = request.accept()
@@ -24,6 +25,7 @@ class FriendRequestTest {
         }
 
         @Test
+        @DisplayName("[happy] 친구 요청을 거절하면 REJECTED 상태가 된다")
         fun `친구 요청을 거절하면 REJECTED 상태가 된다`() {
             val request = FriendRequest(senderId = UserId.from(1L), receiverId = UserId.from(2L))
             val result = request.reject()
@@ -32,6 +34,7 @@ class FriendRequestTest {
         }
 
         @Test
+        @DisplayName("[happy] 친구 요청을 취소하면 CANCELLED 상태가 된다")
         fun `친구 요청을 취소하면 CANCELLED 상태가 된다`() {
             val request = FriendRequest(senderId = UserId.from(1L), receiverId = UserId.from(2L))
             val result = request.cancel()

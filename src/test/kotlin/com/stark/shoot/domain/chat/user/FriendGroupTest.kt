@@ -16,6 +16,7 @@ class FriendGroupTest {
     inner class UpdateGroupInfo {
 
         @Test
+        @DisplayName("[happy] 그룹 이름을 변경할 수 있다")
         fun `그룹 이름을 변경할 수 있다`() {
             val group = FriendGroup(ownerId = UserId.from(1L), name = FriendGroupName.from("친구들"))
             val updated = group.rename("베프")
@@ -24,6 +25,7 @@ class FriendGroupTest {
         }
 
         @Test
+        @DisplayName("[happy] 그룹 설명을 수정할 수 있다")
         fun `그룹 설명을 수정할 수 있다`() {
             val group = FriendGroup(ownerId = UserId.from(1L), name = FriendGroupName.from("친구들"))
             val updated = group.updateDescription("오래된 친구")
@@ -37,6 +39,7 @@ class FriendGroupTest {
     inner class ManageMembers {
 
         @Test
+        @DisplayName("[happy] 멤버를 추가할 수 있다")
         fun `멤버를 추가할 수 있다`() {
             val group = FriendGroup(ownerId = UserId.from(1L), name = FriendGroupName.from("친구들"))
             val updated = group.addMember(UserId.from(2L))
@@ -44,6 +47,7 @@ class FriendGroupTest {
         }
 
         @Test
+        @DisplayName("[happy] 이미 있는 멤버를 추가하면 변경이 없다")
         fun `이미 있는 멤버를 추가하면 변경이 없다`() {
             val group = FriendGroup(
                 ownerId = UserId.from(1L),
@@ -55,6 +59,7 @@ class FriendGroupTest {
         }
 
         @Test
+        @DisplayName("[happy] 멤버를 제거할 수 있다")
         fun `멤버를 제거할 수 있다`() {
             val group = FriendGroup(
                 ownerId = UserId.from(1L),
@@ -66,6 +71,7 @@ class FriendGroupTest {
         }
 
         @Test
+        @DisplayName("[happy] 존재하지 않는 멤버를 제거하면 변경이 없다")
         fun `존재하지 않는 멤버를 제거하면 변경이 없다`() {
             val group =
                 FriendGroup(

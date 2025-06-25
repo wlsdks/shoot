@@ -15,6 +15,7 @@ class ChatRoomParticipantDomainServiceTest {
     private val service = ChatRoomParticipantDomainService()
 
     @Test
+    @DisplayName("[happy] 참여자 변경 정보를 적용할 수 있다")
     fun `참여자 변경 정보를 적용할 수 있다`() {
         val room = ChatRoom(
             id = ChatRoomId.from(1L),
@@ -35,6 +36,7 @@ class ChatRoomParticipantDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[happy] 참여자를 제거하면 삭제 여부를 판단할 수 있다")
     fun `참여자를 제거하면 삭제 여부를 판단할 수 있다`() {
         val room = ChatRoom(
             id = ChatRoomId.from(1L),
@@ -50,6 +52,7 @@ class ChatRoomParticipantDomainServiceTest {
     }
 
     @Test
+    @DisplayName("[happy] 마지막 참여자를 제거하면 방이 삭제 대상이 된다")
     fun `마지막 참여자를 제거하면 방이 삭제 대상이 된다`() {
         val room = ChatRoom(
             id = ChatRoomId.from(1L),

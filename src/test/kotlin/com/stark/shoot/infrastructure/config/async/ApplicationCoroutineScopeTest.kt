@@ -12,6 +12,7 @@ class ApplicationCoroutineScopeTest {
     private val scope = ApplicationCoroutineScope()
 
     @Test
+    @DisplayName("[happy] launch 실행 후 활성 코루틴 수가 감소한다")
     fun `launch 실행 후 활성 코루틴 수가 감소한다`() = runBlocking {
         val job = scope.launch { delay(50) }
         assertThat(scope.getActiveJobCount()).isEqualTo(1)
@@ -21,6 +22,7 @@ class ApplicationCoroutineScopeTest {
     }
 
     @Test
+    @DisplayName("[bad] 예외 발생시에도 활성 코루틴 수가 감소한다")
     fun `예외 발생시에도 활성 코루틴 수가 감소한다`() = runBlocking {
         val job = scope.launch { throw RuntimeException("error") }
         job.join()

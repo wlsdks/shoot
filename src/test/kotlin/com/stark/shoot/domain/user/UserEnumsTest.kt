@@ -10,12 +10,14 @@ import org.junit.jupiter.api.Test
 class UserEnumsTest {
 
     @Test
+    @DisplayName("[happy] FriendRequestStatus 값 확인")
     fun `FriendRequestStatus 값 확인`() {
         val names = FriendRequestStatus.values().map { it.name }
         assertThat(names).containsExactly("PENDING", "ACCEPTED", "REJECTED", "CANCELLED")
     }
 
     @Test
+    @DisplayName("[happy] UserStatus 값 확인")
     fun `UserStatus 값 확인`() {
         val names = UserStatus.values().map { it.name }
         assertThat(names).containsExactly("OFFLINE", "ONLINE", "BUSY", "AWAY", "INVISIBLE", "DO_NOT_DISTURB", "IDLE")

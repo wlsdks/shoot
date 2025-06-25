@@ -16,6 +16,7 @@ class ChatRoomEventServiceTest {
     private val service = ChatRoomEventService()
 
     @Test
+    @DisplayName("[happy] 채팅방 생성 이벤트를 생성할 수 있다")
     fun `채팅방 생성 이벤트를 생성할 수 있다`() {
         val room = ChatRoom(
             id = ChatRoomId.from(1L),
@@ -30,6 +31,7 @@ class ChatRoomEventServiceTest {
     }
 
     @Test
+    @DisplayName("[bad] ID가 없는 채팅방 이벤트 생성 시 예외가 발생한다")
     fun `ID가 없는 채팅방 이벤트 생성 시 예외가 발생한다`() {
         val room = ChatRoom(
             title = ChatRoomTitle.from("room"),

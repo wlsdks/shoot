@@ -15,6 +15,7 @@ class MessageBookmarkTest {
     @DisplayName("북마크 생성 시")
     inner class CreateBookmark {
         @Test
+        @DisplayName("[happy] 필수 정보로 북마크를 생성할 수 있다")
         fun `필수 정보로 북마크를 생성할 수 있다`() {
             val bookmark = MessageBookmark(
                 messageId = MessageId.from("m1"),
@@ -28,6 +29,7 @@ class MessageBookmarkTest {
         }
 
         @Test
+        @DisplayName("[happy] 모든 정보를 사용하여 북마크를 생성할 수 있다")
         fun `모든 정보를 사용하여 북마크를 생성할 수 있다`() {
             val now = Instant.now()
             val bookmark = MessageBookmark(

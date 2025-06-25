@@ -33,6 +33,7 @@ class MessageReactionServiceTest {
     @Nested
     inner class ProcessResult {
         @Test
+        @DisplayName("[happy] 리액션 교체 결과는 두 개의 이벤트를 생성한다")
         fun `리액션 교체 결과는 두 개의 이벤트를 생성한다`() {
             val result = ReactionToggleResult(
                 reactions = MessageReactions(),
@@ -60,6 +61,7 @@ class MessageReactionServiceTest {
         }
 
         @Test
+        @DisplayName("[happy] 일반 추가 결과는 하나의 이벤트를 생성한다")
         fun `일반 추가 결과는 하나의 이벤트를 생성한다`() {
             val result = ReactionToggleResult(
                 reactions = MessageReactions(),

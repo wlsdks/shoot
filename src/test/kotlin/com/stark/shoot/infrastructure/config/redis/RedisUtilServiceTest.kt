@@ -16,6 +16,7 @@ class RedisUtilServiceTest {
     private val service = RedisUtilService(redisTemplate)
 
     @Test
+    @DisplayName("[happy] 값을 저장하고 조회할 수 있다")
     fun `값을 저장하고 조회할 수 있다`() {
         `when`(redisTemplate.opsForValue()).thenReturn(valueOps)
         `when`(valueOps.get("k")).thenReturn("v")
@@ -28,6 +29,7 @@ class RedisUtilServiceTest {
     }
 
     @Test
+    @DisplayName("[bad] Redis 오류시 로컬 캐시 값을 사용한다")
     fun `Redis 오류시 로컬 캐시 값을 사용한다`() {
         `when`(redisTemplate.opsForValue()).thenReturn(valueOps)
         doThrow(RuntimeException("fail")).`when`(valueOps).set("e", "v")

@@ -1,0 +1,83 @@
+package com.stark.shoot.adapter.`in`.web.sse
+
+import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.user.vo.UserId
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.mockito.Mockito.*
+
+@DisplayName("MessageReadCountController 단위 테스트")
+class MessageReadCountControllerTest {
+
+    private val messageReadUseCase = mock(MessageReadUseCase::class.java)
+    private val controller = MessageReadCountController(messageReadUseCase)
+
+    @Test
+    @DisplayName("[happy] 채팅방의 모든 메시지를 읽음 처리한다")
+    fun `채팅방의 모든 메시지를 읽음 처리한다`() {
+        // given
+        val roomId = 1L
+        val userId = 2L
+        val requestId = "request123"
+
+        // when
+        val response = controller.markAllMessagesAsRead(roomId, userId, requestId)
+
+        // then
+        assertThat(response).isNotNull
+        assertThat(response.success).isTrue()
+        assertThat(response.message).isEqualTo("모든 메시지가 읽음으로 처리되었습니다.")
+        
+        verify(messageReadUseCase).markAllMessagesAsRead(
+            ChatRoomId.from(roomId),
+            UserId.from(userId),
+            requestId
+        )
+    }
+
+    @Test
+    @DisplayName("[happy] 채팅방의 모든 메시지를 읽음 처리한다 (requestId 없음)")
+    fun `채팅방의 모든 메시지를 읽음 처리한다 (requestId 없음)`() {
+        // given
+        val roomId = 1L
+        val userId = 2L
+
+        // when
+        val response = controller.markAllMessagesAsRead(roomId, userId, null)
+
+        // then
+        assertThat(response).isNotNull
+        assertThat(response.success).isTrue()
+        assertThat(response.message).isEqualTo("모든 메시지가 읽음으로 처리되었습니다.")
+        
+        verify(messageReadUseCase).markAllMessagesAsRead(
+            ChatRoomId.from(roomId),
+            UserId.from(userId),
+            null
+        )
+    }
+
+    @Test
+    @DisplayName("[happy] 특정 메시지를 읽음 처리한다")
+    fun `특정 메시지를 읽음 처리한다`() {
+        // given
+        val messageId = "message123"
+        val userId = 2L
+
+        // when
+        val response = controller.markMessageAsRead(messageId, userId)
+
+        // then
+        assertThat(response).isNotNull
+        assertThat(response.success).isTrue()
+        assertThat(response.message).isEqualTo("메시지가 읽음으로 처리되었습니다.")
+        
+        verify(messageReadUseCase).markMessageAsRead(
+            MessageId.from(messageId),
+            UserId.from(userId)
+        )
+    }
+}

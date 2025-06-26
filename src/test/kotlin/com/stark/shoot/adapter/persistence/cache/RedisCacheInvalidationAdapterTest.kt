@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import org.springframework.data.redis.core.StringRedisTemplate
-import java.util.*
 
 @DisplayName("Redis 캐시 무효화 어댑터 테스트")
 class RedisCacheInvalidationAdapterTest {

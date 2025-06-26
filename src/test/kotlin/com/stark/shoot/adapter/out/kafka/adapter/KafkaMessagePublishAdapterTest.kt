@@ -17,8 +17,8 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.*
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.SendResult
-import java.util.concurrent.CompletableFuture
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
 @DisplayName("Kafka 메시지 발행 어댑터 테스트")
 class KafkaMessagePublishAdapterTest {

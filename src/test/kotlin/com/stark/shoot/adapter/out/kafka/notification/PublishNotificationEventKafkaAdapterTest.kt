@@ -3,8 +3,6 @@ package com.stark.shoot.adapter.out.kafka.notification
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.event.NewMessageEvent
-import com.stark.shoot.domain.notification.type.NotificationType
-import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.exception.web.KafkaPublishException
 import org.junit.jupiter.api.DisplayName

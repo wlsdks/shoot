@@ -4,10 +4,10 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomUserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.enumerate.ChatRoomUserRole
-import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
+import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.UserId
 import java.time.Instant
 

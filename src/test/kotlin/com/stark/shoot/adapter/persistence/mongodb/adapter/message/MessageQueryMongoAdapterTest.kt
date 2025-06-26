@@ -21,7 +21,7 @@ import org.mockito.Mockito.*
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import java.time.Instant
-import java.util.Optional
+import java.util.*
 
 @DisplayName("메시지 조회 MongoDB 어댑터 테스트")
 class MessageQueryMongoAdapterTest {

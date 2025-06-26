@@ -1,6 +1,5 @@
 package com.stark.shoot.domain.service.user
 
-import com.stark.shoot.domain.event.FriendAddedEvent
 import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.vo.UserId

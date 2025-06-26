@@ -3,7 +3,8 @@ package com.stark.shoot.adapter.out.event.publisher
 import com.stark.shoot.domain.event.DomainEvent
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.springframework.context.ApplicationEventPublisher
 
 @DisplayName("스프링 이벤트 발행자 테스트")

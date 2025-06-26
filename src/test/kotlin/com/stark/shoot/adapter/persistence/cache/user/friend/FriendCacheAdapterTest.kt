@@ -5,7 +5,8 @@ import com.stark.shoot.application.service.user.friend.recommend.RecommendFriend
 import com.stark.shoot.domain.user.vo.UserId
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 @DisplayName("친구 캐시 어댑터 테스트")
 class FriendCacheAdapterTest {

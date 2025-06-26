@@ -90,7 +90,6 @@ class SendThreadMessageServiceTest {
 
     @Test
     @DisplayName("[happy] 스레드 메시지를 전송할 수 있다")
-    @Disabled("Mockito matcher issues")
     fun `스레드 메시지를 전송할 수 있다`() {
         // given
         val threadId = "5f9f1b9b9c9d1b9b9c9d1b9b"
@@ -118,15 +117,19 @@ class SendThreadMessageServiceTest {
         val metadata = ChatMessageMetadata()
         doReturn(metadata).`when`(domainMessage).metadata
 
-        // Setup the messageDomainService to return our mock message
+        // Define function implementations for the function parameters
+        val extractUrls: (String) -> List<String> = { _ -> emptyList() }
+        val getCachedPreview: (String) -> ChatMessageMetadata.UrlPreview? = { _ -> null }
+
+        // Setup the messageDomainService to return our mock message with actual parameters
         doReturn(domainMessage).`when`(messageDomainService).createAndProcessMessage(
-            eq(ChatRoomId.from(request.roomId)),
-            eq(UserId.from(request.senderId)),
-            eq(request.content.text),
-            eq(request.content.type),
-            eq(MessageId.from(threadId)),
-            any(),
-            any()
+            ChatRoomId.from(request.roomId),
+            UserId.from(request.senderId),
+            request.content.text,
+            request.content.type,
+            MessageId.from(threadId),
+            extractUrls,
+            getCachedPreview
         )
 
         // when

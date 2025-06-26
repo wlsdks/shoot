@@ -179,7 +179,7 @@ class UserCodeControllerTest {
         }
 
         verify(findUserUseCase).findByUserCode(UserCode.from(targetCode))
-        verify(friendRequestUseCase, never()).sendFriendRequest(any(), any())
+        verify(friendRequestUseCase, never()).sendFriendRequest(UserId.from(userId), UserId.from(999L))
     }
 
     // 테스트용 User 객체 생성 헬퍼 메서드

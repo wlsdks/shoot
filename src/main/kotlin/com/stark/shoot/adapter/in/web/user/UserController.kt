@@ -6,7 +6,8 @@ import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.UserCreateUseCase
 import com.stark.shoot.application.port.`in`.user.UserDeleteUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.command.CreateUserCommand
+import com.stark.shoot.application.port.`in`.user.command.DeleteUserCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
@@ -31,7 +32,15 @@ class UserController(
     fun createUser(
         @ModelAttribute request: CreateUserRequest
     ): ResponseDto<UserResponse> {
-        val user = userCreateUseCase.createUser(request)
+        val command = CreateUserCommand.of(
+            username = request.username,
+            nickname = request.nickname,
+            password = request.password,
+            email = request.email,
+            bio = request.bio,
+            profileImage = request.profileImage
+        )
+        val user = userCreateUseCase.createUser(command)
         return ResponseDto.success(user.toResponse(), "회원가입이 완료되었습니다.")
     }
 
@@ -48,7 +57,8 @@ class UserController(
         authentication: Authentication
     ): ResponseDto<Unit> {
         val userId = authentication.name.toLong()
-        userDeleteUseCase.deleteUser(UserId.from(userId))
+        val command = DeleteUserCommand.of(userId)
+        userDeleteUseCase.deleteUser(command)
         return ResponseDto.success(Unit, "회원 탈퇴가 완료되었습니다.")
     }
 

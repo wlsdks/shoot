@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.message
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.`in`.web.socket.dto.TypingIndicatorMessage
 import com.stark.shoot.application.port.`in`.message.TypingIndicatorMessageUseCase
+import com.stark.shoot.application.port.`in`.message.command.TypingIndicatorCommand
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.redis.RedisUtilService
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -52,12 +53,12 @@ class TypingIndicatorMessagesService(
      * 동일한 사용자-채팅방 조합에 대해 RATE_LIMIT_MS 시간 내에 중복 메시지 전송을 방지합니다.
      * 타이핑 상태가 변경되면 즉시 전송합니다.
      *
-     * @param message 타이핑 인디케이터 메시지 (사용자 ID, 채팅방 ID, 타이핑 상태 포함)
+     * @param command 타이핑 인디케이터 커맨드 (사용자 ID, 채팅방 ID, 타이핑 상태 포함)
      */
-    override fun sendMessage(message: TypingIndicatorMessage) {
+    override fun sendMessage(command: TypingIndicatorCommand) {
         try {
-            val key = "${message.userId}:${message.roomId}"
-            val redisKey = createRedisKey(message.userId, message.roomId)
+            val key = "${command.userId}:${command.roomId}"
+            val redisKey = createRedisKey(command.userId, command.roomId)
             val stateKey = createRedisStateKey(redisKey)
             val now = System.currentTimeMillis()
 
@@ -71,10 +72,16 @@ class TypingIndicatorMessagesService(
             val previousTypingState = previousTypingStateStr.toBoolean()
 
             // 타이핑 상태가 변경되었거나 제한 시간이 지났으면 메시지 전송
-            if (message.isTyping != previousTypingState || now - lastSent > RATE_LIMIT_MS) {
-                logger.debug { "타이핑 인디케이터 전송: 사용자=${message.userId}, 채팅방=${message.roomId}, 상태=${message.isTyping}" }
+            if (command.isTyping != previousTypingState || now - lastSent > RATE_LIMIT_MS) {
+                logger.debug { "타이핑 인디케이터 전송: 사용자=${command.userId}, 채팅방=${command.roomId}, 상태=${command.isTyping}" }
 
-                sendTypingMessage("/topic/typing/${message.roomId}", message)
+                // DTO로 변환하여 WebSocket으로 전송
+                val message = TypingIndicatorMessage(
+                    userId = command.userId,
+                    roomId = command.roomId,
+                    isTyping = command.isTyping
+                )
+                sendTypingMessage("/topic/typing/${command.roomId}", message)
 
                 // Redis에 마지막 전송 시간과 상태 저장
                 val timeUpdated =
@@ -90,7 +97,7 @@ class TypingIndicatorMessagesService(
                     localTypingCache[key] = now
                 }
             } else {
-                logger.trace { "타이핑 인디케이터 제한: 사용자=${message.userId}, 채팅방=${message.roomId} (${now - lastSent}ms < ${RATE_LIMIT_MS}ms)" }
+                logger.trace { "타이핑 인디케이터 제한: 사용자=${command.userId}, 채팅방=${command.roomId} (${now - lastSent}ms < ${RATE_LIMIT_MS}ms)" }
             }
         } catch (e: Exception) {
             logger.error(e) { "타이핑 인디케이터 처리 중 오류 발생: ${e.message}" }
@@ -212,15 +219,21 @@ class TypingIndicatorMessagesService(
      * 타이핑 중지 메시지를 전송하는 메서드
      */
     private fun sendTypingStoppedMessage(userId: Long, roomId: Long, inactiveTime: Long) {
-        // 타이핑 중지 메시지 생성
-        val stoppedMessage = TypingIndicatorMessage(
-            roomId = roomId,
+        // 타이핑 중지 커맨드 생성
+        val stoppedCommand = TypingIndicatorCommand(
             userId = userId,
+            roomId = roomId,
             isTyping = false
         )
 
         logger.debug { "타이핑 중지 감지: 사용자=$userId, 채팅방=$roomId (${inactiveTime}ms 동안 타이핑 없음)" }
 
+        // DTO로 변환하여 WebSocket으로 전송
+        val stoppedMessage = TypingIndicatorMessage(
+            userId = stoppedCommand.userId,
+            roomId = stoppedCommand.roomId,
+            isTyping = stoppedCommand.isTyping
+        )
         sendTypingMessage("/topic/typing/$roomId", stoppedMessage)
     }
 }

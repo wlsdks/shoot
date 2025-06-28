@@ -2,6 +2,7 @@ package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
+import com.stark.shoot.application.port.`in`.chatroom.command.CreateDirectChatCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.event.EventPublisher
@@ -10,7 +11,6 @@ import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
 import com.stark.shoot.domain.user.User
-import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
@@ -27,15 +27,15 @@ class CreateChatRoomService(
 ) : CreateChatRoomUseCase {
 
     /**
-     * @param userId 사용자 ID
-     * @param friendId 친구 ID
+     * 1:1 채팅방 생성
+     *
+     * @param command 직접 채팅 생성 커맨드
      * @return ChatRoomResponse 생성된 채팅방 정보
-     * @apiNote 1:1 채팅방 생성
      */
-    override fun createDirectChat(
-        userId: UserId,
-        friendId: UserId
-    ): ChatRoomResponse {
+    override fun createDirectChat(command: CreateDirectChatCommand): ChatRoomResponse {
+        val userId = command.userId
+        val friendId = command.friendId
+
         // 1. 사용자와 친구가 존재하는지 확인
         val user = findUserPort.findUserById(userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${userId.value}")

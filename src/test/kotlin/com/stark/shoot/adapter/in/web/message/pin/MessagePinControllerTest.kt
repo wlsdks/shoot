@@ -1,7 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.message.pin
 
-import com.stark.shoot.adapter.`in`.web.dto.message.pin.PinResponse
 import com.stark.shoot.application.port.`in`.message.pin.MessagePinUseCase
+import com.stark.shoot.application.port.`in`.message.pin.command.PinMessageCommand
+import com.stark.shoot.application.port.`in`.message.pin.command.UnpinMessageCommand
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
@@ -29,9 +30,9 @@ class MessagePinControllerTest {
         // given
         val messageId = "message123"
         val userId = 1L
-        
+
         `when`(authentication.name).thenReturn(userId.toString())
-        
+
         val pinnedMessage = createChatMessage(
             messageId = messageId,
             roomId = 1L,
@@ -40,8 +41,9 @@ class MessagePinControllerTest {
             isPinned = true,
             pinnedBy = userId
         )
-        
-        `when`(messagePinUseCase.pinMessage(MessageId.from(messageId), UserId.from(userId)))
+
+        val pinCommand = PinMessageCommand.of(messageId, authentication)
+        `when`(messagePinUseCase.pinMessage(pinCommand))
             .thenReturn(pinnedMessage)
 
         // when
@@ -54,8 +56,8 @@ class MessagePinControllerTest {
         assertThat(response.data?.isPinned).isTrue()
         assertThat(response.data?.pinnedBy).isEqualTo(userId)
         assertThat(response.message).isEqualTo("메시지가 고정되었습니다.")
-        
-        verify(messagePinUseCase).pinMessage(MessageId.from(messageId), UserId.from(userId))
+
+        verify(messagePinUseCase).pinMessage(pinCommand)
     }
 
     @Test
@@ -64,9 +66,9 @@ class MessagePinControllerTest {
         // given
         val messageId = "message123"
         val userId = 1L
-        
+
         `when`(authentication.name).thenReturn(userId.toString())
-        
+
         val unpinnedMessage = createChatMessage(
             messageId = messageId,
             roomId = 1L,
@@ -75,8 +77,9 @@ class MessagePinControllerTest {
             isPinned = false,
             pinnedBy = null
         )
-        
-        `when`(messagePinUseCase.unpinMessage(MessageId.from(messageId), UserId.from(userId)))
+
+        val unpinCommand = UnpinMessageCommand.of(messageId, authentication)
+        `when`(messagePinUseCase.unpinMessage(unpinCommand))
             .thenReturn(unpinnedMessage)
 
         // when
@@ -89,8 +92,8 @@ class MessagePinControllerTest {
         assertThat(response.data?.isPinned).isFalse()
         assertThat(response.data?.pinnedBy).isNull()
         assertThat(response.message).isEqualTo("메시지 고정이 해제되었습니다.")
-        
-        verify(messagePinUseCase).unpinMessage(MessageId.from(messageId), UserId.from(userId))
+
+        verify(messagePinUseCase).unpinMessage(unpinCommand)
     }
 
     // 테스트용 ChatMessage 객체 생성 헬퍼 메서드

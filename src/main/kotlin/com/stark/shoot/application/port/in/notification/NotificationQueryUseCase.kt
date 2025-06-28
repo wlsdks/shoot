@@ -1,22 +1,14 @@
 package com.stark.shoot.application.port.`in`.notification
 
+import com.stark.shoot.application.port.`in`.notification.command.*
 import com.stark.shoot.domain.notification.Notification
-import com.stark.shoot.domain.notification.type.NotificationType
-import com.stark.shoot.domain.notification.type.SourceType
-import com.stark.shoot.domain.user.vo.UserId
 
 interface NotificationQueryUseCase {
 
-    fun getNotificationsForUser(userId: UserId, limit: Int = 20, offset: Int = 0): List<Notification>
-    fun getUnreadNotificationsForUser(userId: UserId, limit: Int = 20, offset: Int = 0): List<Notification>
-    fun getNotificationsByType(userId: UserId, type: NotificationType, limit: Int = 20, offset: Int = 0): List<Notification>
-    fun getNotificationsBySource(
-        userId: UserId,
-        sourceType: SourceType, 
-        sourceId: String? = null, 
-        limit: Int = 20, 
-        offset: Int = 0
-    ): List<Notification>
-    fun getUnreadNotificationCount(userId: UserId): Int
+    fun getNotificationsForUser(command: GetNotificationsCommand): List<Notification>
+    fun getUnreadNotificationsForUser(command: GetUnreadNotificationsCommand): List<Notification>
+    fun getNotificationsByType(command: GetNotificationsByTypeCommand): List<Notification>
+    fun getNotificationsBySource(command: GetNotificationsBySourceCommand): List<Notification>
+    fun getUnreadNotificationCount(command: GetUnreadNotificationCountCommand): Int
 
 }

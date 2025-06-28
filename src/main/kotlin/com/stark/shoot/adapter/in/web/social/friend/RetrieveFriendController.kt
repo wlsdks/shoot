@@ -3,7 +3,9 @@ package com.stark.shoot.adapter.`in`.web.social.friend
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.friend.command.GetFriendsCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.GetIncomingFriendRequestsCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.GetOutgoingFriendRequestsCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -23,7 +25,8 @@ class RetrieveFriendController(
     fun getMyFriends(
         @RequestParam userId: Long
     ): ResponseDto<List<FriendResponse>> {
-        val friends = findFriendUseCase.getFriends(UserId.from(userId))
+        val command = GetFriendsCommand.of(userId)
+        val friends = findFriendUseCase.getFriends(command)
         return ResponseDto.success(friends)
     }
 
@@ -32,7 +35,8 @@ class RetrieveFriendController(
     fun getIncomingFriendRequests(
         @RequestParam userId: Long
     ): ResponseDto<List<FriendResponse>> {
-        val incomingRequests = findFriendUseCase.getIncomingFriendRequests(UserId.from(userId))
+        val command = GetIncomingFriendRequestsCommand.of(userId)
+        val incomingRequests = findFriendUseCase.getIncomingFriendRequests(command)
         return ResponseDto.success(incomingRequests)
     }
 
@@ -41,7 +45,8 @@ class RetrieveFriendController(
     fun getOutgoingFriendRequests(
         @RequestParam userId: Long
     ): ResponseDto<List<FriendResponse>> {
-        val outgoingRequests = findFriendUseCase.getOutgoingFriendRequests(UserId.from(userId))
+        val command = GetOutgoingFriendRequestsCommand.of(userId)
+        val outgoingRequests = findFriendUseCase.getOutgoingFriendRequests(command)
         return ResponseDto.success(outgoingRequests)
     }
 

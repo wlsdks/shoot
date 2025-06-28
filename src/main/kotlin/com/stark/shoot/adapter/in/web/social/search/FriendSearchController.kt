@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.`in`.web.social.search
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FriendSearchUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.friend.command.SearchFriendsCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,7 +27,8 @@ class FriendSearchController(
         @RequestParam userId: Long,
         @RequestParam query: String
     ): ResponseDto<List<FriendResponse>> {
-        val friends = friendSearchUseCase.searchPotentialFriends(UserId.from(userId), query)
+        val command = SearchFriendsCommand.of(userId, query)
+        val friends = friendSearchUseCase.searchPotentialFriends(command)
         return ResponseDto.success(friends)
     }
 

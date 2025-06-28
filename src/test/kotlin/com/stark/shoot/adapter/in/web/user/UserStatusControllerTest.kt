@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.web.user
 
 import com.stark.shoot.adapter.`in`.web.dto.user.UpdateStatusRequest
 import com.stark.shoot.application.port.`in`.user.profile.UserStatusUseCase
+import com.stark.shoot.application.port.`in`.user.profile.command.UpdateUserStatusCommand
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.*
@@ -25,15 +26,16 @@ class UserStatusControllerTest {
         // given
         val userId = 1L
         val request = UpdateStatusRequest(userId.toString(), UserStatus.AWAY)
-        
+        val command = UpdateUserStatusCommand.of(authentication, UserStatus.AWAY)
+
         val updatedUser = createUser(
             id = userId,
             username = "testuser",
             nickname = "테스트 유저",
             status = UserStatus.AWAY
         )
-        
-        `when`(userStatusUseCase.updateStatus(authentication, UserStatus.AWAY))
+
+        `when`(userStatusUseCase.updateStatus(command))
             .thenReturn(updatedUser)
 
         // when
@@ -45,8 +47,8 @@ class UserStatusControllerTest {
         assertThat(response.data?.id).isEqualTo(userId.toString())
         assertThat(response.data?.status).isEqualTo(UserStatus.AWAY)
         assertThat(response.message).isEqualTo("사용자 상태가 변경되었습니다.")
-        
-        verify(userStatusUseCase).updateStatus(authentication, UserStatus.AWAY)
+
+        verify(userStatusUseCase).updateStatus(command)
     }
 
     // 테스트용 User 객체 생성 헬퍼 메서드

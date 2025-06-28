@@ -1,8 +1,8 @@
 package com.stark.shoot.application.service.user
 
 import com.stark.shoot.application.port.`in`.user.UserDeleteUseCase
+import com.stark.shoot.application.port.`in`.user.command.DeleteUserCommand
 import com.stark.shoot.application.port.out.user.UserCommandPort
-import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,10 +15,9 @@ class UserDeleteService(
     /**
      * 사용자 삭제
      *
-     * @param userId 사용자 ID
+     * @param command 사용자 삭제 커맨드
      */
-    override fun deleteUser(userId: UserId) {
-        userCommandPort.deleteUser(userId)
+    override fun deleteUser(command: DeleteUserCommand) {
+        userCommandPort.deleteUser(command.userId)
     }
-
 }

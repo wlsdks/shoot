@@ -1,5 +1,6 @@
 package com.stark.shoot.application.service.message.reaction
 
+import com.stark.shoot.application.port.`in`.message.reaction.command.GetMessageReactionsCommand
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
@@ -49,7 +50,8 @@ class GetMessageReactionServiceTest {
             `when`(messageQueryPort.findById(messageId)).thenReturn(message)
 
             // when
-            val result = getMessageReactionService.getReactions(messageId)
+            val command = GetMessageReactionsCommand(messageId)
+            val result = getMessageReactionService.getReactions(command)
 
             // then
             assertThat(result).isEqualTo(reactions)
@@ -65,8 +67,9 @@ class GetMessageReactionServiceTest {
             `when`(messageQueryPort.findById(messageId)).thenReturn(null)
 
             // when & then
+            val command = GetMessageReactionsCommand(messageId)
             assertThrows<ResourceNotFoundException> {
-                getMessageReactionService.getReactions(messageId)
+                getMessageReactionService.getReactions(command)
             }
             verify(messageQueryPort).findById(messageId)
         }

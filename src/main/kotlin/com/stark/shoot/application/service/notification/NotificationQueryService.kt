@@ -1,11 +1,9 @@
 package com.stark.shoot.application.service.notification
 
 import com.stark.shoot.application.port.`in`.notification.NotificationQueryUseCase
+import com.stark.shoot.application.port.`in`.notification.command.*
 import com.stark.shoot.application.port.out.notification.NotificationQueryPort
 import com.stark.shoot.domain.notification.Notification
-import com.stark.shoot.domain.notification.type.NotificationType
-import com.stark.shoot.domain.notification.type.SourceType
-import com.stark.shoot.domain.user.vo.UserId
 import org.springframework.stereotype.Service
 
 @Service
@@ -17,84 +15,60 @@ class NotificationQueryService(
      * 유저에 대한 알림을 가져옵니다.
      * 기본적으로 최신 20개의 알림을 조회합니다. (limit=20, offset=0)
      *
-     * @param userId 사용자 ID
-     * @param limit 가져올 알림의 최대 개수
-     * @param offset 가져올 알림의 시작 위치
+     * @param command 알림 조회 커맨드
      * @return 알림 목록
      */
-    override fun getNotificationsForUser(
-        userId: UserId,
-        limit: Int,
-        offset: Int
-    ): List<Notification> {
-        return notificationQueryPort.loadNotificationsForUser(userId, limit, offset)
+    override fun getNotificationsForUser(command: GetNotificationsCommand): List<Notification> {
+        return notificationQueryPort.loadNotificationsForUser(command.userId, command.limit, command.offset)
     }
 
     /**
      * 유저에 대한 읽지 않은 알림을 가져옵니다.
      * 기본적으로 최신 20개의 읽지 않은 알림을 조회합니다. (limit=20, offset=0)
      *
-     * @param userId 사용자 ID
-     * @param limit 가져올 알림의 최대 개수
-     * @param offset 가져올 알림의 시작 위치
+     * @param command 읽지 않은 알림 조회 커맨드
      * @return 읽지 않은 알림 목록
      */
-    override fun getUnreadNotificationsForUser(
-        userId: UserId,
-        limit: Int,
-        offset: Int
-    ): List<Notification> {
-        return notificationQueryPort.loadUnreadNotificationsForUser(userId, limit, offset)
+    override fun getUnreadNotificationsForUser(command: GetUnreadNotificationsCommand): List<Notification> {
+        return notificationQueryPort.loadUnreadNotificationsForUser(command.userId, command.limit, command.offset)
     }
 
     /**
      * 사용자의 알림을 타입별로 조회합니다.
      * 기본적으로 최신 20개의 알림을 조회합니다. (limit=20, offset=0)
      *
-     * @param userId 사용자 ID
-     * @param type 알림 타입
-     * @param limit 가져올 알림의 최대 개수
-     * @param offset 가져올 알림의 시작 위치
+     * @param command 알림 타입별 조회 커맨드
      * @return 알림 목록
      */
-    override fun getNotificationsByType(
-        userId: UserId,
-        type: NotificationType,
-        limit: Int,
-        offset: Int
-    ): List<Notification> {
-        return notificationQueryPort.loadNotificationsByType(userId, type, limit, offset)
+    override fun getNotificationsByType(command: GetNotificationsByTypeCommand): List<Notification> {
+        return notificationQueryPort.loadNotificationsByType(command.userId, command.type, command.limit, command.offset)
     }
 
     /**
      * 사용자의 알림을 소스 타입별로 조회합니다.
      * 기본적으로 최신 20개의 알림을 조회합니다. (limit=20, offset=0)
      *
-     * @param userId 사용자 ID
-     * @param sourceType 소스 타입
-     * @param sourceId 소스 ID (null일 경우 모든 소스 ID에 대해 조회)
-     * @param limit 가져올 알림의 최대 개수
-     * @param offset 가져올 알림의 시작 위치
+     * @param command 알림 소스별 조회 커맨드
      * @return 알림 목록
      */
-    override fun getNotificationsBySource(
-        userId: UserId,
-        sourceType: SourceType,
-        sourceId: String?,
-        limit: Int,
-        offset: Int
-    ): List<Notification> {
-        return notificationQueryPort.loadNotificationsBySource(userId, sourceType, sourceId, limit, offset)
+    override fun getNotificationsBySource(command: GetNotificationsBySourceCommand): List<Notification> {
+        return notificationQueryPort.loadNotificationsBySource(
+            command.userId,
+            command.sourceType,
+            command.sourceId,
+            command.limit,
+            command.offset
+        )
     }
 
     /**
      * 사용자의 읽지 않은 알림 개수를 조회합니다.
      *
-     * @param userId 사용자 ID
+     * @param command 읽지 않은 알림 개수 조회 커맨드
      * @return 읽지 않은 알림 개수
      */
-    override fun getUnreadNotificationCount(userId: UserId): Int {
-        return notificationQueryPort.countUnreadNotifications(userId)
+    override fun getUnreadNotificationCount(command: GetUnreadNotificationCountCommand): Int {
+        return notificationQueryPort.countUnreadNotifications(command.userId)
     }
 
 }

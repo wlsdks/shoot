@@ -1,11 +1,11 @@
 package com.stark.shoot.application.service.user
 
 import com.stark.shoot.application.port.`in`.user.FindUserUseCase
+import com.stark.shoot.application.port.`in`.user.command.FindUserByCodeCommand
+import com.stark.shoot.application.port.`in`.user.command.FindUserByIdCommand
+import com.stark.shoot.application.port.`in`.user.command.FindUserByUsernameCommand
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.user.User
-import com.stark.shoot.domain.user.vo.UserCode
-import com.stark.shoot.domain.user.vo.UserId
-import com.stark.shoot.domain.user.vo.Username
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase
@@ -16,31 +16,30 @@ class FindUserService(
     /**
      * 사용자 ID로 사용자 조회
      *
-     * @param id 사용자 ID
+     * @param command 사용자 ID 조회 커맨드
      * @return 사용자 정보
      */
-    override fun findById(userId: UserId): User? {
-        return findUserPort.findUserById(userId)
+    override fun findById(command: FindUserByIdCommand): User? {
+        return findUserPort.findUserById(command.userId)
     }
 
     /**
      * 사용자명으로 사용자 조회
      *
-     * @param username 사용자명
+     * @param command 사용자명 조회 커맨드
      * @return 사용자 정보
      */
-    override fun findByUsername(username: Username): User? {
-        return findUserPort.findByUsername(username)
+    override fun findByUsername(command: FindUserByUsernameCommand): User? {
+        return findUserPort.findByUsername(command.username)
     }
 
     /**
      * 사용자 코드로 사용자 조회
      *
-     * @param userCode 사용자 코드
+     * @param command 사용자 코드 조회 커맨드
      * @return 사용자 정보
      */
-    override fun findByUserCode(userCode: UserCode): User? {
-        return findUserPort.findByUserCode(userCode)
+    override fun findByUserCode(command: FindUserByCodeCommand): User? {
+        return findUserPort.findByUserCode(command.userCode)
     }
-
 }

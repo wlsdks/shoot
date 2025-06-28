@@ -1,6 +1,7 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.filter.message.chain.DefaultMessageProcessingChain
+import com.stark.shoot.application.port.`in`.message.command.ProcessMessageCommand
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
@@ -68,7 +69,8 @@ class MessageProcessingServiceTest {
         `when`(messageProcessingChain.proceed(inputMessage)).thenReturn(processedMessage)
 
         // when
-        val result = messageProcessingService.processMessageCreate(inputMessage)
+        val command = ProcessMessageCommand.of(inputMessage)
+        val result = messageProcessingService.processMessageCreate(command)
 
         // then
         assertThat(result).isEqualTo(processedMessage)
@@ -116,8 +118,9 @@ class MessageProcessingServiceTest {
         `when`(messageProcessingChain.proceed(inputMessage)).thenThrow(expectedException)
 
         // when & then
+        val command = ProcessMessageCommand.of(inputMessage)
         val exception = assertThrows<RuntimeException> {
-            messageProcessingService.processMessageCreate(inputMessage)
+            messageProcessingService.processMessageCreate(command)
         }
 
         assertThat(exception.message).isEqualTo("메시지 처리 실패")

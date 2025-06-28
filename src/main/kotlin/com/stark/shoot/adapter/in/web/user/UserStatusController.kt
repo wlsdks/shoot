@@ -5,6 +5,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.UpdateStatusRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.profile.UserStatusUseCase
+import com.stark.shoot.application.port.`in`.user.profile.command.UpdateUserStatusCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.Authentication
@@ -33,7 +34,8 @@ class UserStatusController(
         authentication: Authentication,
         @RequestBody request: UpdateStatusRequest
     ): ResponseDto<UserResponse> {
-        val user = userStatusUseCase.updateStatus(authentication, request.status)
+        val command = UpdateUserStatusCommand.of(authentication, request.status)
+        val user = userStatusUseCase.updateStatus(command)
         return ResponseDto.success(user.toResponse(), "사용자 상태가 변경되었습니다.")
     }
 

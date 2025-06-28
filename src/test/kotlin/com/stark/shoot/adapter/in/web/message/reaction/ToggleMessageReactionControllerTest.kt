@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.`in`.web.message.reaction
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionResponse
 import com.stark.shoot.application.port.`in`.message.reaction.ToggleMessageReactionUseCase
+import com.stark.shoot.application.port.`in`.message.reaction.command.ToggleMessageReactionCommand
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
@@ -39,11 +40,8 @@ class ToggleMessageReactionControllerTest {
         val updatedAt = Instant.now().toString()
         val response = ReactionResponse.from(messageId, updatedReactions, updatedAt)
         
-        `when`(toggleMessageReactionUseCase.toggleReaction(
-            MessageId.from(messageId),
-            UserId.from(userId),
-            reactionType
-        )).thenReturn(response)
+        val command = ToggleMessageReactionCommand.of(messageId, userId, reactionType)
+        `when`(toggleMessageReactionUseCase.toggleReaction(command)).thenReturn(response)
 
         // when
         val result = controller.toggleReaction(messageId, request, authentication)
@@ -54,11 +52,7 @@ class ToggleMessageReactionControllerTest {
         assertThat(result.data).isEqualTo(response)
         assertThat(result.message).isEqualTo("반응이 토글되었습니다.")
         
-        verify(toggleMessageReactionUseCase).toggleReaction(
-            MessageId.from(messageId),
-            UserId.from(userId),
-            reactionType
-        )
+        verify(toggleMessageReactionUseCase).toggleReaction(command)
     }
 
     @Test
@@ -81,11 +75,8 @@ class ToggleMessageReactionControllerTest {
         val updatedAt = Instant.now().toString()
         val response = ReactionResponse.from(messageId, updatedReactions, updatedAt)
         
-        `when`(toggleMessageReactionUseCase.toggleReaction(
-            MessageId.from(messageId),
-            UserId.from(userId),
-            reactionType
-        )).thenReturn(response)
+        val command = ToggleMessageReactionCommand.of(messageId, userId, reactionType)
+        `when`(toggleMessageReactionUseCase.toggleReaction(command)).thenReturn(response)
 
         // when
         val result = controller.toggleReaction(messageId, request, authentication)
@@ -96,10 +87,6 @@ class ToggleMessageReactionControllerTest {
         assertThat(result.data).isEqualTo(response)
         assertThat(result.message).isEqualTo("반응이 토글되었습니다.")
         
-        verify(toggleMessageReactionUseCase).toggleReaction(
-            MessageId.from(messageId),
-            UserId.from(userId),
-            reactionType
-        )
+        verify(toggleMessageReactionUseCase).toggleReaction(command)
     }
 }

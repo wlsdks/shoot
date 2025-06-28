@@ -2,7 +2,8 @@ package com.stark.shoot.adapter.`in`.web.user.block
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.application.port.`in`.user.block.UserBlockUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.block.command.BlockUserCommand
+import com.stark.shoot.application.port.`in`.user.block.command.UnblockUserCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.Authentication
@@ -22,7 +23,8 @@ class UserBlockController(
         authentication: Authentication
     ): ResponseDto<Boolean> {
         val userId = authentication.name.toLong()
-        userBlockUseCase.blockUser(UserId.from(userId), UserId.from(targetId))
+        val command = BlockUserCommand.of(userId, targetId)
+        userBlockUseCase.blockUser(command)
         return ResponseDto.success(true, "사용자를 차단했습니다.")
     }
 
@@ -33,7 +35,8 @@ class UserBlockController(
         authentication: Authentication
     ): ResponseDto<Boolean> {
         val userId = authentication.name.toLong()
-        userBlockUseCase.unblockUser(UserId.from(userId), UserId.from(targetId))
+        val command = UnblockUserCommand.of(userId, targetId)
+        userBlockUseCase.unblockUser(command)
         return ResponseDto.success(true, "차단을 해제했습니다.")
     }
 }

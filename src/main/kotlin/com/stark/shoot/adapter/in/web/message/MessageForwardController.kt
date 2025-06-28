@@ -4,9 +4,8 @@ import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.ChatMessageResponse
 import com.stark.shoot.application.port.`in`.message.ForwardMessageToUserUseCase
 import com.stark.shoot.application.port.`in`.message.ForwardMessageUseCase
-import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.message.command.ForwardMessageCommand
+import com.stark.shoot.application.port.`in`.message.command.ForwardMessageToUserCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.PostMapping
@@ -29,11 +28,8 @@ class MessageForwardController(
         @RequestParam targetRoomId: Long,
         @RequestParam forwardingUserId: Long
     ): ResponseDto<ChatMessageResponse> {
-        val forwardedMessage = forwardMessageUseCase.forwardMessage(
-            MessageId.from(originalMessageId),
-            ChatRoomId.from(targetRoomId),
-            UserId.from(forwardingUserId)
-        )
+        val command = ForwardMessageCommand.of(originalMessageId, targetRoomId, forwardingUserId)
+        val forwardedMessage = forwardMessageUseCase.forwardMessage(command)
 
         val response = ChatMessageResponse(
             status = forwardedMessage.status.name,
@@ -51,11 +47,8 @@ class MessageForwardController(
         @RequestParam forwardingUserId: Long
     ): ResponseDto<ChatMessageResponse> {
         // 사용자에게 메시지 전달 (비즈니스 로직은 서비스에서 처리)
-        val forwardedMessage = forwardMessageToUserUseCase.forwardMessageToUser(
-            MessageId.from(originalMessageId),
-            UserId.from(targetUserId),
-            UserId.from(forwardingUserId)
-        )
+        val command = ForwardMessageToUserCommand.of(originalMessageId, targetUserId, forwardingUserId)
+        val forwardedMessage = forwardMessageToUserUseCase.forwardMessageToUser(command)
 
         val response = ChatMessageResponse(
             status = forwardedMessage.status.name,

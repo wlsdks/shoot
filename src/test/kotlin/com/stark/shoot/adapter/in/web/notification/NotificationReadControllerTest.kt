@@ -1,7 +1,10 @@
 package com.stark.shoot.adapter.`in`.web.notification
 
-import com.stark.shoot.adapter.`in`.web.dto.notification.NotificationResponse
 import com.stark.shoot.application.port.`in`.notification.NotificationManagementUseCase
+import com.stark.shoot.application.port.`in`.notification.command.MarkAllNotificationsAsReadCommand
+import com.stark.shoot.application.port.`in`.notification.command.MarkAllNotificationsBySourceAsReadCommand
+import com.stark.shoot.application.port.`in`.notification.command.MarkAllNotificationsByTypeAsReadCommand
+import com.stark.shoot.application.port.`in`.notification.command.MarkNotificationAsReadCommand
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
@@ -30,6 +33,11 @@ class NotificationReadControllerTest {
         val userId = 1L
         val now = Instant.now()
         
+        val command = MarkNotificationAsReadCommand(
+            notificationId = NotificationId.from(notificationId),
+            userId = UserId.from(userId)
+        )
+        
         val readNotification = createNotification(
             id = notificationId,
             userId = userId,
@@ -41,10 +49,7 @@ class NotificationReadControllerTest {
             readAt = now
         )
         
-        `when`(notificationManagementUseCase.markAsRead(
-            NotificationId.from(notificationId),
-            UserId.from(userId)
-        )).thenReturn(readNotification)
+        `when`(notificationManagementUseCase.markAsRead(command)).thenReturn(readNotification)
 
         // when
         val response = controller.markAsRead(notificationId, userId)
@@ -55,10 +60,7 @@ class NotificationReadControllerTest {
         assertThat(response.body?.isRead).isTrue()
         assertThat(response.body?.readAt).isEqualTo(now)
 
-        verify(notificationManagementUseCase).markAsRead(
-            NotificationId.from(notificationId),
-            UserId.from(userId)
-        )
+        verify(notificationManagementUseCase).markAsRead(command)
     }
 
     @Test
@@ -68,9 +70,11 @@ class NotificationReadControllerTest {
         val userId = 1L
         val markedCount = 5
 
-        `when`(notificationManagementUseCase.markAllAsRead(
-            UserId.from(userId)
-        )).thenReturn(markedCount)
+        val command = MarkAllNotificationsAsReadCommand(
+            userId = UserId.from(userId)
+        )
+        
+        `when`(notificationManagementUseCase.markAllAsRead(command)).thenReturn(markedCount)
 
         // when
         val response = controller.markAllAsRead(userId)
@@ -79,9 +83,7 @@ class NotificationReadControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isEqualTo(markedCount)
 
-        verify(notificationManagementUseCase).markAllAsRead(
-            UserId.from(userId)
-        )
+        verify(notificationManagementUseCase).markAllAsRead(command)
     }
 
     @Test
@@ -92,10 +94,12 @@ class NotificationReadControllerTest {
         val type = "FRIEND_REQUEST"
         val markedCount = 3
 
-        `when`(notificationManagementUseCase.markAllAsReadByType(
-            UserId.from(userId),
-            NotificationType.valueOf(type)
-        )).thenReturn(markedCount)
+        val command = MarkAllNotificationsByTypeAsReadCommand(
+            userId = UserId.from(userId),
+            type = NotificationType.valueOf(type)
+        )
+        
+        `when`(notificationManagementUseCase.markAllAsReadByType(command)).thenReturn(markedCount)
 
         // when
         val response = controller.markAllAsReadByType(userId, type)
@@ -104,10 +108,7 @@ class NotificationReadControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isEqualTo(markedCount)
 
-        verify(notificationManagementUseCase).markAllAsReadByType(
-            UserId.from(userId),
-            NotificationType.valueOf(type)
-        )
+        verify(notificationManagementUseCase).markAllAsReadByType(command)
     }
 
     @Test
@@ -119,11 +120,13 @@ class NotificationReadControllerTest {
         val sourceId = "chat123"
         val markedCount = 2
 
-        `when`(notificationManagementUseCase.markAllAsReadBySource(
-            UserId.from(userId),
-            SourceType.valueOf(sourceType),
-            sourceId
-        )).thenReturn(markedCount)
+        val command = MarkAllNotificationsBySourceAsReadCommand(
+            userId = UserId.from(userId),
+            sourceType = SourceType.valueOf(sourceType),
+            sourceId = sourceId
+        )
+        
+        `when`(notificationManagementUseCase.markAllAsReadBySource(command)).thenReturn(markedCount)
 
         // when
         val response = controller.markAllAsReadBySource(userId, sourceType, sourceId)
@@ -132,11 +135,7 @@ class NotificationReadControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isEqualTo(markedCount)
 
-        verify(notificationManagementUseCase).markAllAsReadBySource(
-            UserId.from(userId),
-            SourceType.valueOf(sourceType),
-            sourceId
-        )
+        verify(notificationManagementUseCase).markAllAsReadBySource(command)
     }
 
     @Test
@@ -147,11 +146,13 @@ class NotificationReadControllerTest {
         val sourceType = "CHAT"
         val markedCount = 4
 
-        `when`(notificationManagementUseCase.markAllAsReadBySource(
-            UserId.from(userId),
-            SourceType.valueOf(sourceType),
-            null
-        )).thenReturn(markedCount)
+        val command = MarkAllNotificationsBySourceAsReadCommand(
+            userId = UserId.from(userId),
+            sourceType = SourceType.valueOf(sourceType),
+            sourceId = null
+        )
+        
+        `when`(notificationManagementUseCase.markAllAsReadBySource(command)).thenReturn(markedCount)
 
         // when
         val response = controller.markAllAsReadBySource(userId, sourceType, null)
@@ -160,11 +161,7 @@ class NotificationReadControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isEqualTo(markedCount)
 
-        verify(notificationManagementUseCase).markAllAsReadBySource(
-            UserId.from(userId),
-            SourceType.valueOf(sourceType),
-            null
-        )
+        verify(notificationManagementUseCase).markAllAsReadBySource(command)
     }
 
     // 테스트용 Notification 객체 생성 헬퍼 메서드

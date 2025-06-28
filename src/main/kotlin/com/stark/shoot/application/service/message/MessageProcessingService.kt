@@ -2,6 +2,7 @@ package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.filter.message.chain.DefaultMessageProcessingChain
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
+import com.stark.shoot.application.port.`in`.message.command.ProcessMessageCommand
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.redis.RedisLockManager
@@ -23,7 +24,8 @@ class MessageProcessingService(
     }
 
     @Transactional
-    override fun processMessageCreate(message: ChatMessage): ChatMessage {
+    override fun processMessageCreate(command: ProcessMessageCommand): ChatMessage {
+        val message = command.message
         // 분산 락 키 생성 (채팅방별로 락을 걸기 위해 사용)
         val lockKey = "$LOCK_KEY_PREFIX${message.roomId}"
         val ownerId = "$OWNER_ID_PREFIX${UUID.randomUUID()}"

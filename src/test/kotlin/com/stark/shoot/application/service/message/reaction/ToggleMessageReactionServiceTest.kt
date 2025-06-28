@@ -1,6 +1,7 @@
 package com.stark.shoot.application.service.message.reaction
 
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionResponse
+import com.stark.shoot.application.port.`in`.message.reaction.command.ToggleMessageReactionCommand
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
@@ -107,7 +108,8 @@ class ToggleMessageReactionServiceTest {
             `when`(messageCommandPort.save(toggleResult.message)).thenReturn(savedMessage)
 
             // when
-            val result = toggleMessageReactionService.toggleReaction(messageId, userId, reactionType)
+            val command = ToggleMessageReactionCommand(messageId, userId, reactionType)
+            val result = toggleMessageReactionService.toggleReaction(command)
 
             // then
             assertThat(result.messageId).isEqualTo(expectedResponse.messageId)
@@ -130,8 +132,9 @@ class ToggleMessageReactionServiceTest {
             `when`(messageQueryPort.findById(messageId)).thenReturn(null)
 
             // when & then
+            val command = ToggleMessageReactionCommand(messageId, userId, reactionType)
             assertThrows<ResourceNotFoundException> {
-                toggleMessageReactionService.toggleReaction(messageId, userId, reactionType)
+                toggleMessageReactionService.toggleReaction(command)
             }
 
             verify(messageQueryPort).findById(messageId)
@@ -151,8 +154,9 @@ class ToggleMessageReactionServiceTest {
             val invalidReactionType = "invalid_type"
 
             // when & then
+            val command = ToggleMessageReactionCommand(messageId, userId, invalidReactionType)
             assertThrows<InvalidInputException> {
-                toggleMessageReactionService.toggleReaction(messageId, userId, invalidReactionType)
+                toggleMessageReactionService.toggleReaction(command)
             }
 
             verifyNoInteractions(messageQueryPort)

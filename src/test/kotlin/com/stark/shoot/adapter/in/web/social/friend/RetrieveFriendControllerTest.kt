@@ -2,7 +2,9 @@ package com.stark.shoot.adapter.`in`.web.social.friend
 
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.friend.command.GetFriendsCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.GetIncomingFriendRequestsCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.GetOutgoingFriendRequestsCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -25,7 +27,8 @@ class RetrieveFriendControllerTest {
             createFriendResponse(4L, "friend3", "친구3", null)
         )
 
-        `when`(findFriendUseCase.getFriends(UserId.from(userId))).thenReturn(friends)
+        val command = GetFriendsCommand.of(userId)
+        `when`(findFriendUseCase.getFriends(command)).thenReturn(friends)
 
         // when
         val response = controller.getMyFriends(userId)
@@ -35,14 +38,14 @@ class RetrieveFriendControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).hasSize(3)
         assertThat(response.data).isEqualTo(friends)
-        
+
         // 첫 번째 친구 검증
         assertThat(response.data?.get(0)?.id).isEqualTo(2L)
         assertThat(response.data?.get(0)?.username).isEqualTo("friend1")
         assertThat(response.data?.get(0)?.nickname).isEqualTo("친구1")
         assertThat(response.data?.get(0)?.profileImageUrl).isEqualTo("http://example.com/profile1.jpg")
-        
-        verify(findFriendUseCase).getFriends(UserId.from(userId))
+
+        verify(findFriendUseCase).getFriends(command)
     }
 
     @Test
@@ -55,7 +58,8 @@ class RetrieveFriendControllerTest {
             createFriendResponse(6L, "requester2", "요청자2", null)
         )
 
-        `when`(findFriendUseCase.getIncomingFriendRequests(UserId.from(userId))).thenReturn(incomingRequests)
+        val command = GetIncomingFriendRequestsCommand.of(userId)
+        `when`(findFriendUseCase.getIncomingFriendRequests(command)).thenReturn(incomingRequests)
 
         // when
         val response = controller.getIncomingFriendRequests(userId)
@@ -65,8 +69,8 @@ class RetrieveFriendControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).hasSize(2)
         assertThat(response.data).isEqualTo(incomingRequests)
-        
-        verify(findFriendUseCase).getIncomingFriendRequests(UserId.from(userId))
+
+        verify(findFriendUseCase).getIncomingFriendRequests(command)
     }
 
     @Test
@@ -79,7 +83,8 @@ class RetrieveFriendControllerTest {
             createFriendResponse(8L, "target2", "대상자2", "http://example.com/profile8.jpg")
         )
 
-        `when`(findFriendUseCase.getOutgoingFriendRequests(UserId.from(userId))).thenReturn(outgoingRequests)
+        val command = GetOutgoingFriendRequestsCommand.of(userId)
+        `when`(findFriendUseCase.getOutgoingFriendRequests(command)).thenReturn(outgoingRequests)
 
         // when
         val response = controller.getOutgoingFriendRequests(userId)
@@ -89,8 +94,8 @@ class RetrieveFriendControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).hasSize(2)
         assertThat(response.data).isEqualTo(outgoingRequests)
-        
-        verify(findFriendUseCase).getOutgoingFriendRequests(UserId.from(userId))
+
+        verify(findFriendUseCase).getOutgoingFriendRequests(command)
     }
 
     @Test
@@ -99,7 +104,8 @@ class RetrieveFriendControllerTest {
         // given
         val userId = 1L
 
-        `when`(findFriendUseCase.getFriends(UserId.from(userId))).thenReturn(emptyList())
+        val command = GetFriendsCommand.of(userId)
+        `when`(findFriendUseCase.getFriends(command)).thenReturn(emptyList())
 
         // when
         val response = controller.getMyFriends(userId)
@@ -108,8 +114,8 @@ class RetrieveFriendControllerTest {
         assertThat(response).isNotNull
         assertThat(response.success).isTrue()
         assertThat(response.data).isEmpty()
-        
-        verify(findFriendUseCase).getFriends(UserId.from(userId))
+
+        verify(findFriendUseCase).getFriends(command)
     }
 
     // 테스트용 FriendResponse 객체 생성 헬퍼 메서드

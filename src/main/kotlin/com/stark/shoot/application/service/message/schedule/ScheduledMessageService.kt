@@ -8,14 +8,13 @@ import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageRes
 import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ScheduledMessageMapper
 import com.stark.shoot.application.port.`in`.message.schedule.ScheduledMessageUseCase
+import com.stark.shoot.application.port.`in`.message.schedule.command.*
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.message.ScheduledMessagePort
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.type.ScheduledMessageStatus
 import com.stark.shoot.domain.chat.message.vo.MessageContent
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -30,12 +29,12 @@ class ScheduledMessageService(
 
     private val logger = KotlinLogging.logger {}
 
-    override fun scheduleMessage(
-        roomId: ChatRoomId,
-        senderId: UserId,
-        content: String,
-        scheduledAt: Instant
-    ): ScheduledMessageResponseDto {
+    override fun scheduleMessage(command: ScheduleMessageCommand): ScheduledMessageResponseDto {
+        val roomId = command.roomId
+        val senderId = command.senderId
+        val content = command.content
+        val scheduledAt = command.scheduledAt
+
         // 채팅방 존재여부 확인
         val chatRoom = (chatRoomQueryPort.findById(roomId)
             ?: throw ApiException("채팅방을 찾을 수 없습니다.", ErrorCode.ROOM_NOT_FOUND))
@@ -66,10 +65,10 @@ class ScheduledMessageService(
         return scheduledMessageMapper.toScheduledMessageResponseDto(saveScheduledMessage)
     }
 
-    override fun cancelScheduledMessage(
-        scheduledMessageId: String,
-        userId: UserId
-    ): ScheduledMessageResponseDto {
+    override fun cancelScheduledMessage(command: CancelScheduledMessageCommand): ScheduledMessageResponseDto {
+        val scheduledMessageId = command.scheduledMessageId
+        val userId = command.userId
+
         // 예약 메시지 존재여부 확인
         val scheduledMessage = (scheduledMessagePort.findById(scheduledMessageId.toObjectId())
             ?: throw ApiException("예약 메시지를 찾을 수 없습니다.", ErrorCode.SCHEDULED_MESSAGE_NOT_FOUND))
@@ -93,12 +92,12 @@ class ScheduledMessageService(
         return scheduledMessageMapper.toScheduledMessageResponseDto(saveScheduledMessage)
     }
 
-    override fun updateScheduledMessage(
-        scheduledMessageId: String,
-        userId: Long,
-        newContent: String,
-        newScheduledAt: Instant?
-    ): ScheduledMessageResponseDto {
+    override fun updateScheduledMessage(command: UpdateScheduledMessageCommand): ScheduledMessageResponseDto {
+        val scheduledMessageId = command.scheduledMessageId
+        val userId = command.userId.value
+        val newContent = command.newContent
+        val newScheduledAt = command.newScheduledAt
+
         // 예약 메시지 조회
         val scheduledMessage = (scheduledMessagePort.findById(scheduledMessageId.toObjectId())
             ?: throw ApiException("예약 메시지를 찾을 수 없습니다.", ErrorCode.SCHEDULED_MESSAGE_NOT_FOUND))
@@ -136,10 +135,10 @@ class ScheduledMessageService(
         return scheduledMessageMapper.toScheduledMessageResponseDto(saveScheduledMessage)
     }
 
-    override fun getScheduledMessagesByUser(
-        userId: Long,
-        roomId: Long?
-    ): List<ScheduledMessageResponseDto> {
+    override fun getScheduledMessagesByUser(command: GetScheduledMessagesCommand): List<ScheduledMessageResponseDto> {
+        val userId = command.userId.value
+        val roomId = command.roomId?.value
+
         val scheduledMessageList = scheduledMessagePort.findByUserId(userId, roomId)
             .filter { it.status == ScheduledMessageStatus.PENDING }
 
@@ -147,10 +146,10 @@ class ScheduledMessageService(
         return scheduledMessageList.map { scheduledMessageMapper.toScheduledMessageResponseDto(it) }
     }
 
-    override fun sendScheduledMessageNow(
-        scheduledMessageId: String,
-        userId: Long
-    ): ScheduledMessageResponseDto {
+    override fun sendScheduledMessageNow(command: SendScheduledMessageNowCommand): ScheduledMessageResponseDto {
+        val scheduledMessageId = command.scheduledMessageId
+        val userId = command.userId.value
+
         // 예약 메시지 조회
         val scheduledMessage = (scheduledMessagePort.findById(scheduledMessageId.toObjectId())
             ?: throw ApiException("예약 메시지를 찾을 수 없습니다.", ErrorCode.SCHEDULED_MESSAGE_NOT_FOUND))

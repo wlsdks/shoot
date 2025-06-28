@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.message
 
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
+import com.stark.shoot.application.port.`in`.message.command.SendMessageCommand
 
 interface SendMessageUseCase {
-    fun sendMessage(message: ChatMessageRequest)
+    fun sendMessage(command: SendMessageCommand)
 }

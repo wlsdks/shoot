@@ -1,9 +1,8 @@
 package com.stark.shoot.application.service.active
 
-import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.adapter.`in`.web.dto.active.ChatActivity
 import com.stark.shoot.application.port.`in`.active.UserActiveUseCase
+import com.stark.shoot.application.port.`in`.active.command.UserActivityCommand
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.redis.RedisUtilService
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -38,45 +37,32 @@ class UserActiveService(
      * 2. 같은 사용자의 같은 상태(active=true 또는 false)에 대한 업데이트가 설정된 시간(기본 30초) 이내에 또 들어오면 무시합니다.
      * 3. 상태가 변경되거나 설정된 시간이 지났을 때만 실제로 Redis를 업데이트하고 로그를 남깁니다.
      *
-     * @param message 사용자 활동 메시지 (JSON 형식)
+     * @param command 사용자 활동 커맨드
      */
-    override fun updateUserActive(message: String) {
+    override fun updateUserActive(command: UserActivityCommand) {
         try {
-            val activity = parseActivityMessage(message)
-            val key = generateRedisKey(activity.userId, activity.roomId)
+            val key = generateRedisKey(command.userId, command.roomId)
             val currentTime = System.currentTimeMillis()
 
             // 디바운싱: 마지막 업데이트와 상태가 같고, 설정된 시간 이내라면 무시
             val lastUpdate = userActiveCache[key]
-            if (shouldSkipUpdate(lastUpdate, activity.active, currentTime)) {
-                logger.debug { "Skipping duplicate activity update: $key -> ${activity.active}" }
+            if (shouldSkipUpdate(lastUpdate, command.active, currentTime)) {
+                logger.debug { "Skipping duplicate activity update: $key -> ${command.active}" }
                 return
             }
 
             // 캐시 업데이트
-            userActiveCache[key] = Pair(activity.active, currentTime)
+            userActiveCache[key] = Pair(command.active, currentTime)
 
             // Redis에 사용자 활동 상태 저장
-            updateRedisStatus(key, activity.active)
+            updateRedisStatus(key, command.active)
 
-            logger.debug { "User activity updated: userId=${activity.userId}, roomId=${activity.roomId}, active=${activity.active}" }
-        } catch (e: JsonProcessingException) {
-            logger.error(e) { "Failed to parse chat activity message: $message" }
+            logger.debug { "User activity updated: userId=${command.userId}, roomId=${command.roomId}, active=${command.active}" }
         } catch (e: Exception) {
-            logger.error(e) { "Failed to process chat activity: $message" }
+            logger.error(e) { "Failed to process chat activity: $command" }
         }
     }
 
-    /**
-     * 활동 메시지를 파싱합니다.
-     *
-     * @param message JSON 형식의 메시지
-     * @return 파싱된 ChatActivity 객체
-     * @throws JsonProcessingException JSON 파싱 실패 시
-     */
-    private fun parseActivityMessage(message: String): ChatActivity {
-        return objectMapper.readValue(message, ChatActivity::class.java)
-    }
 
     /**
      * Redis 키를 생성합니다.
@@ -140,4 +126,5 @@ class UserActiveService(
 
         logger.info { "캐시 정리 완료: ${removedCount}개 항목 제거됨 (현재 캐시 크기: ${userActiveCache.size})" }
     }
+
 }

@@ -5,6 +5,8 @@ import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
 import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase
+import com.stark.shoot.application.port.`in`.user.auth.command.LoginCommand
+import com.stark.shoot.application.port.`in`.user.auth.command.RetrieveUserDetailsCommand
 import com.stark.shoot.domain.user.type.UserStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -26,13 +28,14 @@ class AuthControllerTest {
     fun `사용자 로그인을 처리한다`() {
         // given
         val request = LoginRequest("testuser", "password123")
+        val command = LoginCommand.of("testuser", "password123")
         val loginResponse = LoginResponse(
             userId = "1",
             accessToken = "jwt.token.here",
             refreshToken = "refresh.token.here"
         )
 
-        `when`(userLoginUseCase.login(request)).thenReturn(loginResponse)
+        `when`(userLoginUseCase.login(command)).thenReturn(loginResponse)
 
         // when
         val response = controller.login(request)
@@ -46,7 +49,7 @@ class AuthControllerTest {
         assertThat(response.data?.userId).isEqualTo("1")
         assertThat(response.message).isEqualTo("로그인에 성공했습니다.")
 
-        verify(userLoginUseCase).login(request)
+        verify(userLoginUseCase).login(command)
     }
 
     @Test
@@ -65,7 +68,9 @@ class AuthControllerTest {
             lastSeenAt = Instant.now()
         )
 
-        `when`(userAuthUseCase.retrieveUserDetails(authentication)).thenReturn(userResponse)
+        val command = RetrieveUserDetailsCommand.of(authentication)
+
+        `when`(userAuthUseCase.retrieveUserDetails(command)).thenReturn(userResponse)
 
         // when
         val response = controller.getCurrentUser(authentication)
@@ -78,6 +83,6 @@ class AuthControllerTest {
         assertThat(response.data?.username).isEqualTo("testuser")
         assertThat(response.data?.nickname).isEqualTo("테스트 유저")
 
-        verify(userAuthUseCase).retrieveUserDetails(authentication)
+        verify(userAuthUseCase).retrieveUserDetails(command)
     }
 }

@@ -1,9 +1,9 @@
 package com.stark.shoot.application.port.`in`.user.code
 
-import com.stark.shoot.domain.user.vo.UserCode
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.code.command.RemoveUserCodeCommand
+import com.stark.shoot.application.port.`in`.user.code.command.UpdateUserCodeCommand
 
 interface ManageUserCodeUseCase {
-    fun updateUserCode(userId: UserId, newCode: UserCode)
-    fun removeUserCode(userId: UserId)
+    fun updateUserCode(command: UpdateUserCodeCommand)
+    fun removeUserCode(command: RemoveUserCodeCommand)
 }

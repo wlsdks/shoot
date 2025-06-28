@@ -3,15 +3,13 @@ package com.stark.shoot.adapter.`in`.web.message.schedule
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageResponseDto
 import com.stark.shoot.application.port.`in`.message.schedule.ScheduledMessageUseCase
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.message.schedule.command.*
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
-import java.time.ZoneId
 
 @Tag(name = "메시지 예약", description = "메시지 예약 관련 API")
 @RestController
@@ -28,15 +26,8 @@ class ScheduledMessageController(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) scheduledAt: LocalDateTime,
         authentication: Authentication
     ): ResponseDto<ScheduledMessageResponseDto> {
-        val userId = authentication.name.toLong()
-        val scheduledInstant = scheduledAt.atZone(ZoneId.systemDefault()).toInstant()
-
-        val result = scheduledMessageUseCase.scheduleMessage(
-            roomId = ChatRoomId.from(roomId),
-            senderId = UserId.from(userId),
-            content = content,
-            scheduledAt = scheduledInstant
-        )
+        val command = ScheduleMessageCommand.of(roomId, authentication, content, scheduledAt)
+        val result = scheduledMessageUseCase.scheduleMessage(command)
 
         return ResponseDto.success(result, "메시지가 예약되었습니다.")
     }
@@ -47,12 +38,8 @@ class ScheduledMessageController(
         @PathVariable scheduledMessageId: String,
         authentication: Authentication
     ): ResponseDto<ScheduledMessageResponseDto> {
-        val userId = authentication.name.toLong()
-
-        val result = scheduledMessageUseCase.cancelScheduledMessage(
-            scheduledMessageId = scheduledMessageId,
-            userId = UserId.from(userId)
-        )
+        val command = CancelScheduledMessageCommand.of(scheduledMessageId, authentication)
+        val result = scheduledMessageUseCase.cancelScheduledMessage(command)
 
         return ResponseDto.success(result, "메시지 예약이 취소되었습니다.")
     }
@@ -65,15 +52,8 @@ class ScheduledMessageController(
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) newScheduledAt: LocalDateTime?,
         authentication: Authentication
     ): ResponseDto<ScheduledMessageResponseDto> {
-        val userId = authentication.name.toLong()
-        val newScheduledInstant = newScheduledAt?.atZone(ZoneId.systemDefault())?.toInstant()
-
-        val result = scheduledMessageUseCase.updateScheduledMessage(
-            scheduledMessageId = scheduledMessageId,
-            userId = userId,
-            newContent = newContent,
-            newScheduledAt = newScheduledInstant
-        )
+        val command = UpdateScheduledMessageCommand.of(scheduledMessageId, authentication, newContent, newScheduledAt)
+        val result = scheduledMessageUseCase.updateScheduledMessage(command)
 
         return ResponseDto.success(result, "메시지 예약이 수정되었습니다.")
     }
@@ -84,12 +64,8 @@ class ScheduledMessageController(
         @RequestParam(required = false) roomId: Long?,
         authentication: Authentication
     ): ResponseDto<List<ScheduledMessageResponseDto>> {
-        val userId = authentication.name.toLong()
-
-        val result = scheduledMessageUseCase.getScheduledMessagesByUser(
-            userId = userId,
-            roomId = roomId
-        )
+        val command = GetScheduledMessagesCommand.of(authentication, roomId)
+        val result = scheduledMessageUseCase.getScheduledMessagesByUser(command)
 
         return ResponseDto.success(result)
     }
@@ -100,12 +76,8 @@ class ScheduledMessageController(
         @PathVariable scheduledMessageId: String,
         authentication: Authentication
     ): ResponseDto<ScheduledMessageResponseDto> {
-        val userId = authentication.name.toLong()
-
-        val result = scheduledMessageUseCase.sendScheduledMessageNow(
-            scheduledMessageId = scheduledMessageId,
-            userId = userId
-        )
+        val command = SendScheduledMessageNowCommand.of(scheduledMessageId, authentication)
+        val result = scheduledMessageUseCase.sendScheduledMessageNow(command)
 
         return ResponseDto.success(result, "메시지가 즉시 전송되었습니다.")
     }

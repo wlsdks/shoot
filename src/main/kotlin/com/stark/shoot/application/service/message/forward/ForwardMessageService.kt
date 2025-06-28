@@ -1,16 +1,15 @@
 package com.stark.shoot.application.service.message.forward
 
 import com.stark.shoot.application.port.`in`.message.ForwardMessageUseCase
+import com.stark.shoot.application.port.`in`.message.command.ForwardMessageCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageForwardDomainService
-import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
@@ -26,23 +25,22 @@ class ForwardMessageService(
 
     /**
      * 메시지를 전달합니다. (메시지 복사 후 대상 채팅방에 저장)
+     *
+     * @param command 메시지 전달 커맨드 (원본 메시지 ID, 대상 채팅방 ID, 전달하는 사용자 ID)
+     * @return 전달된 메시지
      */
-    override fun forwardMessage(
-        originalMessageId: MessageId,
-        targetRoomId: ChatRoomId,
-        forwardingUserId: UserId
-    ): ChatMessage {
+    override fun forwardMessage(command: ForwardMessageCommand): ChatMessage {
         // 1. 원본 메시지 조회
-        val originalMessage = (messageQueryPort.findById(originalMessageId))
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=$originalMessageId")
+        val originalMessage = (messageQueryPort.findById(command.originalMessageId))
+            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=${command.originalMessageId}")
 
         // 2. 도메인 서비스를 사용하여 전달할 메시지 내용 생성
         val forwardedContent = messageForwardDomainService.createForwardedContent(originalMessage)
 
         // 3. 도메인 서비스를 사용하여 전달할 메시지 객체 생성
         val forwardedMessage = messageForwardDomainService.createForwardedMessage(
-            targetRoomId = targetRoomId,
-            forwardingUserId = forwardingUserId,
+            targetRoomId = command.targetRoomId,
+            forwardingUserId = command.forwardingUserId,
             forwardedContent = forwardedContent
         )
 
@@ -50,7 +48,7 @@ class ForwardMessageService(
         val savedForwardMessage = messageCommandPort.save(forwardedMessage)
 
         // 5. 대상 채팅방 메타데이터 업데이트
-        updateChatRoomMetadata(targetRoomId, savedForwardMessage)
+        updateChatRoomMetadata(command.targetRoomId, savedForwardMessage)
 
         // 6. 전달된 메시지 반환
         return savedForwardMessage

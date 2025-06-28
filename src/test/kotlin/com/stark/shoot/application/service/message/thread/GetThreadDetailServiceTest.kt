@@ -1,6 +1,7 @@
 package com.stark.shoot.application.service.message.thread
 
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
+import com.stark.shoot.application.port.`in`.message.thread.command.GetThreadDetailCommand
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.message.thread.ThreadQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -68,7 +69,7 @@ class GetThreadDetailServiceTest {
             doReturn(listOf(reply)).`when`(threadQueryPort).findByThreadId(messageIdObj, 20)
 
             // when
-            val result = getThreadDetailService.getThreadDetail(messageIdObj, null, 20)
+            val result = getThreadDetailService.getThreadDetail(GetThreadDetailCommand(messageIdObj, null, 20, 2L))
 
             // then
             assertThat(result.rootMessage.id).isEqualTo(threadId)
@@ -87,7 +88,7 @@ class GetThreadDetailServiceTest {
 
             // when & then
             assertThrows<ResourceNotFoundException> {
-                getThreadDetailService.getThreadDetail(messageIdObj, null, 20)
+                getThreadDetailService.getThreadDetail(GetThreadDetailCommand(messageIdObj, null, 20, 2L))
             }
 
             verify(messageQueryPort).findById(messageIdObj)

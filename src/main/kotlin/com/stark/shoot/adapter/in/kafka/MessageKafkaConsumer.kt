@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
+import com.stark.shoot.application.port.`in`.message.command.ProcessMessageCommand
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -51,7 +52,8 @@ class MessageKafkaConsumer(
                 sendStatusUpdate(roomId.value, tempId, MessageStatus.PROCESSING.name, null)
 
                 // 메시지 저장
-                val savedMessage = processMessageUseCase.processMessageCreate(event.data)
+                val command = ProcessMessageCommand.of(event.data)
+                val savedMessage = processMessageUseCase.processMessageCreate(command)
 
                 // 저장 성공 상태 업데이트
                 sendStatusUpdate(roomId.value, tempId, MessageStatus.SAVED.name, savedMessage.id?.value)

@@ -11,6 +11,7 @@ class FriendRemovedEventListener(
 
     @EventListener
     fun handleFriendRemovedEvent(event: FriendRemovedEvent) {
-//        sseEmitterUseCase.sendFriendRemovedEvent(event)
+//        val command = SendFriendRemovedEventCommand.of(event)
+//        sseEmitterUseCase.sendFriendRemovedEvent(command)
     }
 }

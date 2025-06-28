@@ -3,7 +3,8 @@ package com.stark.shoot.adapter.`in`.web.chatroom
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.ChatRoomSearchUseCase
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.chatroom.command.FindDirectChatCommand
+import com.stark.shoot.application.port.`in`.chatroom.command.SearchChatRoomsCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -46,10 +47,7 @@ class ChatRoomSearchControllerTest {
         )
 
         `when`(chatRoomSearchUseCase.searchChatRooms(
-            UserId.from(userId),
-            query,
-            type,
-            unreadOnly
+            SearchChatRoomsCommand.of(userId, query, type, unreadOnly)
         )).thenReturn(chatRooms)
 
         // when
@@ -60,20 +58,17 @@ class ChatRoomSearchControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).hasSize(2)
         assertThat(response.data).isEqualTo(chatRooms)
-        
+
         // 첫 번째 채팅방 검증
         assertThat(response.data?.get(0)?.roomId).isEqualTo(1L)
         assertThat(response.data?.get(0)?.title).isEqualTo("테스트 채팅방 1")
-        
+
         // 두 번째 채팅방 검증
         assertThat(response.data?.get(1)?.roomId).isEqualTo(2L)
         assertThat(response.data?.get(1)?.title).isEqualTo("테스트 채팅방 2")
 
         verify(chatRoomSearchUseCase).searchChatRooms(
-            UserId.from(userId),
-            query,
-            type,
-            unreadOnly
+            SearchChatRoomsCommand.of(userId, query, type, unreadOnly)
         )
     }
 
@@ -85,10 +80,7 @@ class ChatRoomSearchControllerTest {
         val query = "존재하지 않는 채팅방"
 
         `when`(chatRoomSearchUseCase.searchChatRooms(
-            UserId.from(userId),
-            query,
-            null,
-            null
+            SearchChatRoomsCommand.of(userId, query, null, null)
         )).thenReturn(emptyList())
 
         // when
@@ -100,10 +92,7 @@ class ChatRoomSearchControllerTest {
         assertThat(response.data).isEmpty()
 
         verify(chatRoomSearchUseCase).searchChatRooms(
-            UserId.from(userId),
-            query,
-            null,
-            null
+            SearchChatRoomsCommand.of(userId, query, null, null)
         )
     }
 
@@ -123,8 +112,7 @@ class ChatRoomSearchControllerTest {
         )
 
         `when`(findChatRoomUseCase.findDirectChatBetweenUsers(
-            UserId.from(myId),
-            UserId.from(otherUserId)
+            FindDirectChatCommand.of(myId, otherUserId)
         )).thenReturn(chatRoomResponse)
 
         // when
@@ -137,8 +125,7 @@ class ChatRoomSearchControllerTest {
         assertThat(response.message).isEqualTo("채팅방을 찾았습니다.")
 
         verify(findChatRoomUseCase).findDirectChatBetweenUsers(
-            UserId.from(myId),
-            UserId.from(otherUserId)
+            FindDirectChatCommand.of(myId, otherUserId)
         )
     }
 
@@ -150,8 +137,7 @@ class ChatRoomSearchControllerTest {
         val otherUserId = 3L
 
         `when`(findChatRoomUseCase.findDirectChatBetweenUsers(
-            UserId.from(myId),
-            UserId.from(otherUserId)
+            FindDirectChatCommand.of(myId, otherUserId)
         )).thenReturn(null)
 
         // when
@@ -165,8 +151,7 @@ class ChatRoomSearchControllerTest {
         assertThat(response.code).isEqualTo(404)
 
         verify(findChatRoomUseCase).findDirectChatBetweenUsers(
-            UserId.from(myId),
-            UserId.from(otherUserId)
+            FindDirectChatCommand.of(myId, otherUserId)
         )
     }
 

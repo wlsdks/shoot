@@ -1,6 +1,8 @@
 package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendReceiveUseCase
+import com.stark.shoot.application.port.`in`.user.friend.command.AcceptFriendRequestCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.RejectFriendRequestCommand
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.FriendRequestCommandPort
@@ -30,13 +32,12 @@ class FriendReceiveService(
     /**
      * 친구 요청을 수락합니다.
      *
-     * @param currentUserId 현재 사용자 ID
-     * @param requesterId 친구 요청을 보낸 사용자 ID
+     * @param command 친구 요청 수락 커맨드
      */
-    override fun acceptFriendRequest(
-        currentUserId: UserId,
-        requesterId: UserId
-    ) {
+    override fun acceptFriendRequest(command: AcceptFriendRequestCommand) {
+        val currentUserId = command.currentUserId
+        val requesterId = command.requesterId
+
         // 친구 요청 조회 및 유효성 검사
         val friendRequest = findFriendRequest(currentUserId, requesterId)
 
@@ -63,13 +64,12 @@ class FriendReceiveService(
     /**
      * 친구 요청을 거절합니다.
      *
-     * @param currentUserId 현재 사용자 ID
-     * @param requesterId 친구 요청을 보낸 사용자 ID
+     * @param command 친구 요청 거절 커맨드
      */
-    override fun rejectFriendRequest(
-        currentUserId: UserId,
-        requesterId: UserId
-    ) {
+    override fun rejectFriendRequest(command: RejectFriendRequestCommand) {
+        val currentUserId = command.currentUserId
+        val requesterId = command.requesterId
+
         // 친구 요청 조회 및 유효성 검사
         val friendRequest = findFriendRequest(currentUserId, requesterId)
 

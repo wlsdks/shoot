@@ -2,11 +2,13 @@ package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
+import com.stark.shoot.application.port.`in`.user.friend.command.GetFriendsCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.GetIncomingFriendRequestsCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.GetOutgoingFriendRequestsCommand
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.FriendRequestQueryPort
 import com.stark.shoot.application.port.out.user.friend.FriendshipPort
 import com.stark.shoot.domain.user.type.FriendRequestStatus
-import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
@@ -20,12 +22,14 @@ class FindFriendService(
     /**
      * 친구 목록 조회
      *
-     * @param currentUserId 현재 사용자 ID (Long 타입)
+     * @param command 친구 목록 조회 커맨드
      * @return 친구 정보를 담은 FriendResponse 목록
      */
     override fun getFriends(
-        currentUserId: UserId
+        command: GetFriendsCommand
     ): List<FriendResponse> {
+        val currentUserId = command.currentUserId
+
         // 사용자 존재 여부 확인
         if (!findUserPort.existsById(currentUserId)) {
             throw ResourceNotFoundException("User not found: $currentUserId")
@@ -52,12 +56,14 @@ class FindFriendService(
     /**
      * 받은 친구 요청 목록 조회
      *
-     * @param currentUserId 현재 사용자 ID
+     * @param command 받은 친구 요청 목록 조회 커맨드
      * @return 받은 친구 요청 정보를 담은 FriendResponse 목록
      */
     override fun getIncomingFriendRequests(
-        currentUserId: UserId
+        command: GetIncomingFriendRequestsCommand
     ): List<FriendResponse> {
+        val currentUserId = command.currentUserId
+
         // 사용자 존재 여부 확인
         if (!findUserPort.existsById(currentUserId)) {
             throw ResourceNotFoundException("User not found: $currentUserId")
@@ -87,12 +93,14 @@ class FindFriendService(
     /**
      * 보낸 친구 요청 목록 조회
      *
-     * @param currentUserId 현재 사용자 ID
+     * @param command 보낸 친구 요청 목록 조회 커맨드
      * @return 보낸 친구 요청 정보를 담은 FriendResponse 목록
      */
     override fun getOutgoingFriendRequests(
-        currentUserId: UserId
+        command: GetOutgoingFriendRequestsCommand
     ): List<FriendResponse> {
+        val currentUserId = command.currentUserId
+
         // 사용자 존재 여부 확인
         if (!findUserPort.existsById(currentUserId)) {
             throw ResourceNotFoundException("User not found: $currentUserId")

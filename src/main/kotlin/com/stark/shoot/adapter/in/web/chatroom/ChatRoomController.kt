@@ -6,9 +6,10 @@ import com.stark.shoot.adapter.`in`.web.dto.chatroom.TitleRequest
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.chatroom.command.CreateDirectChatCommand
+import com.stark.shoot.application.port.`in`.chatroom.command.GetChatRoomsCommand
+import com.stark.shoot.application.port.`in`.chatroom.command.RemoveParticipantCommand
+import com.stark.shoot.application.port.`in`.chatroom.command.UpdateTitleCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
@@ -28,10 +29,8 @@ class ChatRoomController(
         @RequestParam userId: Long,
         @RequestParam friendId: Long
     ): ResponseDto<ChatRoomResponse> {
-        val room = createChatRoomUseCase.createDirectChat(
-            UserId.from(userId),
-            UserId.from(friendId)
-        )
+        val command = CreateDirectChatCommand.of(userId, friendId)
+        val room = createChatRoomUseCase.createDirectChat(command)
 
         return ResponseDto.success(room, "채팅방이 생성되었습니다.")
     }
@@ -41,7 +40,8 @@ class ChatRoomController(
     fun getChatRooms(
         @RequestParam userId: Long
     ): ResponseDto<List<ChatRoomResponse>> {
-        val chatRooms = findChatRoomUseCase.getChatRoomsForUser(UserId.from(userId))
+        val command = GetChatRoomsCommand.of(userId)
+        val chatRooms = findChatRoomUseCase.getChatRoomsForUser(command)
         return ResponseDto.success(chatRooms)
     }
 
@@ -51,10 +51,8 @@ class ChatRoomController(
         @PathVariable roomId: Long,
         @RequestParam userId: Long
     ): ResponseDto<Boolean> {
-        val result = manageChatRoomUseCase.removeParticipant(
-            ChatRoomId.from(roomId),
-            UserId.from(userId)
-        )
+        val command = RemoveParticipantCommand.of(roomId, userId)
+        val result = manageChatRoomUseCase.removeParticipant(command)
 
         return ResponseDto.success(result, "채팅방에서 퇴장했습니다.")
     }
@@ -65,10 +63,8 @@ class ChatRoomController(
         @PathVariable roomId: Long,
         @RequestBody request: TitleRequest
     ): ResponseDto<Boolean> {
-        val result = manageChatRoomUseCase.updateTitle(
-            ChatRoomId.from(roomId),
-            ChatRoomTitle.from(request.title)
-        )
+        val command = UpdateTitleCommand.of(roomId, request.title)
+        val result = manageChatRoomUseCase.updateTitle(command)
 
         return ResponseDto.success(result, "채팅방 제목이 변경되었습니다.")
     }

@@ -2,6 +2,7 @@ package com.stark.shoot.application.service.message.reaction
 
 import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionResponse
 import com.stark.shoot.application.port.`in`.message.reaction.ToggleMessageReactionUseCase
+import com.stark.shoot.application.port.`in`.message.reaction.command.ToggleMessageReactionCommand
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
@@ -29,29 +30,23 @@ class ToggleMessageReactionService(
      * 메시지에 리액션을 토글합니다.
      * 같은 리액션을 선택하면 제거하고, 다른 리액션을 선택하면 기존 리액션을 제거하고 새 리액션을 추가합니다.
      *
-     * @param messageId 메시지 ID
-     * @param userId 사용자 ID
-     * @param reactionType 리액션 타입
+     * @param command 메시지 리액션 토글 커맨드
      * @return 업데이트된 메시지의 리액션 정보
      */
-    override fun toggleReaction(
-        messageId: MessageId,
-        userId: UserId,
-        reactionType: String
-    ): ReactionResponse {
+    override fun toggleReaction(command: ToggleMessageReactionCommand): ReactionResponse {
         // 리액션 타입 검증
-        val type = ReactionType.fromCode(reactionType)
-            ?: throw InvalidInputException("지원하지 않는 리액션 타입입니다: $reactionType")
+        val type = ReactionType.fromCode(command.reactionType)
+            ?: throw InvalidInputException("지원하지 않는 리액션 타입입니다: ${command.reactionType}")
 
         // 메시지 조회 (없으면 예외 발생)
-        val message = messageQueryPort.findById(messageId)
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
+        val message = messageQueryPort.findById(command.messageId)
+            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=${command.messageId}")
 
         // 도메인 객체에 토글 로직 위임
-        val result = message.toggleReaction(userId, type)
+        val result = message.toggleReaction(command.userId, type)
 
         // 결과에 따라 알림 및 이벤트 처리
-        handleNotificationsAndEvents(messageId, result)
+        handleNotificationsAndEvents(command.messageId, result)
 
         // 저장 및 반환
         val savedMessage = messageCommandPort.save(result.message)

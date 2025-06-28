@@ -4,7 +4,8 @@ import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.ChatRoomSearchUseCase
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.chatroom.command.FindDirectChatCommand
+import com.stark.shoot.application.port.`in`.chatroom.command.SearchChatRoomsCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -28,7 +29,8 @@ class ChatRoomSearchController(
         @RequestParam(required = false) type: String?,
         @RequestParam(required = false) unreadOnly: Boolean?
     ): ResponseDto<List<ChatRoomResponse>> {
-        val results = chatRoomSearchUseCase.searchChatRooms(UserId.from(userId), query, type, unreadOnly)
+        val command = SearchChatRoomsCommand.of(userId, query, type, unreadOnly)
+        val results = chatRoomSearchUseCase.searchChatRooms(command)
         return ResponseDto.success(results)
     }
 
@@ -41,10 +43,8 @@ class ChatRoomSearchController(
         @RequestParam myId: Long,
         @RequestParam otherUserId: Long
     ): ResponseDto<ChatRoomResponse> {
-        val chatRoom = findChatRoomUseCase.findDirectChatBetweenUsers(
-            UserId.from(myId),
-            UserId.from(otherUserId)
-        )
+        val command = FindDirectChatCommand.of(myId, otherUserId)
+        val chatRoom = findChatRoomUseCase.findDirectChatBetweenUsers(command)
 
         return if (chatRoom != null) {
             ResponseDto.success(chatRoom, "채팅방을 찾았습니다.")

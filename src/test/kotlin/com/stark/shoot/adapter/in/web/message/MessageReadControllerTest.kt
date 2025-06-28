@@ -3,14 +3,14 @@ package com.stark.shoot.adapter.`in`.web.message
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.application.port.`in`.message.GetMessagesUseCase
+import com.stark.shoot.application.port.`in`.message.command.GetMessagesCommand
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
-import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.mock
 import java.time.Instant
 
 @DisplayName("MessageReadController 단위 테스트")
@@ -31,11 +31,8 @@ class MessageReadControllerTest {
         )
 
         val mockUseCase = mock(GetMessagesUseCase::class.java)
-        doReturn(messageResponses).`when`(mockUseCase).getMessages(
-            ChatRoomId.from(roomId),
-            MessageId.from(lastMessageId),
-            limit
-        )
+        val command = GetMessagesCommand.of(roomId, lastMessageId, limit)
+        doReturn(messageResponses).`when`(mockUseCase).getMessages(command)
 
         val controller = MessageReadController(mockUseCase)
 

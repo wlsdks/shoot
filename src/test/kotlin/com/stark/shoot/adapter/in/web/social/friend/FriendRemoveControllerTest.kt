@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.social.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendRemoveUseCase
+import com.stark.shoot.application.port.`in`.user.friend.command.RemoveFriendCommand
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.*
@@ -24,11 +25,12 @@ class FriendRemoveControllerTest {
         // given
         val userId = 1L
         val friendId = 2L
-        
+
         val user = createUser(userId, "testuser", "테스트 유저", "TEST123")
-        
+
         `when`(authentication.name).thenReturn(userId.toString())
-        `when`(friendRemoveUseCase.removeFriend(UserId.from(userId), UserId.from(friendId)))
+        val command = RemoveFriendCommand.of(userId, friendId)
+        `when`(friendRemoveUseCase.removeFriend(command))
             .thenReturn(user)
 
         // when
@@ -43,7 +45,7 @@ class FriendRemoveControllerTest {
         assertThat(response.message).isEqualTo("친구가 삭제되었습니다.")
 
         verify(authentication).name
-        verify(friendRemoveUseCase).removeFriend(UserId.from(userId), UserId.from(friendId))
+        verify(friendRemoveUseCase).removeFriend(command)
     }
 
     // 테스트용 User 객체 생성 헬퍼 메서드

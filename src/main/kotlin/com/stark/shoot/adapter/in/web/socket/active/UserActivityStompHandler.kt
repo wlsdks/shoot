@@ -1,13 +1,16 @@
 package com.stark.shoot.adapter.`in`.web.socket.active
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.application.port.`in`.active.UserActiveUseCase
+import com.stark.shoot.application.port.`in`.active.command.UserActivityCommand
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
 
 @Controller
 class UserActivityStompHandler(
-    private val userActiveUseCase: UserActiveUseCase
+    private val userActiveUseCase: UserActiveUseCase,
+    private val objectMapper: ObjectMapper
 ) {
 
     @Operation(
@@ -20,7 +23,8 @@ class UserActivityStompHandler(
     )
     @MessageMapping("/active")
     fun handleActivity(message: String) {
-        userActiveUseCase.updateUserActive(message)
+        val command = UserActivityCommand.of(message, objectMapper)
+        userActiveUseCase.updateUserActive(command)
     }
 
 }

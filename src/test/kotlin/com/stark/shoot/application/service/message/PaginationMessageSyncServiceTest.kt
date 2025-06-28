@@ -5,6 +5,8 @@ import com.stark.shoot.adapter.`in`.web.socket.dto.MessageSyncInfoDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncResponseDto
 import com.stark.shoot.adapter.`in`.web.socket.mapper.MessageSyncMapper
+import com.stark.shoot.application.port.`in`.message.command.GetPaginationMessageCommand
+import com.stark.shoot.application.port.`in`.message.command.SendSyncMessagesToUserCommand
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.message.thread.ThreadQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -99,7 +101,8 @@ class PaginationMessageSyncServiceTest {
             }
 
             // when
-            val result = paginationMessageSyncService.getChatMessagesFlow(request).toList()
+            val command = GetPaginationMessageCommand.of(request)
+            val result = paginationMessageSyncService.getChatMessagesFlow(command).toList()
 
             // then
             assertThat(result).hasSize(3)
@@ -165,7 +168,8 @@ class PaginationMessageSyncServiceTest {
             }
 
             // when
-            val result = paginationMessageSyncService.getChatMessagesFlow(request).toList()
+            val command = GetPaginationMessageCommand.of(request)
+            val result = paginationMessageSyncService.getChatMessagesFlow(command).toList()
 
             // then
             assertThat(result).hasSize(2)
@@ -223,7 +227,8 @@ class PaginationMessageSyncServiceTest {
             )
 
             // when
-            paginationMessageSyncService.sendMessagesToUser(request, messages)
+            val sendCommand = SendSyncMessagesToUserCommand.of(request, messages)
+            paginationMessageSyncService.sendMessagesToUser(sendCommand)
 
             // then
             verify(messagingTemplate).convertAndSendToUser(

@@ -3,12 +3,12 @@ package com.stark.shoot.application.service.user.auth
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
+import com.stark.shoot.application.port.`in`.user.auth.command.RetrieveUserDetailsCommand
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.exception.web.UnauthorizedException
-import org.springframework.security.core.Authentication
 
 @UseCase
 class UserAuthService(
@@ -18,12 +18,14 @@ class UserAuthService(
     /**
      * 사용자 정보 조회 (인증된 사용자)
      *
-     * @param authentication 인증 정보
+     * @param command 사용자 정보 조회 커맨드
      * @return 사용자 정보
      */
     override fun retrieveUserDetails(
-        authentication: Authentication?
+        command: RetrieveUserDetailsCommand
     ): UserResponse {
+        val authentication = command.authentication
+
         if (authentication == null || !authentication.isAuthenticated) {
             throw UnauthorizedException("인증되지 않은 사용자입니다.")
         }

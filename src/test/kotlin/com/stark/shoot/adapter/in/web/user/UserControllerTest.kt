@@ -1,9 +1,10 @@
 package com.stark.shoot.adapter.`in`.web.user
 
 import com.stark.shoot.adapter.`in`.web.dto.user.CreateUserRequest
-import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.application.port.`in`.user.UserCreateUseCase
 import com.stark.shoot.application.port.`in`.user.UserDeleteUseCase
+import com.stark.shoot.application.port.`in`.user.command.CreateUserCommand
+import com.stark.shoot.application.port.`in`.user.command.DeleteUserCommand
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.*
@@ -49,6 +50,15 @@ class UserControllerTest {
             profileImage = profileImage
         )
 
+        val command = CreateUserCommand.of(
+            username = username,
+            nickname = nickname,
+            password = password,
+            email = email,
+            bio = bio,
+            profileImage = profileImage
+        )
+
         val user = User(
             id = UserId.from(1L),
             username = Username.from(username),
@@ -61,7 +71,7 @@ class UserControllerTest {
             createdAt = Instant.now()
         )
 
-        `when`(userCreateUseCase.createUser(request)).thenReturn(user)
+        `when`(userCreateUseCase.createUser(command)).thenReturn(user)
 
         // when
         val response = controller.createUser(request)
@@ -74,7 +84,7 @@ class UserControllerTest {
         assertThat(response.data?.bio).isEqualTo(bio)
         assertThat(response.message).isEqualTo("회원가입이 완료되었습니다.")
 
-        verify(userCreateUseCase).createUser(request)
+        verify(userCreateUseCase).createUser(command)
     }
 
     @Test
@@ -85,7 +95,8 @@ class UserControllerTest {
         val authentication = mock(Authentication::class.java)
         `when`(authentication.name).thenReturn(userId.toString())
 
-        doNothing().`when`(userDeleteUseCase).deleteUser(UserId.from(userId))
+        val command = DeleteUserCommand.of(userId)
+        doNothing().`when`(userDeleteUseCase).deleteUser(command)
 
         // when
         val response = controller.deleteUser(authentication)
@@ -95,6 +106,6 @@ class UserControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.message).isEqualTo("회원 탈퇴가 완료되었습니다.")
 
-        verify(userDeleteUseCase).deleteUser(UserId.from(userId))
+        verify(userDeleteUseCase).deleteUser(command)
     }
 }

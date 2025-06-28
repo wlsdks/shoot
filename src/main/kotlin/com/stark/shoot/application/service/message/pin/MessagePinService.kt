@@ -2,12 +2,13 @@ package com.stark.shoot.application.service.message.pin
 
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.pin.MessagePinUseCase
+import com.stark.shoot.application.port.`in`.message.pin.command.PinMessageCommand
+import com.stark.shoot.application.port.`in`.message.pin.command.UnpinMessageCommand
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
-import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -28,39 +29,35 @@ class MessagePinService(
      * 메시지를 고정합니다. (채팅방에는 최대 1개의 고정 메시지만 존재)
      * 만약 이미 고정된 메시지가 있으면, 해당 메시지를 해제하고 새 메시지를 고정합니다.
      *
-     * @param messageId 메시지 ID
-     * @param userId 사용자 ID
+     * @param command 메시지 고정 커맨드
      * @return 고정된 메시지
      */
-    override fun pinMessage(
-        messageId: MessageId,
-        userId: UserId
-    ): ChatMessage {
+    override fun pinMessage(command: PinMessageCommand): ChatMessage {
         // 메시지 조회
-        val message = (messageQueryPort.findById(messageId))
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
+        val message = (messageQueryPort.findById(command.messageId))
+            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=${command.messageId}")
 
         // 채팅방에 이미 고정된 메시지가 있는지 확인
         val currentPinnedMessage = messageQueryPort.findPinnedMessagesByRoomId(message.roomId, 1).firstOrNull()
 
         // 도메인 객체의 메서드를 사용하여 메시지 고정 (도메인 규칙 적용)
-        val result = message.pinMessageInRoom(userId, currentPinnedMessage)
+        val result = message.pinMessageInRoom(command.userId, currentPinnedMessage)
 
         // 기존 고정 메시지가 있으면 해제하고 알림 및 이벤트 처리
         result.unpinnedMessage?.let { unpinnedMessage ->
             val savedUnpinnedMessage = messageCommandPort.save(unpinnedMessage)
-            sendPinStatusToClients(savedUnpinnedMessage, userId, false)
-            publishPinEvent(savedUnpinnedMessage, userId, false)
+            sendPinStatusToClients(savedUnpinnedMessage, command.userId, false)
+            publishPinEvent(savedUnpinnedMessage, command.userId, false)
         }
 
         // 새로 고정된 메시지 저장
         val savedMessage = messageCommandPort.save(result.pinnedMessage)
 
         // WebSocket을 통해 실시간 업데이트 전송
-        sendPinStatusToClients(savedMessage, userId, true)
+        sendPinStatusToClients(savedMessage, command.userId, true)
 
         // 이벤트 발행
-        publishPinEvent(savedMessage, userId, true)
+        publishPinEvent(savedMessage, command.userId, true)
 
         return savedMessage
     }
@@ -68,16 +65,12 @@ class MessagePinService(
     /**
      * 메시지 고정을 해제합니다.
      *
-     * @param messageId 메시지 ID
-     * @param userId 사용자 ID
+     * @param command 메시지 고정 해제 커맨드
      * @return 고정 해제된 메시지
      */
-    override fun unpinMessage(
-        messageId: MessageId,
-        userId: UserId
-    ): ChatMessage {
-        val message = messageQueryPort.findById(messageId)
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
+    override fun unpinMessage(command: UnpinMessageCommand): ChatMessage {
+        val message = messageQueryPort.findById(command.messageId)
+            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=${command.messageId}")
 
         // 고정되지 않은 메시지인지 확인
         if (!message.isPinned) {
@@ -91,10 +84,10 @@ class MessagePinService(
         val savedMessage = messageCommandPort.save(updatedMessage)
 
         // WebSocket을 통해 실시간 업데이트 전송
-        sendPinStatusToClients(savedMessage, userId, false)
+        sendPinStatusToClients(savedMessage, command.userId, false)
 
         // 이벤트 발행
-        publishPinEvent(savedMessage, userId, false)
+        publishPinEvent(savedMessage, command.userId, false)
 
         return savedMessage
     }

@@ -7,8 +7,6 @@ import com.stark.shoot.application.port.`in`.message.schedule.ScheduledMessageUs
 import com.stark.shoot.application.port.`in`.message.schedule.command.*
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.type.ScheduledMessageStatus
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

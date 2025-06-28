@@ -2,7 +2,6 @@ package com.stark.shoot.adapter.`in`.web.message.reaction
 
 import com.stark.shoot.application.port.`in`.message.reaction.GetMessageReactionUseCase
 import com.stark.shoot.application.port.`in`.message.reaction.command.GetMessageReactionsCommand
-import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

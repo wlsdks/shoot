@@ -15,7 +15,7 @@ interface MessagePublisherPort {
      * @param domainMessage 도메인 메시지
      */
     fun publish(request: ChatMessageRequest, domainMessage: ChatMessage)
-    
+
     /**
      * 메시지 처리 중 발생한 오류를 처리합니다.
      *

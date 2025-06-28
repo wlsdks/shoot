@@ -35,15 +35,16 @@ class SendMessageService(
      */
     override fun sendMessage(command: SendMessageCommand) {
         val messageRequest = command.message
-        try {
-            // 1. 도메인 객체 생성 및 비즈니스 로직 처리
-            val domainMessage = createAndProcessDomainMessage(messageRequest)
 
+        runCatching {
+            // 1. 도메인 객체 생성 및 비즈니스 로직 처리
+            createAndProcessDomainMessage(messageRequest)
+        }.onSuccess { domainMessage ->
             // 2. 메시지 발행 (Redis, Kafka)
             messagePublisherPort.publish(messageRequest, domainMessage)
-        } catch (e: Exception) {
-            logger.error(e) { "메시지 처리 중 예외 발생: ${e.message}" }
-            messagePublisherPort.handleProcessingError(messageRequest, e)
+        }.onFailure { throwable ->
+            logger.error(throwable) { "메시지 처리 중 예외 발생: ${throwable.message}" }
+            messagePublisherPort.handleProcessingError(messageRequest, throwable)
         }
     }
 

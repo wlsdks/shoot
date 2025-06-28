@@ -3,9 +3,6 @@ package com.stark.shoot.adapter.`in`.web.sse
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
 import com.stark.shoot.application.port.`in`.message.mark.command.MarkAllMessagesAsReadCommand
 import com.stark.shoot.application.port.`in`.message.mark.command.MarkMessageAsReadCommand
-import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

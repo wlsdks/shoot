@@ -3,7 +3,6 @@ package com.stark.shoot.adapter.`in`.web.social.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.CancelFriendRequestCommand
 import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestCommand
-import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

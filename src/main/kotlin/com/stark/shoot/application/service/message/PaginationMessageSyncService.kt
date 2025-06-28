@@ -1,5 +1,6 @@
 package com.stark.shoot.application.service.message
 
+import com.stark.shoot.application.port.`in`.message.command.SendSyncMessagesToUserCommand
 import com.stark.shoot.adapter.`in`.web.socket.dto.MessageSyncInfoDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncResponseDto
@@ -110,13 +111,13 @@ class PaginationMessageSyncService(
     /**
      * WebSocket을 통해 메시지를 사용자에게 전송
      *
-     * @param request 동기화 요청 정보
-     * @param messages 전송할 메시지 목록
+     * @param command 동기화 요청 및 전송할 메시지 목록을 담은 커맨드
      */
     override fun sendMessagesToUser(
-        request: SyncRequestDto,
-        messages: List<MessageSyncInfoDto>
+        command: SendSyncMessagesToUserCommand
     ) {
+        val request = command.request
+        val messages = command.messages
         val response = SyncResponseDto(
             roomId = request.roomId,
             userId = request.userId,

@@ -61,6 +61,8 @@ class WebSocketConfig(
             .setHeartbeatValue(longArrayOf(5000, 5000))  // 서버->클라이언트, 클라이언트->서버 각각 5초로 최적화
             .setTaskScheduler(heartbeatScheduler())      // 최적화된 TaskScheduler 설정
 
+        // `SendMessageStompHandler.kt`에서 `/chat` 경로에 대한 메시지 핸들러가 정의되어 있습니다.
+        // 접두사(`/app`)와 매핑 경로(`/chat`)를 합치면 `/app/chat`이 됩니다. (StompChannelInterceptor 에서도 이 경로에 대한 인터셉터가 존재)
         registry.setApplicationDestinationPrefixes("/app") // 클라이언트가 메시지를 전송할 경로
 
         // 성능 로깅

@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
 import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
 import com.stark.shoot.application.port.`in`.message.command.GetPaginationMessageCommand
+import com.stark.shoot.application.port.`in`.message.command.SendSyncMessagesToUserCommand
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -44,7 +45,8 @@ class GetMessagePaginationStompHandler(
         appCoroutineScope.launch {
             try {
                 val messages = messagesFlow.toList() // Flow를 List로 변환
-                sendSyncMessagesToUserUseCase.sendMessagesToUser(request, messages) // 메시지 전송
+                val sendCommand = SendSyncMessagesToUserCommand.of(request, messages)
+                sendSyncMessagesToUserUseCase.sendMessagesToUser(sendCommand) // 메시지 전송
             } catch (e: Exception) {
                 logger.error { "동기화 중 에러 발생" + e.message }
                 messagingTemplate.convertAndSendToUser(

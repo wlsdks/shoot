@@ -6,6 +6,8 @@ import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
 import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase
+import com.stark.shoot.application.port.`in`.user.auth.command.LoginCommand
+import com.stark.shoot.application.port.`in`.user.auth.command.RetrieveUserDetailsCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.Authentication
@@ -27,7 +29,8 @@ class AuthController(
     fun login(
         @RequestBody request: LoginRequest
     ): ResponseDto<LoginResponse> {
-        val response = userLoginUseCase.login(request)
+        val command = LoginCommand.of(request.username, request.password)
+        val response = userLoginUseCase.login(command)
         return ResponseDto.success(response, "로그인에 성공했습니다.")
     }
 
@@ -39,7 +42,8 @@ class AuthController(
     fun getCurrentUser(
         authentication: Authentication
     ): ResponseDto<UserResponse> {
-        val user = userAuthUseCase.retrieveUserDetails(authentication)
+        val command = RetrieveUserDetailsCommand.of(authentication)
+        val user = userAuthUseCase.retrieveUserDetails(command)
         return ResponseDto.success(user)
     }
 

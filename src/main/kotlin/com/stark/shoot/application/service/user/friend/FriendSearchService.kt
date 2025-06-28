@@ -2,6 +2,7 @@ package com.stark.shoot.application.service.user.friend
 
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FriendSearchUseCase
+import com.stark.shoot.application.port.`in`.user.friend.command.SearchFriendsCommand
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.FriendRequestQueryPort
 import com.stark.shoot.application.port.out.user.friend.FriendshipPort
@@ -20,32 +21,31 @@ class FriendSearchService(
     /**
      * 잠재적 친구 검색
      *
-     * @param currentUserId 현재 사용자 ID
-     * @param query 검색어
+     * @param command 친구 검색 커맨드
      * @return 친구 목록
      */
-    override fun searchPotentialFriends(
-        currentUserId: UserId,
-        query: String
-    ): List<FriendResponse> {
+    override fun searchPotentialFriends(command: SearchFriendsCommand): List<FriendResponse> {
+        val userId = command.userId
+        val query = command.query
+
         // 사용자 존재 여부 확인
-        if (!findUserPort.existsById(currentUserId)) {
-            throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
+        if (!findUserPort.existsById(userId)) {
+            throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
         }
 
         // 제외할 사용자 목록: 본인, 이미 친구, 받은/보낸 친구 요청 대상
         val excludedIds = mutableSetOf<UserId>().apply {
             // 본인 추가
-            add(currentUserId)
+            add(userId)
 
             // 친구 목록 추가
-            friendshipPort.findAllFriendships(currentUserId).forEach {
+            friendshipPort.findAllFriendships(userId).forEach {
                 add(it.friendId)
             }
 
             // 받은 친구 요청 추가
             friendRequestQueryPort.findAllReceivedRequests(
-                receiverId = currentUserId,
+                receiverId = userId,
                 status = FriendRequestStatus.PENDING
             ).forEach {
                 add(it.senderId)
@@ -53,7 +53,7 @@ class FriendSearchService(
 
             // 보낸 친구 요청 추가
             friendRequestQueryPort.findAllSentRequests(
-                senderId = currentUserId,
+                senderId = userId,
                 status = FriendRequestStatus.PENDING
             ).forEach {
                 add(it.receiverId)

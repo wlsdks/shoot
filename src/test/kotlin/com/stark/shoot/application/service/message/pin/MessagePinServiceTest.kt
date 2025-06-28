@@ -1,6 +1,8 @@
 package com.stark.shoot.application.service.message.pin
 
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
+import com.stark.shoot.application.port.`in`.message.pin.command.PinMessageCommand
+import com.stark.shoot.application.port.`in`.message.pin.command.UnpinMessageCommand
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
@@ -47,8 +49,9 @@ class MessagePinServiceTest {
         `when`(messageQueryPort.findById(messageId)).thenReturn(null)
 
         // when & then
+        val command = PinMessageCommand(messageId, userId)
         assertThrows<ResourceNotFoundException> {
-            messagePinService.pinMessage(messageId, userId)
+            messagePinService.pinMessage(command)
         }
 
         verify(messageQueryPort).findById(messageId)
@@ -94,7 +97,8 @@ class MessagePinServiceTest {
         `when`(messageQueryPort.findById(messageId)).thenReturn(unpinnedMessage)
 
         // when
-        val result = messagePinService.unpinMessage(messageId, userId)
+        val command = UnpinMessageCommand(messageId, userId)
+        val result = messagePinService.unpinMessage(command)
 
         // then
         assertThat(result).isEqualTo(unpinnedMessage)
@@ -131,8 +135,9 @@ class MessagePinServiceTest {
         `when`(messageQueryPort.findById(messageId)).thenReturn(null)
 
         // when & then
+        val command = UnpinMessageCommand(messageId, userId)
         assertThrows<ResourceNotFoundException> {
-            messagePinService.unpinMessage(messageId, userId)
+            messagePinService.unpinMessage(command)
         }
 
         verify(messageQueryPort).findById(messageId)

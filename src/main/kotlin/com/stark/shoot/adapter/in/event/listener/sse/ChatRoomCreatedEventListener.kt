@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.event.listener.sse
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
+import com.stark.shoot.application.port.`in`.chatroom.command.SendChatRoomCreatedEventCommand
 import com.stark.shoot.domain.event.ChatRoomCreatedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
@@ -12,7 +13,8 @@ class ChatRoomCreatedEventListener(
 
     @EventListener
     fun handle(event: ChatRoomCreatedEvent) {
-        sseEmitterUseCase.sendChatRoomCreatedEvent(event)
+        val command = SendChatRoomCreatedEventCommand.of(event)
+        sseEmitterUseCase.sendChatRoomCreatedEvent(command)
     }
 
 }

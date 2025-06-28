@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.`in`.web.socket.message
 import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
 import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
+import com.stark.shoot.application.port.`in`.message.command.GetPaginationMessageCommand
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -33,8 +34,11 @@ class GetMessagePaginationStompHandler(
     )
     @MessageMapping("/sync")
     fun syncMessages(@Payload request: SyncRequestDto) {
+        // Command 객체 생성
+        val command = GetPaginationMessageCommand.of(request)
+
         // Flow 반환 메서드 호출 (메시지 조회)
-        val messagesFlow = getPaginationMessageUseCase.getChatMessagesFlow(request)
+        val messagesFlow = getPaginationMessageUseCase.getChatMessagesFlow(command)
 
         // 코루틴 시작
         appCoroutineScope.launch {

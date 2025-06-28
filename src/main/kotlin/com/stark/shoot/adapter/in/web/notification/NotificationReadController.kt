@@ -2,6 +2,10 @@ package com.stark.shoot.adapter.`in`.web.notification
 
 import com.stark.shoot.adapter.`in`.web.dto.notification.NotificationResponse
 import com.stark.shoot.application.port.`in`.notification.NotificationManagementUseCase
+import com.stark.shoot.application.port.`in`.notification.command.MarkAllNotificationsAsReadCommand
+import com.stark.shoot.application.port.`in`.notification.command.MarkAllNotificationsBySourceAsReadCommand
+import com.stark.shoot.application.port.`in`.notification.command.MarkAllNotificationsByTypeAsReadCommand
+import com.stark.shoot.application.port.`in`.notification.command.MarkNotificationAsReadCommand
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.notification.vo.NotificationId
@@ -28,10 +32,11 @@ class NotificationReadController(
         @PathVariable notificationId: String,
         @RequestParam userId: Long
     ): ResponseEntity<NotificationResponse> {
-        val notification = notificationManagementUseCase.markAsRead(
-            NotificationId.from(notificationId),
-            UserId.from(userId)
+        val command = MarkNotificationAsReadCommand(
+            notificationId = NotificationId.from(notificationId),
+            userId = UserId.from(userId)
         )
+        val notification = notificationManagementUseCase.markAsRead(command)
 
         return ResponseEntity.ok(NotificationResponse.from(notification))
     }
@@ -46,7 +51,10 @@ class NotificationReadController(
     )
     @PutMapping("/read/all")
     fun markAllAsRead(@RequestParam userId: Long): ResponseEntity<Int> {
-        val count = notificationManagementUseCase.markAllAsRead(UserId.from(userId))
+        val command = MarkAllNotificationsAsReadCommand(
+            userId = UserId.from(userId)
+        )
+        val count = notificationManagementUseCase.markAllAsRead(command)
         return ResponseEntity.ok(count)
     }
 
@@ -64,7 +72,11 @@ class NotificationReadController(
         @PathVariable type: String
     ): ResponseEntity<Int> {
         val notificationType = NotificationType.valueOf(type)
-        val count = notificationManagementUseCase.markAllAsReadByType(UserId.from(userId), notificationType)
+        val command = MarkAllNotificationsByTypeAsReadCommand(
+            userId = UserId.from(userId),
+            type = notificationType
+        )
+        val count = notificationManagementUseCase.markAllAsReadByType(command)
         return ResponseEntity.ok(count)
     }
 
@@ -83,8 +95,12 @@ class NotificationReadController(
         @RequestParam(required = false) sourceId: String?
     ): ResponseEntity<Int> {
         val source = SourceType.valueOf(sourceType)
-        val count = notificationManagementUseCase
-            .markAllAsReadBySource(UserId.from(userId), source, sourceId)
+        val command = MarkAllNotificationsBySourceAsReadCommand(
+            userId = UserId.from(userId),
+            sourceType = source,
+            sourceId = sourceId
+        )
+        val count = notificationManagementUseCase.markAllAsReadBySource(command)
         return ResponseEntity.ok(count)
     }
 

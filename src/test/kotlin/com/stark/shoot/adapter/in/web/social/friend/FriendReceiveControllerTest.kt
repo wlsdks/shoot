@@ -1,11 +1,13 @@
 package com.stark.shoot.adapter.`in`.web.social.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendReceiveUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.friend.command.AcceptFriendRequestCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.RejectFriendRequestCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 @DisplayName("FriendReceiveController 단위 테스트")
 class FriendReceiveControllerTest {
@@ -29,8 +31,7 @@ class FriendReceiveControllerTest {
         assertThat(response.message).isEqualTo("친구 요청을 수락했습니다.")
 
         verify(friendReceiveUseCase).acceptFriendRequest(
-            UserId.from(userId),
-            UserId.from(requesterId)
+            AcceptFriendRequestCommand.of(userId, requesterId)
         )
     }
 
@@ -50,8 +51,7 @@ class FriendReceiveControllerTest {
         assertThat(response.message).isEqualTo("친구 요청을 거절했습니다.")
 
         verify(friendReceiveUseCase).rejectFriendRequest(
-            UserId.from(userId),
-            UserId.from(requesterId)
+            RejectFriendRequestCommand.of(userId, requesterId)
         )
     }
 }

@@ -2,8 +2,7 @@ package com.stark.shoot.adapter.`in`.web.chatroom
 
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.UpdateChatRoomFavoriteUseCase
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.chatroom.command.UpdateFavoriteStatusCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -32,11 +31,8 @@ class ChatRoomFavoriteControllerTest {
             isPinned = true
         )
 
-        `when`(updateFavoriteUseCase.updateFavoriteStatus(
-            ChatRoomId.from(roomId),
-            UserId.from(userId),
-            isFavorite
-        )).thenReturn(chatRoomResponse)
+        val command = UpdateFavoriteStatusCommand.of(roomId, userId, isFavorite)
+        `when`(updateFavoriteUseCase.updateFavoriteStatus(command)).thenReturn(chatRoomResponse)
 
         // when
         val response = controller.updateFavorite(roomId, userId, isFavorite)
@@ -47,11 +43,7 @@ class ChatRoomFavoriteControllerTest {
         assertThat(response.data).isEqualTo(chatRoomResponse)
         assertThat(response.message).isEqualTo("채팅방이 즐겨찾기에 추가되었습니다.")
 
-        verify(updateFavoriteUseCase).updateFavoriteStatus(
-            ChatRoomId.from(roomId),
-            UserId.from(userId),
-            isFavorite
-        )
+        verify(updateFavoriteUseCase).updateFavoriteStatus(command)
     }
 
     @Test
@@ -68,11 +60,8 @@ class ChatRoomFavoriteControllerTest {
             isPinned = false
         )
 
-        `when`(updateFavoriteUseCase.updateFavoriteStatus(
-            ChatRoomId.from(roomId),
-            UserId.from(userId),
-            isFavorite
-        )).thenReturn(chatRoomResponse)
+        val command = UpdateFavoriteStatusCommand.of(roomId, userId, isFavorite)
+        `when`(updateFavoriteUseCase.updateFavoriteStatus(command)).thenReturn(chatRoomResponse)
 
         // when
         val response = controller.updateFavorite(roomId, userId, isFavorite)
@@ -83,11 +72,7 @@ class ChatRoomFavoriteControllerTest {
         assertThat(response.data).isEqualTo(chatRoomResponse)
         assertThat(response.message).isEqualTo("채팅방이 즐겨찾기에서 제거되었습니다.")
 
-        verify(updateFavoriteUseCase).updateFavoriteStatus(
-            ChatRoomId.from(roomId),
-            UserId.from(userId),
-            isFavorite
-        )
+        verify(updateFavoriteUseCase).updateFavoriteStatus(command)
     }
 
     // 테스트용 ChatRoomResponse 객체 생성 헬퍼 메서드

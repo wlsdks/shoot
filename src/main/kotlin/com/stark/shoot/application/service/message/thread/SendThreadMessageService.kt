@@ -1,9 +1,9 @@
 package com.stark.shoot.application.service.message.thread
 
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.toDomain
 import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
 import com.stark.shoot.application.port.`in`.message.thread.SendThreadMessageUseCase
+import com.stark.shoot.application.port.`in`.message.thread.command.SendThreadMessageCommand
 import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.message.PublishMessagePort
@@ -31,7 +31,8 @@ class SendThreadMessageService(
 
     private val logger = KotlinLogging.logger {}
 
-    override fun sendThreadMessage(request: ChatMessageRequest) {
+    override fun sendThreadMessage(command: SendThreadMessageCommand) {
+        val request = command.message
         val threadId = MessageId.from(
             request.threadId ?: throw IllegalArgumentException("threadId must not be null")
         )

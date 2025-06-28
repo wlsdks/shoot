@@ -5,9 +5,10 @@ import com.stark.shoot.adapter.`in`.web.dto.chatroom.TitleRequest
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.chatroom.command.CreateDirectChatCommand
+import com.stark.shoot.application.port.`in`.chatroom.command.GetChatRoomsCommand
+import com.stark.shoot.application.port.`in`.chatroom.command.RemoveParticipantCommand
+import com.stark.shoot.application.port.`in`.chatroom.command.UpdateTitleCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -31,8 +32,8 @@ class ChatRoomControllerTest {
         val userId = 1L
         val friendId = 2L
         val chatRoomResponse = createChatRoomResponse(1L, "채팅방", false)
-        
-        `when`(createChatRoomUseCase.createDirectChat(UserId.from(userId), UserId.from(friendId)))
+
+        `when`(createChatRoomUseCase.createDirectChat(CreateDirectChatCommand.of(userId, friendId)))
             .thenReturn(chatRoomResponse)
 
         // when
@@ -43,8 +44,8 @@ class ChatRoomControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isEqualTo(chatRoomResponse)
         assertThat(response.message).isEqualTo("채팅방이 생성되었습니다.")
-        
-        verify(createChatRoomUseCase).createDirectChat(UserId.from(userId), UserId.from(friendId))
+
+        verify(createChatRoomUseCase).createDirectChat(CreateDirectChatCommand.of(userId, friendId))
     }
 
     @Test
@@ -56,8 +57,8 @@ class ChatRoomControllerTest {
             createChatRoomResponse(1L, "채팅방1", false),
             createChatRoomResponse(2L, "채팅방2", true)
         )
-        
-        `when`(findChatRoomUseCase.getChatRoomsForUser(UserId.from(userId)))
+
+        `when`(findChatRoomUseCase.getChatRoomsForUser(GetChatRoomsCommand.of(userId)))
             .thenReturn(chatRoomResponses)
 
         // when
@@ -67,8 +68,8 @@ class ChatRoomControllerTest {
         assertThat(response).isNotNull
         assertThat(response.success).isTrue()
         assertThat(response.data).isEqualTo(chatRoomResponses)
-        
-        verify(findChatRoomUseCase).getChatRoomsForUser(UserId.from(userId))
+
+        verify(findChatRoomUseCase).getChatRoomsForUser(GetChatRoomsCommand.of(userId))
     }
 
     @Test
@@ -77,8 +78,8 @@ class ChatRoomControllerTest {
         // given
         val roomId = 1L
         val userId = 1L
-        
-        `when`(manageChatRoomUseCase.removeParticipant(ChatRoomId.from(roomId), UserId.from(userId)))
+
+        `when`(manageChatRoomUseCase.removeParticipant(RemoveParticipantCommand.of(roomId, userId)))
             .thenReturn(true)
 
         // when
@@ -89,8 +90,8 @@ class ChatRoomControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isTrue()
         assertThat(response.message).isEqualTo("채팅방에서 퇴장했습니다.")
-        
-        verify(manageChatRoomUseCase).removeParticipant(ChatRoomId.from(roomId), UserId.from(userId))
+
+        verify(manageChatRoomUseCase).removeParticipant(RemoveParticipantCommand.of(roomId, userId))
     }
 
     @Test
@@ -100,8 +101,8 @@ class ChatRoomControllerTest {
         val roomId = 1L
         val newTitle = "새로운 채팅방 제목"
         val request = TitleRequest(newTitle)
-        
-        `when`(manageChatRoomUseCase.updateTitle(ChatRoomId.from(roomId), ChatRoomTitle.from(newTitle)))
+
+        `when`(manageChatRoomUseCase.updateTitle(UpdateTitleCommand.of(roomId, newTitle)))
             .thenReturn(true)
 
         // when
@@ -112,8 +113,8 @@ class ChatRoomControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isTrue()
         assertThat(response.message).isEqualTo("채팅방 제목이 변경되었습니다.")
-        
-        verify(manageChatRoomUseCase).updateTitle(ChatRoomId.from(roomId), ChatRoomTitle.from(newTitle))
+
+        verify(manageChatRoomUseCase).updateTitle(UpdateTitleCommand.of(roomId, newTitle))
     }
 
     // 테스트용 ChatRoomResponse 객체 생성 헬퍼 메서드
@@ -124,7 +125,7 @@ class ChatRoomControllerTest {
     ): ChatRoomResponse {
         val formatter = DateTimeFormatter.ofPattern("a h:mm")
         val timestamp = Instant.now().atZone(ZoneId.systemDefault()).let { formatter.format(it) }
-        
+
         return ChatRoomResponse(
             roomId = roomId,
             title = title,

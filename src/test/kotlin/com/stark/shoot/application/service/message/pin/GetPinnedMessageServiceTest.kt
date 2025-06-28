@@ -1,5 +1,6 @@
 package com.stark.shoot.application.service.message.pin
 
+import com.stark.shoot.application.port.`in`.message.pin.command.GetPinnedMessagesCommand
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
@@ -49,7 +50,8 @@ class GetPinnedMessageServiceTest {
             `when`(messageQueryPort.findPinnedMessagesByRoomId(roomId, 1)).thenReturn(listOf(pinnedMessage))
 
             // when
-            val result = getPinnedMessageService.getPinnedMessages(roomId)
+            val command = GetPinnedMessagesCommand(roomId)
+            val result = getPinnedMessageService.getPinnedMessages(command)
 
             // then
             assertThat(result).hasSize(1)
@@ -68,7 +70,8 @@ class GetPinnedMessageServiceTest {
             `when`(messageQueryPort.findPinnedMessagesByRoomId(roomId, 1)).thenReturn(emptyList())
 
             // when
-            val result = getPinnedMessageService.getPinnedMessages(roomId)
+            val command = GetPinnedMessagesCommand(roomId)
+            val result = getPinnedMessageService.getPinnedMessages(command)
 
             // then
             assertThat(result).isEmpty()

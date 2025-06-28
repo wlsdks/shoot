@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.notification
 
-import com.stark.shoot.adapter.`in`.web.dto.notification.NotificationResponse
 import com.stark.shoot.application.port.`in`.notification.NotificationQueryUseCase
+import com.stark.shoot.application.port.`in`.notification.command.*
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
@@ -49,9 +49,12 @@ class NotificationQueryControllerTest {
             )
         )
 
-        `when`(notificationQueryUseCase.getNotificationsForUser(
-            UserId.from(userId), limit, offset
-        )).thenReturn(notifications)
+        val command = GetNotificationsCommand(
+            userId = UserId.from(userId),
+            limit = limit,
+            offset = offset
+        )
+        `when`(notificationQueryUseCase.getNotificationsForUser(command)).thenReturn(notifications)
 
         // when
         val response = controller.getNotifications(userId, limit, offset)
@@ -67,7 +70,11 @@ class NotificationQueryControllerTest {
         assertThat(response.body?.get(1)?.type).isEqualTo(NotificationType.MENTION.name)
 
         verify(notificationQueryUseCase).getNotificationsForUser(
-            UserId.from(userId), limit, offset
+            GetNotificationsCommand(
+                userId = UserId.from(userId),
+                limit = limit,
+                offset = offset
+            )
         )
     }
 
@@ -100,9 +107,12 @@ class NotificationQueryControllerTest {
             )
         )
 
-        `when`(notificationQueryUseCase.getUnreadNotificationsForUser(
-            UserId.from(userId), limit, offset
-        )).thenReturn(notifications)
+        val command = GetUnreadNotificationsCommand(
+            userId = UserId.from(userId),
+            limit = limit,
+            offset = offset
+        )
+        `when`(notificationQueryUseCase.getUnreadNotificationsForUser(command)).thenReturn(notifications)
 
         // when
         val response = controller.getUnreadNotifications(userId, limit, offset)
@@ -116,7 +126,11 @@ class NotificationQueryControllerTest {
         assertThat(response.body?.get(1)?.isRead).isFalse()
 
         verify(notificationQueryUseCase).getUnreadNotificationsForUser(
-            UserId.from(userId), limit, offset
+            GetUnreadNotificationsCommand(
+                userId = UserId.from(userId),
+                limit = limit,
+                offset = offset
+            )
         )
     }
 
@@ -127,9 +141,10 @@ class NotificationQueryControllerTest {
         val userId = 1L
         val unreadCount = 5
 
-        `when`(notificationQueryUseCase.getUnreadNotificationCount(
-            UserId.from(userId)
-        )).thenReturn(unreadCount)
+        val command = GetUnreadNotificationCountCommand(
+            userId = UserId.from(userId)
+        )
+        `when`(notificationQueryUseCase.getUnreadNotificationCount(command)).thenReturn(unreadCount)
 
         // when
         val response = controller.getUnreadNotificationCount(userId)
@@ -139,7 +154,9 @@ class NotificationQueryControllerTest {
         assertThat(response.body).isEqualTo(unreadCount)
 
         verify(notificationQueryUseCase).getUnreadNotificationCount(
-            UserId.from(userId)
+            GetUnreadNotificationCountCommand(
+                userId = UserId.from(userId)
+            )
         )
     }
 
@@ -171,9 +188,13 @@ class NotificationQueryControllerTest {
             )
         )
 
-        `when`(notificationQueryUseCase.getNotificationsByType(
-            UserId.from(userId), NotificationType.valueOf(type), limit, offset
-        )).thenReturn(notifications)
+        val command = GetNotificationsByTypeCommand(
+            userId = UserId.from(userId),
+            type = NotificationType.valueOf(type),
+            limit = limit,
+            offset = offset
+        )
+        `when`(notificationQueryUseCase.getNotificationsByType(command)).thenReturn(notifications)
 
         // when
         val response = controller.getNotificationsByType(userId, type, limit, offset)
@@ -185,7 +206,12 @@ class NotificationQueryControllerTest {
         assertThat(response.body?.get(1)?.type).isEqualTo(NotificationType.FRIEND_REQUEST.name)
 
         verify(notificationQueryUseCase).getNotificationsByType(
-            UserId.from(userId), NotificationType.valueOf(type), limit, offset
+            GetNotificationsByTypeCommand(
+                userId = UserId.from(userId),
+                type = NotificationType.valueOf(type),
+                limit = limit,
+                offset = offset
+            )
         )
     }
 
@@ -220,9 +246,14 @@ class NotificationQueryControllerTest {
             )
         )
 
-        `when`(notificationQueryUseCase.getNotificationsBySource(
-            UserId.from(userId), SourceType.valueOf(sourceType), sourceId, limit, offset
-        )).thenReturn(notifications)
+        val command = GetNotificationsBySourceCommand(
+            userId = UserId.from(userId),
+            sourceType = SourceType.valueOf(sourceType),
+            sourceId = sourceId,
+            limit = limit,
+            offset = offset
+        )
+        `when`(notificationQueryUseCase.getNotificationsBySource(command)).thenReturn(notifications)
 
         // when
         val response = controller.getNotificationsBySource(userId, sourceType, sourceId, limit, offset)
@@ -236,7 +267,13 @@ class NotificationQueryControllerTest {
         assertThat(response.body?.get(1)?.sourceId).isEqualTo(sourceId)
 
         verify(notificationQueryUseCase).getNotificationsBySource(
-            UserId.from(userId), SourceType.valueOf(sourceType), sourceId, limit, offset
+            GetNotificationsBySourceCommand(
+                userId = UserId.from(userId),
+                sourceType = SourceType.valueOf(sourceType),
+                sourceId = sourceId,
+                limit = limit,
+                offset = offset
+            )
         )
     }
 

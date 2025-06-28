@@ -1,10 +1,7 @@
 package com.stark.shoot.application.service.sse
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.event.ChatRoomCreatedEvent
-import com.stark.shoot.domain.event.FriendAddedEvent
-import com.stark.shoot.domain.event.FriendRemovedEvent
+import com.stark.shoot.application.port.`in`.chatroom.command.*
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -64,7 +61,8 @@ class SseEmitterService : SseEmitterUseCase {
      *
      * 연결 중 오류가 발생하면 오류 정보를 포함한 짧은 타임아웃의 이미터를 반환합니다.
      */
-    override fun createEmitter(userId: UserId): SseEmitter {
+    override fun createEmitter(command: CreateEmitterCommand): SseEmitter {
+        val userId = command.userId
         return try {
             // 기존 이미터 정리
             cleanupEmitter(userId)
@@ -280,12 +278,12 @@ class SseEmitterService : SseEmitterUseCase {
     /**
      * 사용자에게 채팅방 업데이트 전송
      */
-    override fun sendUpdate(
-        userId: UserId,
-        roomId: ChatRoomId,
-        unreadCount: Int,
-        lastMessage: String?
-    ) {
+    override fun sendUpdate(command: SendUpdateCommand) {
+        val userId = command.userId
+        val roomId = command.roomId
+        val unreadCount = command.unreadCount
+        val lastMessage = command.lastMessage
+
         val data = mapOf(
             "type" to "chat_update",
             "roomId" to roomId.value,
@@ -305,7 +303,8 @@ class SseEmitterService : SseEmitterUseCase {
     /**
      * 채팅방 생성 이벤트 전송
      */
-    override fun sendChatRoomCreatedEvent(event: ChatRoomCreatedEvent) {
+    override fun sendChatRoomCreatedEvent(command: SendChatRoomCreatedEventCommand) {
+        val event = command.event
         val userId = event.userId
 
         val data = mapOf(
@@ -325,7 +324,8 @@ class SseEmitterService : SseEmitterUseCase {
     /**
      * 친구 추가 이벤트 전송
      */
-    override fun sendFriendAddedEvent(event: FriendAddedEvent) {
+    override fun sendFriendAddedEvent(command: SendFriendAddedEventCommand) {
+        val event = command.event
         val userId = event.userId
 
         val data = mapOf(
@@ -345,7 +345,8 @@ class SseEmitterService : SseEmitterUseCase {
     /**
      * 친구 삭제 이벤트 전송
      */
-    override fun sendFriendRemovedEvent(event: FriendRemovedEvent) {
+    override fun sendFriendRemovedEvent(command: SendFriendRemovedEventCommand) {
+        val event = command.event
         val userId = event.userId
 
         val data = mapOf(

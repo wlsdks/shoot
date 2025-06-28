@@ -4,7 +4,11 @@ import com.stark.shoot.adapter.`in`.web.dto.user.SetBackgroundImageRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.SetProfileImageRequest
 import com.stark.shoot.adapter.`in`.web.dto.user.UpdateProfileRequest
 import com.stark.shoot.application.port.`in`.user.FindUserUseCase
+import com.stark.shoot.application.port.`in`.user.command.FindUserByIdCommand
 import com.stark.shoot.application.port.`in`.user.profile.UserUpdateProfileUseCase
+import com.stark.shoot.application.port.`in`.user.profile.command.SetBackgroundImageCommand
+import com.stark.shoot.application.port.`in`.user.profile.command.SetProfileImageCommand
+import com.stark.shoot.application.port.`in`.user.profile.command.UpdateProfileCommand
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.*
@@ -36,7 +40,15 @@ class UserProfileControllerTest {
             backgroundImageUrl = "http://example.com/new-background.jpg",
             bio = "새로운 자기소개"
         )
-        
+
+        val command = UpdateProfileCommand.of(
+            userId = userId,
+            nickname = "새로운 닉네임",
+            profileImageUrl = "http://example.com/new-profile.jpg",
+            backgroundImageUrl = "http://example.com/new-background.jpg",
+            bio = "새로운 자기소개"
+        )
+
         val updatedUser = createUser(
             id = userId,
             username = "testuser",
@@ -45,9 +57,9 @@ class UserProfileControllerTest {
             backgroundImageUrl = "http://example.com/new-background.jpg",
             bio = "새로운 자기소개"
         )
-        
+
         `when`(authentication.name).thenReturn(userId.toString())
-        `when`(userUpdateProfileUseCase.updateProfile(UserId.from(userId), request))
+        `when`(userUpdateProfileUseCase.updateProfile(command))
             .thenReturn(updatedUser)
 
         // when
@@ -62,9 +74,9 @@ class UserProfileControllerTest {
         assertThat(response.data?.backgroundImageUrl).isEqualTo("http://example.com/new-background.jpg")
         assertThat(response.data?.bio).isEqualTo("새로운 자기소개")
         assertThat(response.message).isEqualTo("프로필이 성공적으로 업데이트되었습니다.")
-        
+
         verify(authentication).name
-        verify(userUpdateProfileUseCase).updateProfile(UserId.from(userId), request)
+        verify(userUpdateProfileUseCase).updateProfile(command)
     }
 
     @Test
@@ -73,16 +85,21 @@ class UserProfileControllerTest {
         // given
         val userId = 1L
         val request = SetProfileImageRequest("http://example.com/profile.jpg")
-        
+
+        val command = SetProfileImageCommand.of(
+            userId = userId,
+            profileImageUrl = "http://example.com/profile.jpg"
+        )
+
         val updatedUser = createUser(
             id = userId,
             username = "testuser",
             nickname = "테스트 유저",
             profileImageUrl = "http://example.com/profile.jpg"
         )
-        
+
         `when`(authentication.name).thenReturn(userId.toString())
-        `when`(userUpdateProfileUseCase.setProfileImage(UserId.from(userId), request))
+        `when`(userUpdateProfileUseCase.setProfileImage(command))
             .thenReturn(updatedUser)
 
         // when
@@ -94,9 +111,9 @@ class UserProfileControllerTest {
         assertThat(response.data?.id).isEqualTo(userId.toString())
         assertThat(response.data?.profileImageUrl).isEqualTo("http://example.com/profile.jpg")
         assertThat(response.message).isEqualTo("프로필 사진이 성공적으로 설정되었습니다.")
-        
+
         verify(authentication).name
-        verify(userUpdateProfileUseCase).setProfileImage(UserId.from(userId), request)
+        verify(userUpdateProfileUseCase).setProfileImage(command)
     }
 
     @Test
@@ -105,16 +122,21 @@ class UserProfileControllerTest {
         // given
         val userId = 1L
         val request = SetBackgroundImageRequest("http://example.com/background.jpg")
-        
+
+        val command = SetBackgroundImageCommand.of(
+            userId = userId,
+            backgroundImageUrl = "http://example.com/background.jpg"
+        )
+
         val updatedUser = createUser(
             id = userId,
             username = "testuser",
             nickname = "테스트 유저",
             backgroundImageUrl = "http://example.com/background.jpg"
         )
-        
+
         `when`(authentication.name).thenReturn(userId.toString())
-        `when`(userUpdateProfileUseCase.setBackgroundImage(UserId.from(userId), request))
+        `when`(userUpdateProfileUseCase.setBackgroundImage(command))
             .thenReturn(updatedUser)
 
         // when
@@ -126,9 +148,9 @@ class UserProfileControllerTest {
         assertThat(response.data?.id).isEqualTo(userId.toString())
         assertThat(response.data?.backgroundImageUrl).isEqualTo("http://example.com/background.jpg")
         assertThat(response.message).isEqualTo("배경 이미지가 성공적으로 설정되었습니다.")
-        
+
         verify(authentication).name
-        verify(userUpdateProfileUseCase).setBackgroundImage(UserId.from(userId), request)
+        verify(userUpdateProfileUseCase).setBackgroundImage(command)
     }
 
     @Test
@@ -136,7 +158,8 @@ class UserProfileControllerTest {
     fun `사용자 프로필을 조회한다`() {
         // given
         val userId = 1L
-        
+        val command = FindUserByIdCommand.of(userId)
+
         val user = createUser(
             id = userId,
             username = "testuser",
@@ -145,8 +168,8 @@ class UserProfileControllerTest {
             backgroundImageUrl = "http://example.com/background.jpg",
             bio = "자기소개"
         )
-        
-        `when`(findUserUseCase.findById(UserId.from(userId)))
+
+        `when`(findUserUseCase.findById(command))
             .thenReturn(user)
 
         // when
@@ -162,8 +185,8 @@ class UserProfileControllerTest {
         assertThat(response.data?.backgroundImageUrl).isEqualTo("http://example.com/background.jpg")
         assertThat(response.data?.bio).isEqualTo("자기소개")
         assertThat(response.message).isEqualTo("프로필 정보를 성공적으로 조회했습니다.")
-        
-        verify(findUserUseCase).findById(UserId.from(userId))
+
+        verify(findUserUseCase).findById(command)
     }
 
     @Test
@@ -171,16 +194,17 @@ class UserProfileControllerTest {
     fun `존재하지 않는 사용자 프로필 조회 시 예외가 발생한다`() {
         // given
         val userId = 999L
-        
-        `when`(findUserUseCase.findById(UserId.from(userId)))
+        val command = FindUserByIdCommand.of(userId)
+
+        `when`(findUserUseCase.findById(command))
             .thenReturn(null)
 
         // when & then
         assertThrows<ResourceNotFoundException> {
             controller.getUserProfile(userId)
         }
-        
-        verify(findUserUseCase).findById(UserId.from(userId))
+
+        verify(findUserUseCase).findById(command)
     }
 
     // 테스트용 User 객체 생성 헬퍼 메서드

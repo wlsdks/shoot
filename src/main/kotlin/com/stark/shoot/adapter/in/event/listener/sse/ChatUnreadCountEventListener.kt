@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.event.listener.sse
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
+import com.stark.shoot.application.port.`in`.chatroom.command.SendUpdateCommand
 import com.stark.shoot.domain.event.MessageUnreadCountUpdatedEvent
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.context.event.EventListener
@@ -18,12 +19,13 @@ class ChatUnreadCountEventListener(
     @EventListener
     fun handle(event: MessageUnreadCountUpdatedEvent) {
         event.unreadCounts.forEach { (userId, count) ->
-            sseEmitterUseCase.sendUpdate(
-                userId,
-                event.roomId,
-                count,
-                event.lastMessage
+            val command = SendUpdateCommand.of(
+                userId = userId,
+                roomId = event.roomId,
+                unreadCount = count,
+                lastMessage = event.lastMessage
             )
+            sseEmitterUseCase.sendUpdate(command)
         }
     }
 

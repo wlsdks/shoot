@@ -2,6 +2,7 @@ package com.stark.shoot.application.service.message.thread
 
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
+import com.stark.shoot.application.port.`in`.message.thread.command.SendThreadMessageCommand
 import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.message.PublishMessagePort
@@ -20,7 +21,10 @@ import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.*
 import java.time.Instant
 
@@ -81,7 +85,7 @@ class SendThreadMessageServiceTest {
 
         // when & then
         assertThrows<ResourceNotFoundException> {
-            sendThreadMessageService.sendThreadMessage(request)
+            sendThreadMessageService.sendThreadMessage(SendThreadMessageCommand(request))
         }
 
         verify(messageQueryPort).findById(threadId)
@@ -133,7 +137,7 @@ class SendThreadMessageServiceTest {
         )
 
         // when
-        sendThreadMessageService.sendThreadMessage(request)
+        sendThreadMessageService.sendThreadMessage(SendThreadMessageCommand(request))
 
         // then
         verify(messageQueryPort).findById(messageId)

@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.`in`.web.social.recommand
 
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.friend.command.GetRecommendedFriendsCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -29,9 +29,8 @@ class UserRecommendControllerTest {
             createFriendResponse(4L, "friend3", "친구3", null)
         )
 
-        `when`(recommendFriendsUseCase.getRecommendedFriends(
-            UserId.from(userId), skip, limit
-        )).thenReturn(recommendations)
+        val command = GetRecommendedFriendsCommand.of(userId, skip, limit)
+        `when`(recommendFriendsUseCase.getRecommendedFriends(command)).thenReturn(recommendations)
 
         // when
         val response = controller.recommendFriendsBFS(userId, limit, maxDepth, skip)
@@ -41,14 +40,14 @@ class UserRecommendControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).hasSize(3)
         assertThat(response.data).isEqualTo(recommendations)
-        
+
         // 첫 번째 추천 친구 검증
         assertThat(response.data?.get(0)?.id).isEqualTo(2L)
         assertThat(response.data?.get(0)?.username).isEqualTo("friend1")
         assertThat(response.data?.get(0)?.nickname).isEqualTo("친구1")
         assertThat(response.data?.get(0)?.profileImageUrl).isEqualTo("http://example.com/profile1.jpg")
-        
-        verify(recommendFriendsUseCase).getRecommendedFriends(UserId.from(userId), skip, limit)
+
+        verify(recommendFriendsUseCase).getRecommendedFriends(command)
     }
 
     @Test
@@ -60,9 +59,8 @@ class UserRecommendControllerTest {
         val maxDepth = 2
         val skip = 0
 
-        `when`(recommendFriendsUseCase.getRecommendedFriends(
-            UserId.from(userId), skip, limit
-        )).thenReturn(emptyList())
+        val command = GetRecommendedFriendsCommand.of(userId, skip, limit)
+        `when`(recommendFriendsUseCase.getRecommendedFriends(command)).thenReturn(emptyList())
 
         // when
         val response = controller.recommendFriendsBFS(userId, limit, maxDepth, skip)
@@ -71,8 +69,8 @@ class UserRecommendControllerTest {
         assertThat(response).isNotNull
         assertThat(response.success).isTrue()
         assertThat(response.data).isEmpty()
-        
-        verify(recommendFriendsUseCase).getRecommendedFriends(UserId.from(userId), skip, limit)
+
+        verify(recommendFriendsUseCase).getRecommendedFriends(command)
     }
 
     // 테스트용 FriendResponse 객체 생성 헬퍼 메서드

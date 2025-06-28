@@ -6,6 +6,7 @@ import com.stark.shoot.adapter.`in`.web.dto.message.toDomain
 import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
+import com.stark.shoot.application.port.`in`.message.command.SendMessageCommand
 import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
 import com.stark.shoot.application.port.out.message.PublishMessagePort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
@@ -41,9 +42,10 @@ class SendMessageService(
      * 1. 도메인 객체 생성 및 비즈니스 로직 처리
      * 2. 메시지 발행 (Redis, Kafka)
      *
-     * @param messageRequest 메시지 요청 DTO
+     * @param command 메시지 전송 커맨드
      */
-    override fun sendMessage(messageRequest: ChatMessageRequest) {
+    override fun sendMessage(command: SendMessageCommand) {
+        val messageRequest = command.message
         try {
             // 1. 도메인 객체 생성 및 비즈니스 로직 처리
             val domainMessage = createAndProcessDomainMessage(messageRequest)

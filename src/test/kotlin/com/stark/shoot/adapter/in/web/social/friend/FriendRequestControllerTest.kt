@@ -1,11 +1,14 @@
 package com.stark.shoot.adapter.`in`.web.social.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
+import com.stark.shoot.application.port.`in`.user.friend.command.CancelFriendRequestCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestCommand
 import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 @DisplayName("FriendRequestController 단위 테스트")
 class FriendRequestControllerTest {
@@ -28,10 +31,8 @@ class FriendRequestControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.message).isEqualTo("친구 요청을 보냈습니다.")
 
-        verify(friendRequestUseCase).sendFriendRequest(
-            UserId.from(userId),
-            UserId.from(targetUserId)
-        )
+        val command = SendFriendRequestCommand.of(userId, targetUserId)
+        verify(friendRequestUseCase).sendFriendRequest(command)
     }
 
     @Test
@@ -49,9 +50,7 @@ class FriendRequestControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.message).isEqualTo("친구 요청을 취소했습니다.")
 
-        verify(friendRequestUseCase).cancelFriendRequest(
-            UserId.from(userId),
-            UserId.from(targetUserId)
-        )
+        val command = CancelFriendRequestCommand.of(userId, targetUserId)
+        verify(friendRequestUseCase).cancelFriendRequest(command)
     }
 }

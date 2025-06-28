@@ -2,7 +2,8 @@ package com.stark.shoot.adapter.`in`.web.social.friend
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.application.port.`in`.user.friend.FriendReceiveUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.friend.command.AcceptFriendRequestCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.RejectFriendRequestCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.PostMapping
@@ -23,10 +24,8 @@ class FriendReceiveController(
         @RequestParam userId: Long,
         @RequestParam requesterId: Long
     ): ResponseDto<Unit> {
-        friendReceiveUseCase.acceptFriendRequest(
-            UserId.from(userId),
-            UserId.from(requesterId)
-        )
+        val command = AcceptFriendRequestCommand.of(userId, requesterId)
+        friendReceiveUseCase.acceptFriendRequest(command)
 
         return ResponseDto.success(Unit, "친구 요청을 수락했습니다.")
     }
@@ -37,10 +36,8 @@ class FriendReceiveController(
         @RequestParam userId: Long,
         @RequestParam requesterId: Long
     ): ResponseDto<Unit> {
-        friendReceiveUseCase.rejectFriendRequest(
-            UserId.from(userId),
-            UserId.from(requesterId)
-        )
+        val command = RejectFriendRequestCommand.of(userId, requesterId)
+        friendReceiveUseCase.rejectFriendRequest(command)
 
         return ResponseDto.success(Unit, "친구 요청을 거절했습니다.")
     }

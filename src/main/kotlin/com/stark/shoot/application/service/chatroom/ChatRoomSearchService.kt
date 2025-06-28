@@ -3,9 +3,9 @@ package com.stark.shoot.application.service.chatroom
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.adapter.`in`.web.mapper.ChatRoomResponseMapper
 import com.stark.shoot.application.port.`in`.chatroom.ChatRoomSearchUseCase
+import com.stark.shoot.application.port.`in`.chatroom.command.SearchChatRoomsCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
-import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase
@@ -18,18 +18,15 @@ class ChatRoomSearchService(
     /**
      * 채팅방 검색
      *
-     * @param userId 사용자 ID
-     * @param query 검색어
-     * @param type 채팅방 타입
-     * @param unreadOnly 읽지 않은 메시지만
+     * @param command 채팅방 검색 커맨드
      * @return ChatRoomResponse 채팅방 목록
      */
-    override fun searchChatRooms(
-        userId: UserId,
-        query: String?,
-        type: String?,
-        unreadOnly: Boolean?
-    ): List<ChatRoomResponse> {
+    override fun searchChatRooms(command: SearchChatRoomsCommand): List<ChatRoomResponse> {
+        val userId = command.userId
+        val query = command.query
+        val type = command.type
+        val unreadOnly = command.unreadOnly
+
         // 사용자가 참여한 채팅방 목록을 조회
         val chatRooms = chatRoomQueryPort.findByParticipantId(userId)
 
@@ -44,5 +41,4 @@ class ChatRoomSearchService(
         // ChatRoomResponse로 변환하여 반환
         return chatRoomResponseMapper.toResponseList(filteredRooms, userId, titles, lastMessages, timestamps)
     }
-
 }

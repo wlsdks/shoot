@@ -2,7 +2,8 @@ package com.stark.shoot.adapter.`in`.web.social.friend
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.friend.command.CancelFriendRequestCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.PostMapping
@@ -23,10 +24,8 @@ class FriendRequestController(
         @RequestParam userId: Long,
         @RequestParam targetUserId: Long
     ): ResponseDto<Unit> {
-        friendRequestUseCase.sendFriendRequest(
-            UserId.from(userId),
-            UserId.from(targetUserId)
-        )
+        val command = SendFriendRequestCommand.of(userId, targetUserId)
+        friendRequestUseCase.sendFriendRequest(command)
 
         return ResponseDto.success(Unit, "친구 요청을 보냈습니다.")
     }
@@ -37,10 +36,8 @@ class FriendRequestController(
         @RequestParam userId: Long,
         @RequestParam targetUserId: Long
     ): ResponseDto<Unit> {
-        friendRequestUseCase.cancelFriendRequest(
-            UserId.from(userId),
-            UserId.from(targetUserId)
-        )
+        val command = CancelFriendRequestCommand.of(userId, targetUserId)
+        friendRequestUseCase.cancelFriendRequest(command)
 
         return ResponseDto.success(Unit, "친구 요청을 취소했습니다.")
     }

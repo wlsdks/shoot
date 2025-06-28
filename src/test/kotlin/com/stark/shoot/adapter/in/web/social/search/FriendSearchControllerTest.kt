@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.web.social.search
 
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FriendSearchUseCase
+import com.stark.shoot.application.port.`in`.user.friend.command.SearchFriendsCommand
 import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -20,13 +21,14 @@ class FriendSearchControllerTest {
         // given
         val userId = 1L
         val query = "친구"
-        
+
         val searchResults = listOf(
             createFriendResponse(2L, "friend1", "친구1", "http://example.com/profile1.jpg"),
             createFriendResponse(3L, "friend2", "친구2", "http://example.com/profile2.jpg")
         )
-        
-        `when`(friendSearchUseCase.searchPotentialFriends(UserId.from(userId), query))
+
+        val command = SearchFriendsCommand.of(userId, query)
+        `when`(friendSearchUseCase.searchPotentialFriends(command))
             .thenReturn(searchResults)
 
         // when
@@ -37,14 +39,14 @@ class FriendSearchControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).hasSize(2)
         assertThat(response.data).isEqualTo(searchResults)
-        
+
         // 첫 번째 검색 결과 검증
         assertThat(response.data?.get(0)?.id).isEqualTo(2L)
         assertThat(response.data?.get(0)?.username).isEqualTo("friend1")
         assertThat(response.data?.get(0)?.nickname).isEqualTo("친구1")
         assertThat(response.data?.get(0)?.profileImageUrl).isEqualTo("http://example.com/profile1.jpg")
-        
-        verify(friendSearchUseCase).searchPotentialFriends(UserId.from(userId), query)
+
+        verify(friendSearchUseCase).searchPotentialFriends(command)
     }
 
     @Test
@@ -53,8 +55,9 @@ class FriendSearchControllerTest {
         // given
         val userId = 1L
         val query = "존재하지 않는 친구"
-        
-        `when`(friendSearchUseCase.searchPotentialFriends(UserId.from(userId), query))
+
+        val command = SearchFriendsCommand.of(userId, query)
+        `when`(friendSearchUseCase.searchPotentialFriends(command))
             .thenReturn(emptyList())
 
         // when
@@ -64,8 +67,8 @@ class FriendSearchControllerTest {
         assertThat(response).isNotNull
         assertThat(response.success).isTrue()
         assertThat(response.data).isEmpty()
-        
-        verify(friendSearchUseCase).searchPotentialFriends(UserId.from(userId), query)
+
+        verify(friendSearchUseCase).searchPotentialFriends(command)
     }
 
     // 테스트용 FriendResponse 객체 생성 헬퍼 메서드

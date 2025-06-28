@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.web.socket.message.thread
 
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.`in`.message.thread.SendThreadMessageUseCase
+import com.stark.shoot.application.port.`in`.message.thread.command.SendThreadMessageCommand
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
@@ -16,7 +17,8 @@ class SendThreadMessageStompHandler(
     )
     @MessageMapping("/thread")
     fun handleSendThreadMessage(request: ChatMessageRequest) {
-        sendThreadMessageUseCase.sendThreadMessage(request)
+        val command = SendThreadMessageCommand.of(request)
+        sendThreadMessageUseCase.sendThreadMessage(command)
     }
 
 }

@@ -2,9 +2,8 @@ package com.stark.shoot.adapter.`in`.web.sse
 
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
-import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.message.mark.command.MarkAllMessagesAsReadCommand
+import com.stark.shoot.application.port.`in`.message.mark.command.MarkMessageAsReadCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
@@ -29,11 +28,8 @@ class MessageReadCountController(
         @RequestParam userId: Long,
         @RequestParam(required = false) requestId: String?
     ): ResponseDto<Unit> {
-        messageReadUseCase.markAllMessagesAsRead(
-            ChatRoomId.from(roomId),
-            UserId.from(userId),
-            requestId
-        )
+        val command = MarkAllMessagesAsReadCommand.of(roomId, userId, requestId)
+        messageReadUseCase.markAllMessagesAsRead(command)
 
         return ResponseDto.success(Unit, "모든 메시지가 읽음으로 처리되었습니다.")
     }
@@ -50,10 +46,8 @@ class MessageReadCountController(
         @PathVariable messageId: String,
         @RequestParam userId: Long
     ): ResponseDto<Unit> {
-        messageReadUseCase.markMessageAsRead(
-            MessageId.from(messageId),
-            UserId.from(userId)
-        )
+        val command = MarkMessageAsReadCommand.of(messageId, userId)
+        messageReadUseCase.markMessageAsRead(command)
 
         return ResponseDto.success(Unit, "메시지가 읽음으로 처리되었습니다.")
     }

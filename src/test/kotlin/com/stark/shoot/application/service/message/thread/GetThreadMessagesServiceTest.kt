@@ -1,6 +1,7 @@
 package com.stark.shoot.application.service.message.thread
 
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
+import com.stark.shoot.application.port.`in`.message.thread.command.GetThreadMessagesCommand
 import com.stark.shoot.application.port.out.message.thread.ThreadQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
@@ -49,7 +50,7 @@ class GetThreadMessagesServiceTest {
             `when`(threadQueryPort.findByThreadId(MessageId.from(threadId), 20)).thenReturn(listOf(message))
 
             // when
-            val result = getThreadMessagesService.getThreadMessages(MessageId.from(threadId), null, 20)
+            val result = getThreadMessagesService.getThreadMessages(GetThreadMessagesCommand(MessageId.from(threadId), null, 20))
 
             // then
             assertThat(result).hasSize(1)
@@ -64,7 +65,7 @@ class GetThreadMessagesServiceTest {
             val threadId = "5f9f1b9b9c9d1b9b9c9d1b9b"
             `when`(threadQueryPort.findByThreadId(MessageId.from(threadId), 20)).thenReturn(emptyList())
 
-            val result = getThreadMessagesService.getThreadMessages(MessageId.from(threadId), null, 20)
+            val result = getThreadMessagesService.getThreadMessages(GetThreadMessagesCommand(MessageId.from(threadId), null, 20))
 
             assertThat(result).isEmpty()
 

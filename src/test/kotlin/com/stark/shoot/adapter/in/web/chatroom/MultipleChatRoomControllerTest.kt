@@ -3,8 +3,8 @@ package com.stark.shoot.adapter.`in`.web.chatroom
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.InvitationRequest
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ManageParticipantRequest
 import com.stark.shoot.application.port.`in`.chatroom.ManageChatRoomUseCase
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.chatroom.command.AddParticipantCommand
+import com.stark.shoot.application.port.`in`.chatroom.command.RemoveParticipantCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -23,11 +23,9 @@ class MultipleChatRoomControllerTest {
         val roomId = 1L
         val userId = 2L
         val request = ManageParticipantRequest(userId)
+        val command = AddParticipantCommand.of(roomId, userId)
 
-        `when`(manageChatRoomUseCase.addParticipant(
-            ChatRoomId.from(roomId),
-            UserId.from(userId)
-        )).thenReturn(true)
+        `when`(manageChatRoomUseCase.addParticipant(command)).thenReturn(true)
 
         // when
         val response = controller.addParticipant(roomId, request)
@@ -38,10 +36,7 @@ class MultipleChatRoomControllerTest {
         assertThat(response.data).isTrue()
         assertThat(response.message).isEqualTo("참여자가 추가되었습니다.")
 
-        verify(manageChatRoomUseCase).addParticipant(
-            ChatRoomId.from(roomId),
-            UserId.from(userId)
-        )
+        verify(manageChatRoomUseCase).addParticipant(command)
     }
 
     @Test
@@ -51,11 +46,9 @@ class MultipleChatRoomControllerTest {
         val roomId = 1L
         val userId = 2L
         val request = ManageParticipantRequest(userId)
+        val command = RemoveParticipantCommand.of(roomId, userId)
 
-        `when`(manageChatRoomUseCase.removeParticipant(
-            ChatRoomId.from(roomId),
-            UserId.from(userId)
-        )).thenReturn(true)
+        `when`(manageChatRoomUseCase.removeParticipant(command)).thenReturn(true)
 
         // when
         val response = controller.removeParticipant(roomId, request)
@@ -66,10 +59,7 @@ class MultipleChatRoomControllerTest {
         assertThat(response.data).isTrue()
         assertThat(response.message).isEqualTo("참여자가 제거되었습니다.")
 
-        verify(manageChatRoomUseCase).removeParticipant(
-            ChatRoomId.from(roomId),
-            UserId.from(userId)
-        )
+        verify(manageChatRoomUseCase).removeParticipant(command)
     }
 
     @Test
@@ -79,11 +69,9 @@ class MultipleChatRoomControllerTest {
         val roomId = 1L
         val userId = 3L
         val request = InvitationRequest(userId)
+        val command = AddParticipantCommand.of(roomId, userId)
 
-        `when`(manageChatRoomUseCase.addParticipant(
-            ChatRoomId.from(roomId),
-            UserId.from(userId)
-        )).thenReturn(true)
+        `when`(manageChatRoomUseCase.addParticipant(command)).thenReturn(true)
 
         // when
         val response = controller.inviteParticipant(roomId, request)
@@ -94,10 +82,7 @@ class MultipleChatRoomControllerTest {
         assertThat(response.data).isTrue()
         assertThat(response.message).isEqualTo("사용자를 채팅방에 초대했습니다.")
 
-        verify(manageChatRoomUseCase).addParticipant(
-            ChatRoomId.from(roomId),
-            UserId.from(userId)
-        )
+        verify(manageChatRoomUseCase).addParticipant(command)
     }
 
     @Test
@@ -107,11 +92,9 @@ class MultipleChatRoomControllerTest {
         val roomId = 1L
         val userId = 4L
         val request = ManageParticipantRequest(userId)
+        val command = AddParticipantCommand.of(roomId, userId)
 
-        `when`(manageChatRoomUseCase.addParticipant(
-            ChatRoomId.from(roomId),
-            UserId.from(userId)
-        )).thenReturn(false)
+        `when`(manageChatRoomUseCase.addParticipant(command)).thenReturn(false)
 
         // when
         val response = controller.addParticipant(roomId, request)
@@ -122,9 +105,6 @@ class MultipleChatRoomControllerTest {
         assertThat(response.data).isFalse()
         assertThat(response.message).isEqualTo("참여자가 추가되었습니다.")
 
-        verify(manageChatRoomUseCase).addParticipant(
-            ChatRoomId.from(roomId),
-            UserId.from(userId)
-        )
+        verify(manageChatRoomUseCase).addParticipant(command)
     }
 }

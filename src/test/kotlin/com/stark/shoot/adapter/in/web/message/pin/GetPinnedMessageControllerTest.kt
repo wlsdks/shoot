@@ -1,8 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.message.pin
 
-import com.stark.shoot.adapter.`in`.web.dto.message.pin.PinnedMessageItem
-import com.stark.shoot.adapter.`in`.web.dto.message.pin.PinnedMessagesResponse
 import com.stark.shoot.application.port.`in`.message.pin.GetPinnedMessageUseCase
+import com.stark.shoot.application.port.`in`.message.pin.command.GetPinnedMessagesCommand
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
@@ -28,7 +27,7 @@ class GetPinnedMessageControllerTest {
         // given
         val roomId = 1L
         val now = Instant.now()
-        
+
         val pinnedMessages = listOf(
             createChatMessage(
                 messageId = "message123",
@@ -49,9 +48,9 @@ class GetPinnedMessageControllerTest {
                 pinnedAt = now
             )
         )
-        
-        `when`(getPinnedMessageUseCase.getPinnedMessages(ChatRoomId.from(roomId)))
-            .thenReturn(pinnedMessages)
+
+        val command = GetPinnedMessagesCommand.of(roomId)
+        doReturn(pinnedMessages).`when`(getPinnedMessageUseCase).getPinnedMessages(command)
 
         // when
         val response = controller.getPinnedMessages(roomId)
@@ -69,8 +68,8 @@ class GetPinnedMessageControllerTest {
         assertThat(response.data?.pinnedMessages?.get(1)?.content).isEqualTo("두 번째 고정 메시지")
         assertThat(response.data?.pinnedMessages?.get(1)?.senderId).isEqualTo(4L)
         assertThat(response.data?.pinnedMessages?.get(1)?.pinnedBy).isEqualTo(5L)
-        
-        verify(getPinnedMessageUseCase).getPinnedMessages(ChatRoomId.from(roomId))
+
+        verify(getPinnedMessageUseCase).getPinnedMessages(command)
     }
 
     @Test
@@ -78,9 +77,9 @@ class GetPinnedMessageControllerTest {
     fun `고정된 메시지가 없는 경우 빈 목록을 반환한다`() {
         // given
         val roomId = 1L
-        
-        `when`(getPinnedMessageUseCase.getPinnedMessages(ChatRoomId.from(roomId)))
-            .thenReturn(emptyList())
+
+        val command = GetPinnedMessagesCommand.of(roomId)
+        doReturn(emptyList<Any>()).`when`(getPinnedMessageUseCase).getPinnedMessages(command)
 
         // when
         val response = controller.getPinnedMessages(roomId)
@@ -90,8 +89,8 @@ class GetPinnedMessageControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data?.roomId).isEqualTo(roomId)
         assertThat(response.data?.pinnedMessages).isEmpty()
-        
-        verify(getPinnedMessageUseCase).getPinnedMessages(ChatRoomId.from(roomId))
+
+        verify(getPinnedMessageUseCase).getPinnedMessages(command)
     }
 
     // 테스트용 ChatMessage 객체 생성 헬퍼 메서드

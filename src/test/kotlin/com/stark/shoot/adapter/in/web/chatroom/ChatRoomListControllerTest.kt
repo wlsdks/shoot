@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.`in`.web.chatroom
 
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.chatroom.command.GetChatRoomsCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -47,7 +47,7 @@ class ChatRoomListControllerTest {
             )
         )
 
-        `when`(findChatRoomUseCase.getChatRoomsForUser(UserId.from(userId)))
+        `when`(findChatRoomUseCase.getChatRoomsForUser(GetChatRoomsCommand.of(userId)))
             .thenReturn(chatRooms)
 
         // when
@@ -58,14 +58,14 @@ class ChatRoomListControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).hasSize(3)
         assertThat(response.data).isEqualTo(chatRooms)
-        
+
         // 첫 번째 채팅방 검증
         assertThat(response.data?.get(0)?.roomId).isEqualTo(1L)
         assertThat(response.data?.get(0)?.title).isEqualTo("첫 번째 채팅방")
         assertThat(response.data?.get(0)?.lastMessage).isEqualTo("안녕하세요")
         assertThat(response.data?.get(0)?.unreadMessages).isEqualTo(2)
         assertThat(response.data?.get(0)?.isPinned).isTrue()
-        
+
         // 두 번째 채팅방 검증
         assertThat(response.data?.get(1)?.roomId).isEqualTo(2L)
         assertThat(response.data?.get(1)?.title).isEqualTo("두 번째 채팅방")
@@ -73,7 +73,7 @@ class ChatRoomListControllerTest {
         assertThat(response.data?.get(1)?.unreadMessages).isEqualTo(0)
         assertThat(response.data?.get(1)?.isPinned).isFalse()
 
-        verify(findChatRoomUseCase).getChatRoomsForUser(UserId.from(userId))
+        verify(findChatRoomUseCase).getChatRoomsForUser(GetChatRoomsCommand.of(userId))
     }
 
     @Test
@@ -82,7 +82,7 @@ class ChatRoomListControllerTest {
         // given
         val userId = 1L
 
-        `when`(findChatRoomUseCase.getChatRoomsForUser(UserId.from(userId)))
+        `when`(findChatRoomUseCase.getChatRoomsForUser(GetChatRoomsCommand.of(userId)))
             .thenReturn(emptyList())
 
         // when
@@ -93,7 +93,7 @@ class ChatRoomListControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isEmpty()
 
-        verify(findChatRoomUseCase).getChatRoomsForUser(UserId.from(userId))
+        verify(findChatRoomUseCase).getChatRoomsForUser(GetChatRoomsCommand.of(userId))
     }
 
     // 테스트용 ChatRoomResponse 객체 생성 헬퍼 메서드

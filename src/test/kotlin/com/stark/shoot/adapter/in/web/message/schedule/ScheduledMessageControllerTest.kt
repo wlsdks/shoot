@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageMetadataResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageResponseDto
 import com.stark.shoot.application.port.`in`.message.schedule.ScheduledMessageUseCase
+import com.stark.shoot.application.port.`in`.message.schedule.command.*
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.type.ScheduledMessageStatus
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
@@ -44,12 +45,8 @@ class ScheduledMessageControllerTest {
             scheduledAt = scheduledInstant
         )
 
-        `when`(scheduledMessageUseCase.scheduleMessage(
-            roomId = ChatRoomId.from(roomId),
-            senderId = UserId.from(userId),
-            content = content,
-            scheduledAt = scheduledInstant
-        )).thenReturn(responseDto)
+        val command = ScheduleMessageCommand.of(roomId, userId, content, scheduledInstant)
+        `when`(scheduledMessageUseCase.scheduleMessage(command)).thenReturn(responseDto)
 
         // when
         val response = controller.scheduleMessage(roomId, content, scheduledAt, authentication)
@@ -59,13 +56,8 @@ class ScheduledMessageControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isEqualTo(responseDto)
         assertThat(response.message).isEqualTo("메시지가 예약되었습니다.")
-
-        verify(scheduledMessageUseCase).scheduleMessage(
-            roomId = ChatRoomId.from(roomId),
-            senderId = UserId.from(userId),
-            content = content,
-            scheduledAt = scheduledInstant
-        )
+        
+        verify(scheduledMessageUseCase).scheduleMessage(command)
     }
 
     @Test
@@ -86,10 +78,8 @@ class ScheduledMessageControllerTest {
             status = ScheduledMessageStatus.CANCELED
         )
 
-        `when`(scheduledMessageUseCase.cancelScheduledMessage(
-            scheduledMessageId = scheduledMessageId,
-            userId = UserId.from(userId)
-        )).thenReturn(responseDto)
+        val command = CancelScheduledMessageCommand.of(scheduledMessageId, userId)
+        `when`(scheduledMessageUseCase.cancelScheduledMessage(command)).thenReturn(responseDto)
 
         // when
         val response = controller.cancelScheduledMessage(scheduledMessageId, authentication)
@@ -99,11 +89,8 @@ class ScheduledMessageControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isEqualTo(responseDto)
         assertThat(response.message).isEqualTo("메시지 예약이 취소되었습니다.")
-
-        verify(scheduledMessageUseCase).cancelScheduledMessage(
-            scheduledMessageId = scheduledMessageId,
-            userId = UserId.from(userId)
-        )
+        
+        verify(scheduledMessageUseCase).cancelScheduledMessage(command)
     }
 
     @Test
@@ -126,12 +113,8 @@ class ScheduledMessageControllerTest {
             scheduledAt = newScheduledInstant
         )
 
-        `when`(scheduledMessageUseCase.updateScheduledMessage(
-            scheduledMessageId = scheduledMessageId,
-            userId = userId,
-            newContent = newContent,
-            newScheduledAt = newScheduledInstant
-        )).thenReturn(responseDto)
+        val command = UpdateScheduledMessageCommand.of(scheduledMessageId, userId, newContent, newScheduledInstant)
+        `when`(scheduledMessageUseCase.updateScheduledMessage(command)).thenReturn(responseDto)
 
         // when
         val response = controller.updateScheduledMessage(scheduledMessageId, newContent, newScheduledAt, authentication)
@@ -141,13 +124,8 @@ class ScheduledMessageControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isEqualTo(responseDto)
         assertThat(response.message).isEqualTo("메시지 예약이 수정되었습니다.")
-
-        verify(scheduledMessageUseCase).updateScheduledMessage(
-            scheduledMessageId = scheduledMessageId,
-            userId = userId,
-            newContent = newContent,
-            newScheduledAt = newScheduledInstant
-        )
+        
+        verify(scheduledMessageUseCase).updateScheduledMessage(command)
     }
 
     @Test
@@ -176,10 +154,8 @@ class ScheduledMessageControllerTest {
             )
         )
 
-        `when`(scheduledMessageUseCase.getScheduledMessagesByUser(
-            userId = userId,
-            roomId = roomId
-        )).thenReturn(responseDtos)
+        val command = GetScheduledMessagesCommand.of(userId, roomId)
+        `when`(scheduledMessageUseCase.getScheduledMessagesByUser(command)).thenReturn(responseDtos)
 
         // when
         val response = controller.getScheduledMessages(roomId, authentication)
@@ -189,11 +165,8 @@ class ScheduledMessageControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).hasSize(2)
         assertThat(response.data).isEqualTo(responseDtos)
-
-        verify(scheduledMessageUseCase).getScheduledMessagesByUser(
-            userId = userId,
-            roomId = roomId
-        )
+        
+        verify(scheduledMessageUseCase).getScheduledMessagesByUser(command)
     }
 
     @Test
@@ -214,10 +187,8 @@ class ScheduledMessageControllerTest {
             status = ScheduledMessageStatus.SENT
         )
 
-        `when`(scheduledMessageUseCase.sendScheduledMessageNow(
-            scheduledMessageId = scheduledMessageId,
-            userId = userId
-        )).thenReturn(responseDto)
+        val command = SendScheduledMessageNowCommand.of(scheduledMessageId, userId)
+        `when`(scheduledMessageUseCase.sendScheduledMessageNow(command)).thenReturn(responseDto)
 
         // when
         val response = controller.sendScheduledMessageNow(scheduledMessageId, authentication)
@@ -227,11 +198,8 @@ class ScheduledMessageControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isEqualTo(responseDto)
         assertThat(response.message).isEqualTo("메시지가 즉시 전송되었습니다.")
-
-        verify(scheduledMessageUseCase).sendScheduledMessageNow(
-            scheduledMessageId = scheduledMessageId,
-            userId = userId
-        )
+        
+        verify(scheduledMessageUseCase).sendScheduledMessageNow(command)
     }
 
     // 테스트용 ScheduledMessageResponseDto 객체 생성 헬퍼 메서드

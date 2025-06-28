@@ -3,8 +3,7 @@ package com.stark.shoot.adapter.`in`.web.chatroom
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.UpdateChatRoomFavoriteUseCase
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.chatroom.command.UpdateFavoriteStatusCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.PostMapping
@@ -29,11 +28,8 @@ class ChatRoomFavoriteController(
         @RequestParam userId: Long,
         @RequestParam isFavorite: Boolean
     ): ResponseDto<ChatRoomResponse> {
-        val updatedRoom = updateFavoriteUseCase.updateFavoriteStatus(
-            ChatRoomId.from(roomId),
-            UserId.from(userId),
-            isFavorite
-        )
+        val command = UpdateFavoriteStatusCommand.of(roomId, userId, isFavorite)
+        val updatedRoom = updateFavoriteUseCase.updateFavoriteStatus(command)
 
         val message = if (isFavorite) "채팅방이 즐겨찾기에 추가되었습니다." else "채팅방이 즐겨찾기에서 제거되었습니다."
         return ResponseDto.success(updatedRoom, message)

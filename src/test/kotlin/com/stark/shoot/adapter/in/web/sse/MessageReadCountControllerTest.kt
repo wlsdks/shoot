@@ -1,13 +1,16 @@
 package com.stark.shoot.adapter.`in`.web.sse
 
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
+import com.stark.shoot.application.port.`in`.message.mark.command.MarkAllMessagesAsReadCommand
+import com.stark.shoot.application.port.`in`.message.mark.command.MarkMessageAsReadCommand
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 @DisplayName("MessageReadCountController 단위 테스트")
 class MessageReadCountControllerTest {
@@ -30,12 +33,9 @@ class MessageReadCountControllerTest {
         assertThat(response).isNotNull
         assertThat(response.success).isTrue()
         assertThat(response.message).isEqualTo("모든 메시지가 읽음으로 처리되었습니다.")
-        
-        verify(messageReadUseCase).markAllMessagesAsRead(
-            ChatRoomId.from(roomId),
-            UserId.from(userId),
-            requestId
-        )
+
+        val command = MarkAllMessagesAsReadCommand.of(roomId, userId, requestId)
+        verify(messageReadUseCase).markAllMessagesAsRead(command)
     }
 
     @Test
@@ -52,12 +52,9 @@ class MessageReadCountControllerTest {
         assertThat(response).isNotNull
         assertThat(response.success).isTrue()
         assertThat(response.message).isEqualTo("모든 메시지가 읽음으로 처리되었습니다.")
-        
-        verify(messageReadUseCase).markAllMessagesAsRead(
-            ChatRoomId.from(roomId),
-            UserId.from(userId),
-            null
-        )
+
+        val command = MarkAllMessagesAsReadCommand.of(roomId, userId, null)
+        verify(messageReadUseCase).markAllMessagesAsRead(command)
     }
 
     @Test
@@ -74,10 +71,8 @@ class MessageReadCountControllerTest {
         assertThat(response).isNotNull
         assertThat(response.success).isTrue()
         assertThat(response.message).isEqualTo("메시지가 읽음으로 처리되었습니다.")
-        
-        verify(messageReadUseCase).markMessageAsRead(
-            MessageId.from(messageId),
-            UserId.from(userId)
-        )
+
+        val command = MarkMessageAsReadCommand.of(messageId, userId)
+        verify(messageReadUseCase).markMessageAsRead(command)
     }
 }

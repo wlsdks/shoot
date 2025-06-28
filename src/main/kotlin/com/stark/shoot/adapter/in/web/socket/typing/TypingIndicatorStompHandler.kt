@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.web.socket.typing
 
 import com.stark.shoot.adapter.`in`.web.socket.dto.TypingIndicatorMessage
 import com.stark.shoot.application.port.`in`.message.TypingIndicatorMessageUseCase
+import com.stark.shoot.application.port.`in`.message.command.TypingIndicatorCommand
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
@@ -20,7 +21,8 @@ class TypingIndicatorStompHandler(
     )
     @MessageMapping("/typing")
     fun handleTypingIndicator(message: TypingIndicatorMessage) {
-        typingIndicatorMessageUseCase.sendMessage(message)
+        val command = TypingIndicatorCommand.of(message)
+        typingIndicatorMessageUseCase.sendMessage(command)
     }
 
 }

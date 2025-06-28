@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.event.listener.sse
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
+import com.stark.shoot.application.port.`in`.chatroom.command.SendFriendAddedEventCommand
 import com.stark.shoot.domain.event.FriendAddedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
@@ -12,7 +13,8 @@ class FriendAddedEventListener(
 
     @EventListener
     fun handleFriendAddedEvent(event: FriendAddedEvent) {
-        sseEmitterUseCase.sendFriendAddedEvent(event)
+        val command = SendFriendAddedEventCommand.of(event)
+        sseEmitterUseCase.sendFriendAddedEvent(command)
     }
 
 }

@@ -5,7 +5,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.FriendGroupResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.group.FindFriendGroupUseCase
 import com.stark.shoot.application.port.`in`.user.group.ManageFriendGroupUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.group.command.*
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
@@ -25,7 +25,8 @@ class FriendGroupController(
         @RequestParam name: String,
         @RequestParam(required = false) description: String?
     ): ResponseDto<FriendGroupResponse> {
-        val group = manageUseCase.createGroup(UserId.from(ownerId), name, description)
+        val command = CreateGroupCommand.of(ownerId, name, description)
+        val group = manageUseCase.createGroup(command)
         return ResponseDto.success(group.toResponse())
     }
 
@@ -35,7 +36,8 @@ class FriendGroupController(
         @PathVariable groupId: Long,
         @RequestParam name: String
     ): ResponseDto<FriendGroupResponse> {
-        val group = manageUseCase.renameGroup(groupId, name)
+        val command = RenameGroupCommand.of(groupId, name)
+        val group = manageUseCase.renameGroup(command)
         return ResponseDto.success(group.toResponse())
     }
 
@@ -45,7 +47,8 @@ class FriendGroupController(
         @PathVariable groupId: Long,
         @RequestParam description: String?
     ): ResponseDto<FriendGroupResponse> {
-        val group = manageUseCase.updateDescription(groupId, description)
+        val command = UpdateDescriptionCommand.of(groupId, description)
+        val group = manageUseCase.updateDescription(command)
         return ResponseDto.success(group.toResponse())
     }
 
@@ -55,7 +58,8 @@ class FriendGroupController(
         @PathVariable groupId: Long,
         @PathVariable memberId: Long
     ): ResponseDto<FriendGroupResponse> {
-        val group = manageUseCase.addMember(groupId, UserId.from(memberId))
+        val command = AddMemberCommand.of(groupId, memberId)
+        val group = manageUseCase.addMember(command)
         return ResponseDto.success(group.toResponse())
     }
 
@@ -65,28 +69,32 @@ class FriendGroupController(
         @PathVariable groupId: Long,
         @PathVariable memberId: Long
     ): ResponseDto<FriendGroupResponse> {
-        val group = manageUseCase.removeMember(groupId, UserId.from(memberId))
+        val command = RemoveMemberCommand.of(groupId, memberId)
+        val group = manageUseCase.removeMember(command)
         return ResponseDto.success(group.toResponse())
     }
 
     @Operation(summary = "그룹 삭제")
     @DeleteMapping("/{groupId}")
     fun deleteGroup(@PathVariable groupId: Long): ResponseDto<Unit> {
-        manageUseCase.deleteGroup(groupId)
+        val command = DeleteGroupCommand.of(groupId)
+        manageUseCase.deleteGroup(command)
         return ResponseDto.success(Unit)
     }
 
     @Operation(summary = "그룹 단건 조회")
     @GetMapping("/{groupId}")
     fun getGroup(@PathVariable groupId: Long): ResponseDto<FriendGroupResponse?> {
-        val group = findUseCase.getGroup(groupId)?.toResponse()
+        val command = GetGroupCommand.of(groupId)
+        val group = findUseCase.getGroup(command)?.toResponse()
         return ResponseDto.success(group)
     }
 
     @Operation(summary = "내 그룹 목록")
     @GetMapping
     fun getGroups(@RequestParam ownerId: Long): ResponseDto<List<FriendGroupResponse>> {
-        val groups = findUseCase.getGroups(UserId.from(ownerId))
+        val command = GetGroupsCommand.of(ownerId)
+        val groups = findUseCase.getGroups(command)
             .map { it.toResponse() }
 
         return ResponseDto.success(groups)

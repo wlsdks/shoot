@@ -3,8 +3,8 @@ package com.stark.shoot.adapter.`in`.web.message.pin
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.pin.PinResponse
 import com.stark.shoot.application.port.`in`.message.pin.MessagePinUseCase
-import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.message.pin.command.PinMessageCommand
+import com.stark.shoot.application.port.`in`.message.pin.command.UnpinMessageCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.Authentication
@@ -26,12 +26,8 @@ class MessagePinController(
         @PathVariable messageId: String,
         authentication: Authentication
     ): ResponseDto<PinResponse> {
-        val userId = authentication.name.toLong()
-
-        val updatedMessage = messagePinUseCase.pinMessage(
-            MessageId.from(messageId),
-            UserId.from(userId)
-        )
+        val command = PinMessageCommand.of(messageId, authentication)
+        val updatedMessage = messagePinUseCase.pinMessage(command)
 
         return ResponseDto.success(PinResponse.from(updatedMessage), "메시지가 고정되었습니다.")
     }
@@ -45,12 +41,8 @@ class MessagePinController(
         @PathVariable messageId: String,
         authentication: Authentication
     ): ResponseDto<PinResponse> {
-        val userId = authentication.name.toLong()
-
-        val updatedMessage = messagePinUseCase.unpinMessage(
-            MessageId.from(messageId),
-            UserId.from(userId)
-        )
+        val command = UnpinMessageCommand.of(messageId, authentication)
+        val updatedMessage = messagePinUseCase.unpinMessage(command)
 
         return ResponseDto.success(PinResponse.from(updatedMessage), "메시지 고정이 해제되었습니다.")
     }

@@ -6,6 +6,7 @@ import com.stark.shoot.adapter.`in`.web.socket.dto.SyncResponseDto
 import com.stark.shoot.adapter.`in`.web.socket.mapper.MessageSyncMapper
 import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
+import com.stark.shoot.application.port.`in`.message.command.GetPaginationMessageCommand
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.message.thread.ThreadQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -41,11 +42,12 @@ class PaginationMessageSyncService(
     /**
      * 웹소켓을 통해 메시지(이전, 이후)를 페이징해서 조회한다.
      *
-     * @param request SyncRequestDto 객체
+     * @param command GetPaginationMessageCommand 객체
      */
     override fun getChatMessagesFlow(
-        request: SyncRequestDto
+        command: GetPaginationMessageCommand
     ): Flow<MessageSyncInfoDto> = flow {
+        val request = command.request
         val messageFlow = getMessageFlowByDirection(request)
 
         // 메시지를 DTOs로 변환

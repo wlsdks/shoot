@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.web.sse
 
 import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.chatroom.command.CreateEmitterCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -20,8 +20,9 @@ class ChatUnreadCountControllerTest {
         // given
         val userId = 1L
         val mockEmitter = mock(SseEmitter::class.java)
-        
-        `when`(sseEmitterUseCase.createEmitter(UserId.from(userId)))
+
+        val command = CreateEmitterCommand.of(userId)
+        `when`(sseEmitterUseCase.createEmitter(command))
             .thenReturn(mockEmitter)
 
         // when
@@ -30,7 +31,7 @@ class ChatUnreadCountControllerTest {
         // then
         assertThat(result).isNotNull
         assertThat(result).isEqualTo(mockEmitter)
-        
-        verify(sseEmitterUseCase).createEmitter(UserId.from(userId))
+
+        verify(sseEmitterUseCase).createEmitter(command)
     }
 }

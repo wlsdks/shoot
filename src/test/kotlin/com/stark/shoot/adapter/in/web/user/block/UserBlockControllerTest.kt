@@ -1,7 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.user.block
 
 import com.stark.shoot.application.port.`in`.user.block.UserBlockUseCase
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.block.command.BlockUserCommand
+import com.stark.shoot.application.port.`in`.user.block.command.UnblockUserCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -21,7 +22,7 @@ class UserBlockControllerTest {
         // given
         val userId = 1L
         val targetId = 2L
-        
+
         `when`(authentication.name).thenReturn(userId.toString())
 
         // when
@@ -32,9 +33,10 @@ class UserBlockControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isTrue()
         assertThat(response.message).isEqualTo("사용자를 차단했습니다.")
-        
+
         verify(authentication).name
-        verify(userBlockUseCase).blockUser(UserId.from(userId), UserId.from(targetId))
+        val command = BlockUserCommand.of(userId, targetId)
+        verify(userBlockUseCase).blockUser(command)
     }
 
     @Test
@@ -43,7 +45,7 @@ class UserBlockControllerTest {
         // given
         val userId = 1L
         val targetId = 2L
-        
+
         `when`(authentication.name).thenReturn(userId.toString())
 
         // when
@@ -54,8 +56,9 @@ class UserBlockControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isTrue()
         assertThat(response.message).isEqualTo("차단을 해제했습니다.")
-        
+
         verify(authentication).name
-        verify(userBlockUseCase).unblockUser(UserId.from(userId), UserId.from(targetId))
+        val command = UnblockUserCommand.of(userId, targetId)
+        verify(userBlockUseCase).unblockUser(command)
     }
 }

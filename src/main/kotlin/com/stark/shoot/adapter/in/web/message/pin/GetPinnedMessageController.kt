@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.`in`.web.message.pin
 import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.pin.PinnedMessagesResponse
 import com.stark.shoot.application.port.`in`.message.pin.GetPinnedMessageUseCase
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.application.port.`in`.message.pin.command.GetPinnedMessagesCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -26,7 +26,8 @@ class GetPinnedMessageController(
     fun getPinnedMessages(
         @RequestParam roomId: Long
     ): ResponseDto<PinnedMessagesResponse> {
-        val pinnedMessages = getPinnedMessageUseCase.getPinnedMessages(ChatRoomId.from(roomId))
+        val command = GetPinnedMessagesCommand.of(roomId)
+        val pinnedMessages = getPinnedMessageUseCase.getPinnedMessages(command)
         return ResponseDto.success(PinnedMessagesResponse.from(roomId, pinnedMessages))
     }
 

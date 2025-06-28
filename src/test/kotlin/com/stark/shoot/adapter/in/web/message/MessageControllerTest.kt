@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.`in`.web.message
 
-import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.DeleteMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.EditMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
@@ -8,6 +7,8 @@ import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.DeleteMessageUseCase
 import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
+import com.stark.shoot.application.port.`in`.message.command.DeleteMessageCommand
+import com.stark.shoot.application.port.`in`.message.command.EditMessageCommand
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
@@ -36,11 +37,12 @@ class MessageControllerTest {
         val messageId = "message123"
         val newContent = "수정된 메시지 내용"
         val request = EditMessageRequest(messageId, newContent)
-        
+        val command = EditMessageCommand.of(messageId, newContent)
+
         val updatedMessage = createChatMessage(messageId, newContent, true)
         val responseDto = createMessageResponseDto(messageId, newContent, true)
-        
-        `when`(editMessageUseCase.editMessage(MessageId.from(messageId), newContent)).thenReturn(updatedMessage)
+
+        `when`(editMessageUseCase.editMessage(command)).thenReturn(updatedMessage)
         `when`(chatMessageMapper.toDto(updatedMessage)).thenReturn(responseDto)
 
         // when
@@ -51,8 +53,8 @@ class MessageControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isEqualTo(responseDto)
         assertThat(response.message).isEqualTo("메시지가 수정되었습니다.")
-        
-        verify(editMessageUseCase).editMessage(MessageId.from(messageId), newContent)
+
+        verify(editMessageUseCase).editMessage(command)
         verify(chatMessageMapper).toDto(updatedMessage)
     }
 
@@ -62,11 +64,12 @@ class MessageControllerTest {
         // given
         val messageId = "message123"
         val request = DeleteMessageRequest(messageId)
-        
+        val command = DeleteMessageCommand.of(messageId)
+
         val deletedMessage = createChatMessage(messageId, "원본 메시지", false, true)
         val responseDto = createMessageResponseDto(messageId, "원본 메시지", false, true)
-        
-        `when`(deleteMessageUseCase.deleteMessage(MessageId.from(messageId))).thenReturn(deletedMessage)
+
+        `when`(deleteMessageUseCase.deleteMessage(command)).thenReturn(deletedMessage)
         `when`(chatMessageMapper.toDto(deletedMessage)).thenReturn(responseDto)
 
         // when
@@ -77,8 +80,8 @@ class MessageControllerTest {
         assertThat(response.success).isTrue()
         assertThat(response.data).isEqualTo(responseDto)
         assertThat(response.message).isEqualTo("메시지가 삭제되었습니다.")
-        
-        verify(deleteMessageUseCase).deleteMessage(MessageId.from(messageId))
+
+        verify(deleteMessageUseCase).deleteMessage(command)
         verify(chatMessageMapper).toDto(deletedMessage)
     }
 

@@ -3,9 +3,8 @@ package com.stark.shoot.application.service.message.thread
 import com.stark.shoot.adapter.`in`.web.dto.message.thread.ThreadSummaryDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.thread.GetThreadsUseCase
+import com.stark.shoot.application.port.`in`.message.thread.command.GetThreadsCommand
 import com.stark.shoot.application.port.out.message.thread.ThreadQueryPort
-import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase
@@ -15,10 +14,12 @@ class GetThreadsService(
 ) : GetThreadsUseCase {
 
     override fun getThreads(
-        roomId: ChatRoomId,
-        lastThreadId: MessageId?,
-        limit: Int
+        command: GetThreadsCommand
     ): List<ThreadSummaryDto> {
+        val roomId = command.roomId
+        val lastThreadId = command.lastThreadId
+        val limit = command.limit
+
         val rootMessages = if (lastThreadId != null) {
             threadQueryPort.findThreadRootsByRoomIdAndBeforeId(roomId, lastThreadId, limit)
         } else {

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
+import com.stark.shoot.application.port.`in`.user.friend.command.GetRecommendedFriendsCommand
 import com.stark.shoot.application.port.out.user.FindUserPort
 import com.stark.shoot.application.port.out.user.friend.RecommendFriendPort
 import com.stark.shoot.domain.user.User
@@ -57,16 +58,15 @@ class RecommendFriendService(
      * - 캐싱 적용
      * - 페이징 지원
      *
-     * @param userId 사용자 ID
-     * @param skip 건너뛸 항목 수
-     * @param limit 조회할 항목 수
+     * @param command 친구 추천 조회 커맨드
      * @return 추천 친구 목록
      */
     override fun getRecommendedFriends(
-        userId: UserId,
-        skip: Int,
-        limit: Int
+        command: GetRecommendedFriendsCommand
     ): List<FriendResponse> {
+        val userId = command.userId
+        val skip = command.skip
+        val limit = command.limit
         // 캐시 키 생성
         val cacheKey = getCacheKey(userId, limit)
 

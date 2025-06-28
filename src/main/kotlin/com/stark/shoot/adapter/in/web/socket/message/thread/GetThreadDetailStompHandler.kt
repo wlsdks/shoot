@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.`in`.web.socket.message.thread
 
 import com.stark.shoot.adapter.`in`.web.socket.dto.ThreadDetailRequestDto
 import com.stark.shoot.application.port.`in`.message.thread.GetThreadDetailUseCase
-import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.application.port.`in`.message.thread.command.GetThreadDetailCommand
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
@@ -20,11 +20,8 @@ class GetThreadDetailStompHandler(
     )
     @MessageMapping("/thread/detail")
     fun handleGetThreadDetail(request: ThreadDetailRequestDto) {
-        val detail = getThreadDetailUseCase.getThreadDetail(
-            MessageId.from(request.threadId),
-            MessageId.from(request.lastMessageId ?: ""),
-            request.limit
-        )
+        val command = GetThreadDetailCommand.of(request)
+        val detail = getThreadDetailUseCase.getThreadDetail(command)
 
         messagingTemplate.convertAndSendToUser(request.userId.toString(), "/queue/thread/detail", detail)
     }

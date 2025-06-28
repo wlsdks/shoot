@@ -2,6 +2,8 @@ package com.stark.shoot.application.service.message.mark
 
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
+import com.stark.shoot.application.port.`in`.message.mark.command.MarkAllMessagesAsReadCommand
+import com.stark.shoot.application.port.`in`.message.mark.command.MarkMessageAsReadCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.event.EventPublisher
@@ -45,13 +47,11 @@ class MessageReadService(
     /**
      * 단일 메시지를 읽음 상태로 표시합니다.
      *
-     * @param messageId 메시지 ID
-     * @param userId 사용자 ID
+     * @param command 메시지 읽음 처리 커맨드
      */
-    override fun markMessageAsRead(
-        messageId: MessageId,
-        userId: UserId
-    ) {
+    override fun markMessageAsRead(command: MarkMessageAsReadCommand) {
+        val messageId = command.messageId
+        val userId = command.userId
         // 1. 메시지 조회
         val chatMessage = findMessageOrThrow(messageId)
 
@@ -71,15 +71,12 @@ class MessageReadService(
     /**
      * 채팅방의 모든 메시지를 읽음 상태로 표시합니다.
      *
-     * @param roomId 채팅방 ID
-     * @param userId 사용자 ID
-     * @param requestId 프론트에서 생성한 요청 ID (중복 요청 방지용)
+     * @param command 모든 메시지 읽음 처리 커맨드
      */
-    override fun markAllMessagesAsRead(
-        roomId: ChatRoomId,
-        userId: UserId,
-        requestId: String?
-    ) {
+    override fun markAllMessagesAsRead(command: MarkAllMessagesAsReadCommand) {
+        val roomId = command.roomId
+        val userId = command.userId
+        val requestId = command.requestId
         // 1. 중복 요청 체크
         if (isDuplicateRequest(roomId, userId, requestId)) {
             return
@@ -471,4 +468,5 @@ class MessageReadService(
             }
         }
     }
+
 }

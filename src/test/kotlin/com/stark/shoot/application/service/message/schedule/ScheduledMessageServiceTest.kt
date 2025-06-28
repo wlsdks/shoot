@@ -6,6 +6,11 @@ import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageMetadataResponseDto
 import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ScheduledMessageMapper
+import com.stark.shoot.application.port.`in`.message.schedule.command.CancelScheduledMessageCommand
+import com.stark.shoot.application.port.`in`.message.schedule.command.GetScheduledMessagesCommand
+import com.stark.shoot.application.port.`in`.message.schedule.command.ScheduleMessageCommand
+import com.stark.shoot.application.port.`in`.message.schedule.command.SendScheduledMessageNowCommand
+import com.stark.shoot.application.port.`in`.message.schedule.command.UpdateScheduledMessageCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.message.ScheduledMessagePort
 import com.stark.shoot.domain.chat.message.ScheduledMessage
@@ -53,7 +58,7 @@ class ScheduledMessageServiceTest {
 
         // when & then
         val exception = assertThrows<ApiException> {
-            sut.scheduleMessage(roomId, senderId, content, scheduledAt)
+            sut.scheduleMessage(ScheduleMessageCommand(roomId, senderId, content, scheduledAt))
         }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.ROOM_NOT_FOUND)
@@ -84,7 +89,7 @@ class ScheduledMessageServiceTest {
 
         // when & then
         val exception = assertThrows<ApiException> {
-            sut.scheduleMessage(roomId, senderId, content, scheduledAt)
+            sut.scheduleMessage(ScheduleMessageCommand(roomId, senderId, content, scheduledAt))
         }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.USER_NOT_IN_ROOM)
@@ -115,7 +120,7 @@ class ScheduledMessageServiceTest {
 
         // when & then
         val exception = assertThrows<ApiException> {
-            sut.scheduleMessage(roomId, senderId, content, scheduledAt)
+            sut.scheduleMessage(ScheduleMessageCommand(roomId, senderId, content, scheduledAt))
         }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.INVALID_SCHEDULED_TIME)
@@ -192,7 +197,7 @@ class ScheduledMessageServiceTest {
         )
 
         // when
-        val result = testService.scheduleMessage(roomId, senderId, content, scheduledAt)
+        val result = testService.scheduleMessage(ScheduleMessageCommand(roomId, senderId, content, scheduledAt))
 
         // then
         // Verify the result is not null and has the expected properties
@@ -286,7 +291,7 @@ class ScheduledMessageServiceTest {
         )
 
         // when
-        val result = testService.cancelScheduledMessage(messageIdStr, userId)
+        val result = testService.cancelScheduledMessage(CancelScheduledMessageCommand(messageIdStr, userId))
 
         // then
         // Verify the result is not null and has the expected properties
@@ -380,7 +385,7 @@ class ScheduledMessageServiceTest {
         )
 
         // when
-        val result = testService.updateScheduledMessage(messageId, userIdLong, newContent, newScheduledAt)
+        val result = testService.updateScheduledMessage(UpdateScheduledMessageCommand(messageId, UserId.from(userIdLong), newContent, newScheduledAt))
 
         // then
         // Verify the result is not null and has the expected properties
@@ -499,7 +504,7 @@ class ScheduledMessageServiceTest {
         )
 
         // when - 모든 채팅방의 예약 메시지 조회
-        val allResults = testService.getScheduledMessagesByUser(userIdLong, null)
+        val allResults = testService.getScheduledMessagesByUser(GetScheduledMessagesCommand(UserId.from(userIdLong), null))
 
         // then - 대기 중인 메시지만 반환되어야 함 (PENDING 상태)
         assertThat(allResults).hasSize(2)
@@ -508,7 +513,7 @@ class ScheduledMessageServiceTest {
         assertThat(allResults.all { it.status == ScheduledMessageStatus.PENDING }).isTrue()
 
         // when - 특정 채팅방의 예약 메시지 조회
-        val roomResults = testService.getScheduledMessagesByUser(userIdLong, 1L)
+        val roomResults = testService.getScheduledMessagesByUser(GetScheduledMessagesCommand(UserId.from(userIdLong), ChatRoomId.from(1L)))
 
         // then - 해당 채팅방의 대기 중인 메시지만 반환되어야 함
         assertThat(roomResults).hasSize(1)
@@ -590,7 +595,7 @@ class ScheduledMessageServiceTest {
         )
 
         // when
-        val result = testService.sendScheduledMessageNow(messageId, userIdLong)
+        val result = testService.sendScheduledMessageNow(SendScheduledMessageNowCommand(messageId, UserId.from(userIdLong)))
 
         // then
         // Verify the result is not null and has the expected properties

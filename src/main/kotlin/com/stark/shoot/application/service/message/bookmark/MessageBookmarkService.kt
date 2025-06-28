@@ -1,13 +1,13 @@
 package com.stark.shoot.application.service.message.bookmark
 
 import com.stark.shoot.application.port.`in`.message.bookmark.BookmarkMessageUseCase
+import com.stark.shoot.application.port.`in`.message.bookmark.command.BookmarkMessageCommand
+import com.stark.shoot.application.port.`in`.message.bookmark.command.GetBookmarksCommand
+import com.stark.shoot.application.port.`in`.message.bookmark.command.RemoveBookmarkCommand
 import com.stark.shoot.application.port.out.message.LoadMessagePort
 import com.stark.shoot.application.port.out.message.bookmark.BookmarkMessageCommandPort
 import com.stark.shoot.application.port.out.message.bookmark.BookmarkMessageQueryPort
 import com.stark.shoot.domain.chat.bookmark.MessageBookmark
-import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -22,10 +22,10 @@ class MessageBookmarkService(
 
     private val logger = KotlinLogging.logger {}
 
-    override fun bookmarkMessage(
-        messageId: MessageId,
-        userId: UserId
-    ): MessageBookmark {
+    override fun bookmarkMessage(command: BookmarkMessageCommand): MessageBookmark {
+        val messageId = command.messageId
+        val userId = command.userId
+
         if (bookmarkQueryPort.exists(messageId, userId)) {
             logger.debug { "이미 북마크된 메시지입니다: messageId=$messageId, userId=$userId" }
             throw IllegalArgumentException("이미 북마크된 메시지입니다.")
@@ -43,18 +43,12 @@ class MessageBookmarkService(
         return bookmarkCommandPort.saveBookmark(bookmark)
     }
 
-    override fun removeBookmark(
-        messageId: MessageId,
-        userId: UserId
-    ) {
-        bookmarkCommandPort.deleteBookmark(messageId, userId)
+    override fun removeBookmark(command: RemoveBookmarkCommand) {
+        bookmarkCommandPort.deleteBookmark(command.messageId, command.userId)
     }
 
-    override fun getBookmarks(
-        userId: UserId,
-        roomId: ChatRoomId?,
-    ): List<MessageBookmark> {
-        return bookmarkQueryPort.findBookmarksByUser(userId, roomId)
+    override fun getBookmarks(command: GetBookmarksCommand): List<MessageBookmark> {
+        return bookmarkQueryPort.findBookmarksByUser(command.userId, command.roomId)
     }
 
 }

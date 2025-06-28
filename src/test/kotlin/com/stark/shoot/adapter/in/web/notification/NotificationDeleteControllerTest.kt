@@ -1,6 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.notification
 
 import com.stark.shoot.application.port.`in`.notification.NotificationManagementUseCase
+import com.stark.shoot.application.port.`in`.notification.command.DeleteAllNotificationsCommand
+import com.stark.shoot.application.port.`in`.notification.command.DeleteNotificationCommand
 import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
@@ -22,10 +24,12 @@ class NotificationDeleteControllerTest {
         val notificationId = "notification123"
         val userId = 1L
 
-        `when`(notificationManagementUseCase.deleteNotification(
-            NotificationId.from(notificationId),
-            UserId.from(userId)
-        )).thenReturn(true)
+        val command = DeleteNotificationCommand(
+            notificationId = NotificationId.from(notificationId),
+            userId = UserId.from(userId)
+        )
+        
+        `when`(notificationManagementUseCase.deleteNotification(command)).thenReturn(true)
 
         // when
         val response = controller.deleteNotification(notificationId, userId)
@@ -34,10 +38,7 @@ class NotificationDeleteControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isTrue()
 
-        verify(notificationManagementUseCase).deleteNotification(
-            NotificationId.from(notificationId),
-            UserId.from(userId)
-        )
+        verify(notificationManagementUseCase).deleteNotification(command)
     }
 
     @Test
@@ -47,10 +48,12 @@ class NotificationDeleteControllerTest {
         val notificationId = "nonexistent123"
         val userId = 1L
 
-        `when`(notificationManagementUseCase.deleteNotification(
-            NotificationId.from(notificationId),
-            UserId.from(userId)
-        )).thenReturn(false)
+        val command = DeleteNotificationCommand(
+            notificationId = NotificationId.from(notificationId),
+            userId = UserId.from(userId)
+        )
+        
+        `when`(notificationManagementUseCase.deleteNotification(command)).thenReturn(false)
 
         // when
         val response = controller.deleteNotification(notificationId, userId)
@@ -59,10 +62,7 @@ class NotificationDeleteControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isFalse()
 
-        verify(notificationManagementUseCase).deleteNotification(
-            NotificationId.from(notificationId),
-            UserId.from(userId)
-        )
+        verify(notificationManagementUseCase).deleteNotification(command)
     }
 
     @Test
@@ -72,9 +72,11 @@ class NotificationDeleteControllerTest {
         val userId = 1L
         val deletedCount = 5
 
-        `when`(notificationManagementUseCase.deleteAllNotifications(
-            UserId.from(userId)
-        )).thenReturn(deletedCount)
+        val command = DeleteAllNotificationsCommand(
+            userId = UserId.from(userId)
+        )
+        
+        `when`(notificationManagementUseCase.deleteAllNotifications(command)).thenReturn(deletedCount)
 
         // when
         val response = controller.deleteAllNotifications(userId)
@@ -83,9 +85,7 @@ class NotificationDeleteControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isEqualTo(deletedCount)
 
-        verify(notificationManagementUseCase).deleteAllNotifications(
-            UserId.from(userId)
-        )
+        verify(notificationManagementUseCase).deleteAllNotifications(command)
     }
 
     @Test
@@ -94,9 +94,11 @@ class NotificationDeleteControllerTest {
         // given
         val userId = 1L
 
-        `when`(notificationManagementUseCase.deleteAllNotifications(
-            UserId.from(userId)
-        )).thenReturn(0)
+        val command = DeleteAllNotificationsCommand(
+            userId = UserId.from(userId)
+        )
+        
+        `when`(notificationManagementUseCase.deleteAllNotifications(command)).thenReturn(0)
 
         // when
         val response = controller.deleteAllNotifications(userId)
@@ -105,8 +107,6 @@ class NotificationDeleteControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isEqualTo(0)
 
-        verify(notificationManagementUseCase).deleteAllNotifications(
-            UserId.from(userId)
-        )
+        verify(notificationManagementUseCase).deleteAllNotifications(command)
     }
 }

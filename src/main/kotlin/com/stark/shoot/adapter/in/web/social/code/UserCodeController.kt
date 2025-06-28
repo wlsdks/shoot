@@ -5,9 +5,12 @@ import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.FindUserUseCase
 import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
+import com.stark.shoot.application.port.`in`.user.code.command.RemoveUserCodeCommand
+import com.stark.shoot.application.port.`in`.user.code.command.UpdateUserCodeCommand
+import com.stark.shoot.application.port.`in`.user.command.FindUserByCodeCommand
+import com.stark.shoot.application.port.`in`.user.command.FindUserByIdCommand
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
-import com.stark.shoot.domain.user.vo.UserCode
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestCommand
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -27,7 +30,8 @@ class UserCodeController(
     fun getUserCode(
         @PathVariable userId: Long
     ): ResponseDto<UserResponse> {
-        val user = findUserUseCase.findById(UserId.from(userId))
+        val command = FindUserByIdCommand.of(userId)
+        val user = findUserUseCase.findById(command)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
 
         return ResponseDto.success(user.toResponse(), "유저 코드를 성공적으로 조회했습니다.")
@@ -39,7 +43,8 @@ class UserCodeController(
         @RequestParam userId: Long,
         @RequestParam code: String
     ): ResponseDto<Unit> {
-        manageUserCodeUseCase.updateUserCode(UserId.from(userId), UserCode.from(code))
+        val command = UpdateUserCodeCommand.of(userId, code)
+        manageUserCodeUseCase.updateUserCode(command)
         return ResponseDto.success(Unit, "유저 코드가 성공적으로 설정되었습니다.")
     }
 
@@ -48,7 +53,8 @@ class UserCodeController(
     fun findUserByCode(
         @RequestParam code: String
     ): ResponseDto<UserResponse?> {
-        val user = findUserUseCase.findByUserCode(UserCode.from(code))
+        val command = FindUserByCodeCommand.of(code)
+        val user = findUserUseCase.findByUserCode(command)
 
         return if (user != null) {
             ResponseDto.success(user.toResponse(), "사용자를 찾았습니다.")
@@ -69,7 +75,8 @@ class UserCodeController(
     fun removeUserCode(
         @RequestParam userId: Long
     ): ResponseDto<Unit> {
-        manageUserCodeUseCase.removeUserCode(UserId.from(userId))
+        val command = RemoveUserCodeCommand.of(userId)
+        manageUserCodeUseCase.removeUserCode(command)
         return ResponseDto.success(Unit, "유저 코드가 삭제되었습니다.")
     }
 
@@ -80,10 +87,12 @@ class UserCodeController(
         @RequestParam targetCode: String
     ): ResponseDto<Unit> {
         // 조회는 클라이언트에서 미리 수행하는 것을 권장하지만, 여기서도 한 번 더 확인
-        val targetUser = findUserUseCase.findByUserCode(UserCode.from(targetCode))
+        val findCommand = FindUserByCodeCommand.of(targetCode)
+        val targetUser = findUserUseCase.findByUserCode(findCommand)
             ?: throw ResourceNotFoundException("해당 코드($targetCode)를 가진 유저가 없습니다.")
 
-        friendRequestUseCase.sendFriendRequest(UserId.from(userId), targetUser.id!!)
+        val requestCommand = SendFriendRequestCommand.of(userId, targetUser.id!!.value)
+        friendRequestUseCase.sendFriendRequest(requestCommand)
         return ResponseDto.success(Unit, "친구 요청을 보냈습니다.")
     }
 

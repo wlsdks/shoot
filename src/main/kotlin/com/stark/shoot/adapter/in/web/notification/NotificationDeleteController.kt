@@ -1,6 +1,8 @@
 package com.stark.shoot.adapter.`in`.web.notification
 
 import com.stark.shoot.application.port.`in`.notification.NotificationManagementUseCase
+import com.stark.shoot.application.port.`in`.notification.command.DeleteAllNotificationsCommand
+import com.stark.shoot.application.port.`in`.notification.command.DeleteNotificationCommand
 import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.domain.user.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
@@ -25,10 +27,11 @@ class NotificationDeleteController(
         @PathVariable notificationId: String,
         @RequestParam userId: Long
     ): ResponseEntity<Boolean> {
-        val deleted = notificationManagementUseCase.deleteNotification(
-            NotificationId.from(notificationId),
-            UserId.from(userId)
+        val command = DeleteNotificationCommand(
+            notificationId = NotificationId.from(notificationId),
+            userId = UserId.from(userId)
         )
+        val deleted = notificationManagementUseCase.deleteNotification(command)
 
         return ResponseEntity.ok(deleted)
     }
@@ -43,7 +46,10 @@ class NotificationDeleteController(
     )
     @DeleteMapping
     fun deleteAllNotifications(@RequestParam userId: Long): ResponseEntity<Int> {
-        val count = notificationManagementUseCase.deleteAllNotifications(UserId.from(userId))
+        val command = DeleteAllNotificationsCommand(
+            userId = UserId.from(userId)
+        )
+        val count = notificationManagementUseCase.deleteAllNotifications(command)
         return ResponseEntity.ok(count)
     }
 

@@ -1,9 +1,10 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
-import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
+import com.stark.shoot.adapter.`in`.web.dto.message.updateFromDomain
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.application.port.`in`.message.command.SendMessageCommand
+import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -11,7 +12,6 @@ import com.stark.shoot.domain.chat.message.service.MessageDomainService
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.user.vo.UserId
-import com.stark.shoot.application.service.message.MessagePublisher
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -20,7 +20,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 class SendMessageService(
     private val extractUrlPort: ExtractUrlPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
-    private val messagePublisher: MessagePublisher,
+    private val messagePublisherPort: MessagePublisherPort,
     private val messageDomainService: MessageDomainService
 ) : SendMessageUseCase {
 
@@ -40,10 +40,10 @@ class SendMessageService(
             val domainMessage = createAndProcessDomainMessage(messageRequest)
 
             // 2. 메시지 발행 (Redis, Kafka)
-            messagePublisher.publish(messageRequest, domainMessage)
+            messagePublisherPort.publish(messageRequest, domainMessage)
         } catch (e: Exception) {
             logger.error(e) { "메시지 처리 중 예외 발생: ${e.message}" }
-            messagePublisher.handleProcessingError(messageRequest, e)
+            messagePublisherPort.handleProcessingError(messageRequest, e)
         }
     }
 
@@ -67,12 +67,7 @@ class SendMessageService(
         )
 
         // 요청 객체에 도메인 처리 결과 반영
-        val metadataDto = messageWithPreview.metadata.toRequestDto()
-        messageRequest.tempId = metadataDto.tempId
-        messageRequest.status = messageWithPreview.status
-        messageRequest.metadata.needsUrlPreview = metadataDto.needsUrlPreview
-        messageRequest.metadata.previewUrl = metadataDto.previewUrl
-        messageRequest.metadata.urlPreview = metadataDto.urlPreview
+        messageRequest.updateFromDomain(messageWithPreview)
 
         return messageWithPreview
     }

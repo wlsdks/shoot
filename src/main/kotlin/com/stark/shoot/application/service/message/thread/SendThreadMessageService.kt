@@ -1,12 +1,10 @@
 package com.stark.shoot.application.service.message.thread
 
-import com.stark.shoot.adapter.`in`.web.dto.message.toDomain
-import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
+import com.stark.shoot.adapter.`in`.web.dto.message.updateFromDomain
 import com.stark.shoot.application.port.`in`.message.thread.SendThreadMessageUseCase
 import com.stark.shoot.application.port.`in`.message.thread.command.SendThreadMessageCommand
-import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
+import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
-import com.stark.shoot.application.port.out.message.PublishMessagePort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.domain.chat.message.service.MessageDomainService
@@ -14,7 +12,6 @@ import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -23,9 +20,7 @@ class SendThreadMessageService(
     private val messageQueryPort: MessageQueryPort,
     private val extractUrlPort: ExtractUrlPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
-    private val kafkaMessagePublishPort: KafkaMessagePublishPort,
-    private val publishMessagePort: PublishMessagePort,
-    private val applicationCoroutineScope: ApplicationCoroutineScope,
+    private val messagePublisherPort: MessagePublisherPort,
     private val messageDomainService: MessageDomainService
 ) : SendThreadMessageUseCase {
 
@@ -53,35 +48,13 @@ class SendThreadMessageService(
             )
 
             // 요청 객체에 도메인 처리 결과 반영
-            val metadataDto = domainMessage.metadata.toRequestDto()
-            request.tempId = metadataDto.tempId
-            request.status = domainMessage.status
-            request.metadata.needsUrlPreview = metadataDto.needsUrlPreview
-            request.metadata.previewUrl = metadataDto.previewUrl
-            request.metadata.urlPreview = metadataDto.urlPreview
+            request.updateFromDomain(domainMessage)
 
             // 2. 메시지 발행 (Redis, Kafka)
-            applicationCoroutineScope.launch {
-                try {
-                    // 1. Redis 발행
-                    publishMessagePort.publish(request)
-
-                    // 2. Kafka 발행
-                    val chatMessage = request.toDomain()
-                    val messageEvent = messageDomainService.createMessageEvent(chatMessage)
-
-                    kafkaMessagePublishPort.publishChatEventSuspend(
-                        topic = "chat-messages",
-                        key = request.roomId.toString(),
-                        event = messageEvent
-                    )
-                } catch (throwable: Throwable) {
-                    logger.error(throwable) { "메시지 처리 실패: roomId=${request.roomId}, content=${request.content.text}" }
-                }
-            }
+            messagePublisherPort.publish(request, domainMessage)
         } catch (e: Exception) {
             logger.error(e) { "메시지 처리 중 예외 발생: ${e.message}" }
+            messagePublisherPort.handleProcessingError(request, e)
         }
     }
-
 }

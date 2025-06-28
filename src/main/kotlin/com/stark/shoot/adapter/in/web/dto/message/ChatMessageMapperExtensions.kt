@@ -59,3 +59,17 @@ fun ChatMessageRequest.toDomain(): ChatMessage {
         metadata = metadata
     )
 }
+
+/**
+ * 도메인 메시지의 메타데이터를 요청 DTO에 반영합니다.
+ *
+ * @param domainMessage 도메인 메시지
+ */
+fun ChatMessageRequest.updateFromDomain(domainMessage: ChatMessage) {
+    val metadataDto = domainMessage.metadata.toRequestDto()
+    this.tempId = metadataDto.tempId
+    this.status = domainMessage.status
+    this.metadata.needsUrlPreview = metadataDto.needsUrlPreview
+    this.metadata.previewUrl = metadataDto.previewUrl
+    this.metadata.urlPreview = metadataDto.urlPreview
+}

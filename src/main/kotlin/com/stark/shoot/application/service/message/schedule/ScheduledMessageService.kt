@@ -10,21 +10,29 @@ import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ScheduledMessageMa
 import com.stark.shoot.application.port.`in`.message.schedule.ScheduledMessageUseCase
 import com.stark.shoot.application.port.`in`.message.schedule.command.*
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
+import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.ScheduledMessagePort
+import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.ScheduledMessage
+import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.type.ScheduledMessageStatus
 import com.stark.shoot.domain.chat.message.vo.MessageContent
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
+import java.util.UUID
 
 @UseCase
 class ScheduledMessageService(
     private val scheduledMessagePort: ScheduledMessagePort,
     private val chatRoomQueryPort: ChatRoomQueryPort,
     private val scheduledMessageMapper: ScheduledMessageMapper,
+    private val messagePublisherPort: MessagePublisherPort,
 ) : ScheduledMessageUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -169,11 +177,14 @@ class ScheduledMessageService(
 
         // 메시지 즉시 전송 (기존 SendMessageUseCase 활용)
         try {
-            // 여기서는 예제로 웹소켓이 아닌 방식으로 메시지를 전송합니다.
-            // 실제 구현에서는 적절한 채널을 통해 메시지를 전송해야 합니다.
+            // 메시지 요청 객체 생성
             val chatMessageRequest = createChatMessageRequest(scheduledMessage)
 
-            // todo: 여기서 메시지 저장후 웹소켓으로 전송하도록 해야함
+            // 도메인 메시지 객체 생성
+            val chatMessage = createChatMessage(scheduledMessage)
+
+            // 메시지 발행 (Redis, Kafka)
+            messagePublisherPort.publish(chatMessageRequest, chatMessage)
 
             // 상태 업데이트 및 저장
             val updatedMessage = scheduledMessage.copy(status = ScheduledMessageStatus.SENT)
@@ -185,10 +196,8 @@ class ScheduledMessageService(
         }
     }
 
-    // ChatMessageRequest 객체 생성 (실제 구현시 적절하게 변환 필요)
+    // ChatMessageRequest 객체 생성
     private fun createChatMessageRequest(scheduledMessage: ScheduledMessage): ChatMessageRequest {
-        // 필요한 매핑 로직 구현
-        // 예시 코드이므로 실제 구현시 적절하게 변환해야 함
         return ChatMessageRequest(
             roomId = scheduledMessage.roomId,
             senderId = scheduledMessage.senderId,
@@ -196,7 +205,23 @@ class ScheduledMessageService(
                 text = scheduledMessage.content.text,
                 type = scheduledMessage.content.type
             ),
+            tempId = UUID.randomUUID().toString(),
             metadata = scheduledMessage.metadata.toRequestDto()
+        )
+    }
+
+    /**
+     * ScheduledMessage에서 ChatMessage 도메인 객체 생성
+     */
+    private fun createChatMessage(scheduledMessage: ScheduledMessage): ChatMessage {
+        return ChatMessage(
+            id = MessageId.from(UUID.randomUUID().toString()),
+            roomId = ChatRoomId.from(scheduledMessage.roomId),
+            senderId = UserId.from(scheduledMessage.senderId),
+            content = scheduledMessage.content,
+            status = MessageStatus.SENDING,
+            metadata = scheduledMessage.metadata,
+            createdAt = Instant.now()
         )
     }
 

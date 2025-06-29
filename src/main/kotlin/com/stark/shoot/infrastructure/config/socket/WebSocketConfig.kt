@@ -34,6 +34,9 @@ class WebSocketConfig(
 
     private val logger = KotlinLogging.logger {}
 
+    // CPU 코어 수 계산을 한 번만 수행하도록 최적화
+    private val availableProcessors = Runtime.getRuntime().availableProcessors()
+
     /**
      * 1) STOMP WebSocket 연결 엔드포인트 설정
      * - /ws/chat 로 연결
@@ -93,18 +96,17 @@ class WebSocketConfig(
             rateLimitInterceptor
         )
 
-        // CPU 코어 수에 따라 스레드 풀 크기 최적화
-        val availableProcessors = Runtime.getRuntime().availableProcessors()
-        val corePoolSize = availableProcessors + 1
-        val maxPoolSize = availableProcessors * 4
+        // 인바운드 채널 스레드 풀 설정
+        val inboundCorePoolSize = calculateCorePoolSize(2) // CPU 코어 수 * 2
+        val inboundMaxPoolSize = calculateMaxPoolSize(8)   // CPU 코어 수 * 8
 
         registration.taskExecutor()
-            .corePoolSize(corePoolSize * 2)    // CPU 코어 수 * 2
-            .maxPoolSize(maxPoolSize * 2)      // CPU 코어 수 * 8
+            .corePoolSize(inboundCorePoolSize)
+            .maxPoolSize(inboundMaxPoolSize)
             .queueCapacity(2000)               // 큐 크기 대폭 증가
             .keepAliveSeconds(60)              // 유휴 스레드 유지 시간
 
-        logger.info { "WebSocket 인바운드 채널 스레드 풀 설정: core=${corePoolSize * 2}, max=${maxPoolSize * 2}, queue=2000" }
+        logger.info { "WebSocket 인바운드 채널 스레드 풀 설정: core=$inboundCorePoolSize, max=$inboundMaxPoolSize, queue=2000" }
     }
 
     /**
@@ -112,18 +114,35 @@ class WebSocketConfig(
      * - 스레드 풀 설정 최적화
      */
     override fun configureClientOutboundChannel(registration: ChannelRegistration) {
-        // CPU 코어 수에 따라 스레드 풀 크기 최적화
-        val availableProcessors = Runtime.getRuntime().availableProcessors()
-        val corePoolSize = availableProcessors
-        val maxPoolSize = availableProcessors * 3
+        // 아웃바운드 채널 스레드 풀 설정
+        val outboundCorePoolSize = calculateCorePoolSize(2) // CPU 코어 수 * 2
+        val outboundMaxPoolSize = calculateMaxPoolSize(6)   // CPU 코어 수 * 6
 
         registration.taskExecutor()
-            .corePoolSize(corePoolSize * 2)    // CPU 코어 수 * 2
-            .maxPoolSize(maxPoolSize * 2)      // CPU 코어 수 * 6
+            .corePoolSize(outboundCorePoolSize)
+            .maxPoolSize(outboundMaxPoolSize)
             .queueCapacity(3000)               // 큐 크기 대폭 증가
             .keepAliveSeconds(60)              // 유휴 스레드 유지 시간
 
-        logger.info { "WebSocket 아웃바운드 채널 스레드 풀 설정: core=${corePoolSize * 2}, max=${maxPoolSize * 2}, queue=3000" }
+        logger.info { "WebSocket 아웃바운드 채널 스레드 풀 설정: core=$outboundCorePoolSize, max=$outboundMaxPoolSize, queue=3000" }
+    }
+
+    /**
+     * CPU 코어 수에 기반한 코어 풀 크기 계산
+     * @param multiplier 코어 수에 곱할 승수
+     * @return 계산된 코어 풀 크기
+     */
+    private fun calculateCorePoolSize(multiplier: Int): Int {
+        return availableProcessors * multiplier
+    }
+
+    /**
+     * CPU 코어 수에 기반한 최대 풀 크기 계산
+     * @param multiplier 코어 수에 곱할 승수
+     * @return 계산된 최대 풀 크기
+     */
+    private fun calculateMaxPoolSize(multiplier: Int): Int {
+        return availableProcessors * multiplier
     }
 
     /**

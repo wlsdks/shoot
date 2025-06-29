@@ -1,5 +1,14 @@
 # 웹소켓 기반 실시간 채팅 애플리케이션 "Shoot"
 
+<div align="center">
+  <img src="https://img.shields.io/badge/Spring%20Boot-3.4.3-brightgreen" alt="Spring Boot">
+  <img src="https://img.shields.io/badge/Kotlin-1.9.25-blue" alt="Kotlin">
+  <img src="https://img.shields.io/badge/Redis-7.2.3-red" alt="Redis">
+  <img src="https://img.shields.io/badge/Kafka-3.7.0-black" alt="Kafka">
+  <img src="https://img.shields.io/badge/MongoDB-7.0.4-green" alt="MongoDB">
+  <img src="https://img.shields.io/badge/WebSocket-STOMP-orange" alt="WebSocket">
+</div>
+
 > [DDD 아키텍처 설계 문서](docs/ddd-architecture.md) - 도메인 주도 설계(DDD) 아키텍처에 대한 상세 설명
 
 ## 목차
@@ -9,7 +18,6 @@
    - [필수 요구사항](#필수-요구사항)
 3. [헥사고날 아키텍처](#헥사고날-아키텍처)
    - [패키지 구조](#패키지-구조)
-   - [데이터 모델](#데이터-모델)
 4. [핵심 기능](#핵심-기능)
    - [JWT 기반 인증 시스템](#jwt-기반-인증-시스템)
    - [WebSocket을 활용한 실시간 채팅](#websocket을-활용한-실시간-채팅)
@@ -85,6 +93,36 @@ Shoot은 Spring Boot(Kotlin)과 WebSocket 기술을 활용한 실시간 채팅 �
 - Redis 7.2 이상
 - Kafka 3.5 이상
 
+## 빠른 시작 가이드
+
+### 1. 프로젝트 클론
+```bash
+git clone https://github.com/yourusername/shoot.git
+cd shoot
+```
+
+### 2. 환경 설정
+Docker Compose를 사용하여 필요한 인프라를 실행합니다:
+```bash
+# Redis, MongoDB, Kafka 실행
+docker-compose up -d
+```
+
+### 3. 애플리케이션 빌드 및 실행
+```bash
+# Gradle 빌드
+./gradlew build
+
+# 애플리케이션 실행
+./gradlew bootRun
+```
+
+### 4. API 테스트
+애플리케이션이 실행되면 다음 URL로 접속할 수 있습니다:
+- API 엔드포인트: http://localhost:8080/api/v1
+- WebSocket 연결: ws://localhost:8080/ws/chat
+- Swagger UI: http://localhost:8080/swagger-ui.html
+
 ## 헥사고날 아키텍처
 
 Shoot은 헥사고날 아키텍처(포트 및 어댑터 패턴)를 채택하여 핵심 비즈니스 로직을 외부 의존성으로부터 격리하고, 테스트 용이성을 높이며, 시스템의 확장성과 유지보수성을 개선했습니다.
@@ -103,10 +141,12 @@ com.stark.shoot
 │   │       └── sse         # SSE 컨트롤러
 │   └── out                 # 아웃바운드 어댑터 (레포지토리, 이벤트 발행자 등)
 │       ├── cache           # 캐시 어댑터
+│       ├── chatroom        # 채팅방 관련 어댑터
 │       ├── event           # 이벤트 발행 어댑터
 │       ├── kafka           # Kafka 프로듀서
 │       ├── message         # 메시지 관련 어댑터
-│       └── persistence     # 데이터베이스 어댑터 (MongoDB, PostgreSQL)
+│       ├── persistence     # 데이터베이스 어댑터 (MongoDB, PostgreSQL)
+│       └── redis           # Redis 관련 어댑터
 ├── application             # 애플리케이션 로직
 │   ├── filter              # 필터 및 인터셉터
 │   ├── port                # 포트 정의 (인터페이스)
@@ -115,90 +155,16 @@ com.stark.shoot
 │   └── service             # 비즈니스 로직 구현 (유스케이스)
 ├── domain                  # 도메인 모델
 │   ├── chat                # 채팅 관련 도메인
-│   │   ├── event           # 도메인 이벤트
-│   │   ├── message         # 메시지 모델
-│   │   ├── room            # 채팅방 모델
-│   │   ├── service         # 도메인 서비스
-│   │   └── user            # 사용자 모델
-│   ├── common              # 공통 도메인 모델
-│   └── exception           # 도메인 예외
+│   ├── chatroom            # 채팅방 관련 도메인
+│   ├── event               # 이벤트 관련 도메인
+│   ├── notification        # 알림 관련 도메인
+│   └── user                # 사용자 관련 도메인
 └── infrastructure          # 공통 인프라 설정
     ├── annotation          # 커스텀 어노테이션
     ├── aop                 # 관점 지향 프로그래밍 (AOP)
     ├── config              # 스프링 설정 (보안, 웹소켓, Kafka, Redis 등)
     ├── exception           # 예외 처리
-    ├── util                # 유틸리티 클래스
-    └── enumerate           # 열거형 클래스
-```
-
-### 데이터 모델
-
-주요 도메인 모델은 다음과 같습니다:
-
-#### User
-```kotlin
-data class User(
-    val id: ObjectId? = null,                      // 고유 ID
-    val username: Username,                        // 사용자명 (로그인용)
-    val nickname: String,                          // 닉네임 (표시용)
-    val status: UserStatus = UserStatus.OFFLINE,   // 상태 (ONLINE, OFFLINE, BUSY, AWAY 등)
-    val profileImageUrl: String? = null,           // 프로필 이미지 URL
-    val lastSeenAt: Instant? = null,               // 마지막 접속 시간
-    val bio: String? = null,                       // 자기소개
-    val passwordHash: String? = null,              // 암호화된 비밀번호
-    val isDeleted: Boolean = false,                // 탈퇴 여부
-    val friends: Set<ObjectId> = emptySet(),                     // 친구 목록
-    val incomingFriendRequests: Set<ObjectId> = emptySet(),      // 받은 친구 요청
-    val outgoingFriendRequests: Set<ObjectId> = emptySet(),      // 보낸 친구 요청
-    val userCode: String,                                 // 친구 추가용 고유 코드
-    val refreshToken: String? = null,                    // 리프레시 토큰
-    val refreshTokenExpiration: Instant? = null          // 리프레시 토큰 만료 시간
-)
-```
-
-#### ChatRoom
-```kotlin
-data class ChatRoom(
-    val id: String? = null,                    // 채팅방 ID
-    val participants: MutableSet<ObjectId>,    // 참여자 ID 목록
-    val lastMessageId: String? = null,         // 마지막 메시지 ID
-    val lastMessageText: String? = null,       // 마지막 메시지 내용
-    val metadata: ChatRoomMetadata,            // 채팅방 메타데이터
-    val lastActiveAt: Instant = Instant.now(), // 마지막 활동 시간
-    val createdAt: Instant = Instant.now(),    // 생성 시간
-    val updatedAt: Instant? = null             // 업데이트 시간
-)
-
-data class ChatRoomMetadata(
-    val title: String? = null,                          // 채팅방 제목
-    val type: ChatRoomType,                             // 채팅방 타입 (INDIVIDUAL, GROUP)
-    val participantsMetadata: Map<ObjectId, Participant>,  // 참여자별 메타데이터
-    val settings: ChatRoomSettings,                     // 채팅방 설정
-    val announcement: String? = null                    // 공지사항
-)
-```
-
-#### ChatMessage
-```kotlin
-data class ChatMessage(
-    val id: String? = null,                     // 메시지 ID
-    val roomId: String,                         // 채팅방 ID
-    val senderId: String,                       // 발신자 ID
-    val content: MessageContent,                // 메시지 내용
-    val status: MessageStatus,                  // 메시지 상태 (SENDING, SENT, SAVED 등)
-    val threadId: String? = null,               // 스레드 ID (루트 메시지 ID)
-    val replyToMessageId: String? = null,       // 답장할 메시지 ID
-    val reactions: Map<String, Set<String>> = emptyMap(),  // 이모티콘 반응들
-    val mentions: Set<String> = emptySet(),               // 멘션된 사용자 ID 목록
-    val createdAt: Instant? = Instant.now(),    // 생성 시간
-    val updatedAt: Instant? = null,            // 업데이트 시간
-    val isDeleted: Boolean = false,            // 삭제 여부
-    val readBy: MutableMap<String, Boolean> = mutableMapOf(),  // 읽음 상태
-    var metadata: MutableMap<String, Any> = mutableMapOf(),    // 추가 메타데이터
-    val isPinned: Boolean = false,             // 고정 여부
-    val pinnedBy: String? = null,              // 고정한 사용자 ID
-    val pinnedAt: Instant? = null              // 고정 시간
-)
+    └── util                # 유틸리티 클래스
 ```
 
 ## 핵심 기능
@@ -264,25 +230,30 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer {
 기존의 Redis PubSub 방식에서 Redis Stream으로 변경하여 메시지 전송의 신뢰성과 처리 보장성을 강화했습니다. Redis Stream은 메시지 영구 저장, 소비자 그룹 기능, 처리 확인(ACK) 등의 기능을 제공하여 메시지 유실을 방지하고 정확한 순서를 보장합니다.
 
 ```kotlin
-// 메시지를 Redis Stream에 발행
-private fun publishToRedis(message: ChatMessageRequest) {
+/**
+ * 메시지를 Redis Stream에 발행하는 함수
+ * 
+ * @param message 발행할 채팅 메시지 요청 객체
+ */
+private suspend fun publishToRedis(message: ChatMessageRequest) {
     val streamKey = "stream:chat:room:${message.roomId}"
     try {
+        // 메시지 객체를 JSON 문자열로 직렬화
         val messageJson = objectMapper.writeValueAsString(message)
         val map = mapOf("message" to messageJson)
 
-        // StreamRecords를 사용한 메시지 추가
+        // StreamRecords를 사용한 메시지 레코드 생성
         val record = StreamRecords.newRecord()
             .ofMap(map)
             .withStreamKey(streamKey)
 
-        // Stream에 추가
+        // Stream에 메시지 추가 및 ID 반환
         val messageId = redisTemplate.opsForStream<String, String>()
             .add(record)
 
-        logger.debug { "Redis Stream에 메시지 발행: $streamKey, id: $messageId" }
+        logger.debug { "Redis Stream에 메시지 발행 완료: $streamKey, id: $messageId" }
     } catch (e: Exception) {
-        logger.error(e) { "Redis 발행 실패: ${e.message}" }
+        logger.error(e) { "Redis Stream 발행 실패: ${e.message}" }
         throw e
     }
 }
@@ -320,25 +291,44 @@ private fun pollMessages() {
 메시지의 안정적인 영구 저장을 위해 Kafka를 사용합니다. Redis Stream이 실시간 메시지 전송을 담당한다면, Kafka는 메시지의 영구 저장과 비동기 처리를 담당합니다. 이를 통해 시스템 장애 시에도 메시지 손실을 방지하고, 대용량 메시지 처리가 가능합니다.
 
 ```kotlin
-// Kafka로 메시지 이벤트 발행
+/**
+ * 메시지 이벤트를 Kafka로 발행하는 함수
+ * 
+ * @param message 발행할 채팅 메시지 요청 객체
+ * @return CompletableFuture<Void> 비동기 작업 완료를 나타내는 Future
+ */
 private fun sendToKafka(message: ChatMessageRequest): CompletableFuture<Void> {
+    // 메시지 이벤트 객체 생성
     val messageEvent = ChatEvent(
         type = EventType.MESSAGE_CREATED,
-        data = chatMessage
+        data = chatMessage,
+        metadata = mapOf(
+            "timestamp" to Instant.now().toString(),
+            "source" to "chat-service"
+        )
     )
 
+    // Kafka 메시지 발행 포트를 통해 이벤트 발행
     return kafkaMessagePublishPort.publishChatEvent(
-        topic = "chat-messages",
-        key = message.roomId,
-        event = messageEvent
-    ).thenAccept {
-        // Kafka 발행 성공 시 상태 업데이트
+        topic = "chat-messages",  // 메시지 저장용 토픽
+        key = message.roomId,     // 파티셔닝 키로 채팅방 ID 사용
+        event = messageEvent      // 발행할 이벤트 객체
+    ).thenAccept { result ->
+        // Kafka 발행 성공 시 상태 업데이트 및 클라이언트에 알림
         val statusUpdate = MessageStatusResponse(
             tempId = message.tempId ?: "",
             status = MessageStatus.SENT_TO_KAFKA.name,
-            persistedId = null
+            persistedId = null,
+            createdAt = Instant.now().toString()
         )
-        messagingTemplate.convertAndSend("/topic/message/status/${message.roomId}", statusUpdate)
+
+        // WebSocket을 통해 상태 업데이트 전송
+        messagingTemplate.convertAndSend(
+            "/topic/message/status/${message.roomId}", 
+            statusUpdate
+        )
+
+        logger.debug { "Kafka 메시지 발행 완료: topic=chat-messages, roomId=${message.roomId}" }
     }
 }
 ```
@@ -691,13 +681,27 @@ fun scheduleMessage(
 
 ## API 엔드포인트
 
+### API 개요
+모든 API는 `/api/v1` 기본 경로를 사용합니다. 인증이 필요한 API는 요청 헤더에 `Authorization: Bearer {token}` 형식으로 JWT 토큰을 포함해야 합니다.
+
 ### 사용자 관련 API
+
+<details>
+<summary><b>인증 API</b> (클릭하여 펼치기)</summary>
+
+| 엔드포인트 | 메소드 | 설명 | 인증 필요 | 요청 예시 |
+|------------|--------|------|-----------|----------|
+| `/api/v1/auth/signup` | POST | 회원가입 | 아니오 | `{"username": "user1", "email": "user1@example.com", "password": "password123"}` |
+| `/api/v1/auth/login` | POST | 로그인 | 아니오 | `{"email": "user1@example.com", "password": "password123"}` |
+| `/api/v1/auth/refresh` | POST | 토큰 갱신 | 아니오 | `{"refreshToken": "eyJhbGciOiJIUzI1..."}` |
+
+</details>
+
+<details>
+<summary><b>사용자 프로필 API</b> (클릭하여 펼치기)</summary>
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 |
 |------------|--------|------|-----------|
-| `/api/v1/auth/signup` | POST | 회원가입 | 아니오 |
-| `/api/v1/auth/login` | POST | 로그인 | 아니오 |
-| `/api/v1/auth/refresh` | POST | 토큰 갱신 | 아니오 |
 | `/api/v1/users/me` | GET | 내 프로필 조회 | 예 |
 | `/api/v1/users/me` | PUT | 프로필 수정 | 예 |
 | `/api/v1/users/me/profile-image` | PUT | 프로필 이미지 설정 | 예 |
@@ -705,6 +709,14 @@ fun scheduleMessage(
 | `/api/v1/users/{userId}` | GET | 특정 사용자 프로필 조회 | 예 |
 | `/api/v1/users/status` | PUT | 상태 업데이트 | 예 |
 | `/api/v1/users/search` | GET | 사용자 검색 | 예 |
+
+</details>
+
+<details>
+<summary><b>친구 관련 API</b> (클릭하여 펼치기)</summary>
+
+| 엔드포인트 | 메소드 | 설명 | 인증 필요 |
+|------------|--------|------|-----------|
 | `/api/v1/users/friends` | GET | 친구 목록 조회 | 예 |
 | `/api/v1/users/friends/requests` | GET | 친구 요청 목록 조회 | 예 |
 | `/api/v1/users/friends/requests` | POST | 친구 요청 보내기 | 예 |
@@ -713,7 +725,12 @@ fun scheduleMessage(
 | `/api/v1/users/friends/{friendId}` | DELETE | 친구 삭제 | 예 |
 | `/api/v1/users/recommendations` | GET | 친구 추천 목록 | 예 |
 
+</details>
+
 ### 채팅방 관련 API
+
+<details>
+<summary><b>채팅방 기본 API</b> (클릭하여 펼치기)</summary>
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 |
 |------------|--------|------|-----------|
@@ -722,6 +739,16 @@ fun scheduleMessage(
 | `/api/v1/chatrooms/{roomId}` | GET | 채팅방 상세 조회 | 예 |
 | `/api/v1/chatrooms/{roomId}` | PUT | 채팅방 정보 수정 | 예 |
 | `/api/v1/chatrooms/{roomId}` | DELETE | 채팅방 나가기/삭제 | 예 |
+| `/api/v1/chatrooms/search` | GET | 채팅방 검색 | 예 |
+| `/api/v1/chatrooms/multiple` | POST | 다중 채팅방 생성 | 예 |
+
+</details>
+
+<details>
+<summary><b>채팅방 참여자 및 기능 API</b> (클릭하여 펼치기)</summary>
+
+| 엔드포인트 | 메소드 | 설명 | 인증 필요 |
+|------------|--------|------|-----------|
 | `/api/v1/chatrooms/{roomId}/participants` | GET | 참여자 목록 조회 | 예 |
 | `/api/v1/chatrooms/{roomId}/participants` | POST | 참여자 추가 | 예 |
 | `/api/v1/chatrooms/{roomId}/participants/{userId}` | DELETE | 참여자 제거 | 예 |
@@ -730,10 +757,13 @@ fun scheduleMessage(
 | `/api/v1/chatrooms/favorites` | GET | 즐겨찾기 채팅방 목록 | 예 |
 | `/api/v1/chatrooms/{roomId}/favorite` | POST | 즐겨찾기 추가 | 예 |
 | `/api/v1/chatrooms/{roomId}/favorite` | DELETE | 즐겨찾기 제거 | 예 |
-| `/api/v1/chatrooms/search` | GET | 채팅방 검색 | 예 |
-| `/api/v1/chatrooms/multiple` | POST | 다중 채팅방 생성 | 예 |
+
+</details>
 
 ### 메시지 관련 API
+
+<details>
+<summary><b>기본 메시지 API</b> (클릭하여 펼치기)</summary>
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 |
 |------------|--------|------|-----------|
@@ -742,20 +772,41 @@ fun scheduleMessage(
 | `/api/v1/messages/{messageId}` | PUT | 메시지 수정 | 예 |
 | `/api/v1/messages/{messageId}` | DELETE | 메시지 삭제 | 예 |
 | `/api/v1/messages/mark-read` | POST | 메시지 읽음 처리 | 예 |
+
+</details>
+
+<details>
+<summary><b>고급 메시지 기능 API</b> (클릭하여 펼치기)</summary>
+
+| 엔드포인트 | 메소드 | 설명 | 인증 필요 |
+|------------|--------|------|-----------|
 | `/api/v1/messages/forward` | POST | 메시지 전달 | 예 |
 | `/api/v1/messages/pin` | POST | 메시지 고정 | 예 |
 | `/api/v1/messages/pin/{messageId}` | DELETE | 메시지 고정 해제 | 예 |
 | `/api/v1/messages/pins/{roomId}` | GET | 고정된 메시지 목록 | 예 |
+| `/api/v1/messages/reaction` | POST | 이모티콘 반응 추가 | 예 |
+| `/api/v1/messages/reaction` | DELETE | 이모티콘 반응 제거 | 예 |
+
+</details>
+
+<details>
+<summary><b>스레드 및 예약 메시지 API</b> (클릭하여 펼치기)</summary>
+
+| 엔드포인트 | 메소드 | 설명 | 인증 필요 |
+|------------|--------|------|-----------|
 | `/api/v1/messages/thread` | GET | 스레드 메시지 조회 | 예 |
 | `/api/v1/messages/thread` | POST | 스레드 메시지 전송 | 예 |
 | `/api/v1/messages/threads` | GET | 채팅방의 스레드 목록 조회 | 예 |
-| `/api/v1/messages/reaction` | POST | 이모티콘 반응 추가 | 예 |
-| `/api/v1/messages/reaction` | DELETE | 이모티콘 반응 제거 | 예 |
 | `/api/v1/messages/schedule` | POST | 메시지 예약 | 예 |
 | `/api/v1/messages/schedule` | GET | 예약 메시지 목록 | 예 |
 | `/api/v1/messages/schedule/{scheduleId}` | DELETE | 예약 메시지 취소 | 예 |
 
-### WebSocket 엔드포인트
+</details>
+
+### 실시간 통신 엔드포인트
+
+<details>
+<summary><b>WebSocket 엔드포인트</b> (클릭하여 펼치기)</summary>
 
 | 엔드포인트 | 설명 |
 |------------|------|
@@ -772,13 +823,18 @@ fun scheduleMessage(
 | `/topic/typing/{roomId}` | 타이핑 인디케이터 구독 |
 | `/topic/active/{roomId}` | 활성 사용자 상태 구독 |
 
-### SSE 엔드포인트
+</details>
+
+<details>
+<summary><b>SSE 엔드포인트</b> (클릭하여 펼치기)</summary>
 
 | 엔드포인트 | 설명 |
 |------------|------|
 | `/api/v1/sse/updates/{userId}` | 채팅방 목록 업데이트 스트림 |
 | `/api/v1/sse/unread/{userId}` | 안읽은 메시지 카운트 스트림 |
 | `/api/v1/sse/read-count/{roomId}/{messageId}` | 메시지 읽음 카운트 스트림 |
+
+</details>
 
 ## 보안 및 개인정보 보호
 
@@ -960,6 +1016,27 @@ override fun configureClientInboundChannel(registration: ChannelRegistration) {
 ```
 
 ## 메시지 처리 전체 흐름 및 상태 변화
+
+### 시스템 아키텍처 다이어그램
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│                 │     │                 │     │                 │
+│    클라이언트     │◄────►   Spring Boot    │◄────►   Redis Stream   │
+│   (WebSocket)   │     │   애플리케이션     │     │  (실시간 메시지)  │
+│                 │     │                 │     │                 │
+└─────────────────┘     └────────┬────────┘     └─────────────────┘
+                                 │
+                                 │
+                        ┌────────▼────────┐     ┌─────────────────┐
+                        │                 │     │                 │
+                        │      Kafka      │────►│    MongoDB      │
+                        │  (메시지 영구 저장) │     │  (데이터 저장소)  │
+                        │                 │     │                 │
+                        └─────────────────┘     └─────────────────┘
+```
+
+### 메시지 흐름 다이어그램
 
 ```
 [클라이언트]───────────────────────────────────────────────┐

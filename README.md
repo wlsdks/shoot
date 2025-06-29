@@ -1,15 +1,23 @@
-# 웹소켓 기반 실시간 채팅 애플리케이션 "Shoot"
+# Shoot - 실시간 채팅 애플리케이션
 
 <div align="center">
-  <img src="https://img.shields.io/badge/Spring%20Boot-3.4.3-brightgreen" alt="Spring Boot">
-  <img src="https://img.shields.io/badge/Kotlin-1.9.25-blue" alt="Kotlin">
-  <img src="https://img.shields.io/badge/Redis-7.2.3-red" alt="Redis">
-  <img src="https://img.shields.io/badge/Kafka-3.7.0-black" alt="Kafka">
-  <img src="https://img.shields.io/badge/MongoDB-7.0.4-green" alt="MongoDB">
-  <img src="https://img.shields.io/badge/WebSocket-STOMP-orange" alt="WebSocket">
+  <h3>🚀 WebSocket 기반 고성능 실시간 채팅 시스템 🚀</h3>
+
+  <p>
+    <img src="https://img.shields.io/badge/Spring%20Boot-3.4.3-brightgreen" alt="Spring Boot">
+    <img src="https://img.shields.io/badge/Kotlin-1.9.25-blue" alt="Kotlin">
+    <img src="https://img.shields.io/badge/Redis-7.2.3-red" alt="Redis">
+    <img src="https://img.shields.io/badge/Kafka-3.7.0-black" alt="Kafka">
+    <img src="https://img.shields.io/badge/MongoDB-7.0.4-green" alt="MongoDB">
+    <img src="https://img.shields.io/badge/WebSocket-STOMP-orange" alt="WebSocket">
+  </p>
+
+  <p>
+    <b>헥사고날 아키텍처</b> · <b>도메인 주도 설계</b> · <b>실시간 메시징</b> · <b>분산 시스템</b>
+  </p>
 </div>
 
-> [DDD 아키텍처 설계 문서](docs/ddd-architecture.md) - 도메인 주도 설계(DDD) 아키텍처에 대한 상세 설명
+> 📖 [DDD 아키텍처 설계 문서](docs/ddd-architecture.md) - 도메인 주도 설계(DDD) 아키텍처에 대한 상세 설명
 
 ## 목차
 1. [프로젝트 개요](#프로젝트-개요)
@@ -60,124 +68,334 @@
 
 ## 프로젝트 개요
 
-Shoot은 Spring Boot(Kotlin)과 WebSocket 기술을 활용한 실시간 채팅 애플리케이션입니다. 헥사고날 아키텍처를 채택하여 도메인 중심의 설계를 구현했으며, Redis Stream과 Kafka를 활용해 메시지 전송의 안정성과 확장성을 보장합니다.
+<div align="center">
+  <img src="https://img.shields.io/badge/아키텍처-헥사고날-blue" alt="헥사고날 아키텍처">
+  <img src="https://img.shields.io/badge/설계-DDD-orange" alt="도메인 주도 설계">
+  <img src="https://img.shields.io/badge/확장성-분산_시스템-green" alt="분산 시스템">
+</div>
 
-주요 특징으로는 다음과 같은 기능들이 있습니다:
-- WebSocket을 이용한 양방향 실시간 통신
-- Redis Stream을 활용한 메시지 브로드캐스팅
-- Kafka를 통한 메시지 영구 저장
-- 실시간 타이핑 인디케이터
-- 메시지 읽음 상태 추적
-- SSE(Server-Sent Events)를 통한 실시간 채팅방 목록 업데이트
-- BFS 기반 친구 추천 시스템
+**Shoot**은 Spring Boot(Kotlin)과 WebSocket 기술을 활용한 고성능 실시간 채팅 애플리케이션입니다. 헥사고날 아키텍처와 도메인 주도 설계(DDD)를 채택하여 비즈니스 로직을 명확히 분리하고, Redis Stream과 Kafka를 활용해 메시지 전송의 안정성과 확장성을 보장합니다.
+
+### ✨ 주요 특징
+
+| 기능 | 설명 |
+|------|------|
+| 🔄 **실시간 양방향 통신** | WebSocket을 이용한 즉각적인 메시지 전송 및 수신 |
+| 📡 **메시지 브로드캐스팅** | Redis Stream을 활용한 효율적인 메시지 배포 |
+| 💾 **메시지 영구 저장** | Kafka를 통한 안정적인 메시지 저장 및 처리 |
+| ⌨️ **타이핑 인디케이터** | 실시간으로 사용자의 타이핑 상태 표시 |
+| 👁️ **읽음 상태 추적** | 메시지 읽음 여부 및 안읽은 메시지 카운트 관리 |
+| 🔔 **실시간 알림** | SSE를 통한 채팅방 목록 및 알림 실시간 업데이트 |
+| 👥 **친구 추천 시스템** | BFS 알고리즘 기반 소셜 네트워크 친구 추천 |
 
 ## 기술 스택
 
-### 백엔드
-- **Spring Boot 3.4.3 (Kotlin 1.9.25)** - 애플리케이션 서버
-- **Spring WebSocket** - 양방향 실시간 통신
-- **Spring Security** - JWT 기반 인증 및 권한 관리
-- **MongoDB** - 주 데이터베이스 (채팅방, 메시지 저장)
-- **PostgreSQL** - 관계형 데이터베이스 (사용자, 친구 관계 저장)
-- **Redis Stream** - 메시지 브로드캐스팅
-- **Redis Cache** - 캐싱 및 실시간 상태 관리
-- **Kafka** - 메시지 영구 저장 및 비동기 처리
-- **Server-Sent Events(SSE)** - 실시간 채팅방 목록 업데이트
-- **WebSocket STOMP** - WebSocket 메시징 프로토콜
+<div align="center">
+  <table>
+    <tr>
+      <th>카테고리</th>
+      <th>기술</th>
+      <th>용도</th>
+    </tr>
+    <tr>
+      <td rowspan="3"><b>💻 애플리케이션</b></td>
+      <td><img src="https://img.shields.io/badge/Spring_Boot-3.4.3-brightgreen" alt="Spring Boot"></td>
+      <td>애플리케이션 서버 프레임워크</td>
+    </tr>
+    <tr>
+      <td><img src="https://img.shields.io/badge/Kotlin-1.9.25-blue" alt="Kotlin"></td>
+      <td>주 프로그래밍 언어</td>
+    </tr>
+    <tr>
+      <td><img src="https://img.shields.io/badge/Spring_Security-JWT-green" alt="Spring Security"></td>
+      <td>인증 및 권한 관리</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><b>🔄 실시간 통신</b></td>
+      <td><img src="https://img.shields.io/badge/WebSocket-STOMP-orange" alt="WebSocket"></td>
+      <td>양방향 실시간 통신</td>
+    </tr>
+    <tr>
+      <td><img src="https://img.shields.io/badge/SSE-Server_Sent_Events-yellow" alt="SSE"></td>
+      <td>실시간 채팅방 목록 업데이트</td>
+    </tr>
+    <tr>
+      <td><img src="https://img.shields.io/badge/Redis_Stream-7.2.3-red" alt="Redis Stream"></td>
+      <td>메시지 브로드캐스팅</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><b>💾 데이터 저장</b></td>
+      <td><img src="https://img.shields.io/badge/MongoDB-7.0.4-green" alt="MongoDB"></td>
+      <td>채팅방 및 메시지 저장</td>
+    </tr>
+    <tr>
+      <td><img src="https://img.shields.io/badge/PostgreSQL-15-blue" alt="PostgreSQL"></td>
+      <td>사용자 및 친구 관계 저장</td>
+    </tr>
+    <tr>
+      <td><img src="https://img.shields.io/badge/Redis_Cache-7.2.3-red" alt="Redis Cache"></td>
+      <td>캐싱 및 실시간 상태 관리</td>
+    </tr>
+    <tr>
+      <td rowspan="1"><b>📨 메시징</b></td>
+      <td><img src="https://img.shields.io/badge/Kafka-3.7.0-black" alt="Kafka"></td>
+      <td>메시지 영구 저장 및 비동기 처리</td>
+    </tr>
+  </table>
+</div>
 
 ### 필수 요구사항
 
-- JDK 21
-- Gradle 8.11.1 이상
-- MongoDB 5.0 이상
-- Redis 7.2 이상
-- Kafka 3.5 이상
+<div align="center">
+  <table>
+    <tr>
+      <td><b>🔧 JDK 21</b></td>
+      <td><b>🛠️ Gradle 8.11.1+</b></td>
+      <td><b>🗄️ MongoDB 5.0+</b></td>
+      <td><b>🔴 Redis 7.2+</b></td>
+      <td><b>⚡ Kafka 3.5+</b></td>
+    </tr>
+  </table>
+</div>
 
-## 빠른 시작 가이드
+## 🚀 빠른 시작 가이드
 
-### 1. 프로젝트 클론
-```bash
-git clone https://github.com/yourusername/shoot.git
-cd shoot
-```
+<div align="center">
+  <table>
+    <tr>
+      <th width="60">단계</th>
+      <th>설명</th>
+      <th>명령어</th>
+    </tr>
+    <tr>
+      <td align="center"><b>1️⃣</b></td>
+      <td><b>프로젝트 클론</b><br>GitHub에서 프로젝트를 클론하고 디렉토리로 이동합니다.</td>
+      <td><pre>git clone https://github.com/yourusername/shoot.git
+cd shoot</pre></td>
+    </tr>
+    <tr>
+      <td align="center"><b>2️⃣</b></td>
+      <td><b>환경 설정</b><br>Docker Compose를 사용하여 필요한 인프라(Redis, MongoDB, Kafka)를 실행합니다.</td>
+      <td><pre>docker-compose up -d</pre></td>
+    </tr>
+    <tr>
+      <td align="center"><b>3️⃣</b></td>
+      <td><b>빌드 및 실행</b><br>Gradle을 사용하여 프로젝트를 빌드하고 실행합니다.</td>
+      <td><pre>./gradlew build
+./gradlew bootRun</pre></td>
+    </tr>
+  </table>
+</div>
 
-### 2. 환경 설정
-Docker Compose를 사용하여 필요한 인프라를 실행합니다:
-```bash
-# Redis, MongoDB, Kafka 실행
-docker-compose up -d
-```
+### 🌐 접속 정보
 
-### 3. 애플리케이션 빌드 및 실행
-```bash
-# Gradle 빌드
-./gradlew build
-
-# 애플리케이션 실행
-./gradlew bootRun
-```
-
-### 4. API 테스트
 애플리케이션이 실행되면 다음 URL로 접속할 수 있습니다:
-- API 엔드포인트: http://localhost:8080/api/v1
-- WebSocket 연결: ws://localhost:8080/ws/chat
-- Swagger UI: http://localhost:8080/swagger-ui.html
 
-## 헥사고날 아키텍처
+<div align="center">
+  <table>
+    <tr>
+      <td><b>🔗 API 엔드포인트</b></td>
+      <td>http://localhost:8080/api/v1</td>
+    </tr>
+    <tr>
+      <td><b>🔌 WebSocket 연결</b></td>
+      <td>ws://localhost:8080/ws/chat</td>
+    </tr>
+    <tr>
+      <td><b>📚 Swagger UI</b></td>
+      <td>http://localhost:8080/swagger-ui.html</td>
+    </tr>
+  </table>
+</div>
 
-Shoot은 헥사고날 아키텍처(포트 및 어댑터 패턴)를 채택하여 핵심 비즈니스 로직을 외부 의존성으로부터 격리하고, 테스트 용이성을 높이며, 시스템의 확장성과 유지보수성을 개선했습니다.
+## 🔷 헥사고날 아키텍처
 
-### 패키지 구조
+<div align="center">
+  <img src="https://img.shields.io/badge/아키텍처-헥사고날-blue" alt="헥사고날 아키텍처">
+  <img src="https://img.shields.io/badge/패턴-포트_및_어댑터-orange" alt="포트 및 어댑터 패턴">
+  <img src="https://img.shields.io/badge/설계-도메인_중심-green" alt="도메인 중심 설계">
+</div>
+
+Shoot은 **헥사고날 아키텍처**(포트 및 어댑터 패턴)를 채택하여 다음과 같은 이점을 제공합니다:
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">🔄</td>
+      <td><b>비즈니스 로직 격리</b></td>
+      <td>핵심 도메인 로직을 외부 의존성으로부터 보호</td>
+    </tr>
+    <tr>
+      <td align="center">🧪</td>
+      <td><b>테스트 용이성</b></td>
+      <td>모의 객체(mock)를 통한 단위 테스트 간소화</td>
+    </tr>
+    <tr>
+      <td align="center">🔌</td>
+      <td><b>유연한 확장성</b></td>
+      <td>새로운 인터페이스 추가 시 핵심 로직 변경 불필요</td>
+    </tr>
+    <tr>
+      <td align="center">🔧</td>
+      <td><b>유지보수성 향상</b></td>
+      <td>관심사 분리를 통한 코드 가독성 및 유지보수성 개선</td>
+    </tr>
+  </table>
+</div>
+
+### 📂 패키지 구조
+
+<div align="center">
+  <table>
+    <tr>
+      <th colspan="2">레이어</th>
+      <th>설명</th>
+    </tr>
+    <tr>
+      <td rowspan="8"><b>adapter</b></td>
+      <td><code>in.event</code></td>
+      <td>이벤트 리스너 (인바운드)</td>
+    </tr>
+    <tr>
+      <td><code>in.kafka</code></td>
+      <td>Kafka 소비자 (인바운드)</td>
+    </tr>
+    <tr>
+      <td><code>in.redis</code></td>
+      <td>Redis Stream 리스너 (인바운드)</td>
+    </tr>
+    <tr>
+      <td><code>in.web</code></td>
+      <td>REST API, WebSocket, SSE 컨트롤러 (인바운드)</td>
+    </tr>
+    <tr>
+      <td><code>out.cache</code></td>
+      <td>캐시 어댑터 (아웃바운드)</td>
+    </tr>
+    <tr>
+      <td><code>out.kafka</code></td>
+      <td>Kafka 프로듀서 (아웃바운드)</td>
+    </tr>
+    <tr>
+      <td><code>out.persistence</code></td>
+      <td>데이터베이스 어댑터 (아웃바운드)</td>
+    </tr>
+    <tr>
+      <td><code>out.redis</code></td>
+      <td>Redis 관련 어댑터 (아웃바운드)</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><b>application</b></td>
+      <td><code>port.in</code></td>
+      <td>인바운드 포트 (서비스 인터페이스)</td>
+    </tr>
+    <tr>
+      <td><code>port.out</code></td>
+      <td>아웃바운드 포트 (저장소, 메시징 인터페이스)</td>
+    </tr>
+    <tr>
+      <td><code>service</code></td>
+      <td>비즈니스 로직 구현 (유스케이스)</td>
+    </tr>
+    <tr>
+      <td rowspan="5"><b>domain</b></td>
+      <td><code>chat</code></td>
+      <td>채팅 관련 도메인 모델</td>
+    </tr>
+    <tr>
+      <td><code>chatroom</code></td>
+      <td>채팅방 관련 도메인 모델</td>
+    </tr>
+    <tr>
+      <td><code>event</code></td>
+      <td>이벤트 관련 도메인 모델</td>
+    </tr>
+    <tr>
+      <td><code>notification</code></td>
+      <td>알림 관련 도메인 모델</td>
+    </tr>
+    <tr>
+      <td><code>user</code></td>
+      <td>사용자 관련 도메인 모델</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><b>infrastructure</b></td>
+      <td><code>config</code></td>
+      <td>스프링 설정 (보안, 웹소켓, Kafka, Redis 등)</td>
+    </tr>
+    <tr>
+      <td><code>exception</code></td>
+      <td>예외 처리</td>
+    </tr>
+    <tr>
+      <td><code>util</code></td>
+      <td>유틸리티 클래스</td>
+    </tr>
+  </table>
+</div>
+
+#### 아키텍처 다이어그램
 
 ```
-com.stark.shoot
-├── adapter                 # 외부 시스템과의 인터페이스
-│   ├── in                  # 인바운드 어댑터 (컨트롤러, 웹소켓 핸들러 등)
-│   │   ├── event           # 이벤트 리스너
-│   │   ├── kafka           # Kafka 소비자
-│   │   ├── redis           # Redis Stream 리스너
-│   │   └── web             # REST API 컨트롤러
-│   │       ├── socket      # WebSocket 핸들러
-│   │       └── sse         # SSE 컨트롤러
-│   └── out                 # 아웃바운드 어댑터 (레포지토리, 이벤트 발행자 등)
-│       ├── cache           # 캐시 어댑터
-│       ├── chatroom        # 채팅방 관련 어댑터
-│       ├── event           # 이벤트 발행 어댑터
-│       ├── kafka           # Kafka 프로듀서
-│       ├── message         # 메시지 관련 어댑터
-│       ├── persistence     # 데이터베이스 어댑터 (MongoDB, PostgreSQL)
-│       └── redis           # Redis 관련 어댑터
-├── application             # 애플리케이션 로직
-│   ├── filter              # 필터 및 인터셉터
-│   ├── port                # 포트 정의 (인터페이스)
-│   │   ├── in              # 인바운드 포트 (서비스 인터페이스)
-│   │   └── out             # 아웃바운드 포트 (저장소, 메시징 인터페이스)
-│   └── service             # 비즈니스 로직 구현 (유스케이스)
-├── domain                  # 도메인 모델
-│   ├── chat                # 채팅 관련 도메인
-│   ├── chatroom            # 채팅방 관련 도메인
-│   ├── event               # 이벤트 관련 도메인
-│   ├── notification        # 알림 관련 도메인
-│   └── user                # 사용자 관련 도메인
-└── infrastructure          # 공통 인프라 설정
-    ├── annotation          # 커스텀 어노테이션
-    ├── aop                 # 관점 지향 프로그래밍 (AOP)
-    ├── config              # 스프링 설정 (보안, 웹소켓, Kafka, Redis 등)
-    ├── exception           # 예외 처리
-    └── util                # 유틸리티 클래스
+┌─────────────────────────────────────────────────────────────────┐
+│                           외부 세계                               │
+│                                                                 │
+│  ┌─────────────┐   ┌─────────────┐   ┌─────────────────────┐    │
+│  │  REST API   │   │  WebSocket  │   │  Kafka/Redis/DB 등  │    │
+│  └──────┬──────┘   └──────┬──────┘   └──────────┬──────────┘    │
+└─────────┼────────────────┬─┼───────────────────┬─┼───────────────┘
+          │                │ │                   │ │
+          ▼                ▼ ▼                   ▼ ▼
+┌─────────┴───────┐  ┌─────┴─┴─────┐     ┌───────┴─┴───────┐
+│   인바운드 어댑터   │  │  인바운드 포트 │     │   아웃바운드 포트   │
+└─────────┬───────┘  └──────┬──────┘     └───────┬─────────┘
+          │                 │                    │
+          │                 ▼                    │
+          │         ┌───────────────┐            │
+          └────────►│    도메인 모델   │◄───────────┘
+                    │  (비즈니스 로직) │
+                    └───────────────┘
 ```
 
-## 핵심 기능
+## 💡 핵심 기능
 
-### JWT 기반 인증 시스템
+<div align="center">
+  <img src="https://img.shields.io/badge/실시간-통신-blue" alt="실시간 통신">
+  <img src="https://img.shields.io/badge/분산-메시징-orange" alt="분산 메시징">
+  <img src="https://img.shields.io/badge/고가용성-아키텍처-green" alt="고가용성 아키텍처">
+</div>
 
-Shoot은 JWT 토큰을 사용하여 사용자 인증을 처리합니다. 토큰 기반 인증은 서버의 상태를 저장하지 않아도 되므로, 서버의 확장성을 높이고 분산 환경에서 효율적으로 동작합니다.
+### 🔐 JWT 기반 인증 시스템
 
-#### 인증 흐름
-1. 사용자 로그인 시 access token과 refresh token 발급
-2. 모든 API 요청에 Authorization 헤더로 토큰 포함
-3. 토큰 만료 시 refresh token으로 새 access token 발급
-4. WebSocket 및 SSE 연결 시에도 JWT 인증 적용
+<div align="center">
+  <table>
+    <tr>
+      <td width="70%">
+        <p><b>토큰 기반 인증 시스템</b>으로 서버의 상태를 저장하지 않는 <b>스테이트리스(Stateless)</b> 아키텍처를 구현했습니다. 이를 통해 서버의 확장성을 높이고 분산 환경에서 효율적으로 동작합니다.</p>
+        <h4>📝 인증 흐름</h4>
+        <ol>
+          <li>사용자 로그인 시 <code>access token</code>과 <code>refresh token</code> 발급</li>
+          <li>모든 API 요청에 <code>Authorization</code> 헤더로 토큰 포함</li>
+          <li>토큰 만료 시 <code>refresh token</code>으로 새 <code>access token</code> 발급</li>
+          <li>WebSocket 및 SSE 연결 시에도 JWT 인증 적용</li>
+        </ol>
+      </td>
+      <td width="30%">
+        <div align="center">
+          <h4>🔑 주요 특징</h4>
+          <ul>
+            <li>✅ 스테이트리스 인증</li>
+            <li>✅ 토큰 기반 권한 관리</li>
+            <li>✅ 자동 토큰 갱신</li>
+            <li>✅ 다중 플랫폼 지원</li>
+          </ul>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+#### 💻 JWT 토큰 생성 코드 예시
 
 ```kotlin
 // JWT 토큰 생성 예시
@@ -199,9 +417,37 @@ fun generateToken(
 }
 ```
 
-### WebSocket을 활용한 실시간 채팅
+### 🔄 WebSocket을 활용한 실시간 채팅
 
-Spring의 STOMP WebSocket을 사용하여 클라이언트와 서버 간 양방향 실시간 통신을 구현했습니다. 웹소켓은 HTTP 연결을 통해 초기화된 후 지속적인 양방향 통신 채널을 제공하므로, 실시간 메시지 교환에 적합합니다.
+<div align="center">
+  <table>
+    <tr>
+      <td width="70%">
+        <p>Spring의 <b>STOMP WebSocket</b>을 사용하여 클라이언트와 서버 간 양방향 실시간 통신을 구현했습니다. 웹소켓은 HTTP 연결을 통해 초기화된 후 지속적인 양방향 통신 채널을 제공하므로, 실시간 메시지 교환에 적합합니다.</p>
+        <h4>📡 통신 구조</h4>
+        <ul>
+          <li><code>/ws/chat</code> - 웹소켓 연결 엔드포인트</li>
+          <li><code>/app/*</code> - 클라이언트에서 서버로 메시지 전송</li>
+          <li><code>/topic/*</code> - 서버에서 클라이언트로 브로드캐스팅</li>
+          <li><code>/queue/*</code> - 서버에서 특정 클라이언트로 메시지 전송</li>
+        </ul>
+      </td>
+      <td width="30%">
+        <div align="center">
+          <h4>📊 주요 특징</h4>
+          <ul>
+            <li>✅ 양방향 실시간 통신</li>
+            <li>✅ 자동 재연결 메커니즘</li>
+            <li>✅ 하트비트로 연결 유지</li>
+            <li>✅ 메시지 큐잉 지원</li>
+          </ul>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+#### 💻 WebSocket 설정 코드 예시
 
 ```kotlin
 @Configuration
@@ -225,9 +471,21 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer {
 }
 ```
 
-### Redis Stream으로 메시지 브로드캐스팅
+### 📡 Redis Stream으로 메시지 브로드캐스팅
 
-기존의 Redis PubSub 방식에서 Redis Stream으로 변경하여 메시지 전송의 신뢰성과 처리 보장성을 강화했습니다. Redis Stream은 메시지 영구 저장, 소비자 그룹 기능, 처리 확인(ACK) 등의 기능을 제공하여 메시지 유실을 방지하고 정확한 순서를 보장합니다.
+기존의 Redis PubSub 방식에서 **Redis Stream**으로 변경하여 메시지 전송의 신뢰성과 처리 보장성을 강화했습니다. Redis Stream은 메시지 영구 저장, 소비자 그룹 기능, 처리 확인(ACK) 등의 기능을 제공하여 메시지 유실을 방지하고 정확한 순서를 보장합니다.
+
+#### 🔄 메시지 흐름
+1. 메시지 발행: `stream:chat:room:{roomId}`에 메시지 추가
+2. 소비자 그룹: 여러 서버 인스턴스가 메시지를 분산 처리
+3. 메시지 처리: 수신된 메시지를 WebSocket으로 클라이언트에 전달
+4. ACK 처리: 성공적으로 처리된 메시지 확인
+
+#### 🛡️ 주요 특징
+- ✅ 메시지 유실 방지
+- ✅ 정확한 순서 보장
+- ✅ 분산 처리 지원
+- ✅ 처리 확인 메커니즘
 
 ```kotlin
 /**
@@ -686,8 +944,7 @@ fun scheduleMessage(
 
 ### 사용자 관련 API
 
-<details>
-<summary><b>인증 API</b> (클릭하여 펼치기)</summary>
+#### 인증 API
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 | 요청 예시 |
 |------------|--------|------|-----------|----------|
@@ -695,10 +952,7 @@ fun scheduleMessage(
 | `/api/v1/auth/login` | POST | 로그인 | 아니오 | `{"email": "user1@example.com", "password": "password123"}` |
 | `/api/v1/auth/refresh` | POST | 토큰 갱신 | 아니오 | `{"refreshToken": "eyJhbGciOiJIUzI1..."}` |
 
-</details>
-
-<details>
-<summary><b>사용자 프로필 API</b> (클릭하여 펼치기)</summary>
+#### 사용자 프로필 API
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 |
 |------------|--------|------|-----------|
@@ -710,10 +964,7 @@ fun scheduleMessage(
 | `/api/v1/users/status` | PUT | 상태 업데이트 | 예 |
 | `/api/v1/users/search` | GET | 사용자 검색 | 예 |
 
-</details>
-
-<details>
-<summary><b>친구 관련 API</b> (클릭하여 펼치기)</summary>
+#### 친구 관련 API
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 |
 |------------|--------|------|-----------|
@@ -725,12 +976,9 @@ fun scheduleMessage(
 | `/api/v1/users/friends/{friendId}` | DELETE | 친구 삭제 | 예 |
 | `/api/v1/users/recommendations` | GET | 친구 추천 목록 | 예 |
 
-</details>
-
 ### 채팅방 관련 API
 
-<details>
-<summary><b>채팅방 기본 API</b> (클릭하여 펼치기)</summary>
+#### 채팅방 기본 API
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 |
 |------------|--------|------|-----------|
@@ -742,10 +990,7 @@ fun scheduleMessage(
 | `/api/v1/chatrooms/search` | GET | 채팅방 검색 | 예 |
 | `/api/v1/chatrooms/multiple` | POST | 다중 채팅방 생성 | 예 |
 
-</details>
-
-<details>
-<summary><b>채팅방 참여자 및 기능 API</b> (클릭하여 펼치기)</summary>
+#### 채팅방 참여자 및 기능 API
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 |
 |------------|--------|------|-----------|
@@ -758,12 +1003,9 @@ fun scheduleMessage(
 | `/api/v1/chatrooms/{roomId}/favorite` | POST | 즐겨찾기 추가 | 예 |
 | `/api/v1/chatrooms/{roomId}/favorite` | DELETE | 즐겨찾기 제거 | 예 |
 
-</details>
-
 ### 메시지 관련 API
 
-<details>
-<summary><b>기본 메시지 API</b> (클릭하여 펼치기)</summary>
+#### 기본 메시지 API
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 |
 |------------|--------|------|-----------|
@@ -773,10 +1015,7 @@ fun scheduleMessage(
 | `/api/v1/messages/{messageId}` | DELETE | 메시지 삭제 | 예 |
 | `/api/v1/messages/mark-read` | POST | 메시지 읽음 처리 | 예 |
 
-</details>
-
-<details>
-<summary><b>고급 메시지 기능 API</b> (클릭하여 펼치기)</summary>
+#### 고급 메시지 기능 API
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 |
 |------------|--------|------|-----------|
@@ -787,10 +1026,7 @@ fun scheduleMessage(
 | `/api/v1/messages/reaction` | POST | 이모티콘 반응 추가 | 예 |
 | `/api/v1/messages/reaction` | DELETE | 이모티콘 반응 제거 | 예 |
 
-</details>
-
-<details>
-<summary><b>스레드 및 예약 메시지 API</b> (클릭하여 펼치기)</summary>
+#### 스레드 및 예약 메시지 API
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 |
 |------------|--------|------|-----------|
@@ -801,12 +1037,9 @@ fun scheduleMessage(
 | `/api/v1/messages/schedule` | GET | 예약 메시지 목록 | 예 |
 | `/api/v1/messages/schedule/{scheduleId}` | DELETE | 예약 메시지 취소 | 예 |
 
-</details>
-
 ### 실시간 통신 엔드포인트
 
-<details>
-<summary><b>WebSocket 엔드포인트</b> (클릭하여 펼치기)</summary>
+#### WebSocket 엔드포인트
 
 | 엔드포인트 | 설명 |
 |------------|------|
@@ -823,18 +1056,13 @@ fun scheduleMessage(
 | `/topic/typing/{roomId}` | 타이핑 인디케이터 구독 |
 | `/topic/active/{roomId}` | 활성 사용자 상태 구독 |
 
-</details>
-
-<details>
-<summary><b>SSE 엔드포인트</b> (클릭하여 펼치기)</summary>
+#### SSE 엔드포인트
 
 | 엔드포인트 | 설명 |
 |------------|------|
 | `/api/v1/sse/updates/{userId}` | 채팅방 목록 업데이트 스트림 |
 | `/api/v1/sse/unread/{userId}` | 안읽은 메시지 카운트 스트림 |
 | `/api/v1/sse/read-count/{roomId}/{messageId}` | 메시지 읽음 카운트 스트림 |
-
-</details>
 
 ## 보안 및 개인정보 보호
 
@@ -1020,67 +1248,64 @@ override fun configureClientInboundChannel(registration: ChannelRegistration) {
 ### 시스템 아키텍처 다이어그램
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│                 │     │                 │     │                 │
-│    클라이언트     │◄────►   Spring Boot    │◄────►   Redis Stream   │
-│   (WebSocket)   │     │   애플리케이션     │     │  (실시간 메시지)  │
-│                 │     │                 │     │                 │
-└─────────────────┘     └────────┬────────┘     └─────────────────┘
-                                 │
-                                 │
-                        ┌────────▼────────┐     ┌─────────────────┐
-                        │                 │     │                 │
-                        │      Kafka      │────►│    MongoDB      │
-                        │  (메시지 영구 저장) │     │  (데이터 저장소)  │
-                        │                 │     │                 │
-                        └─────────────────┘     └─────────────────┘
+┌─────────────────────┐      ┌─────────────────────┐      ┌─────────────────────┐
+│                     │      │                     │      │                     │
+│      클라이언트        │◄────►│     Spring Boot     │◄────►│    Redis Stream     │
+│    (WebSocket)      │      │     애플리케이션       │      │   (실시간 메시지)       │
+│                     │      │                     │      │                     │
+└─────────────────────┘      └──────────┬──────────┘      └─────────────────────┘
+                                        │                                        
+                                        │                                        
+                             ┌──────────▼──────────┐      ┌─────────────────────┐
+                             │                     │      │                     │
+                             │        Kafka        │─────►│       MongoDB       │
+                             │   (메시지 영구 저장)    │      │     (데이터 저장소)    │
+                             │                     │      │                     │
+                             └─────────────────────┘      └─────────────────────┘
 ```
 
 ### 메시지 흐름 다이어그램
 
 ```
-[클라이언트]───────────────────────────────────────────────┐
-     │                                                  │
-     │ 1. 메시지 전송 (WebSocket)                          │
-     ↓                                                  │
-[서버 (MessageStompHandler)]                             │
-     │                                                  │
-     ├─────────────────────┬─────────────────────┐      │
-     │                     │                     │      │
-     │                     │                     │      │
-     ↓                     ↓                     ↓      │
- 2. 상태: SENDING   3. Redis Stream 발행    4. Kafka 발행  │
-     │                     │                     │      │
-     │                     │                     │      │
-     │                     │                     │      │
-     │                     ↓                     ↓      │
-     │          5. Stream Consumer 수신  6. Kafka Consumer 수신
-     │                     │                     │      │
-     │                     │                     │      │
-     │                     │                     │      │
-     │                     ↓                     ↓      │
-     │           7. 웹소켓으로 메시지 전달   8. 상태: SENT_TO_KAFKA
-     │                     │                     │      │
-     │                     │                     │      │
-     │                     │                     │      │
-     │                     ↓                     ↓      │
-     │              [다른 클라이언트들]      9. 상태: PROCESSING
-     │                                           │      │
-     │                                           │      │
-     │                                           ↓      │
-     │                                  10. MongoDB 저장 │
-     │                                           │      │
-     │                                           │      │
-     │                                           ↓      │
-     │                                   11. 상태: SAVED │
-     │                                           │      │
-     │                                           │      │
-     └──────────────────←─────────────────←──────┘      │
-                                                        │
-     12. 상태 업데이트 화면에 표시                            │
-      (SENDING → SENT_TO_KAFKA → PROCESSING → SAVED)    │
-                                                        │
-     └──────────────────←─────────────────←─────────────┘
+┌───────────────────────────────────────────────────────────────────────────┐
+│                                                                           │
+│                               [클라이언트]                                   │
+│                                   │                                       │
+│                                   │ 1. 메시지 전송 (WebSocket)               │
+│                                   ▼                                       │
+│                      [서버 (MessageStompHandler)]                          │
+│                                   │                                       │
+│           ┌───────────────────────┼───────────────────────┐               │
+│           │                       │                       │               │
+│           ▼                       ▼                       ▼               │
+│     2. 상태: SENDING        3. Redis Stream 발행      4. Kafka 발행          │
+│           │                       │                       │               │
+│           │                       │                       │               │
+│           │                       ▼                       ▼               │
+│           │             5. Stream Consumer 수신    6. Kafka Consumer 수신   │
+│           │                       │                       │               │
+│           │                       │                       │               │
+│           │                       ▼                       ▼               │
+│           │              7. 웹소켓으로 메시지 전달     8. 상태: SENT_TO_KAFKA    │
+│           │                       │                       │               │
+│           │                       │                       │               │
+│           │                       ▼                       ▼               │
+│           │                 [다른 클라이언트들]        9. 상태: PROCESSING      │
+│           │                                               │               │
+│           │                                               │               │
+│           │                                               ▼               │
+│           │                                       10. MongoDB 저장         │
+│           │                                               │               │
+│           │                                               │               │
+│           │                                               ▼               │
+│           │                                        11. 상태: SAVED         │
+│           │                                               │               │
+│           └───────────────────────◄───────────────────────┘               │
+│                                                                           │
+│                      12. 상태 업데이트 화면에 표시                              │
+│                (SENDING → SENT_TO_KAFKA → PROCESSING → SAVED)             │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## 상태별 메시지 흐름 상세 설명
@@ -1143,34 +1368,44 @@ override fun configureClientInboundChannel(registration: ChannelRegistration) {
 ## 오류 처리 흐름
 
 ```
-            [메시지 처리 중 오류 발생]
-                      │
-                      ↓
-              [상태: FAILED 설정]
-                      │
-                      ↓
-        [오류 메시지와 함께 상태 업데이트 전송]
-                      │
-                      ↓
-       [클라이언트에서 오류 표시 및 재시도 옵션]
+┌───────────────────────────────────────────────────┐
+│                                                   │
+│              [메시지 처리 중 오류 발생]                │
+│                        │                          │
+│                        ▼                          │
+│                [상태: FAILED 설정]                  │
+│                        │                          │
+│                        ▼                          │
+│          [오류 메시지와 함께 상태 업데이트 전송]           │
+│                        │                          │
+│                        ▼                          │
+│         [클라이언트에서 오류 표시 및 재시도 옵션]           │
+│                                                   │
+└───────────────────────────────────────────────────┘
 ```
 
 ## 여러 서버 인스턴스의 Redis Stream 소비자 그룹 흐름
 
 ```
-                          [Redis Stream]
-                                │
-                                ↓
-           ┌──────────────────────────────────────────┐
-           │                                          │
-           ↓                                          ↓
-     [서버 인스턴스 A]                             [서버 인스턴스 B]
-[소비자 그룹: chat-consumers]                [소비자 그룹: chat-consumers]
-[소비자 ID: consumer-uuid1]                 [소비자 ID: consumer-uuid2]
-           │                                          │
-           │ 메시지 1,3,5 수신                           │ 메시지 2,4,6 수신
-           ↓                                          ↓
-[클라이언트들에게 WebSocket 전송]              [클라이언트들에게 WebSocket 전송]
+┌────────────────────────────────────────────────────────────────────────┐
+│                                                                        │
+│                            [Redis Stream]                              │
+│                                  │                                     │
+│                                  ▼                                     │
+│            ┌─────────────────────────────────────────┐                 │
+│            │                                         │                 │
+│            ▼                                         ▼                 │
+│      [서버 인스턴스 A]                             [서버 인스턴스 B]          │
+│ [소비자 그룹: chat-consumers]                [소비자 그룹: chat-consumers]   │
+│ [소비자 ID: consumer-uuid1]                 [소비자 ID: consumer-uuid2]    │
+│            │                                         │                 │
+│            │                                         │                 │
+│            │  메시지 1,3,5 수신                         │  메시지 2,4,6 수신 │
+│            │                                         │                 │
+│            ▼                                         ▼                 │
+│  [클라이언트들에게 WebSocket 전송]              [클라이언트들에게 WebSocket 전송] │
+│                                                                        │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## 감사의 말

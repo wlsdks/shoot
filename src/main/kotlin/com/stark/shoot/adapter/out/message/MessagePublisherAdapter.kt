@@ -50,19 +50,9 @@ class MessagePublisherAdapter(
         applicationCoroutineScope.launch {
             val tempId = domainMessage.metadata.tempId ?: ""
             try {
-                // Redis 발행 - 직접 Redis 인프라 사용
-                publishToRedis(request)
-
-                // Kafka 발행 - 직접 Kafka 인프라 사용
+                // 내부 suspend 함수를 활용하여 발행 로직 재사용
                 val event = messageDomainService.createMessageEvent(domainMessage)
-                publishToKafka(
-                    topic = KAFKA_CHAT_MESSAGES_TOPIC,
-                    key = request.roomId.toString(),
-                    event = event
-                )
-
-                // 상태 업데이트
-                notifyMessageStatus(request.roomId, tempId, MessageStatus.SENT_TO_KAFKA)
+                publishMessageInternal(request, event, tempId)
             } catch (throwable: Throwable) {
                 handlePublishError(request, tempId, throwable)
             }
@@ -73,7 +63,8 @@ class MessagePublisherAdapter(
      * 메시지 처리 중 발생한 오류를 공통으로 처리합니다.
      */
     override fun handleProcessingError(request: ChatMessageRequest, throwable: Throwable) {
-        handlePublishError(request, request.tempId ?: "", throwable)
+        // 공통 오류 처리 로직 재사용
+        handlePublishError(request, request.tempId.orEmpty(), throwable)
     }
 
     /**
@@ -85,38 +76,65 @@ class MessagePublisherAdapter(
         status: MessageStatus,
         errorMessage: String?
     ) {
-        val statusUpdate = MessageStatusResponse(
+        MessageStatusResponse(
             tempId = tempId,
             status = status.name,
             persistedId = null,
             errorMessage = errorMessage,
             createdAt = Instant.now().toString()
-        )
-        webSocketMessageBroker.sendMessage("/topic/message/status/$roomId", statusUpdate)
+        ).let { statusUpdate ->
+            webSocketMessageBroker.sendMessage("/topic/message/status/$roomId", statusUpdate)
+        }
     }
 
     /**
      * 메시지 처리 중 발생한 오류를 알립니다.
      */
     override fun notifyMessageError(roomId: Long, throwable: Throwable) {
-        val errorResponse = ErrorResponse(
+        ErrorResponse(
             status = 500,
             message = throwable.message ?: "메시지 처리 중 오류가 발생했습니다",
             timestamp = System.currentTimeMillis()
-        )
-        webSocketMessageBroker.sendMessage("/topic/errors/$roomId", errorResponse)
-    }
-
-    private fun handlePublishError(message: ChatMessageRequest, tempId: String, throwable: Throwable) {
-        logMessageError(message, throwable)
-        notifyMessageError(message.roomId, throwable)
-        if (tempId.isNotEmpty()) {
-            notifyMessageStatus(message.roomId, tempId, MessageStatus.FAILED, throwable.message)
+        ).let { errorResponse ->
+            webSocketMessageBroker.sendMessage("/topic/errors/$roomId", errorResponse)
         }
     }
 
-    private fun logMessageError(message: ChatMessageRequest, throwable: Throwable) {
+
+    /**
+     * 메시지 발행을 위한 내부 공통 함수
+     * Redis와 Kafka에 메시지를 발행하고 상태를 업데이트합니다.
+     */
+    private suspend fun publishMessageInternal(
+        request: ChatMessageRequest,
+        event: MessageEvent,
+        tempId: String
+    ) {
+        // Redis 발행
+        publishToRedis(request)
+
+        // Kafka 발행
+        publishToKafka(
+            topic = KAFKA_CHAT_MESSAGES_TOPIC,
+            key = request.roomId.toString(),
+            event = event
+        )
+
+        // 상태 업데이트
+        notifyMessageStatus(request.roomId, tempId, MessageStatus.SENT_TO_KAFKA)
+    }
+
+    private fun handlePublishError(message: ChatMessageRequest, tempId: String, throwable: Throwable) {
+        // 로그 기록
         logger.error(throwable) { "메시지 처리 실패: roomId=${message.roomId}, content=${message.content.text}" }
+
+        // 오류 알림
+        notifyMessageError(message.roomId, throwable)
+
+        // 상태 업데이트 (tempId가 있는 경우만)
+        tempId.takeIf { it.isNotEmpty() }?.let {
+            notifyMessageStatus(message.roomId, it, MessageStatus.FAILED, throwable.message)
+        }
     }
 
     /**
@@ -128,11 +146,12 @@ class MessagePublisherAdapter(
         val streamKey = "stream:chat:room:${message.roomId}"
         try {
             val messageJson = objectMapper.writeValueAsString(message)
-            val map = mapOf("message" to messageJson)
-            val record = StreamRecords.newRecord().ofMap(map).withStreamKey(streamKey)
-            val messageId = redisTemplate.opsForStream<String, String>().add(record)
+            val record = StreamRecords.newRecord()
+                .ofMap(mapOf("message" to messageJson))
+                .withStreamKey(streamKey)
 
-            logger.debug { "Redis Stream에 메시지 발행 완료: $streamKey, id: $messageId" }
+            redisTemplate.opsForStream<String, String>().add(record)
+                .also { messageId -> logger.debug { "Redis Stream에 메시지 발행 완료: $streamKey, id: $messageId" } }
         } catch (e: Exception) {
             logger.error(e) { "Redis Stream 발행 실패: $streamKey, ${e.message}" }
             throw e
@@ -148,8 +167,10 @@ class MessagePublisherAdapter(
      */
     private suspend fun publishToKafka(topic: String, key: String, event: MessageEvent) {
         try {
-            val result = kafkaTemplate.send(topic, key, event).await()
-            logger.debug { "Kafka 메시지 발행 완료: topic=$topic, key=$key, offset=${result.recordMetadata.offset()}" }
+            kafkaTemplate.send(topic, key, event).await()
+                .also { result -> 
+                    logger.debug { "Kafka 메시지 발행 완료: topic=$topic, key=$key, offset=${result.recordMetadata.offset()}" }
+                }
         } catch (ex: Exception) {
             logger.error(ex) { "Kafka 메시지 발행 실패: topic=$topic, key=$key, ${ex.message}" }
             throw KafkaPublishException("Kafka 메시지 발행 실패", ex)

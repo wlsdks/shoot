@@ -36,6 +36,10 @@ class MessagePublisherAdapter(
 
     private val logger = KotlinLogging.logger {}
 
+    companion object {
+        private const val KAFKA_CHAT_MESSAGES_TOPIC = "chat-messages"
+    }
+
     /**
      * 메시지를 발행합니다.
      *
@@ -52,7 +56,7 @@ class MessagePublisherAdapter(
                 // Kafka 발행 - 직접 Kafka 인프라 사용
                 val event = messageDomainService.createMessageEvent(domainMessage)
                 publishToKafka(
-                    topic = determineKafkaTopic(),
+                    topic = KAFKA_CHAT_MESSAGES_TOPIC,
                     key = request.roomId.toString(),
                     event = event
                 )
@@ -115,8 +119,6 @@ class MessagePublisherAdapter(
         logger.error(throwable) { "메시지 처리 실패: roomId=${message.roomId}, content=${message.content.text}" }
     }
 
-    private fun determineKafkaTopic(): String = "chat-messages"
-
     /**
      * Redis에 메시지를 직접 발행합니다.
      *
@@ -124,10 +126,17 @@ class MessagePublisherAdapter(
      */
     private suspend fun publishToRedis(message: ChatMessageRequest) {
         val streamKey = "stream:chat:room:${message.roomId}"
-        val messageJson = objectMapper.writeValueAsString(message)
-        val map = mapOf("message" to messageJson)
-        val record = StreamRecords.newRecord().ofMap(map).withStreamKey(streamKey)
-        redisTemplate.opsForStream<String, String>().add(record)
+        try {
+            val messageJson = objectMapper.writeValueAsString(message)
+            val map = mapOf("message" to messageJson)
+            val record = StreamRecords.newRecord().ofMap(map).withStreamKey(streamKey)
+            val messageId = redisTemplate.opsForStream<String, String>().add(record)
+
+            logger.debug { "Redis Stream에 메시지 발행 완료: $streamKey, id: $messageId" }
+        } catch (e: Exception) {
+            logger.error(e) { "Redis Stream 발행 실패: $streamKey, ${e.message}" }
+            throw e
+        }
     }
 
     /**
@@ -140,10 +149,10 @@ class MessagePublisherAdapter(
     private suspend fun publishToKafka(topic: String, key: String, event: MessageEvent) {
         try {
             val result = kafkaTemplate.send(topic, key, event).await()
-            // logger.info { "Message sent to topic: $topic, key: $key, offset: ${result.recordMetadata.offset()}" }
+            logger.debug { "Kafka 메시지 발행 완료: topic=$topic, key=$key, offset=${result.recordMetadata.offset()}" }
         } catch (ex: Exception) {
-            logger.error(ex) { "Failed to send message to topic: $topic, key: $key, event: $event" }
-            throw KafkaPublishException("Failed to publish message to Kafka", ex)
+            logger.error(ex) { "Kafka 메시지 발행 실패: topic=$topic, key=$key, ${ex.message}" }
+            throw KafkaPublishException("Kafka 메시지 발행 실패", ex)
         }
     }
 }

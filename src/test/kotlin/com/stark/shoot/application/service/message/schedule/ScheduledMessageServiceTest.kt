@@ -8,6 +8,7 @@ import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageRes
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ScheduledMessageMapper
 import com.stark.shoot.application.port.`in`.message.schedule.command.*
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
+import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.ScheduledMessagePort
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.domain.chat.message.type.MessageType
@@ -32,11 +33,13 @@ class ScheduledMessageServiceTest {
     private val scheduledMessagePort = mock(ScheduledMessagePort::class.java)
     private val chatRoomQueryPort = mock(ChatRoomQueryPort::class.java)
     private val scheduledMessageMapper = mock(ScheduledMessageMapper::class.java)
+    private val messagePublisherPort = mock(MessagePublisherPort::class.java)
 
     private val sut = ScheduledMessageService(
         scheduledMessagePort,
         chatRoomQueryPort,
-        scheduledMessageMapper
+        scheduledMessageMapper,
+        messagePublisherPort
     )
 
     @Test
@@ -189,7 +192,8 @@ class ScheduledMessageServiceTest {
         val testService = ScheduledMessageService(
             testScheduledMessagePort,
             testChatRoomQueryPort,
-            testScheduledMessageMapper
+            testScheduledMessageMapper,
+            messagePublisherPort
         )
 
         // when
@@ -283,7 +287,8 @@ class ScheduledMessageServiceTest {
         val testService = ScheduledMessageService(
             testScheduledMessagePort,
             testChatRoomQueryPort,
-            testScheduledMessageMapper
+            testScheduledMessageMapper,
+            messagePublisherPort
         )
 
         // when
@@ -377,7 +382,8 @@ class ScheduledMessageServiceTest {
         val testService = ScheduledMessageService(
             testScheduledMessagePort,
             testChatRoomQueryPort,
-            testScheduledMessageMapper
+            testScheduledMessageMapper,
+            messagePublisherPort
         )
 
         // when
@@ -496,7 +502,8 @@ class ScheduledMessageServiceTest {
         val testService = ScheduledMessageService(
             testScheduledMessagePort,
             testChatRoomQueryPort,
-            testScheduledMessageMapper
+            testScheduledMessageMapper,
+            messagePublisherPort
         )
 
         // when - 모든 채팅방의 예약 메시지 조회
@@ -587,7 +594,8 @@ class ScheduledMessageServiceTest {
         val testService = ScheduledMessageService(
             testScheduledMessagePort,
             testChatRoomQueryPort,
-            testScheduledMessageMapper
+            testScheduledMessageMapper,
+            messagePublisherPort
         )
 
         // when

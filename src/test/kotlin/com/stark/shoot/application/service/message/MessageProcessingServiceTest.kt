@@ -26,7 +26,7 @@ class MessageProcessingServiceTest {
         var lockKeyUsed: String? = null
         var ownerIdUsed: String? = null
 
-        override fun <T> withLock(lockKey: String, ownerId: String, action: () -> T): T {
+        override fun <T> withLock(lockKey: String, ownerId: String, retryCount: Int, autoExtend: Boolean, action: () -> T): T {
             lockKeyUsed = lockKey
             ownerIdUsed = ownerId
             return action()

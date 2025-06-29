@@ -3,9 +3,8 @@ package com.stark.shoot.application.service.message.thread
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
 import com.stark.shoot.application.port.`in`.message.thread.command.SendThreadMessageCommand
-import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
+import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
-import com.stark.shoot.application.port.out.message.PublishMessagePort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -42,9 +41,7 @@ class SendThreadMessageServiceTest {
     private lateinit var messageQueryPort: MessageQueryPort
     private lateinit var extractUrlPort: ExtractUrlPort
     private lateinit var cacheUrlPreviewPort: CacheUrlPreviewPort
-    private lateinit var kafkaMessagePublishPort: KafkaMessagePublishPort
-    private lateinit var publishMessagePort: PublishMessagePort
-    private lateinit var applicationCoroutineScope: ApplicationCoroutineScope
+    private lateinit var messagePublisherPort: MessagePublisherPort
     private lateinit var messageDomainService: MessageDomainService
     private lateinit var sendThreadMessageService: SendThreadMessageService
 
@@ -53,18 +50,14 @@ class SendThreadMessageServiceTest {
         messageQueryPort = mock(MessageQueryPort::class.java)
         extractUrlPort = mock(ExtractUrlPort::class.java)
         cacheUrlPreviewPort = mock(CacheUrlPreviewPort::class.java)
-        kafkaMessagePublishPort = mock(KafkaMessagePublishPort::class.java)
-        publishMessagePort = mock(PublishMessagePort::class.java)
-        applicationCoroutineScope = TestApplicationCoroutineScope()
+        messagePublisherPort = mock(MessagePublisherPort::class.java)
         messageDomainService = mock(MessageDomainService::class.java)
 
         sendThreadMessageService = SendThreadMessageService(
             messageQueryPort,
             extractUrlPort,
             cacheUrlPreviewPort,
-            kafkaMessagePublishPort,
-            publishMessagePort,
-            applicationCoroutineScope,
+            messagePublisherPort,
             messageDomainService
         )
     }

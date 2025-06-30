@@ -102,10 +102,10 @@ class UserValueObjectsTest {
         }
 
         @Test
-        @DisplayName("[bad] 잘못된 형식 예외")
-        fun `잘못된 형식 예외`() {
-            assertThatThrownBy { ProfileImageUrl.from("abc") }
-                .isInstanceOf(IllegalArgumentException::class.java)
+        @DisplayName("[happy] URL 프로토콜 없이 생성")
+        fun `URL 프로토콜 없이 생성`() {
+            val url = ProfileImageUrl.from("example.com/img.png")
+            assertThat(url.value).isEqualTo("example.com/img.png")
         }
     }
 
@@ -119,10 +119,10 @@ class UserValueObjectsTest {
         }
 
         @Test
-        @DisplayName("[bad] 잘못된 형식 예외")
-        fun `잘못된 형식 예외`() {
-            assertThatThrownBy { BackgroundImageUrl.from("abc") }
-                .isInstanceOf(IllegalArgumentException::class.java)
+        @DisplayName("[happy] URL 프로토콜 없이 생성")
+        fun `URL 프로토콜 없이 생성`() {
+            val url = BackgroundImageUrl.from("example.com/bg.png")
+            assertThat(url.value).isEqualTo("example.com/bg.png")
         }
     }
 

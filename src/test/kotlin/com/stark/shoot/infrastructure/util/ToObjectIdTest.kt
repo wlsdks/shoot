@@ -24,4 +24,11 @@ class ToObjectIdTest {
             "invalid".toObjectId()
         }
     }
+
+    @Test
+    @DisplayName("[special] default-message-id는 기본 ObjectId를 반환한다")
+    fun `default-message-id는 기본 ObjectId를 반환한다`() {
+        val result = "default-message-id".toObjectId()
+        assertThat(result).isEqualTo(ObjectId("000000000000000000000000"))
+    }
 }

@@ -420,14 +420,18 @@ class RedisStreamManager(
             val result = redisTemplate.opsForStream<String, Any>()
                 .acknowledge(consumerGroup, streamKey, messageId)
 
-            val success = result != null && result > 0
-            if (success) {
+            // 결과가 0인 경우는 이미 처리되었거나 존재하지 않는 메시지로 간주
+            if (result != null && result > 0) {
                 logger.debug { "메시지 ACK 성공: $streamKey, $messageId, 처리된 메시지 수: $result" }
+                return true
+            } else if (result == 0L) {
+                // 결과가 0인 경우는 이미 처리되었거나 존재하지 않는 메시지로 간주 (정상 케이스)
+                logger.debug { "메시지가 이미 처리되었거나 존재하지 않음: $streamKey, $messageId" }
+                return true
             } else {
                 logger.warn { "메시지 ACK 실패 (결과: $result): $streamKey, $messageId" }
+                return false
             }
-
-            return success
         } catch (e: Exception) {
             // 연결 관련 오류인 경우 재시도
             val isConnectionError = e.message?.let { msg ->

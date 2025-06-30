@@ -1,16 +1,34 @@
 package com.stark.shoot.infrastructure.config
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.KeyDeserializer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.kotlinModule
+import com.stark.shoot.domain.user.vo.UserId
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
 class JacksonConfig {
+
+    /**
+     * UserId를 위한 KeyDeserializer
+     * Map의 키로 사용될 때 String을 UserId로 변환
+     */
+    class UserIdKeyDeserializer : KeyDeserializer() {
+        override fun deserializeKey(key: String, ctxt: DeserializationContext): Any {
+            return try {
+                UserId.from(key.toLong())
+            } catch (e: Exception) {
+                throw ctxt.weirdKeyException(String::class.java, key, "UserId로 변환할 수 없습니다: $key")
+            }
+        }
+    }
 
     @Bean
     fun objectMapper(): ObjectMapper {
@@ -20,6 +38,11 @@ class JacksonConfig {
 
             // JavaTimeModule 등록 (LocalDateTime 등 역직렬화)
             registerModule(JavaTimeModule())
+
+            // UserId 키 역직렬화를 위한 모듈 등록
+            val module = SimpleModule()
+            module.addKeyDeserializer(UserId::class.java, UserIdKeyDeserializer())
+            registerModule(module)
 
             // 날짜·시간을 timestamp가 아닌 ISO-8601 문자 형태로
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)

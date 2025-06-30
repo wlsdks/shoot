@@ -1,5 +1,6 @@
 package com.stark.shoot.infrastructure.config.kafka
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.domain.event.MessageEvent
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.TopicPartition
@@ -14,12 +15,15 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer
 import org.springframework.kafka.listener.DefaultErrorHandler
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
 import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.util.backoff.FixedBackOff
 import java.net.InetAddress
 
 @Configuration
-class KafkaConsumerConfig {
+class KafkaConsumerConfig(
+    private val objectMapper: ObjectMapper
+) {
 
     @Value("\${spring.kafka.consumer.bootstrap-servers}")
     private lateinit var bootstrapServers: String
@@ -44,8 +48,12 @@ class KafkaConsumerConfig {
             // 기본 설정
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ConsumerConfig.GROUP_ID_CONFIG to groupId,
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
+
+            // 내부 디시리얼라이저 설정
+            ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS to StringDeserializer::class.java.name,
+            ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS to JsonDeserializer::class.java.name,
 
             // 디시리얼라이저 설정
             JsonDeserializer.TRUSTED_PACKAGES to "com.stark.shoot.domain.event",
@@ -66,10 +74,18 @@ class KafkaConsumerConfig {
             ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG to 10000 // 10초
         )
 
+        // 내부 디시리얼라이저 생성
+        val keyDeserializer = ErrorHandlingDeserializer(StringDeserializer())
+
+        // 커스텀 ObjectMapper를 사용하는 JsonDeserializer 생성
+        val jsonDeserializer = JsonDeserializer(MessageEvent::class.java, objectMapper, false)
+
+        val valueDeserializer = ErrorHandlingDeserializer(jsonDeserializer)
+
         return DefaultKafkaConsumerFactory(
             configProps,
-            StringDeserializer(),
-            JsonDeserializer(MessageEvent::class.java, false)
+            keyDeserializer,
+            valueDeserializer
         )
     }
 

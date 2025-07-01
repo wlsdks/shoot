@@ -111,9 +111,17 @@ class FriendRequestAdapter(
         val requests = friendRequestRepository
             .findAllBySenderIdAndReceiverId(senderId.value, receiverId.value)
 
-        for (entity in requests) {
+        // 동일한 상태로 이미 존재하는 요청은 제거하여 중복을 방지한다
+        val duplicated = requests.filter { it.status == status }
+        if (duplicated.isNotEmpty()) {
+            friendRequestRepository.deleteAll(duplicated)
+        }
+
+        // 남은 요청의 상태를 업데이트한다
+        val now = Instant.now()
+        for (entity in requests.filter { it.status != status }) {
             entity.status = status
-            entity.respondedAt = Instant.now()
+            entity.respondedAt = now
             friendRequestRepository.save(entity)
         }
     }

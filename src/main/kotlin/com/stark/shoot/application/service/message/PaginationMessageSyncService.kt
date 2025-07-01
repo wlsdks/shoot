@@ -79,18 +79,25 @@ class PaginationMessageSyncService(
         val roomObjectId = ChatRoomId.from(request.roomId)
 
         // lastMessageId가 null이 아닌 경우에만 ObjectId로 변환
-        val lastMessageObjectId = if (request.lastMessageId.isNullOrBlank()) {
-            MessageId.from("default-message-id")
-        } else {
+        val hasLastId = !request.lastMessageId.isNullOrBlank()
+        val lastMessageObjectId = if (hasLastId) {
             MessageId.from(request.lastMessageId)
+        } else {
+            MessageId.from("default-message-id")
         }
 
         return when (request.direction) {
-            // 초기 로드 시 메시지 동기화
+            // 초기 로드 시 최신 메시지 동기화
             SyncDirection.INITIAL -> {
-                messageQueryPort.findByRoomIdAndAfterIdFlow(
-                    roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
-                )
+                if (!hasLastId) {
+                    messageQueryPort.findByRoomIdFlow(
+                        roomObjectId, INITIAL_LOAD_LIMIT
+                    )
+                } else {
+                    messageQueryPort.findByRoomIdAndAfterIdFlow(
+                        roomObjectId, lastMessageObjectId, SYNC_LOAD_LIMIT
+                    )
+                }
             }
             // 이전 메시지 동기화
             SyncDirection.BEFORE -> {

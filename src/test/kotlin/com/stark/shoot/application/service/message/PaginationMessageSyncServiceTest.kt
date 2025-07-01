@@ -84,9 +84,8 @@ class PaginationMessageSyncServiceTest {
                 )
             }
 
-            // For initial load, the service uses a default message ID when lastMessageId is null
-            val defaultMessageId = MessageId.from("default-message-id")
-            `when`(messageQueryPort.findByRoomIdAndAfterIdFlow(ChatRoomId.from(roomId), defaultMessageId, 30)).thenReturn(messageFlow)
+            // For initial load without lastMessageId, the service fetches latest messages
+            `when`(messageQueryPort.findByRoomIdFlow(ChatRoomId.from(roomId), 50)).thenReturn(messageFlow)
 
             // Mock the threadQueryPort for each message
             for (message in messages) {
@@ -108,7 +107,7 @@ class PaginationMessageSyncServiceTest {
             assertThat(result).hasSize(3)
             assertThat(result).containsExactlyElementsOf(syncInfoDtos)
 
-            verify(messageQueryPort).findByRoomIdAndAfterIdFlow(ChatRoomId.from(roomId), defaultMessageId, 30)
+            verify(messageQueryPort).findByRoomIdFlow(ChatRoomId.from(roomId), 50)
             for (message in messages) {
                 message.id?.let { messageId ->
                     verify(threadQueryPort).countByThreadId(messageId)

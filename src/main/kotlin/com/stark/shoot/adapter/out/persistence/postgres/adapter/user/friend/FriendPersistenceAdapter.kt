@@ -22,13 +22,20 @@ class FriendPersistenceAdapter(
         userId: UserId,
         targetUserId: UserId
     ) {
-        // 친구 요청 상태를 취소로 변경 (중복된 요청이 있을 수 있으므로 모두 처리)
+        // 친구 요청 상태를 취소로 변경하되, 동일한 상태의 기존 요청은 제거하여
+        // unique 제약 조건 위반을 방지한다
         val requests = friendRequestRepository
             .findAllBySenderIdAndReceiverId(userId.value, targetUserId.value)
 
-        for (entity in requests) {
+        val duplicated = requests.filter { it.status == FriendRequestStatus.CANCELLED }
+        if (duplicated.isNotEmpty()) {
+            friendRequestRepository.deleteAll(duplicated)
+        }
+
+        val now = Instant.now()
+        for (entity in requests.filter { it.status != FriendRequestStatus.CANCELLED }) {
             entity.status = FriendRequestStatus.CANCELLED
-            entity.respondedAt = Instant.now()
+            entity.respondedAt = now
             friendRequestRepository.save(entity)
         }
     }
@@ -37,13 +44,19 @@ class FriendPersistenceAdapter(
         userId: UserId,
         fromUserId: UserId
     ) {
-        // 받은 요청을 거절 상태로 변경 (중복된 요청이 있을 수 있으므로 모두 처리)
+        // 받은 요청을 거절 상태로 변경하되, 동일한 상태의 기존 요청은 제거한다
         val requests = friendRequestRepository
             .findAllBySenderIdAndReceiverId(fromUserId.value, userId.value)
 
-        for (entity in requests) {
+        val duplicated = requests.filter { it.status == FriendRequestStatus.REJECTED }
+        if (duplicated.isNotEmpty()) {
+            friendRequestRepository.deleteAll(duplicated)
+        }
+
+        val now = Instant.now()
+        for (entity in requests.filter { it.status != FriendRequestStatus.REJECTED }) {
             entity.status = FriendRequestStatus.REJECTED
-            entity.respondedAt = Instant.now()
+            entity.respondedAt = now
             friendRequestRepository.save(entity)
         }
     }

@@ -461,26 +461,6 @@ class RedisStreamManager(
     }
 
     /**
-     * 캐시를 무효화합니다.
-     * Redis 토폴로지가 변경되거나 오류가 발생한 경우 호출합니다.
-     *
-     * @param pattern 무효화할 스트림 키 패턴 (null이면 모든 캐시 무효화)
-     */
-    fun invalidateCache(pattern: String? = null) {
-        if (pattern == null) {
-            // 모든 캐시 무효화
-            streamKeysCache.clear()
-            consumerGroupExistsCache.clear()
-            logger.info { "모든 Redis Stream 캐시가 무효화되었습니다." }
-        } else {
-            // 특정 패턴에 대한 캐시만 무효화
-            streamKeysCache.entries.removeIf { it.key == pattern }
-            consumerGroupExistsCache.entries.removeIf { it.key.startsWith(pattern) }
-            logger.info { "패턴 '$pattern'에 대한 Redis Stream 캐시가 무효화되었습니다." }
-        }
-    }
-
-    /**
      * 현재 인스턴스의 소비자 ID를 반환합니다.
      *
      * @return 소비자 ID

@@ -106,7 +106,10 @@ class ConsumeMessageEventService(
         }
     }
 
-    private fun updateMessageWithPreview(message: ChatMessage, preview: ChatMessageMetadata.UrlPreview): ChatMessage {
+    private fun updateMessageWithPreview(
+        message: ChatMessage,
+        preview: ChatMessageMetadata.UrlPreview
+    ): ChatMessage {
         val updatedMetadata = message.metadata
         val currentContent = message.content
         val currentMetadata = currentContent.metadata ?: ChatMessageMetadata()
@@ -125,4 +128,5 @@ class ConsumeMessageEventService(
             messageDto
         )
     }
+    
 }

@@ -1,11 +1,10 @@
 package com.stark.shoot.adapter.out.persistence.postgres.adapter.user
 
-import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
-import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserCode
@@ -16,12 +15,12 @@ import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 
 @Adapter
-class FindUserPersistenceAdapter(
+class UserQueryPersistenceAdapter(
     private val userRepository: UserRepository,
     private val friendshipMappingRepository: FriendshipMappingRepository,
     private val friendRequestRepository: FriendRequestRepository,
     private val userMapper: UserMapper
-) : FindUserPort {
+) : UserQueryPort {
 
     @PersistenceContext
     private lateinit var entityManager: EntityManager
@@ -78,29 +77,6 @@ class FindUserPersistenceAdapter(
     }
 
     /**
-     * 랜덤 사용자 조회 (JPQL 기반)
-     *
-     * @param excludeUserId 제외할 사용자 ID (Long 타입)
-     * @param limit 조회할 사용자 수
-     * @return 도메인 객체 User 목록
-     */
-    override fun findRandomUsers(
-        excludeUserId: UserId,
-        limit: Int
-    ): List<User> {
-        val excludeUserIdValue = excludeUserId.value
-
-        val jpql = "SELECT u FROM UserEntity u WHERE u.id <> :excludeUserIdValue ORDER BY function('RANDOM')"
-        val query = entityManager.createQuery(jpql, UserEntity::class.java)
-
-        query.setParameter("excludeUserIdValue", excludeUserIdValue)
-        query.maxResults = limit
-
-        val userEntities: List<UserEntity> = query.resultList
-        return userEntities.map { userMapper.toDomain(it) }
-    }
-
-    /**
      * 사용자 ID 존재 여부 확인
      *
      * @param userId 사용자 ID
@@ -108,45 +84,6 @@ class FindUserPersistenceAdapter(
      */
     override fun existsById(userId: UserId): Boolean {
         return userRepository.existsById(userId.value)
-    }
-
-    /**
-     * 친구 관계 정보를 포함한 사용자 조회
-     *
-     * 참고: 이 메서드는 더 이상 User 객체에 친구 ID를 설정하지 않습니다.
-     * 대신 FriendshipPort를 사용하여 친구 관계를 조회하세요.
-     */
-    override fun findUserWithFriendshipsById(userId: UserId): User? {
-        val userEntity = userRepository.findById(userId.value)
-            .orElse(null) ?: return null
-
-        return userMapper.toDomain(userEntity)
-    }
-
-    /**
-     * 친구 요청 정보를 포함한 사용자 조회
-     *
-     * 참고: 이 메서드는 더 이상 User 객체에 친구 요청 ID를 설정하지 않습니다.
-     * 대신 FriendRequestPort를 사용하여 친구 요청을 조회하세요.
-     */
-    override fun findUserWithFriendRequestsById(userId: UserId): User? {
-        val userEntity = userRepository.findById(userId.value)
-            .orElse(null) ?: return null
-
-        return userMapper.toDomain(userEntity)
-    }
-
-    /**
-     * 모든 관계 정보를 포함한 사용자 조회
-     *
-     * 참고: 이 메서드는 더 이상 User 객체에 관계 정보를 설정하지 않습니다.
-     * 대신 FriendshipPort와 FriendRequestPort를 사용하여 관계 정보를 조회하세요.
-     */
-    override fun findUserWithAllRelationshipsById(userId: UserId): User? {
-        val userEntity = userRepository.findById(userId.value)
-            .orElse(null) ?: return null
-
-        return userMapper.toDomain(userEntity)
     }
 
     /**

@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.web.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.web.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
 import com.stark.shoot.application.port.`in`.user.auth.command.RetrieveUserDetailsCommand
-import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -12,7 +12,7 @@ import com.stark.shoot.infrastructure.exception.web.UnauthorizedException
 
 @UseCase
 class UserAuthService(
-    private val findUserPort: FindUserPort
+    private val userQueryPort: UserQueryPort
 ) : UserAuthUseCase {
 
     /**
@@ -32,7 +32,7 @@ class UserAuthService(
 
         val userId = UserId.from(authentication.name.toLong())
 
-        val user = findUserPort.findUserById(userId)
+        val user = userQueryPort.findUserById(userId)
             ?: throw ResourceNotFoundException("해당 사용자를 찾을 수 없습니다: $userId")
 
         return user.toResponse()

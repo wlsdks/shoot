@@ -3,8 +3,8 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.CancelFriendRequestCommand
 import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestCommand
-import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.friend.FriendRequestCommandPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
+import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
 import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.type.FriendRequestStatus
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @UseCase
 class FriendRequestService(
-    private val findUserPort: FindUserPort,
+    private val userQueryPort: UserQueryPort,
     private val friendRequestCommandPort: FriendRequestCommandPort,
     private val friendDomainService: FriendDomainService,
     private val friendCacheManager: FriendCacheManager
@@ -37,9 +37,15 @@ class FriendRequestService(
             friendDomainService.validateFriendRequest(
                 currentUserId = command.currentUserId,
                 targetUserId = command.targetUserId,
-                isFriend = findUserPort.checkFriendship(command.currentUserId, command.targetUserId),
-                hasOutgoingRequest = findUserPort.checkOutgoingFriendRequest(command.currentUserId, command.targetUserId),
-                hasIncomingRequest = findUserPort.checkIncomingFriendRequest(command.currentUserId, command.targetUserId)
+                isFriend = userQueryPort.checkFriendship(command.currentUserId, command.targetUserId),
+                hasOutgoingRequest = userQueryPort.checkOutgoingFriendRequest(
+                    command.currentUserId,
+                    command.targetUserId
+                ),
+                hasIncomingRequest = userQueryPort.checkIncomingFriendRequest(
+                    command.currentUserId,
+                    command.targetUserId
+                )
             )
         } catch (e: IllegalArgumentException) {
             throw InvalidInputException(e.message ?: "친구 요청 유효성 검증 실패")
@@ -63,12 +69,16 @@ class FriendRequestService(
         validateUserExistence(command.currentUserId, command.targetUserId)
 
         // 친구 요청 존재 여부 확인
-        if (!findUserPort.checkOutgoingFriendRequest(command.currentUserId, command.targetUserId)) {
+        if (!userQueryPort.checkOutgoingFriendRequest(command.currentUserId, command.targetUserId)) {
             throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
         }
 
         // 요청 상태를 취소로 변경
-        friendRequestCommandPort.updateStatus(command.currentUserId, command.targetUserId, FriendRequestStatus.CANCELLED)
+        friendRequestCommandPort.updateStatus(
+            command.currentUserId,
+            command.targetUserId,
+            FriendRequestStatus.CANCELLED
+        )
 
         // 캐시 무효화 (FriendCacheManager 사용)
         friendCacheManager.invalidateFriendshipCaches(command.currentUserId, command.targetUserId)
@@ -86,10 +96,10 @@ class FriendRequestService(
         targetUserId: UserId
     ) {
         // 두 사용자 존재 여부 확인
-        if (!findUserPort.existsById(currentUserId)) {
+        if (!userQueryPort.existsById(currentUserId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
         }
-        if (!findUserPort.existsById(targetUserId)) {
+        if (!userQueryPort.existsById(targetUserId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId")
         }
     }

@@ -4,18 +4,18 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendshipMapping
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
-import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
+import com.stark.shoot.application.port.out.user.friend.FriendCommandPort
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import java.time.Instant
 
 @Adapter
-class FriendPersistenceAdapter(
+class FriendCommandPersistenceAdapter(
     private val userRepository: UserRepository,
     private val friendRequestRepository: FriendRequestRepository,
     private val friendshipMappingRepository: FriendshipMappingRepository
-) : UpdateFriendPort {
+) : FriendCommandPort {
 
 
     override fun removeOutgoingFriendRequest(

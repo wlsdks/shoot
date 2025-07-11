@@ -3,9 +3,9 @@ package com.stark.shoot.application.service.user.block
 import com.stark.shoot.application.port.`in`.user.block.UserBlockUseCase
 import com.stark.shoot.application.port.`in`.user.block.command.BlockUserCommand
 import com.stark.shoot.application.port.`in`.user.block.command.UnblockUserCommand
-import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.friend.BlockedUserCommandPort
-import com.stark.shoot.application.port.out.user.friend.BlockedUserQueryPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
+import com.stark.shoot.application.port.out.user.block.BlockedUserCommandPort
+import com.stark.shoot.application.port.out.user.block.BlockedUserQueryPort
 import com.stark.shoot.domain.user.service.block.UserBlockDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @UseCase
 class UserBlockService(
-    private val findUserPort: FindUserPort,
+    private val userQueryPort: UserQueryPort,
     private val blockedUserCommandPort: BlockedUserCommandPort,
     private val blockedUserQueryPort: BlockedUserQueryPort,
     private val userBlockDomainService: UserBlockDomainService,
@@ -25,11 +25,11 @@ class UserBlockService(
         val targetUserId = command.targetUserId
 
         // 사용자 존재 여부 확인
-        if (!findUserPort.existsById(currentUserId)) {
+        if (!userQueryPort.existsById(currentUserId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
         }
 
-        if (!findUserPort.existsById(targetUserId)) {
+        if (!userQueryPort.existsById(targetUserId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId")
         }
 
@@ -51,11 +51,11 @@ class UserBlockService(
         val targetUserId = command.targetUserId
 
         // 사용자 존재 여부 확인
-        if (!findUserPort.existsById(currentUserId)) {
+        if (!userQueryPort.existsById(currentUserId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
         }
 
-        if (!findUserPort.existsById(targetUserId)) {
+        if (!userQueryPort.existsById(targetUserId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId")
         }
 

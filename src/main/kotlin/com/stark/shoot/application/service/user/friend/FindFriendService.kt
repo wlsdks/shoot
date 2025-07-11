@@ -5,17 +5,17 @@ import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.GetFriendsCommand
 import com.stark.shoot.application.port.`in`.user.friend.command.GetIncomingFriendRequestsCommand
 import com.stark.shoot.application.port.`in`.user.friend.command.GetOutgoingFriendRequestsCommand
-import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.friend.FriendRequestQueryPort
-import com.stark.shoot.application.port.out.user.friend.FriendshipPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
+import com.stark.shoot.application.port.out.user.friend.relate.FriendshipQueryPort
+import com.stark.shoot.application.port.out.user.friend.request.FriendRequestQueryPort
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 @UseCase
 class FindFriendService(
-    private val findUserPort: FindUserPort,
-    private val friendshipPort: FriendshipPort,
+    private val userQueryPort: UserQueryPort,
+    private val friendshipQueryPort: FriendshipQueryPort,
     private val friendRequestQueryPort: FriendRequestQueryPort
 ) : FindFriendUseCase {
 
@@ -31,17 +31,17 @@ class FindFriendService(
         val currentUserId = command.currentUserId
 
         // 사용자 존재 여부 확인
-        if (!findUserPort.existsById(currentUserId)) {
+        if (!userQueryPort.existsById(currentUserId)) {
             throw ResourceNotFoundException("User not found: $currentUserId")
         }
 
         // 친구 관계 조회
-        val friendships = friendshipPort.findAllFriendships(currentUserId)
+        val friendships = friendshipQueryPort.findAllFriendships(currentUserId)
 
         // 친구 정보 조회 및 응답 생성
         return friendships.map { friendship ->
             val friendId = friendship.friendId
-            val friend = findUserPort.findUserById(friendId)
+            val friend = userQueryPort.findUserById(friendId)
                 ?: throw ResourceNotFoundException("Friend not found: $friendId")
 
             FriendResponse(
@@ -65,7 +65,7 @@ class FindFriendService(
         val currentUserId = command.currentUserId
 
         // 사용자 존재 여부 확인
-        if (!findUserPort.existsById(currentUserId)) {
+        if (!userQueryPort.existsById(currentUserId)) {
             throw ResourceNotFoundException("User not found: $currentUserId")
         }
 
@@ -78,7 +78,7 @@ class FindFriendService(
         // 요청자 정보 조회 및 응답 생성
         return incomingRequests.map { request ->
             val requesterId = request.senderId
-            val requester = findUserPort.findUserById(requesterId)
+            val requester = userQueryPort.findUserById(requesterId)
                 ?: throw ResourceNotFoundException("Requester not found: $requesterId")
 
             FriendResponse(
@@ -102,7 +102,7 @@ class FindFriendService(
         val currentUserId = command.currentUserId
 
         // 사용자 존재 여부 확인
-        if (!findUserPort.existsById(currentUserId)) {
+        if (!userQueryPort.existsById(currentUserId)) {
             throw ResourceNotFoundException("User not found: $currentUserId")
         }
 
@@ -115,7 +115,7 @@ class FindFriendService(
         // 대상자 정보 조회 및 응답 생성
         return outgoingRequests.map { request ->
             val targetId = request.receiverId
-            val target = findUserPort.findUserById(targetId)
+            val target = userQueryPort.findUserById(targetId)
                 ?: throw ResourceNotFoundException("Target not found: $targetId")
 
             FriendResponse(

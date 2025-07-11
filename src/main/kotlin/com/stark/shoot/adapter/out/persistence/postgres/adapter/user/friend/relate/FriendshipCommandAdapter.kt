@@ -1,33 +1,19 @@
-package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend
+package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend.relate
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendshipMappingEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
-import com.stark.shoot.application.port.out.user.friend.FriendshipPort
+import com.stark.shoot.application.port.out.user.friend.relate.FriendshipCommandPort
 import com.stark.shoot.domain.user.Friendship
 import com.stark.shoot.domain.user.vo.FriendshipId
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
-class FriendshipAdapter(
+class FriendshipCommandAdapter(
     private val friendshipMappingRepository: FriendshipMappingRepository,
     private val userRepository: UserRepository
-) : FriendshipPort {
-
-    override fun findAllFriendships(
-        userId: UserId
-    ): List<Friendship> {
-        return friendshipMappingRepository.findAllByUserId(userId.value)
-            .map { mapToDomain(it) }
-    }
-
-    override fun isFriend(
-        userId: UserId,
-        friendId: UserId
-    ): Boolean {
-        return friendshipMappingRepository.existsByUserIdAndFriendId(userId.value, friendId.value)
-    }
+) : FriendshipCommandPort {
 
     override fun createFriendship(
         friendship: Friendship

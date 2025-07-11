@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.GetRecommendedFriendsCommand
-import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.RecommendFriendPort
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.vo.UserId
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
 @UseCase
 class RecommendFriendService(
     private val recommendFriendPort: RecommendFriendPort,
-    private val findUserPort: FindUserPort,
+    private val userQueryPort: UserQueryPort,
     private val redisStringTemplate: StringRedisTemplate,
     private val objectMapper: ObjectMapper,
     @Value("\${app.friend-recommend.redis-cache-ttl-minutes:30}") private val redisCacheTtlMinutes: Long = 30,
@@ -255,15 +255,15 @@ class RecommendFriendService(
             // 친구 관계 확인
             users.forEach { user ->
                 user.id?.let { targetId ->
-                    if (findUserPort.checkFriendship(userId, targetId)) {
+                    if (userQueryPort.checkFriendship(userId, targetId)) {
                         friendIds.add(targetId)
                     }
 
-                    if (findUserPort.checkOutgoingFriendRequest(userId, targetId)) {
+                    if (userQueryPort.checkOutgoingFriendRequest(userId, targetId)) {
                         outgoingRequestIds.add(targetId)
                     }
 
-                    if (findUserPort.checkIncomingFriendRequest(userId, targetId)) {
+                    if (userQueryPort.checkIncomingFriendRequest(userId, targetId)) {
                         incomingRequestIds.add(targetId)
                     }
                 }

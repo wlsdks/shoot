@@ -8,7 +8,7 @@ import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
-class UserCommonPersistenceAdapter(
+class UserCommandPersistenceAdapter(
     private val userRepository: UserRepository,
     private val userMapper: UserMapper
 ) : UserCommandPort {

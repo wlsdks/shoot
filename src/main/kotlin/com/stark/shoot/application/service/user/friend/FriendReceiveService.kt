@@ -4,10 +4,10 @@ import com.stark.shoot.application.port.`in`.user.friend.FriendReceiveUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.AcceptFriendRequestCommand
 import com.stark.shoot.application.port.`in`.user.friend.command.RejectFriendRequestCommand
 import com.stark.shoot.application.port.out.event.EventPublisher
-import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.friend.FriendRequestCommandPort
-import com.stark.shoot.application.port.out.user.friend.FriendRequestQueryPort
-import com.stark.shoot.application.port.out.user.friend.UpdateFriendPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
+import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
+import com.stark.shoot.application.port.out.user.friend.request.FriendRequestQueryPort
+import com.stark.shoot.application.port.out.user.friend.FriendCommandPort
 import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.type.FriendRequestStatus
@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @UseCase
 class FriendReceiveService(
-    private val findUserPort: FindUserPort,
-    private val updateFriendPort: UpdateFriendPort,
+    private val userQueryPort: UserQueryPort,
+    private val friendCommandPort: FriendCommandPort,
     private val friendRequestQueryPort: FriendRequestQueryPort,
     private val friendRequestCommandPort: FriendRequestCommandPort,
     private val eventPublisher: EventPublisher,
@@ -46,12 +46,12 @@ class FriendReceiveService(
 
         // 친구 요청 상태 업데이트
         friendRequestCommandPort.updateStatus(requesterId, currentUserId, FriendRequestStatus.ACCEPTED)
-        updateFriendPort.addFriendRelation(currentUserId, requesterId)
-        updateFriendPort.addFriendRelation(requesterId, currentUserId)
+        friendCommandPort.addFriendRelation(currentUserId, requesterId)
+        friendCommandPort.addFriendRelation(requesterId, currentUserId)
 
         // 친구 관계 생성
         result.friendships.forEach { friendship ->
-            updateFriendPort.addFriendRelation(friendship.userId, friendship.friendId)
+            friendCommandPort.addFriendRelation(friendship.userId, friendship.friendId)
         }
 
         // 이벤트 발행
@@ -93,10 +93,10 @@ class FriendReceiveService(
         requesterId: UserId
     ): FriendRequest {
         // 사용자 존재 여부 확인
-        if (!findUserPort.existsById(currentUserId)) {
+        if (!userQueryPort.existsById(currentUserId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
         }
-        if (!findUserPort.existsById(requesterId)) {
+        if (!userQueryPort.existsById(requesterId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $requesterId")
         }
 

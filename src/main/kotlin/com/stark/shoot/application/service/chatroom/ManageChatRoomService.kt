@@ -7,7 +7,7 @@ import com.stark.shoot.application.port.`in`.chatroom.command.UpdateAnnouncement
 import com.stark.shoot.application.port.`in`.chatroom.command.UpdateTitleCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
-import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.service.ChatRoomParticipantDomainService
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 class ManageChatRoomService(
     private val chatRoomQueryPort: ChatRoomQueryPort,
     private val chatRoomCommandPort: ChatRoomCommandPort,
-    private val findUserPort: FindUserPort,
+    private val userQueryPort: UserQueryPort,
     private val participantDomainService: ChatRoomParticipantDomainService
 ) : ManageChatRoomUseCase {
 
@@ -61,7 +61,7 @@ class ManageChatRoomService(
         val userId = command.userId
 
         // 사용자 존재 여부 확인
-        if (!findUserPort.existsById(userId)) {
+        if (!userQueryPort.existsById(userId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
         }
 

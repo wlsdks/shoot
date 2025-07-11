@@ -1,37 +1,18 @@
-package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend
+package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend.block
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.BlockedUserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.BlockedUserRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
-import com.stark.shoot.application.port.out.user.friend.BlockedUserPort
+import com.stark.shoot.application.port.out.user.block.BlockedUserCommandPort
 import com.stark.shoot.domain.user.BlockedUser
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter
-class BlockedUserAdapter(
+class BlockedUserCommandAdapter(
     private val blockedUserRepository: BlockedUserRepository,
     private val userRepository: UserRepository
-) : BlockedUserPort {
-
-    override fun findAllBlockedUsers(
-        userId: UserId
-    ): List<BlockedUser> {
-        return blockedUserRepository.findAllByUserId(userId.value).map { mapToDomain(it) }
-    }
-
-    override fun findAllBlockingUsers(
-        blockedUserId: UserId
-    ): List<BlockedUser> {
-        return blockedUserRepository.findAllByBlockedUserId(blockedUserId.value).map { mapToDomain(it) }
-    }
-
-    override fun isUserBlocked(
-        userId: UserId,
-        blockedUserId: UserId
-    ): Boolean {
-        return blockedUserRepository.existsByUserIdAndBlockedUserId(userId.value, blockedUserId.value)
-    }
+) : BlockedUserCommandPort {
 
     override fun blockUser(
         blockedUser: BlockedUser
@@ -63,8 +44,8 @@ class BlockedUserAdapter(
     ): BlockedUser {
         return BlockedUser(
             id = entity.id,
-            userId = UserId.from(entity.user.id),
-            blockedUserId = UserId.from(entity.blockedUser.id),
+            userId = UserId.Companion.from(entity.user.id),
+            blockedUserId = UserId.Companion.from(entity.blockedUser.id),
             createdAt = entity.blockedAt
         )
     }

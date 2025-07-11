@@ -9,7 +9,7 @@ import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
-import com.stark.shoot.application.port.out.message.MessageReadRedisPort
+import com.stark.shoot.application.port.out.message.readstatus.MessageReadRedisPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.ChatRoom

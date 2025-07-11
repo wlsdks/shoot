@@ -4,13 +4,13 @@ import com.stark.shoot.application.port.`in`.user.FindUserUseCase
 import com.stark.shoot.application.port.`in`.user.command.FindUserByCodeCommand
 import com.stark.shoot.application.port.`in`.user.command.FindUserByIdCommand
 import com.stark.shoot.application.port.`in`.user.command.FindUserByUsernameCommand
-import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 
 @UseCase
 class FindUserService(
-    private val findUserPort: FindUserPort
+    private val userQueryPort: UserQueryPort,
 ) : FindUserUseCase {
 
     /**
@@ -20,7 +20,7 @@ class FindUserService(
      * @return 사용자 정보
      */
     override fun findById(command: FindUserByIdCommand): User? {
-        return findUserPort.findUserById(command.userId)
+        return userQueryPort.findUserById(command.userId)
     }
 
     /**
@@ -30,7 +30,7 @@ class FindUserService(
      * @return 사용자 정보
      */
     override fun findByUsername(command: FindUserByUsernameCommand): User? {
-        return findUserPort.findByUsername(command.username)
+        return userQueryPort.findByUsername(command.username)
     }
 
     /**
@@ -40,6 +40,6 @@ class FindUserService(
      * @return 사용자 정보
      */
     override fun findByUserCode(command: FindUserByCodeCommand): User? {
-        return findUserPort.findByUserCode(command.userCode)
+        return userQueryPort.findByUserCode(command.userCode)
     }
 }

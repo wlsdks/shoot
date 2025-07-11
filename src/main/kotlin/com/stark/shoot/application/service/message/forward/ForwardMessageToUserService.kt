@@ -7,7 +7,7 @@ import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
-import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageForwardDomainService
 import com.stark.shoot.domain.chat.message.vo.MessageId
@@ -26,7 +26,7 @@ class ForwardMessageToUserService(
     private val chatRoomCommandPort: ChatRoomCommandPort,
     private val messageQueryPort: MessageQueryPort,
     private val messageCommandPort: MessageCommandPort,
-    private val findUserPort: FindUserPort,
+    private val userQueryPort: UserQueryPort,
     private val eventPublisher: EventPublisher,
     private val chatRoomEventService: ChatRoomEventService,
     private val chatRoomDomainService: ChatRoomDomainService,
@@ -71,7 +71,7 @@ class ForwardMessageToUserService(
 
         if (directRoom != null) return directRoom
 
-        val friend = findUserPort.findUserById(friendId)
+        val friend = userQueryPort.findUserById(friendId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendId.value}")
 
         val newChatRoom = ChatRoom.createDirectChat(

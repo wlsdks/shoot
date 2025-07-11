@@ -6,7 +6,7 @@ import com.stark.shoot.application.port.`in`.chatroom.command.CreateDirectChatCo
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.event.EventPublisher
-import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 class CreateChatRoomService(
     private val chatRoomQueryPort: ChatRoomQueryPort,
     private val chatRoomCommandPort: ChatRoomCommandPort,
-    private val findUserPort: FindUserPort,
+    private val userQueryPort: UserQueryPort,
     private val eventPublisher: EventPublisher,
     private val chatRoomEventService: ChatRoomEventService,
     private val chatRoomDomainService: ChatRoomDomainService,
@@ -37,10 +37,10 @@ class CreateChatRoomService(
         val friendId = command.friendId
 
         // 1. 사용자와 친구가 존재하는지 확인
-        val user = findUserPort.findUserById(userId)
+        val user = userQueryPort.findUserById(userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${userId.value}")
 
-        val friend = findUserPort.findUserById(friendId)
+        val friend = userQueryPort.findUserById(friendId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendId.value}")
 
         // 2. 이미 존재하는 1:1 채팅방이 있는지 확인 (도메인 객체의 정적 메서드 사용)

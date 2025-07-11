@@ -58,6 +58,8 @@ class FindChatroomService(
         // 채팅방이 없으면 null 반환
         return directChatRoom?.let {
             val title = it.createChatRoomTitle(userId1)
+            // todo: 마지막 메시지는 mongodb를 다녀와야하는데 이게 옳은지 검토가 필요.
+            //  매번 이렇게 조회해야하나..? 그럼 새로운 메시지가 날라오면? sse로 업데이트 해야하나?
             val lastMessage = it.createLastMessageText()
             val timestamp = it.formatTimestamp()
 

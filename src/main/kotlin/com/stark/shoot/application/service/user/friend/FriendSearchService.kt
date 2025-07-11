@@ -3,9 +3,9 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FriendSearchUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.SearchFriendsCommand
-import com.stark.shoot.application.port.out.user.FindUserPort
-import com.stark.shoot.application.port.out.user.friend.FriendRequestQueryPort
-import com.stark.shoot.application.port.out.user.friend.FriendshipPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
+import com.stark.shoot.application.port.out.user.friend.relate.FriendshipQueryPort
+import com.stark.shoot.application.port.out.user.friend.request.FriendRequestQueryPort
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -13,8 +13,8 @@ import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 @UseCase
 class FriendSearchService(
-    private val findUserPort: FindUserPort,
-    private val friendshipPort: FriendshipPort,
+    private val userQueryPort: UserQueryPort,
+    private val friendshipQueryPort: FriendshipQueryPort,
     private val friendRequestQueryPort: FriendRequestQueryPort
 ) : FriendSearchUseCase {
 
@@ -29,7 +29,7 @@ class FriendSearchService(
         val query = command.query
 
         // 사용자 존재 여부 확인
-        if (!findUserPort.existsById(userId)) {
+        if (!userQueryPort.existsById(userId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $userId")
         }
 
@@ -39,7 +39,7 @@ class FriendSearchService(
             add(userId)
 
             // 친구 목록 추가
-            friendshipPort.findAllFriendships(userId).forEach {
+            friendshipQueryPort.findAllFriendships(userId).forEach {
                 add(it.friendId)
             }
 
@@ -61,7 +61,7 @@ class FriendSearchService(
         }
 
         // 검색어로 사용자 검색 (DB에서 검색)
-        val allUsers = findUserPort.findAll()
+        val allUsers = userQueryPort.findAll()
 
         // 필터링된 사용자 목록
         return allUsers.filter { user ->

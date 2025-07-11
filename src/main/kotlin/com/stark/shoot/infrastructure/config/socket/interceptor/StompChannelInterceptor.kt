@@ -3,7 +3,7 @@ package com.stark.shoot.infrastructure.config.socket.interceptor
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
-import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.config.socket.StompPrincipal
@@ -30,7 +30,7 @@ import kotlin.concurrent.write
  */
 class StompChannelInterceptor(
     private val chatRoomQueryPort: ChatRoomQueryPort,
-    private val findUserPort: FindUserPort,
+    private val userQueryPort: UserQueryPort,
     private val objectMapper: ObjectMapper
 ) : ChannelInterceptor {
 
@@ -118,7 +118,7 @@ class StompChannelInterceptor(
                         try {
                             // userId가 Long으로 변환 가능한지 확인
                             val userIdLong = userId.toLongOrNull()
-                            if (userIdLong != null && findUserPort.existsById(UserId.from(userIdLong))) {
+                            if (userIdLong != null && userQueryPort.existsById(UserId.from(userIdLong))) {
                                 userCache.put(userId, true, 10) // 10분 캐싱
                             }
                         } catch (e: Exception) {

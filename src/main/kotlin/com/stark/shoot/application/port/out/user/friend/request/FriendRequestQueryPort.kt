@@ -1,4 +1,4 @@
-package com.stark.shoot.application.port.out.user.friend
+package com.stark.shoot.application.port.out.user.friend.request
 
 import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.type.FriendRequestStatus

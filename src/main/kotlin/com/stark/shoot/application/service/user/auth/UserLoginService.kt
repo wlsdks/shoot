@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.user.auth
 import com.stark.shoot.adapter.`in`.web.dto.user.LoginResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase
 import com.stark.shoot.application.port.`in`.user.auth.command.LoginCommand
-import com.stark.shoot.application.port.out.user.FindUserPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.token.RefreshTokenCommandPort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @UseCase
 class UserLoginService(
-    private val findUserPort: FindUserPort,
+    private val userQueryPort: UserQueryPort,
     private val refreshTokenCommandPort: RefreshTokenCommandPort,
     private val passwordEncoder: PasswordEncoder,
     private val jwtProvider: JwtProvider,
@@ -27,7 +27,7 @@ class UserLoginService(
      */
     override fun login(command: LoginCommand): LoginResponse {
         // 사용자 조회
-        val user = findUserPort.findByUsername(command.username)
+        val user = userQueryPort.findByUsername(command.username)
             ?: throw IllegalArgumentException("해당 username의 사용자를 찾을 수 없습니다.")
 
         // 비밀번호 검증

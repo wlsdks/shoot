@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.kafka
 
-import com.stark.shoot.application.port.`in`.message.consume.ConsumeMessageEventUseCase
+import com.stark.shoot.application.port.`in`.message.HandleMessageEventUseCase
 import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.event.type.EventType
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class MessageKafkaConsumer(
-    private val consumeMessageEventUseCase: ConsumeMessageEventUseCase
+    private val handleMessageEventUseCase: HandleMessageEventUseCase
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -25,7 +25,7 @@ class MessageKafkaConsumer(
         acknowledgment: Acknowledgment
     ) {
         if (event.type == EventType.MESSAGE_CREATED) {
-            val success = consumeMessageEventUseCase.consume(event)
+            val success = handleMessageEventUseCase.handle(event)
             if (success) {
                 acknowledgment.acknowledge()
             }

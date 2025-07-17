@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.message
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
-import com.stark.shoot.application.port.`in`.message.consume.ConsumeMessageEventUseCase
+import com.stark.shoot.application.port.`in`.message.HandleMessageEventUseCase
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.event.EventPublisher
@@ -22,7 +22,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
 
 @UseCase
-class ConsumeMessageEventService(
+class HandleMessageEventService(
     private val saveMessagePort: SaveMessagePort,
     private val chatRoomQueryPort: ChatRoomQueryPort,
     private val chatRoomCommandPort: ChatRoomCommandPort,
@@ -32,11 +32,11 @@ class ConsumeMessageEventService(
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val chatMessageMapper: ChatMessageMapper
-) : ConsumeMessageEventUseCase {
+) : HandleMessageEventUseCase {
 
     private val logger = KotlinLogging.logger {}
 
-    override fun consume(event: MessageEvent): Boolean {
+    override fun handle(event: MessageEvent): Boolean {
         if (event.type != EventType.MESSAGE_CREATED) return false
 
         return try {

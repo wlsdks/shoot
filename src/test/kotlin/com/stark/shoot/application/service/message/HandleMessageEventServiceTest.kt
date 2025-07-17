@@ -26,8 +26,8 @@ import org.mockito.Mockito.*
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
 
-@DisplayName("ConsumeMessageEventService 테스트")
-class ConsumeMessageEventServiceTest {
+@DisplayName("HandleMessageEventService 테스트")
+class HandleMessageEventServiceTest {
 
     @Test
     @DisplayName("[happy] 이벤트를 성공적으로 처리하면 true를 반환한다")
@@ -42,7 +42,7 @@ class ConsumeMessageEventServiceTest {
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
         val chatMessageMapper = mock(ChatMessageMapper::class.java)
 
-        val service = ConsumeMessageEventService(
+        val service = HandleMessageEventService(
             saveMessagePort,
             chatRoomQueryPort,
             chatRoomCommandPort,
@@ -69,7 +69,7 @@ class ConsumeMessageEventServiceTest {
         `when`(saveMessagePort.save(message)).thenReturn(message)
         `when`(webSocketMessageBroker.sendMessage(anyString(), any())).thenReturn(CompletableFuture.completedFuture(true))
 
-        val result = service.consume(event)
+        val result = service.handle(event)
 
         assertThat(result).isTrue()
         verify(saveMessagePort).save(message)
@@ -88,7 +88,7 @@ class ConsumeMessageEventServiceTest {
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
         val chatMessageMapper = mock(ChatMessageMapper::class.java)
 
-        val service = ConsumeMessageEventService(
+        val service = HandleMessageEventService(
             saveMessagePort,
             chatRoomQueryPort,
             chatRoomCommandPort,
@@ -115,7 +115,7 @@ class ConsumeMessageEventServiceTest {
         `when`(saveMessagePort.save(any())).thenThrow(RuntimeException("fail"))
         `when`(webSocketMessageBroker.sendMessage(anyString(), any())).thenReturn(CompletableFuture.completedFuture(true))
 
-        val result = service.consume(event)
+        val result = service.handle(event)
 
         assertThat(result).isFalse()
         verify(saveMessagePort).save(any())

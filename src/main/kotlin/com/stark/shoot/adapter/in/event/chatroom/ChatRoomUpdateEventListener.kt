@@ -14,4 +14,5 @@ class ChatRoomUpdateEventListener(
     fun handleChatRoomUpdate(event: ChatRoomUpdateEvent) {
         chatRoomUpdateNotifyService.notify(event)
     }
+
 }

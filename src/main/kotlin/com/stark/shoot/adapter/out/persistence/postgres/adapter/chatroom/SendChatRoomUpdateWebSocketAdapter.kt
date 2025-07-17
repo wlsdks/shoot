@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.out.chatroom
+package com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom
 
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.`in`.web.socket.dto.chatroom.ChatRoomUpdateDto
@@ -13,15 +13,21 @@ class SendChatRoomUpdateWebSocketAdapter(
     private val webSocketMessageBroker: WebSocketMessageBroker
 ) : SendChatRoomUpdatePort {
 
-    override fun sendUpdate(userId: UserId, roomId: ChatRoomId, update: ChatRoomUpdateEvent.Update) {
+    override fun sendUpdate(
+        userId: UserId,
+        roomId: ChatRoomId,
+        update: ChatRoomUpdateEvent.Update
+    ) {
         val dto = ChatRoomUpdateDto(
             roomId = roomId.value,
             unreadCount = update.unreadCount,
             lastMessage = update.lastMessage
         )
+
         webSocketMessageBroker.sendMessage(
             "/user/${userId.value}/queue/room-update",
             dto
         )
     }
+
 }

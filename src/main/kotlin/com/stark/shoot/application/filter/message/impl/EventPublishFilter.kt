@@ -40,18 +40,10 @@ class EventPublishFilter(
 
         // 채팅방 업데이트 이벤트 발행
         val updates = unreadCounts.mapValues { (_, count) ->
-            ChatRoomUpdateEvent.Update(
-                unreadCount = count,
-                lastMessage = message.content.text
-            )
+            ChatRoomUpdateEvent.Update(unreadCount = count, lastMessage = message.content.text)
         }
-        eventPublisher.publish(
-            ChatRoomUpdateEvent.create(
-                roomId = roomId,
-                updates = updates
-            )
-        )
 
+        eventPublisher.publish(ChatRoomUpdateEvent.create(roomId = roomId, updates = updates))
         return chain.proceed(message)
     }
 

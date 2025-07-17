@@ -39,46 +39,52 @@ class HandleMessageEventService(
     override fun handle(event: MessageEvent): Boolean {
         if (event.type != EventType.MESSAGE_CREATED) return false
 
+        val tempId = extractTempId(event) ?: return false
+        val roomIdValue = event.data.roomId.value
+
+        sendStatusUpdate(roomIdValue, tempId, MessageStatus.PROCESSING.name, null)
+
         return try {
-            val tempId = event.data.metadata.tempId ?: run {
-                logger.warn { "Received message event without tempId" }
-                return false
-            }
-            val roomId = event.data.roomId
-
-            // 상태: PROCESSING
-            sendStatusUpdate(roomId.value, tempId, MessageStatus.PROCESSING.name, null)
-
-            // 메시지 저장
-            var savedMessage = saveMessagePort.save(event.data)
-
-            if (savedMessage.readBy[savedMessage.senderId] != true) {
-                savedMessage = saveMessagePort.save(savedMessage.markAsRead(savedMessage.senderId))
-            }
-
-            savedMessage.id?.let { id ->
-                chatRoomCommandPort.updateLastReadMessageId(savedMessage.roomId, savedMessage.senderId, id)
-            }
-
-            chatRoomQueryPort.findById(savedMessage.roomId)?.let { room ->
-                val updated = chatRoomMetadataDomainService.updateChatRoomWithNewMessage(room, savedMessage)
-                chatRoomCommandPort.save(updated)
-            }
-
-            webSocketMessageBroker.sendMessage("/topic/messages/${savedMessage.roomId.value}", savedMessage)
-            eventPublisher.publish(MessageSentEvent.create(savedMessage))
-
-            // 상태: SAVED
-            sendStatusUpdate(roomId.value, tempId, MessageStatus.SAVED.name, savedMessage.id?.value)
-
-            // URL 미리보기 처리
+            val savedMessage = saveAndMarkMessage(event.data)
+            updateChatRoomMetadata(savedMessage)
+            publishMessage(savedMessage)
+            sendStatusUpdate(roomIdValue, tempId, MessageStatus.SAVED.name, savedMessage.id?.value)
             processChatMessageForUrlPreview(savedMessage)
-
             true
         } catch (e: Exception) {
             sendErrorResponse(event, e)
             false
         }
+    }
+
+    private fun extractTempId(event: MessageEvent): String? {
+        return event.data.metadata.tempId ?: run {
+            logger.warn { "Received message event without tempId" }
+            null
+        }
+    }
+
+    private fun saveAndMarkMessage(message: ChatMessage): ChatMessage {
+        var saved = saveMessagePort.save(message)
+        if (saved.readBy[saved.senderId] != true) {
+            saved = saveMessagePort.save(saved.markAsRead(saved.senderId))
+        }
+        saved.id?.let { id ->
+            chatRoomCommandPort.updateLastReadMessageId(saved.roomId, saved.senderId, id)
+        }
+        return saved
+    }
+
+    private fun updateChatRoomMetadata(message: ChatMessage) {
+        chatRoomQueryPort.findById(message.roomId)?.let { room ->
+            val updated = chatRoomMetadataDomainService.updateChatRoomWithNewMessage(room, message)
+            chatRoomCommandPort.save(updated)
+        }
+    }
+
+    private fun publishMessage(message: ChatMessage) {
+        webSocketMessageBroker.sendMessage("/topic/messages/${message.roomId.value}", message)
+        eventPublisher.publish(MessageSentEvent.create(message))
     }
 
     private fun sendStatusUpdate(

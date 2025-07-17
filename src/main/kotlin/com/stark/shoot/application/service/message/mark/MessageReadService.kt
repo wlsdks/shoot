@@ -6,23 +6,19 @@ import com.stark.shoot.application.port.`in`.message.mark.command.MarkAllMessage
 import com.stark.shoot.application.port.`in`.message.mark.command.MarkMessageAsReadCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
-import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
-import com.stark.shoot.application.port.out.message.readstatus.MessageReadRedisPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.event.MessageBulkReadEvent
-import com.stark.shoot.domain.event.ChatRoomUpdateEvent
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.util.concurrent.TimeUnit
 
 @Transactional
 @UseCase
@@ -31,8 +27,6 @@ class MessageReadService(
     private val messageCommandPort: MessageCommandPort,
     private val chatRoomQueryPort: ChatRoomQueryPort,
     private val chatRoomCommandPort: ChatRoomCommandPort,
-    private val eventPublisher: EventPublisher,
-    private val messageReadRedisPort: MessageReadRedisPort,
     private val webSocketMessageBroker: WebSocketMessageBroker
 ) : MessageReadUseCase {
     private val logger = KotlinLogging.logger {}
@@ -98,13 +92,10 @@ class MessageReadService(
             // 5. 마지막으로 읽은 메시지 ID 업데이트
             updateLastReadMessageId(roomId, userId, lastMessage)
 
-            // 6. 읽지 않은 메시지 카운트 초기화
-            messageReadRedisPort.resetUnreadCount(userId, roomId)
-
-            // 7. 마지막 메시지 텍스트 조회
+            // 6. 마지막 메시지 텍스트 조회
             val lastMessageText = getLastMessageText(chatRoom)
 
-            // 8. 알림 및 이벤트 발행
+            // 7. 알림 및 이벤트 발행
             sendNotificationsAndEvents(roomId, userId, updatedMessageIds, lastMessageText)
 
             logger.info { "채팅방 모든 메시지 읽음 처리 완료: roomId=$roomId, userId=$userId, 메시지 수=${updatedMessageIds.size}" }
@@ -154,13 +145,10 @@ class MessageReadService(
             // 1. 채팅방 사용자의 마지막 읽은 메시지 ID 업데이트
             chatRoomCommandPort.updateLastReadMessageId(roomId, userId, messageId)
 
-            // 2. 읽지 않은 메시지 수 업데이트
-            messageReadRedisPort.decrementUnreadCount(userId, roomId)
-
-            // 3. 읽음 상태 알림 전송
+            // 2. 읽음 상태 알림 전송
             sendSingleReadNotification(roomId, updatedMessage, userId)
 
-            // 4. 업데이트된 메시지 WebSocket 전송
+            // 3. 업데이트된 메시지 WebSocket 전송
             sendUpdatedMessage(roomId, updatedMessage)
         } catch (e: Exception) {
             logger.error(e) { "메시지 읽음 처리 후속 작업 실패: messageId=$messageId, userId=$userId" }
@@ -202,20 +190,7 @@ class MessageReadService(
      * 중복 요청인지 확인합니다.
      */
     private fun isDuplicateRequest(roomId: ChatRoomId, userId: UserId, requestId: String?): Boolean {
-        if (requestId == null) {
-            return false
-        }
-
-        val key = messageReadRedisPort.createReadOperationKey(roomId, userId, requestId)
-        val isFirstRequest = messageReadRedisPort.setIfAbsent(
-            key, "1", REDIS_LOCK_EXPIRATION_SECONDS, TimeUnit.SECONDS
-        )
-
-        if (isFirstRequest != true) {
-            logger.info { "중복 읽음 처리 요청 감지 (requestId=$requestId)" }
-            return true
-        }
-
+        // Redis 중복 체크 로직 제거
         return false
     }
 
@@ -390,9 +365,6 @@ class MessageReadService(
         // 1. WebSocket을 통해 읽음 완료처리된 메시지 id를 실시간 알림
         val messageIdVos = updatedMessageIds.map { MessageId.from(it) }
         sendBulkReadNotification(roomId, messageIdVos, userId)
-
-        // 2. 읽지 않은 메시지 수 업데이트 이벤트 발행
-        publishUnreadCountEvent(roomId, userId, lastMessageText)
     }
 
     /**
@@ -420,28 +392,6 @@ class MessageReadService(
         }
     }
 
-    /**
-     * 읽지 않은 메시지 수 업데이트 이벤트를 발행합니다.
-     */
-    private fun publishUnreadCountEvent(
-        roomId: ChatRoomId,
-        userId: UserId,
-        lastMessage: String
-    ) {
-        try {
-            val update = ChatRoomUpdateEvent.Update(unreadCount = 0, lastMessage = lastMessage)
-            val event = ChatRoomUpdateEvent.create(
-                roomId = roomId,
-                updates = mapOf(userId to update)
-            )
-
-            eventPublisher.publish(event)
-            logger.debug { "채팅방 업데이트 이벤트 발행 완료: roomId=${roomId.value}, userId=${userId.value}" }
-        } catch (e: Exception) {
-            logger.error(e) { "채팅방 업데이트 이벤트 발행 실패: roomId=${roomId.value}, userId=${userId.value}" }
-            // 이벤트 발행 실패는 로깅만 하고 진행
-        }
-    }
 
     /**
      * markAllMessagesAsRead 메서드에서 발생한 예외를 처리합니다.

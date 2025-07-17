@@ -40,11 +40,11 @@ class EventFactoryTest {
     }
 
     @Test
-    @DisplayName("[happy] ChatRoomUpdateEvent create 함수는 주어진 값으로 이벤트를 생성한다")
-    fun `ChatRoomUpdateEvent create 함수는 주어진 값으로 이벤트를 생성한다`() {
-        val update = ChatRoomUpdateEvent.Update(unreadCount = 2, lastMessage = null)
-        val event = ChatRoomUpdateEvent.create(ChatRoomId.from(1L), mapOf(UserId.from(1L) to update))
-        assertThat(event).isEqualTo(ChatRoomUpdateEvent(ChatRoomId.from(1L), mapOf(UserId.from(1L) to update)))
+    @DisplayName("[happy] MessageSendedEvent create 함수는 주어진 값으로 이벤트를 생성한다")
+    fun `MessageSendedEvent create 함수는 주어진 값으로 이벤트를 생성한다`() {
+        val message = ChatMessage.create(ChatRoomId.from(1L), UserId.from(2L), "hello")
+        val event = MessageSendedEvent.create(message)
+        assertThat(event).isEqualTo(MessageSendedEvent(message))
     }
 
     @Test

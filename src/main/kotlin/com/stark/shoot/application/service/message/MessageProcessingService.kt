@@ -59,13 +59,17 @@ class MessageProcessingService(
 
     /**
      * 분산 락을 사용하여 메시지를 처리합니다.
-     * 
+     *
      * @param message 처리할 메시지
      * @param lockKey 분산 락 키
      * @param ownerId 락 소유자 ID
      * @return 처리된 메시지
      */
-    private fun processMessageWithLock(message: ChatMessage, lockKey: String, ownerId: String): ChatMessage {
+    private fun processMessageWithLock(
+        message: ChatMessage,
+        lockKey: String,
+        ownerId: String
+    ): ChatMessage {
         return redisLockManager.withLock(lockKey, ownerId) {
             processInternal(message)
         }
@@ -82,7 +86,9 @@ class MessageProcessingService(
             if (urls.isNotEmpty()) {
                 val url = urls.first()
                 val preview = cacheUrlPreviewPort.getCachedUrlPreview(url)
-                    ?: loadUrlContentPort.fetchUrlContent(url)?.also { cacheUrlPreviewPort.cacheUrlPreview(url, it) }
+                    ?: loadUrlContentPort.fetchUrlContent(url)?.also {
+                        cacheUrlPreviewPort.cacheUrlPreview(url, it)
+                    }
                 if (preview != null) {
                     val metadata = processed.content.metadata ?: ChatMessageMetadata()
                     val updatedMetadata = metadata.copy(urlPreview = preview)
@@ -106,7 +112,7 @@ class MessageProcessingService(
 
         val now = Instant.now()
         val needsUpdate = processed.id != null &&
-            (chatRoom.lastMessageId != processed.id || chatRoom.lastActiveAt.isBefore(now.minusSeconds(60)))
+                (chatRoom.lastMessageId != processed.id || chatRoom.lastActiveAt.isBefore(now.minusSeconds(60)))
         if (needsUpdate) {
             val updatedRoom = chatRoom.copy(lastMessageId = processed.id, lastActiveAt = now)
             chatRoomCommandPort.save(updatedRoom)

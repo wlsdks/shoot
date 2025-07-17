@@ -7,7 +7,7 @@ import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.event.MessageUnreadCountUpdatedEvent
+import com.stark.shoot.domain.event.ChatRoomUpdateEvent
 import com.stark.shoot.domain.user.vo.UserId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -38,12 +38,17 @@ class EventPublishFilter(
         // 각 참여자의 읽지 않은 메시지 수 계산
         val unreadCounts = calculateUnreadCounts(message, chatRoom, roomId)
 
-        // 읽지 않은 메시지 수 이벤트 발행
-        eventPublisher.publish(
-            MessageUnreadCountUpdatedEvent.create(
-                roomId = roomId,
-                unreadCounts = unreadCounts,
+        // 채팅방 업데이트 이벤트 발행
+        val updates = unreadCounts.mapValues { (_, count) ->
+            ChatRoomUpdateEvent.Update(
+                unreadCount = count,
                 lastMessage = message.content.text
+            )
+        }
+        eventPublisher.publish(
+            ChatRoomUpdateEvent.create(
+                roomId = roomId,
+                updates = updates
             )
         )
 

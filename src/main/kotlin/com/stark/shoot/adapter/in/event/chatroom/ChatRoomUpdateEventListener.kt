@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.event.chatroom
 
 import com.stark.shoot.adapter.`in`.web.socket.dto.chatroom.ChatRoomUpdateDto
-import com.stark.shoot.domain.event.MessageUnreadCountUpdatedEvent
+import com.stark.shoot.domain.event.ChatRoomUpdateEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -16,16 +16,16 @@ class ChatRoomUpdateEventListener(
     private val logger = KotlinLogging.logger {}
 
     @EventListener
-    fun handleUnreadCountUpdate(event: MessageUnreadCountUpdatedEvent) {
+    fun handleChatRoomUpdate(event: ChatRoomUpdateEvent) {
         val roomId = event.roomId.value
-        event.unreadCounts.forEach { (userId, count) ->
+        event.updates.forEach { (userId, updateInfo) ->
             val activeKey = "active:${userId.value}:$roomId"
             val isActive = redisTemplate.opsForValue().get(activeKey) == "true"
             if (!isActive) {
                 val update = ChatRoomUpdateDto(
                     roomId = roomId,
-                    unreadCount = count,
-                    lastMessage = event.lastMessage
+                    unreadCount = updateInfo.unreadCount,
+                    lastMessage = updateInfo.lastMessage
                 )
                 messagingTemplate.convertAndSendToUser(
                     userId.value.toString(),

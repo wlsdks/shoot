@@ -15,7 +15,7 @@ import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.event.MessageBulkReadEvent
-import com.stark.shoot.domain.event.MessageUnreadCountUpdatedEvent
+import com.stark.shoot.domain.event.ChatRoomUpdateEvent
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
@@ -429,16 +429,16 @@ class MessageReadService(
         lastMessage: String
     ) {
         try {
-            val event = MessageUnreadCountUpdatedEvent.create(
+            val update = ChatRoomUpdateEvent.Update(unreadCount = 0, lastMessage = lastMessage)
+            val event = ChatRoomUpdateEvent.create(
                 roomId = roomId,
-                unreadCounts = mapOf(userId to 0),
-                lastMessage = lastMessage
+                updates = mapOf(userId to update)
             )
 
             eventPublisher.publish(event)
-            logger.debug { "읽지 않은 메시지 수 업데이트 이벤트 발행 완료: roomId=${roomId.value}, userId=${userId.value}" }
+            logger.debug { "채팅방 업데이트 이벤트 발행 완료: roomId=${roomId.value}, userId=${userId.value}" }
         } catch (e: Exception) {
-            logger.error(e) { "읽지 않은 메시지 수 업데이트 이벤트 발행 실패: roomId=${roomId.value}, userId=${userId.value}" }
+            logger.error(e) { "채팅방 업데이트 이벤트 발행 실패: roomId=${roomId.value}, userId=${userId.value}" }
             // 이벤트 발행 실패는 로깅만 하고 진행
         }
     }

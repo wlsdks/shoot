@@ -15,7 +15,7 @@ import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.event.MessageEvent
-import com.stark.shoot.domain.event.MessageSendedEvent
+import com.stark.shoot.domain.event.MessageSentEvent
 import com.stark.shoot.domain.event.type.EventType
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -66,7 +66,7 @@ class ConsumeMessageEventService(
             }
 
             webSocketMessageBroker.sendMessage("/topic/messages/${savedMessage.roomId.value}", savedMessage)
-            eventPublisher.publish(MessageSendedEvent.create(savedMessage))
+            eventPublisher.publish(MessageSentEvent.create(savedMessage))
 
             // 상태: SAVED
             sendStatusUpdate(roomId.value, tempId, MessageStatus.SAVED.name, savedMessage.id?.value)

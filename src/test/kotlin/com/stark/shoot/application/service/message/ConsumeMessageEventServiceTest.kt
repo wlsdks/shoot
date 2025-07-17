@@ -2,10 +2,13 @@ package com.stark.shoot.application.service.message
 
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
-import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
-import com.stark.shoot.application.port.`in`.message.command.ProcessMessageCommand
+import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
+import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
+import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
@@ -29,14 +32,22 @@ class ConsumeMessageEventServiceTest {
     @Test
     @DisplayName("[happy] 이벤트를 성공적으로 처리하면 true를 반환한다")
     fun `이벤트를 성공적으로 처리하면 true를 반환한다`() {
-        val processMessageUseCase = mock(ProcessMessageUseCase::class.java)
+        val saveMessagePort = mock(SaveMessagePort::class.java)
+        val chatRoomQueryPort = mock(ChatRoomQueryPort::class.java)
+        val chatRoomCommandPort = mock(ChatRoomCommandPort::class.java)
+        val eventPublisher = mock(EventPublisher::class.java)
+        val chatRoomMetadataDomainService = mock(ChatRoomMetadataDomainService::class.java)
         val loadUrlContentPort = mock(LoadUrlContentPort::class.java)
         val cacheUrlPreviewPort = mock(CacheUrlPreviewPort::class.java)
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
         val chatMessageMapper = mock(ChatMessageMapper::class.java)
 
         val service = ConsumeMessageEventService(
-            processMessageUseCase,
+            saveMessagePort,
+            chatRoomQueryPort,
+            chatRoomCommandPort,
+            eventPublisher,
+            chatRoomMetadataDomainService,
             loadUrlContentPort,
             cacheUrlPreviewPort,
             webSocketMessageBroker,
@@ -55,26 +66,34 @@ class ConsumeMessageEventServiceTest {
 
         val event = MessageEvent.fromMessage(message, EventType.MESSAGE_CREATED)
 
-        `when`(processMessageUseCase.processMessageCreate(ProcessMessageCommand.of(message))).thenReturn(message)
+        `when`(saveMessagePort.save(message)).thenReturn(message)
         `when`(webSocketMessageBroker.sendMessage(anyString(), any())).thenReturn(CompletableFuture.completedFuture(true))
 
         val result = service.consume(event)
 
         assertThat(result).isTrue()
-        verify(processMessageUseCase).processMessageCreate(any())
+        verify(saveMessagePort).save(message)
     }
 
     @Test
     @DisplayName("[bad] 처리 중 예외가 발생하면 false를 반환한다")
     fun `처리 중 예외가 발생하면 false를 반환한다`() {
-        val processMessageUseCase = mock(ProcessMessageUseCase::class.java)
+        val saveMessagePort = mock(SaveMessagePort::class.java)
+        val chatRoomQueryPort = mock(ChatRoomQueryPort::class.java)
+        val chatRoomCommandPort = mock(ChatRoomCommandPort::class.java)
+        val eventPublisher = mock(EventPublisher::class.java)
+        val chatRoomMetadataDomainService = mock(ChatRoomMetadataDomainService::class.java)
         val loadUrlContentPort = mock(LoadUrlContentPort::class.java)
         val cacheUrlPreviewPort = mock(CacheUrlPreviewPort::class.java)
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
         val chatMessageMapper = mock(ChatMessageMapper::class.java)
 
         val service = ConsumeMessageEventService(
-            processMessageUseCase,
+            saveMessagePort,
+            chatRoomQueryPort,
+            chatRoomCommandPort,
+            eventPublisher,
+            chatRoomMetadataDomainService,
             loadUrlContentPort,
             cacheUrlPreviewPort,
             webSocketMessageBroker,
@@ -93,12 +112,12 @@ class ConsumeMessageEventServiceTest {
 
         val event = MessageEvent.fromMessage(message, EventType.MESSAGE_CREATED)
 
-        `when`(processMessageUseCase.processMessageCreate(any())).thenThrow(RuntimeException("fail"))
+        `when`(saveMessagePort.save(any())).thenThrow(RuntimeException("fail"))
         `when`(webSocketMessageBroker.sendMessage(anyString(), any())).thenReturn(CompletableFuture.completedFuture(true))
 
         val result = service.consume(event)
 
         assertThat(result).isFalse()
-        verify(processMessageUseCase).processMessageCreate(any())
+        verify(saveMessagePort).save(any())
     }
 }

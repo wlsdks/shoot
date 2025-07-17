@@ -3,15 +3,19 @@ package com.stark.shoot.application.service.message
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
-import com.stark.shoot.application.port.`in`.message.ProcessMessageUseCase
-import com.stark.shoot.application.port.`in`.message.command.ProcessMessageCommand
 import com.stark.shoot.application.port.`in`.message.consume.ConsumeMessageEventUseCase
+import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
+import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
+import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.event.MessageEvent
+import com.stark.shoot.domain.event.MessageSendedEvent
 import com.stark.shoot.domain.event.type.EventType
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -19,7 +23,11 @@ import java.time.Instant
 
 @UseCase
 class ConsumeMessageEventService(
-    private val processMessageUseCase: ProcessMessageUseCase,
+    private val saveMessagePort: SaveMessagePort,
+    private val chatRoomQueryPort: ChatRoomQueryPort,
+    private val chatRoomCommandPort: ChatRoomCommandPort,
+    private val eventPublisher: EventPublisher,
+    private val chatRoomMetadataDomainService: ChatRoomMetadataDomainService,
     private val loadUrlContentPort: LoadUrlContentPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
     private val webSocketMessageBroker: WebSocketMessageBroker,
@@ -42,8 +50,23 @@ class ConsumeMessageEventService(
             sendStatusUpdate(roomId.value, tempId, MessageStatus.PROCESSING.name, null)
 
             // 메시지 저장
-            val command = ProcessMessageCommand.of(event.data)
-            val savedMessage = processMessageUseCase.processMessageCreate(command)
+            var savedMessage = saveMessagePort.save(event.data)
+
+            if (savedMessage.readBy[savedMessage.senderId] != true) {
+                savedMessage = saveMessagePort.save(savedMessage.markAsRead(savedMessage.senderId))
+            }
+
+            savedMessage.id?.let { id ->
+                chatRoomCommandPort.updateLastReadMessageId(savedMessage.roomId, savedMessage.senderId, id)
+            }
+
+            chatRoomQueryPort.findById(savedMessage.roomId)?.let { room ->
+                val updated = chatRoomMetadataDomainService.updateChatRoomWithNewMessage(room, savedMessage)
+                chatRoomCommandPort.save(updated)
+            }
+
+            webSocketMessageBroker.sendMessage("/topic/messages/${savedMessage.roomId.value}", savedMessage)
+            eventPublisher.publish(MessageSendedEvent.create(savedMessage))
 
             // 상태: SAVED
             sendStatusUpdate(roomId.value, tempId, MessageStatus.SAVED.name, savedMessage.id?.value)

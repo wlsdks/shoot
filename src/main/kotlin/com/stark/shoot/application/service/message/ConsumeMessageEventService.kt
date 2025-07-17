@@ -128,5 +128,5 @@ class ConsumeMessageEventService(
             messageDto
         )
     }
-    
+
 }

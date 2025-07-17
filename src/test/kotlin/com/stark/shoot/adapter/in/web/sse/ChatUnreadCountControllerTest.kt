@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.`in`.web.sse
 
-import com.stark.shoot.application.port.`in`.chatroom.SseEmitterUseCase
 import com.stark.shoot.application.port.`in`.chatroom.command.CreateEmitterCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

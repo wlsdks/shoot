@@ -1,19 +1,15 @@
-package com.stark.shoot.adapter.`in`.event.message
+package com.stark.shoot.application.service.event.message
 
 import com.stark.shoot.adapter.`in`.web.mapper.ChatRoomResponseMapper
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.event.MessageSentEvent
+import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener
-import org.springframework.stereotype.Component
 
-/**
- * Listens for [MessageSentEvent] and sends chat room update information
- * to all participants via WebSocket.
- */
-@Component
+@ApplicationEventListener
 class MessageSentEventListener(
     private val chatRoomQueryPort: ChatRoomQueryPort,
     private val chatRoomDomainService: ChatRoomDomainService,

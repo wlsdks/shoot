@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.event.notification
+package com.stark.shoot.application.service.event.notification
 
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort

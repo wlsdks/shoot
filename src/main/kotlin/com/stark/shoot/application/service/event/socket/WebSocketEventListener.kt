@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.event.socket
+package com.stark.shoot.application.service.event.socket
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener

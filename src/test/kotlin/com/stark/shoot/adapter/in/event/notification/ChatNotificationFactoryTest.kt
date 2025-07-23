@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.`in`.event.notification
 
+import com.stark.shoot.application.service.event.notification.ChatNotificationFactory
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType

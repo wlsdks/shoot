@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.event.notification
+package com.stark.shoot.application.service.event.notification
 
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId

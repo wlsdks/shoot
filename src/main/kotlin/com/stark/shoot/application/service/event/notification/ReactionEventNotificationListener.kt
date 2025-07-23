@@ -7,9 +7,9 @@ import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.event.MessageReactionEvent
 import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener
-import org.springframework.stereotype.Component
 
 /**
  * 메시지 반응 이벤트를 수신하여 알림을 생성하고 전송하는 리스너 클래스입니다.
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component
  * 2. 반응에 대한 알림 생성
  * 3. 알림 저장 및 전송
  */
-@Component
+@ApplicationEventListener
 class ReactionEventNotificationListener(
     private val messageQueryPort: MessageQueryPort,
     private val notificationCommandPort: NotificationCommandPort,

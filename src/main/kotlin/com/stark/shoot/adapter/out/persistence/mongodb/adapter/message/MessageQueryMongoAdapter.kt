@@ -13,10 +13,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
 
 @Adapter
 class MessageQueryMongoAdapter(
     private val chatMessageRepository: ChatMessageMongoRepository,
+    private val mongoTemplate: MongoTemplate,
     private val chatMessageMapper: ChatMessageMapper
 ) : MessageQueryPort {
 
@@ -200,6 +204,30 @@ class MessageQueryMongoAdapter(
     ): Flow<ChatMessage> = flow {
         val messages = findByRoomIdAndAfterId(roomId, afterMessageId, limit)
         messages.forEach { emit(it) }
+    }
+
+    /**
+     * 특정 사용자의 특정 채팅방에서 안읽은 메시지 개수 조회
+     * MongoDB count 쿼리를 사용하여 최적화된 성능 제공
+     */
+    override fun countUnreadMessages(
+        userId: UserId,
+        roomId: ChatRoomId
+    ): Int {
+        return try {
+            val query = Query().addCriteria(
+                Criteria.where("roomId").`is`(roomId.value)
+                    .and("senderId").ne(userId.value) // 자신이 보낸 메시지는 제외
+                    .and("readBy.${userId.value}").ne(true) // 읽지 않은 메시지만
+                    .and("isDeleted").ne(true) // 삭제되지 않은 메시지만
+            )
+
+            // count 쿼리는 실제 문서를 가져오지 않고 개수만 세므로 매우 빠름
+            val count = mongoTemplate.count(query, "messages").toInt()
+            count
+        } catch (e: Exception) {
+            0
+        }
     }
 
 }

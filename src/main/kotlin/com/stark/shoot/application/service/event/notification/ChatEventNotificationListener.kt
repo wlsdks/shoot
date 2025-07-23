@@ -5,6 +5,7 @@ import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.notification.Notification
+import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Component
  * 3. 일반 메시지 수신자에 대한 알림 생성
  * 4. 알림 저장 및 전송
  */
-@Component
+@ApplicationEventListener
 class ChatEventNotificationListener(
     private val sendNotificationPort: SendNotificationPort,
     private val notificationCommandPort: NotificationCommandPort,

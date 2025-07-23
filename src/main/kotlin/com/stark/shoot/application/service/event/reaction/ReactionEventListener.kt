@@ -1,0 +1,37 @@
+package com.stark.shoot.application.service.event.reaction
+
+import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
+import com.stark.shoot.domain.event.MessageReactionEvent
+import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.context.event.EventListener
+
+@ApplicationEventListener
+class ReactionEventListener(
+    private val webSocketMessageBroker: WebSocketMessageBroker
+) {
+
+    private val logger = KotlinLogging.logger {}
+
+    /**
+     * 메시지 반응 이벤트 처리 - 채팅방에 반응 업데이트 브로드캐스트
+     */
+    @EventListener
+    fun handleMessageReaction(event: MessageReactionEvent) {
+        val reactionUpdate = mapOf(
+            "messageId" to event.messageId.value,
+            "userId" to event.userId.value,
+            "reactionType" to event.reactionType,
+            "isAdded" to event.isAdded
+        )
+
+        // 채팅방의 모든 사용자에게 반응 업데이트 전송
+        webSocketMessageBroker.sendMessage(
+            "/topic/chat/${event.roomId.value}/reactions",
+            reactionUpdate
+        )
+
+        logger.debug { "Reaction update sent for message ${event.messageId.value}" }
+    }
+
+}

@@ -22,7 +22,10 @@ class ChatNotificationFactory {
      * @param message 채팅 메시지
      * @return 생성된 멘션 알림
      */
-    fun createMentionNotification(userId: Long, message: ChatMessage): Notification {
+    fun createMentionNotification(
+        userId: Long,
+        message: ChatMessage
+    ): Notification {
         val truncatedText = truncateMessageText(message.content.text)
 
         return Notification.fromChatEvent(
@@ -42,7 +45,10 @@ class ChatNotificationFactory {
      * @param message 채팅 메시지
      * @return 생성된 메시지 알림
      */
-    fun createMessageNotification(userId: Long, message: ChatMessage): Notification {
+    fun createMessageNotification(
+        userId: Long,
+        message: ChatMessage
+    ): Notification {
         val truncatedText = truncateMessageText(message.content.text)
 
         return Notification.fromChatEvent(

@@ -36,6 +36,11 @@ class HandleMessageEventService(
 
     private val logger = KotlinLogging.logger {}
 
+    /**
+     * 메시지를 저장하고 상태 업데이트를 전송합니다.
+     * - 메시지를 저장하고, 채팅방 메타데이터를 업데이트하며, URL 미리보기를 처리합니다.
+     * - 상태 업데이트를 웹소켓을 통해 전송합니다.
+     */
     override fun handle(event: MessageEvent): Boolean {
         if (event.type != EventType.MESSAGE_CREATED) return false
 

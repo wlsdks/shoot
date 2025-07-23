@@ -4,7 +4,8 @@ import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.domain.event.MessageReactionEvent
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.context.event.EventListener
+import org.springframework.transaction.event.TransactionPhase
+import org.springframework.transaction.event.TransactionalEventListener
 
 @ApplicationEventListener
 class ReactionEventListener(
@@ -15,8 +16,9 @@ class ReactionEventListener(
 
     /**
      * 메시지 반응 이벤트 처리 - 채팅방에 반응 업데이트 브로드캐스트
+     * 트랜잭션 커밋 후에 실행되어 데이터 일관성을 보장합니다.
      */
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMessageReaction(event: MessageReactionEvent) {
         val reactionUpdate = mapOf(
             "messageId" to event.messageId.value,

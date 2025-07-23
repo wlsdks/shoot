@@ -54,7 +54,7 @@ class NotificationDomainService {
      * @return 수신자별로 생성된 알림 목록
      */
     fun createNotificationsFromEvent(event: NotificationEvent): List<Notification> {
-        val recipients = event.getRecipients()
+        val recipients = event.recipients
         if (recipients.isEmpty()) return emptyList()
         return recipients.map { recipientId ->
             Notification.fromEvent(event, recipientId)

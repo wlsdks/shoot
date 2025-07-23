@@ -1,14 +1,15 @@
 package com.stark.shoot.application.service.event.notification
 
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.event.MessageEvent
+import com.stark.shoot.domain.event.MessageSentEvent
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.context.event.EventListener
-import org.springframework.stereotype.Component
+import org.springframework.transaction.event.TransactionPhase
+import org.springframework.transaction.event.TransactionalEventListener
 
 /**
  * 채팅 이벤트를 수신하여 알림을 생성하고 전송하는 리스너 클래스입니다.
@@ -23,18 +24,20 @@ import org.springframework.stereotype.Component
 class ChatEventNotificationListener(
     private val sendNotificationPort: SendNotificationPort,
     private val notificationCommandPort: NotificationCommandPort,
-    private val chatNotificationFactory: ChatNotificationFactory
+    private val chatNotificationFactory: ChatNotificationFactory,
+    private val chatRoomQueryPort: ChatRoomQueryPort
 ) {
 
     private val logger = KotlinLogging.logger {}
 
     /**
      * 채팅 이벤트를 수신하여 알림 처리를 시작하는 메서드입니다.
+     * 트랜잭션 커밋 후에 실행되어 데이터 일관성을 보장합니다.
      *
      * @param event 처리할 채팅 이벤트
      */
-    @EventListener
-    fun handleChatEvent(event: MessageEvent) {
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun handleChatEvent(event: MessageSentEvent) {
         handleMessageCreated(event)
     }
 
@@ -44,8 +47,8 @@ class ChatEventNotificationListener(
      *
      * @param event 처리할 채팅 이벤트
      */
-    private fun handleMessageCreated(event: MessageEvent) {
-        val message = event.data
+    private fun handleMessageCreated(event: MessageSentEvent) {
+        val message = event.message
 
         try {
             // 메시지 수신자 식별
@@ -74,7 +77,8 @@ class ChatEventNotificationListener(
      * @return 알림을 받을 사용자 ID 집합
      */
     private fun identifyRecipients(message: ChatMessage): Set<Long> {
-        return message.readBy.keys.filter { it != message.senderId }.map { it.value }.toSet()
+        val chatRoom = chatRoomQueryPort.findById(message.roomId) ?: return emptySet()
+        return chatRoom.participants.filter { it != message.senderId }.map { it.value }.toSet()
     }
 
     /**

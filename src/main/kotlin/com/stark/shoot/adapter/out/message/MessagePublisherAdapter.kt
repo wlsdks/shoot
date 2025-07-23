@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
+import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.MessageStatusNotificationPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageDomainService
 import com.stark.shoot.domain.chat.message.type.MessageStatus
+import com.stark.shoot.domain.event.MentionEvent
 import com.stark.shoot.domain.event.MessageEvent
+import com.stark.shoot.domain.event.MessageSentEvent
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
@@ -31,7 +34,8 @@ class MessagePublisherAdapter(
     private val kafkaTemplate: KafkaTemplate<String, MessageEvent>,
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val applicationCoroutineScope: ApplicationCoroutineScope,
-    private val messageDomainService: MessageDomainService
+    private val messageDomainService: MessageDomainService,
+    private val eventPublisher: EventPublisher
 ) : MessagePublisherPort, MessageStatusNotificationPort {
 
     private val logger = KotlinLogging.logger {}
@@ -53,6 +57,9 @@ class MessagePublisherAdapter(
                 // 내부 suspend 함수를 활용하여 발행 로직 재사용
                 val event = messageDomainService.createMessageEvent(domainMessage)
                 publishMessageInternal(request, event, tempId)
+
+                // 도메인 이벤트 발행 (트랜잭션 컨텍스트에서 처리됨)
+                publishDomainEvents(domainMessage)
             } catch (throwable: Throwable) {
                 handlePublishError(request, tempId, throwable)
             }
@@ -168,12 +175,56 @@ class MessagePublisherAdapter(
     private suspend fun publishToKafka(topic: String, key: String, event: MessageEvent) {
         try {
             kafkaTemplate.send(topic, key, event).await()
-                .also { result -> 
+                .also { result ->
                     logger.debug { "Kafka 메시지 발행 완료: topic=$topic, key=$key, offset=${result.recordMetadata.offset()}" }
                 }
         } catch (ex: Exception) {
             logger.error(ex) { "Kafka 메시지 발행 실패: topic=$topic, key=$key, ${ex.message}" }
             throw KafkaPublishException("Kafka 메시지 발행 실패", ex)
         }
+    }
+
+    /**
+     * 도메인 이벤트를 발행합니다.
+     * MessageSentEvent와 필요시 MentionEvent를 발행합니다.
+     */
+    private fun publishDomainEvents(message: ChatMessage) {
+        try {
+            // 1. MessageSentEvent 발행
+            val messageSentEvent = MessageSentEvent.create(message)
+            eventPublisher.publish(messageSentEvent)
+
+            // 2. 멘션이 포함된 경우 MentionEvent 발행
+            if (message.mentions.isNotEmpty()) {
+                publishMentionEvent(message)
+            }
+
+            logger.debug { "Domain events published for message ${message.id?.value}" }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to publish domain events for message ${message.id?.value}" }
+        }
+    }
+
+    /**
+     * 멘션 이벤트를 발행합니다.
+     */
+    private fun publishMentionEvent(message: ChatMessage) {
+        // 자신을 멘션한 경우는 제외
+        val mentionedUsers = message.mentions.filter { it != message.senderId }.toSet()
+        if (mentionedUsers.isEmpty()) {
+            return
+        }
+
+        val mentionEvent = MentionEvent(
+            roomId = message.roomId,
+            messageId = message.id ?: return,
+            senderId = message.senderId,
+            senderName = "User_${message.senderId.value}", // TODO: 실제 사용자 이름 조회 로직 필요
+            mentionedUserIds = mentionedUsers,
+            messageContent = message.content.text
+        )
+
+        eventPublisher.publish(mentionEvent)
+        logger.debug { "MentionEvent published for ${mentionedUsers.size} users" }
     }
 }

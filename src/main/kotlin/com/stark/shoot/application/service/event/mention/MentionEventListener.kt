@@ -4,7 +4,8 @@ import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
 import com.stark.shoot.domain.event.MentionEvent
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.context.event.EventListener
+import org.springframework.transaction.event.TransactionalEventListener
+import org.springframework.transaction.event.TransactionPhase
 
 @ApplicationEventListener
 class MentionEventListener(
@@ -15,8 +16,9 @@ class MentionEventListener(
 
     /**
      * 멘션 이벤트 처리 - 멘션된 사용자들에게 개별 알림 전송
+     * 트랜잭션 커밋 후에 실행되어 데이터 일관성을 보장합니다.
      */
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMention(event: MentionEvent) {
         event.mentionedUserIds.forEach { userId ->
             val mentionNotification = mapOf(

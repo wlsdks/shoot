@@ -149,8 +149,8 @@ class Notification(
         fun fromEvent(event: NotificationEvent, recipientId: UserId): Notification {
             return Notification(
                 userId = recipientId,
-                title = NotificationTitle.from(event.getTitle()),
-                message = NotificationMessage.from(event.getMessage()),
+                title = NotificationTitle.from(event.title),
+                message = NotificationMessage.from(event.message),
                 type = event.type,
                 sourceId = event.sourceId,
                 sourceType = event.sourceType,

@@ -8,7 +8,8 @@ import com.stark.shoot.domain.event.MessageSentEvent
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.context.event.EventListener
+import org.springframework.transaction.event.TransactionPhase
+import org.springframework.transaction.event.TransactionalEventListener
 
 @ApplicationEventListener
 class MessageSentEventListener(
@@ -23,8 +24,9 @@ class MessageSentEventListener(
      * 메시지 전송 이벤트 처리
      * - 채팅방 참여자들의 채팅방 목록을 실시간 업데이트
      * - 안읽은 메시지 개수, 마지막 메시지, 시간 등을 업데이트
+     * 트랜잭션 커밋 후에 실행되어 데이터 일관성을 보장합니다.
      */
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMessageSent(event: MessageSentEvent) {
         val message = event.message
         val roomId = message.roomId

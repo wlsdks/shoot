@@ -1,9 +1,9 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.mapper
 
-import com.stark.shoot.adapter.`in`.web.dto.message.AttachmentDto
-import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.message.UrlPreviewDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.AttachmentDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.MessageResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.UrlPreviewDto
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.ChatMessageDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.AttachmentDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument

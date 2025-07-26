@@ -1,8 +1,8 @@
 package com.stark.shoot.adapter.`in`.redis.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
-import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 

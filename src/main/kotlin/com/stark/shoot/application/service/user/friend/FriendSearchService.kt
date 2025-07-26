@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.user.friend
 
-import com.stark.shoot.adapter.`in`.web.dto.user.FriendResponse
+import com.stark.shoot.adapter.`in`.rest.dto.user.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FriendSearchUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.SearchFriendsCommand
 import com.stark.shoot.application.port.out.user.UserQueryPort

@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.out.message.readstatus
 
-import com.stark.shoot.adapter.`in`.web.dto.message.read.ReadStatus
+import com.stark.shoot.adapter.`in`.rest.dto.message.read.ReadStatus
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.user.vo.UserId
 

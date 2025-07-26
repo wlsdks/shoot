@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.chat.message
 
-import com.stark.shoot.adapter.`in`.web.dto.message.toRequestDto
-import com.stark.shoot.adapter.`in`.web.dto.message.toResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.toRequestDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.toResponseDto
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

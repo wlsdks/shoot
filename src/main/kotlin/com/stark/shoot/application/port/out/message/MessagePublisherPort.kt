@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.out.message
 
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
 import com.stark.shoot.domain.chat.message.ChatMessage
 
 /**

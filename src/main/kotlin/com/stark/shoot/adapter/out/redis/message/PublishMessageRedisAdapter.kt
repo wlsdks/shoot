@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.out.redis.message
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.out.message.PublishMessagePort
 import com.stark.shoot.infrastructure.annotation.Adapter
 import org.springframework.data.redis.connection.stream.StreamRecords

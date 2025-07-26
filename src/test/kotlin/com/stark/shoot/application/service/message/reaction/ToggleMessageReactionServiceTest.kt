@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.message.reaction
 
-import com.stark.shoot.adapter.`in`.web.dto.message.reaction.ReactionResponse
+import com.stark.shoot.adapter.`in`.rest.dto.message.reaction.ReactionResponse
 import com.stark.shoot.application.port.`in`.message.reaction.command.ToggleMessageReactionCommand
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessageCommandPort

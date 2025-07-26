@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.event.reaction
 
-import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
 import com.stark.shoot.domain.event.MessageReactionEvent
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging

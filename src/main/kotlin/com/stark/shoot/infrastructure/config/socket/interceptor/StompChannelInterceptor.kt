@@ -1,7 +1,7 @@
 package com.stark.shoot.infrastructure.config.socket.interceptor
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId

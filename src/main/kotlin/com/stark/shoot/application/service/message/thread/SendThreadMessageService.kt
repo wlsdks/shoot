@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.message.thread
 
-import com.stark.shoot.adapter.`in`.web.dto.message.updateFromDomain
+import com.stark.shoot.adapter.`in`.rest.dto.message.updateFromDomain
 import com.stark.shoot.application.port.`in`.message.thread.SendThreadMessageUseCase
 import com.stark.shoot.application.port.`in`.message.thread.command.SendThreadMessageCommand
 import com.stark.shoot.application.port.out.message.MessagePublisherPort

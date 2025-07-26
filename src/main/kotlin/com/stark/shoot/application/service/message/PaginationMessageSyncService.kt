@@ -1,9 +1,9 @@
 package com.stark.shoot.application.service.message
 
-import com.stark.shoot.adapter.`in`.web.socket.dto.MessageSyncInfoDto
-import com.stark.shoot.adapter.`in`.web.socket.dto.SyncRequestDto
-import com.stark.shoot.adapter.`in`.web.socket.dto.SyncResponseDto
-import com.stark.shoot.adapter.`in`.web.socket.mapper.MessageSyncMapper
+import com.stark.shoot.adapter.`in`.rest.socket.dto.MessageSyncInfoDto
+import com.stark.shoot.adapter.`in`.rest.socket.dto.SyncRequestDto
+import com.stark.shoot.adapter.`in`.rest.socket.dto.SyncResponseDto
+import com.stark.shoot.adapter.`in`.rest.socket.mapper.MessageSyncMapper
 import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
 import com.stark.shoot.application.port.`in`.message.command.GetPaginationMessageCommand

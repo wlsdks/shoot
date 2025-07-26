@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.message.thread
 
-import com.stark.shoot.adapter.`in`.web.dto.message.MessageResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.MessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.thread.GetThreadMessagesUseCase
 import com.stark.shoot.application.port.`in`.message.thread.command.GetThreadMessagesCommand

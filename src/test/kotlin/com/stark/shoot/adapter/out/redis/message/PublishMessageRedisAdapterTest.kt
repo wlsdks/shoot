@@ -3,9 +3,9 @@ package com.stark.shoot.adapter.out.redis.message
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageMetadataRequest
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
-import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentRequest
+import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageMetadataRequest
+import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentRequest
 import com.stark.shoot.domain.chat.message.type.MessageType
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.DisplayName

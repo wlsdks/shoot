@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.message
 
-import com.stark.shoot.adapter.`in`.web.dto.message.ChatMessageRequest
-import com.stark.shoot.adapter.`in`.web.dto.message.updateFromDomain
+import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
+import com.stark.shoot.adapter.`in`.rest.dto.message.updateFromDomain
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.application.port.`in`.message.command.SendMessageCommand
 import com.stark.shoot.application.port.out.message.MessagePublisherPort

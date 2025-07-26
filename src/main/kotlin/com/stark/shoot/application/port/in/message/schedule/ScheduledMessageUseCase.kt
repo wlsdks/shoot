@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.message.schedule
 
-import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.schedule.ScheduledMessageResponseDto
 import com.stark.shoot.application.port.`in`.message.schedule.command.*
 
 interface ScheduledMessageUseCase {

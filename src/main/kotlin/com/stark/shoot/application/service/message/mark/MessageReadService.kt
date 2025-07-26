@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.message.mark
 
-import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
 import com.stark.shoot.application.port.`in`.message.mark.command.MarkAllMessagesAsReadCommand
 import com.stark.shoot.application.port.`in`.message.mark.command.MarkMessageAsReadCommand

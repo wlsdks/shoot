@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.message
 
-import com.stark.shoot.adapter.`in`.web.dto.message.MessageStatusResponse
-import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.rest.dto.message.MessageStatusResponse
+import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.`in`.message.HandleMessageEventUseCase
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort

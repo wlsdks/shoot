@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.message.thread
 
-import com.stark.shoot.adapter.`in`.web.dto.message.thread.ThreadSummaryDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.thread.ThreadSummaryDto
 import com.stark.shoot.application.port.`in`.message.thread.command.GetThreadsCommand
 
 interface GetThreadsUseCase {

@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.chatroom
 
-import com.stark.shoot.adapter.`in`.web.dto.chatroom.ChatRoomResponse
+import com.stark.shoot.adapter.`in`.rest.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.application.port.`in`.chatroom.UpdateChatRoomFavoriteUseCase
 import com.stark.shoot.application.port.`in`.chatroom.command.UpdateFavoriteStatusCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort

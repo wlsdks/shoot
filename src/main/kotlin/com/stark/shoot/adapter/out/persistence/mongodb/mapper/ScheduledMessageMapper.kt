@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.mapper
 
-import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.schedule.ScheduledMessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.ScheduledMessageDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
 import com.stark.shoot.domain.chat.message.ScheduledMessage

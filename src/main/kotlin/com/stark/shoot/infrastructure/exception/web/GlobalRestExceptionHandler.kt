@@ -1,8 +1,8 @@
 package com.stark.shoot.infrastructure.exception.web
 
-import com.stark.shoot.adapter.`in`.web.dto.ApiException
-import com.stark.shoot.adapter.`in`.web.dto.ResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.ResponseDto.Companion.error
+import com.stark.shoot.adapter.`in`.rest.dto.ApiException
+import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto.Companion.error
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

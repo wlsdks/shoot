@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.message
 
-import com.stark.shoot.adapter.`in`.web.socket.WebSocketMessageBroker
-import com.stark.shoot.adapter.`in`.web.socket.dto.TypingIndicatorMessage
+import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.rest.socket.dto.TypingIndicatorMessage
 import com.stark.shoot.application.port.`in`.message.TypingIndicatorMessageUseCase
 import com.stark.shoot.application.port.`in`.message.command.TypingIndicatorCommand
 import com.stark.shoot.infrastructure.annotation.UseCase

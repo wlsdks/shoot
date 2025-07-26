@@ -1,10 +1,10 @@
 package com.stark.shoot.application.service.message.schedule
 
-import com.stark.shoot.adapter.`in`.web.dto.ApiException
-import com.stark.shoot.adapter.`in`.web.dto.ErrorCode
-import com.stark.shoot.adapter.`in`.web.dto.message.MessageContentResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.message.MessageMetadataResponseDto
-import com.stark.shoot.adapter.`in`.web.dto.message.schedule.ScheduledMessageResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.ApiException
+import com.stark.shoot.adapter.`in`.rest.dto.ErrorCode
+import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.MessageMetadataResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.schedule.ScheduledMessageResponseDto
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ScheduledMessageMapper
 import com.stark.shoot.application.port.`in`.message.schedule.command.*
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort

@@ -1,7 +1,7 @@
 package com.stark.shoot.infrastructure.aop
 
-import com.stark.shoot.adapter.`in`.web.dto.ApiException
-import com.stark.shoot.adapter.`in`.web.dto.ErrorCode
+import com.stark.shoot.adapter.`in`.rest.dto.ApiException
+import com.stark.shoot.adapter.`in`.rest.dto.ErrorCode
 import com.stark.shoot.infrastructure.exception.web.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.aspectj.lang.ProceedingJoinPoint

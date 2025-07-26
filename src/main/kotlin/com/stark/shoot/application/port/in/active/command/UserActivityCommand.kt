@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.active.command
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.adapter.`in`.web.dto.active.ChatActivity
+import com.stark.shoot.adapter.`in`.rest.dto.active.ChatActivity
 
 /**
  * 사용자 활동 상태 커맨드

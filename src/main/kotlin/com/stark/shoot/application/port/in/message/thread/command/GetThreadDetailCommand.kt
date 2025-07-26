@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.message.thread.command
 
-import com.stark.shoot.adapter.`in`.web.socket.dto.ThreadDetailRequestDto
+import com.stark.shoot.adapter.`in`.rest.socket.dto.ThreadDetailRequestDto
 import com.stark.shoot.domain.chat.message.vo.MessageId
 
 /**

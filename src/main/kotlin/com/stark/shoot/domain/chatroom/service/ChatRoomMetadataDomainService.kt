@@ -11,7 +11,7 @@ import java.time.Instant
 class ChatRoomMetadataDomainService {
 
     /**
-     * 새 메시지가 추가될 때 채팅방 메타데이터를 업데이트합니다.
+     * 새 메시지가 추가될 때 채팅방 내부의 메타데이터를 업데이트합니다.
      *
      * @param chatRoom 업데이트할 채팅방
      * @param message 추가된 메시지
@@ -22,7 +22,8 @@ class ChatRoomMetadataDomainService {
         message: ChatMessage
     ): ChatRoom {
         // 메시지 ID가 없는 경우 예외 발생
-        val messageId = message.id ?: throw IllegalArgumentException("메시지 ID가 없습니다.")
+        val messageId = message.id
+            ?: throw IllegalArgumentException("메시지 ID가 없습니다.")
 
         // 채팅방 메타데이터 업데이트 (마지막 메시지 ID, 마지막 활동 시간)
         return chatRoom.update(

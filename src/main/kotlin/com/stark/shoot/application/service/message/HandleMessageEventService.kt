@@ -26,12 +26,12 @@ class HandleMessageEventService(
     private val saveMessagePort: SaveMessagePort,
     private val chatRoomQueryPort: ChatRoomQueryPort,
     private val chatRoomCommandPort: ChatRoomCommandPort,
-    private val eventPublisher: EventPublisher,
-    private val chatRoomMetadataDomainService: ChatRoomMetadataDomainService,
     private val loadUrlContentPort: LoadUrlContentPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
+    private val chatRoomMetadataDomainService: ChatRoomMetadataDomainService,
     private val webSocketMessageBroker: WebSocketMessageBroker,
-    private val chatMessageMapper: ChatMessageMapper
+    private val chatMessageMapper: ChatMessageMapper,
+    private val eventPublisher: EventPublisher,
 ) : HandleMessageEventUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -44,9 +44,11 @@ class HandleMessageEventService(
     override fun handle(event: MessageEvent): Boolean {
         if (event.type != EventType.MESSAGE_CREATED) return false
 
+        // 메시지 이벤트에서 임시 ID를 추출합니다. (임시 아이디는 웹소켓 상태 표현을 위함)
         val tempId = extractTempId(event) ?: return false
         val roomIdValue = event.data.roomId.value
 
+        // 메시지 상태를 'PROCESSING'으로 업데이트하고 웹소켓을 통해 전송합니다.
         sendStatusUpdate(roomIdValue, tempId, MessageStatus.PROCESSING.name, null)
 
         return try {
@@ -69,17 +71,33 @@ class HandleMessageEventService(
         }
     }
 
+
+    /**
+     * 메시지를 저장하고 보낸 사람을 읽은 것으로 표시합니다.
+     * - 메시지를 저장하고, 보낸 사람의 읽음 상태를 업데이트합니다.
+     * - 채팅방의 마지막 읽은 메시지 ID를 업데이트합니다.
+     */
     private fun saveAndMarkMessage(message: ChatMessage): ChatMessage {
-        var saved = saveMessagePort.save(message)
-        if (saved.readBy[saved.senderId] != true) {
-            saved = saveMessagePort.save(saved.markAsRead(saved.senderId))
+        var savedMessage = saveMessagePort.save(message)
+
+        // 보낸 사람은 메시지를 읽은 것으로 표시합니다.
+        if (savedMessage.readBy[savedMessage.senderId] != true) {
+            savedMessage = saveMessagePort.save(savedMessage.markAsRead(savedMessage.senderId))
         }
-        saved.id?.let { id ->
-            chatRoomCommandPort.updateLastReadMessageId(saved.roomId, saved.senderId, id)
+
+        // 메시지 ID가 존재하면 채팅방의 마지막 읽은 메시지 ID를 업데이트합니다.
+        savedMessage.id?.let { id ->
+            chatRoomCommandPort.updateLastReadMessageId(savedMessage.roomId, savedMessage.senderId, id)
         }
-        return saved
+
+        return savedMessage
     }
 
+
+    /**
+     * 채팅방 메타데이터를 업데이트합니다.
+     * - 새로운 메시지를 추가하고, 채팅방의 마지막 메시지 ID를 업데이트합니다.
+     */
     private fun updateChatRoomMetadata(message: ChatMessage) {
         chatRoomQueryPort.findById(message.roomId)?.let { room ->
             val updated = chatRoomMetadataDomainService.updateChatRoomWithNewMessage(room, message)
@@ -87,11 +105,21 @@ class HandleMessageEventService(
         }
     }
 
+
+    /**
+     * 메시지를 웹소켓을 통해 전송하고, 메시지 전송 이벤트를 발행합니다.
+     * - 메시지를 특정 채팅방의 토픽으로 전송합니다.
+     */
     private fun publishMessage(message: ChatMessage) {
         webSocketMessageBroker.sendMessage("/topic/messages/${message.roomId.value}", message)
         eventPublisher.publish(MessageSentEvent.create(message))
     }
 
+
+    /**
+     * 상태 업데이트를 웹소켓을 통해 전송합니다.
+     * - 메시지 상태, 임시 ID, 영구 ID, 오류 메시지를 포함합니다.
+     */
     private fun sendStatusUpdate(
         roomId: Long,
         tempId: String,
@@ -99,14 +127,14 @@ class HandleMessageEventService(
         persistedId: String?,
         errorMessage: String? = null
     ) {
-        val createdAt = Instant.now().toString()
         val statusUpdate = MessageStatusResponse(
             tempId = tempId,
             status = status,
             persistedId = persistedId,
             errorMessage = errorMessage,
-            createdAt = createdAt
+            createdAt = Instant.now().toString()
         )
+
         webSocketMessageBroker.sendMessage("/topic/message/status/$roomId", statusUpdate)
     }
 
@@ -124,12 +152,24 @@ class HandleMessageEventService(
         logger.error(e) { "메시지 처리 오류: ${e.message}" }
     }
 
+
+    /**
+     * URL 미리보기를 처리합니다.
+     * - 메시지 메타데이터에 URL 미리보기가 필요한 경우, URL 콘텐츠를 로드하고 캐시합니다.
+     * - URL 미리보기가 성공적으로 로드되면 메시지를 업데이트하고 웹소켓을 통해 전송합니다.
+     */
     private fun processChatMessageForUrlPreview(savedMessage: ChatMessage) {
-        if (savedMessage.metadata.needsUrlPreview && savedMessage.metadata.previewUrl != null) {
+        if (savedMessage.metadata.needsUrlPreview &&
+            savedMessage.metadata.previewUrl != null
+        ) {
             val previewUrl = savedMessage.metadata.previewUrl ?: return
+
             try {
+                // Jsoup를 사용하여 URL 콘텐츠를 추출합니다.
                 val preview = loadUrlContentPort.fetchUrlContent(previewUrl)
+
                 if (preview != null) {
+                    // URL 미리보기를 캐시합니다. (로컬 캐시와 Redis에 저장)
                     cacheUrlPreviewPort.cacheUrlPreview(previewUrl, preview)
                     val updatedMessage = updateMessageWithPreview(savedMessage, preview)
                     sendMessageUpdate(updatedMessage)
@@ -140,6 +180,11 @@ class HandleMessageEventService(
         }
     }
 
+
+    /**
+     * 메시지에 URL 미리보기를 추가합니다.
+     * - 메시지의 메타데이터에 URL 미리보기를 업데이트합니다.
+     */
     private fun updateMessageWithPreview(
         message: ChatMessage,
         preview: ChatMessageMetadata.UrlPreview
@@ -155,8 +200,13 @@ class HandleMessageEventService(
         )
     }
 
+    /**
+     * 메시지 업데이트를 웹소켓을 통해 전송합니다.
+     * - 메시지의 변경된 내용을 포함하여 특정 채팅방으로 전송합니다.
+     */
     private fun sendMessageUpdate(message: ChatMessage) {
         val messageDto = chatMessageMapper.toDto(message)
+
         webSocketMessageBroker.sendMessage(
             "/topic/message/update/${message.roomId}",
             messageDto

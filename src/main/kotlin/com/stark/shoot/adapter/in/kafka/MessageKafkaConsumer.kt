@@ -3,7 +3,6 @@ package com.stark.shoot.adapter.`in`.kafka
 import com.stark.shoot.application.port.`in`.message.HandleMessageEventUseCase
 import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.event.type.EventType
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.messaging.handler.annotation.Payload
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Component
 class MessageKafkaConsumer(
     private val handleMessageEventUseCase: HandleMessageEventUseCase
 ) {
-    private val logger = KotlinLogging.logger {}
 
     @KafkaListener(
         topics = ["chat-messages"],
@@ -31,4 +29,5 @@ class MessageKafkaConsumer(
             }
         }
     }
+
 }

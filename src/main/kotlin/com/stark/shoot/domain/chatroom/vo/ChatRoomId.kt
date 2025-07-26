@@ -2,6 +2,7 @@ package com.stark.shoot.domain.chatroom.vo
 
 @JvmInline
 value class ChatRoomId private constructor(val value: Long) {
+
     companion object {
         fun from(value: Long): ChatRoomId {
             require(value > 0) { "채팅방 ID는 양수여야 합니다." }
@@ -10,4 +11,5 @@ value class ChatRoomId private constructor(val value: Long) {
     }
 
     override fun toString(): String = value.toString()
+
 }

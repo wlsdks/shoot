@@ -1,7 +1,7 @@
 package com.stark.shoot.infrastructure.config.notification
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.adapter.out.kafka.notification.SendNotificationKafkaAdapter
+import com.stark.shoot.adapter.out.kafka.PublishNotificationKafkaAdapter
 import com.stark.shoot.adapter.out.redis.notification.SendNotificationRedisAdapter
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -45,7 +45,7 @@ class NotificationConfig {
         return when (notificationTransport.lowercase()) {
             "kafka" -> {
                 logger.info { "Kafka를 사용하여 알림을 전송합니다." }
-                SendNotificationKafkaAdapter(kafkaTemplate, objectMapper)
+                PublishNotificationKafkaAdapter(kafkaTemplate, objectMapper)
             }
             else -> {
                 logger.info { "Redis를 사용하여 알림을 전송합니다." }
@@ -83,6 +83,6 @@ class NotificationConfig {
         kafkaTemplate: KafkaTemplate<String, String>,
         objectMapper: ObjectMapper
     ): SendNotificationPort {
-        return SendNotificationKafkaAdapter(kafkaTemplate, objectMapper)
+        return PublishNotificationKafkaAdapter(kafkaTemplate, objectMapper)
     }
 }

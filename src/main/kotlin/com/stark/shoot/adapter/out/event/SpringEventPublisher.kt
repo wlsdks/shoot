@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.out.event.publisher
+package com.stark.shoot.adapter.out.event
 
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.domain.event.DomainEvent

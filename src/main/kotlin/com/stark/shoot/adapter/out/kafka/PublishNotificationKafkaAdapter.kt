@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.out.kafka.notification
+package com.stark.shoot.adapter.out.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
@@ -10,7 +10,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.kafka.core.KafkaTemplate
 
 @Adapter
-class SendNotificationKafkaAdapter(
+class PublishNotificationKafkaAdapter(
     private val kafkaTemplate: KafkaTemplate<String, String>,
     private val objectMapper: ObjectMapper
 ) : SendNotificationPort {
@@ -33,10 +33,10 @@ class SendNotificationKafkaAdapter(
             // 사용자 ID를 파티션 키로 사용하여 같은 사용자의 알림이 순서대로 처리되도록 함
             val key = notification.userId.value.toString()
             val notificationJson = objectMapper.writeValueAsString(notification)
-            
+
             // Kafka 토픽에 알림 발행
             val future = kafkaTemplate.send(NOTIFICATION_TOPIC, key, notificationJson)
-            
+
             future.whenComplete { result, ex ->
                 if (ex != null) {
                     logger.error(ex) { "Kafka를 통한 알림 전송 중 오류가 발생했습니다: ${ex.message}" }
@@ -65,13 +65,13 @@ class SendNotificationKafkaAdapter(
             logger.info { "전송할 알림이 없습니다." }
             return
         }
-        
+
         try {
             // 각 알림을 개별적으로 발행
             notifications.forEach { notification ->
                 sendNotification(notification)
             }
-            
+
             logger.info { "${notifications.size}개의 알림이 Kafka 토픽에 발행되었습니다." }
         } catch (e: Exception) {
             val errorMessage = "Kafka를 통한 다중 알림 전송 중 오류가 발생했습니다: ${e.message}"
@@ -79,4 +79,5 @@ class SendNotificationKafkaAdapter(
             throw RedisOperationException(errorMessage, e)
         }
     }
+
 }

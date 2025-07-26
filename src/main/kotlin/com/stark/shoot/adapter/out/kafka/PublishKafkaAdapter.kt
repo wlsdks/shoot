@@ -1,6 +1,6 @@
-package com.stark.shoot.adapter.out.kafka.adapter
+package com.stark.shoot.adapter.out.kafka
 
-import com.stark.shoot.application.port.out.kafka.KafkaMessagePublishPort
+import com.stark.shoot.application.port.out.kafka.PublishKafkaPort
 import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.infrastructure.exception.web.KafkaPublishException
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -10,14 +10,14 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.CompletableFuture
 
 @Component
-class KafkaMessagePublishAdapter(
+class PublishKafkaAdapter(
     private val kafkaTemplate: KafkaTemplate<String, MessageEvent>
-) : KafkaMessagePublishPort {
+) : PublishKafkaPort {
 
     private val logger = KotlinLogging.logger {}
 
     /**
-     * 채팅 이벤트를 Kafka로 발행합니다.
+     * 채팅 작성 메시지 발행
      */
     override fun publishChatEvent(
         topic: String,
@@ -35,7 +35,7 @@ class KafkaMessagePublishAdapter(
     }
 
     /**
-     * 채팅 이벤트를 Kafka로 발행합니다. (코루틴 기반)
+     * 채팅 작성 메시지 발행 (코루틴 기반)
      */
     override suspend fun publishChatEventSuspend(
         topic: String,

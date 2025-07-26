@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.out.kafka.notification
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.stark.shoot.adapter.out.kafka.PublishNotificationKafkaAdapter
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
@@ -23,7 +24,7 @@ class SendNotificationKafkaAdapterTest {
 
     private val kafkaTemplate = mock(KafkaTemplate::class.java) as KafkaTemplate<String, String>
     private val objectMapper = mock(ObjectMapper::class.java)
-    private val adapter = SendNotificationKafkaAdapter(kafkaTemplate, objectMapper)
+    private val adapter = PublishNotificationKafkaAdapter(kafkaTemplate, objectMapper)
 
     private fun createNotification(userId: Long = 1L): Notification {
         return Notification(

@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.out.kafka.adapter
 
+import com.stark.shoot.adapter.out.kafka.PublishKafkaAdapter
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
@@ -24,7 +25,7 @@ import java.util.concurrent.CompletableFuture
 class KafkaMessagePublishAdapterTest {
 
     private val kafkaTemplate = mock(KafkaTemplate::class.java) as KafkaTemplate<String, MessageEvent>
-    private val adapter = KafkaMessagePublishAdapter(kafkaTemplate)
+    private val adapter = PublishKafkaAdapter(kafkaTemplate)
 
     private fun createChatMessage(): ChatMessage {
         return ChatMessage(

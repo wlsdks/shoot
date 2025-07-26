@@ -227,4 +227,5 @@ class MessagePublisherAdapter(
         eventPublisher.publish(mentionEvent)
         logger.debug { "MentionEvent published for ${mentionedUsers.size} users" }
     }
+
 }

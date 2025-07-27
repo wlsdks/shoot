@@ -31,14 +31,17 @@ class RedisMessageProcessor(
      * @return 추출된 채팅방 ID 또는 null
      */
     fun extractRoomIdFromStreamKey(streamKey: String): String? {
+        // 정규식을 사용하여 streamKey에서 채팅방 ID를 추출
         val roomId = STREAM_ROOM_ID_PATTERN.find(streamKey)
             ?.groupValues
             ?.getOrNull(1)
 
+        // 추출된 roomId가 null인 경우 경고 로그 출력
         if (roomId == null) {
             logger.warn { "Could not extract roomId from stream key: $streamKey" }
         }
 
+        // 추출된 roomId를 반환
         return roomId
     }
 
@@ -57,6 +60,32 @@ class RedisMessageProcessor(
     }
 
     /**
+     * 메시지 처리 과정을 통합적으로 수행합니다.
+     *
+     * @param roomId 채팅방 ID
+     * @param messageJson JSON 형식의 메시지 문자열
+     * @return 처리 성공 여부
+     */
+    fun processMessage(
+        roomId: String,
+        messageJson: String
+    ): Boolean {
+        return try {
+            // JSON 문자열을 ChatMessageRequest 객체로 변환
+            val chatMessage = parseChatMessage(messageJson)
+
+            // WebSocket을 통해 채팅 메시지를 전송
+            sendMessageToWebSocket(roomId, chatMessage)
+
+            // 메시지 처리 성공시 true 반환
+            true
+        } catch (e: Exception) {
+            logger.error(e) { "메시지 처리 오류: $messageJson" }
+            false
+        }
+    }
+
+    /**
      * JSON 문자열을 ChatMessageRequest 객체로 변환합니다.
      *
      * @param messageJson JSON 형식의 메시지 문자열
@@ -72,25 +101,12 @@ class RedisMessageProcessor(
      * @param roomId 채팅방 ID
      * @param chatMessage 전송할 채팅 메시지
      */
-    fun sendMessageToWebSocket(roomId: String, chatMessage: ChatMessageRequest) {
-        webSocketMessageBroker.sendMessage("/topic/messages/$roomId", chatMessage)
+    fun sendMessageToWebSocket(
+        roomId: String,
+        chatMessage: ChatMessageRequest
+    ) {
+        val destination = "/topic/messages/$roomId"
+        webSocketMessageBroker.sendMessage(destination, chatMessage)
     }
 
-    /**
-     * 메시지 처리 과정을 통합적으로 수행합니다.
-     *
-     * @param roomId 채팅방 ID
-     * @param messageJson JSON 형식의 메시지 문자열
-     * @return 처리 성공 여부
-     */
-    fun processMessage(roomId: String, messageJson: String): Boolean {
-        return try {
-            val chatMessage = parseChatMessage(messageJson)
-            sendMessageToWebSocket(roomId, chatMessage)
-            true
-        } catch (e: Exception) {
-            logger.error(e) { "메시지 처리 오류: $messageJson" }
-            false
-        }
-    }
 }

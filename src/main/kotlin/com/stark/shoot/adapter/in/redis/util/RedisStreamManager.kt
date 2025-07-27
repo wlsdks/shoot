@@ -142,8 +142,8 @@ class RedisStreamManager(
             // Redis에서 지정된 스트림의 모든 소비자 그룹 목록을 조회
             val consumerGroups = redisTemplate.opsForStream<Any, Any>().groups(streamKey)
 
-            // 조회된 그룹 목록에서 생성하려는 그룹명이 이미 존재하는지 확인 (NPE 방지가 필요한지 확인 필요)
-            val groupExists = consumerGroups.any { it.groupName() == consumerGroup }
+            // 조회된 그룹 목록에서 생성하려는 그룹명이 이미 존재하는지 확인 (null 안전성 처리 완료)
+            val groupExists = consumerGroups?.any { it.groupName() == consumerGroup } ?: false
 
             // 소비자 그룹이 이미 존재하는 경우 로그 출력 및 캐시에 저장
             if (groupExists) {

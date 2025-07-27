@@ -214,7 +214,7 @@ class RedisStreamManager(
         // Redis SCAN 명령어 옵션 설정: 패턴 매칭과 한 번에 스캔할 키 개수(100개) 지정
         val scanOptions = ScanOptions.scanOptions().match(pattern).count(100).build()
 
-        // Redis 연결 객체를 저장할 변수 초기화 (나중에 직접 연결을 얻어서 사용)
+        // Redis 연결 객체를 저장할 변수 초기화 (바로 다음 줄에서 연결을 얻음)
         var connection: RedisConnection? = null
 
         try {

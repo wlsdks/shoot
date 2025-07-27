@@ -4,7 +4,6 @@ import com.stark.shoot.application.port.`in`.user.FindUserUseCase
 import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
 import com.stark.shoot.application.port.`in`.user.code.command.RemoveUserCodeCommand
 import com.stark.shoot.application.port.`in`.user.code.command.UpdateUserCodeCommand
-import com.stark.shoot.application.port.`in`.user.command.FindUserByCodeCommand
 import com.stark.shoot.application.port.`in`.user.command.FindUserByIdCommand
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestCommand
@@ -94,7 +93,7 @@ class UserCodeControllerTest {
         // given
         val code = "FINDME123"
         val user = createUser(2L, "findme", "찾아주세요", code)
-        val command = FindUserByCodeCommand.of(code)
+        val command = SendFriendRequestByCodeCommand.of(code)
 
         `when`(findUserUseCase.findByUserCode(command)).thenReturn(user)
 
@@ -118,7 +117,7 @@ class UserCodeControllerTest {
     fun `존재하지 않는 유저 코드로 조회하면 null을 반환한다`() {
         // given
         val code = "NOTEXIST"
-        val command = FindUserByCodeCommand.of(code)
+        val command = SendFriendRequestByCodeCommand.of(code)
 
         `when`(findUserUseCase.findByUserCode(command)).thenReturn(null)
 
@@ -159,7 +158,7 @@ class UserCodeControllerTest {
         val userId = 1L
         val targetCode = "FRIEND123"
         val targetUser = createUser(3L, "friend", "친구", targetCode)
-        val findCommand = FindUserByCodeCommand.of(targetCode)
+        val findCommand = SendFriendRequestByCodeCommand.of(targetCode)
         val requestCommand = SendFriendRequestCommand.of(userId, 3L)
 
         `when`(findUserUseCase.findByUserCode(findCommand)).thenReturn(targetUser)
@@ -182,7 +181,7 @@ class UserCodeControllerTest {
         // given
         val userId = 1L
         val targetCode = "NOTEXIST"
-        val findCommand = FindUserByCodeCommand.of(targetCode)
+        val findCommand = SendFriendRequestByCodeCommand.of(targetCode)
 
         `when`(findUserUseCase.findByUserCode(findCommand)).thenReturn(null)
 

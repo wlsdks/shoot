@@ -2,6 +2,7 @@ package com.stark.shoot.adapter.`in`.rest.chatroom
 
 import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.rest.dto.chatroom.ChatRoomResponse
+import com.stark.shoot.adapter.`in`.rest.dto.chatroom.CreateDirectChatRequest
 import com.stark.shoot.adapter.`in`.rest.dto.chatroom.TitleRequest
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
@@ -25,21 +26,15 @@ class ChatRoomController(
 
     @Operation(summary = "1:1 채팅방 생성", description = "특정 사용자와 친구의 1:1 채팅방을 생성합니다.")
     @PostMapping("/create/direct")
-    fun createDirectChat(
-        @RequestParam userId: Long,
-        @RequestParam friendId: Long
-    ): ResponseDto<ChatRoomResponse> {
-        val command = CreateDirectChatCommand.of(userId, friendId)
+    fun createDirectChat(@RequestBody request: CreateDirectChatRequest): ResponseDto<ChatRoomResponse> {
+        val command = CreateDirectChatCommand.of(request)
         val room = createChatRoomUseCase.createDirectChat(command)
-
         return ResponseDto.success(room, "채팅방이 생성되었습니다.")
     }
 
     @Operation(summary = "사용자의 채팅방 목록 조회", description = "특정 사용자의 채팅방 전체 목록을 조회합니다.")
     @GetMapping
-    fun getChatRooms(
-        @RequestParam userId: Long
-    ): ResponseDto<List<ChatRoomResponse>> {
+    fun getChatRooms(@RequestParam userId: Long): ResponseDto<List<ChatRoomResponse>> {
         val command = GetChatRoomsCommand.of(userId)
         val chatRooms = findChatRoomUseCase.getChatRoomsForUser(command)
         return ResponseDto.success(chatRooms)

@@ -8,40 +8,74 @@ import java.time.Instant
  * @param T 응답 데이터 타입
  */
 data class ResponseDto<T>(
-    val success: Boolean,
-    val data: T?,
-    val message: String?,
-    val errorCode: String? = null,
-    val timestamp: Instant = Instant.now(),
-    val code: Int
+    val success: Boolean,    // 요청 성공 여부
+    val data: T?,            // 응답 데이터 (null일 수 있음)
+    val message: String?,    // 응답 메시지 (null일 수 있음)
+    val errorCode: String? = null,          // 오류 코드 (null일 수 있음)
+    val timestamp: Instant = Instant.now(), // 응답 생성 시간
+    val code: Int            // HTTP 상태 코드 (기본값: 200
 ) {
     companion object {
         /**
          * 성공 응답 생성 (데이터 포함)
          */
         fun <T> success(data: T): ResponseDto<T> {
-            return ResponseDto(true, data, null, null, Instant.now(), 200)
+            return ResponseDto(
+                true,
+                data,
+                null,
+                null,
+                Instant.now(),
+                200
+            )
         }
 
         /**
          * 성공 응답 생성 (데이터 포함, 메시지 포함)
          */
-        fun <T> success(data: T, message: String): ResponseDto<T> {
-            return ResponseDto(true, data, message, null, Instant.now(), 200)
+        fun <T> success(
+            data: T,
+            message: String
+        ): ResponseDto<T> {
+            return ResponseDto(
+                true,
+                data,
+                message,
+                null,
+                Instant.now(),
+                200
+            )
         }
 
         /**
          * 성공 응답 생성 (데이터 없음)
          */
         fun <T> success(): ResponseDto<T> {
-            return ResponseDto(true, null, "요청이 성공적으로 처리되었습니다.", null, Instant.now(), 200)
+            return ResponseDto(
+                true,
+                null,
+                "요청이 성공적으로 처리되었습니다.",
+                null,
+                Instant.now(),
+                200
+            )
         }
 
         /**
          * 실패 응답 생성
          */
-        fun <T> fail(message: String, code: Int = 400): ResponseDto<T> {
-            return ResponseDto(false, null, message, null, Instant.now(), code)
+        fun <T> fail(
+            message: String,
+            code: Int = 400
+        ): ResponseDto<T> {
+            return ResponseDto(
+                false,
+                null,
+                message,
+                null,
+                Instant.now(),
+                code
+            )
         }
 
         /**
@@ -61,8 +95,18 @@ data class ResponseDto<T>(
         /**
          * 일반 예외에서 실패 응답 생성
          */
-        fun <T> error(exception: Exception, code: Int = 500): ResponseDto<T> {
-            return ResponseDto(false, null, exception.message, null, Instant.now(), code)
+        fun <T> error(
+            exception: Exception,
+            code: Int = 500
+        ): ResponseDto<T> {
+            return ResponseDto(
+                false,
+                null,
+                exception.message,
+                null,
+                Instant.now(),
+                code
+            )
         }
     }
 

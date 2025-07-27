@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.user.friend.recommend
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.adapter.`in`.rest.dto.user.FriendResponse
+import com.stark.shoot.adapter.`in`.rest.dto.social.friend.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.GetRecommendedFriendsCommand
 import com.stark.shoot.application.port.out.user.UserQueryPort

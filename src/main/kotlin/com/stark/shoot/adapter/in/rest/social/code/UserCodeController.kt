@@ -12,7 +12,7 @@ import com.stark.shoot.application.port.`in`.user.code.command.UpdateUserCodeCom
 import com.stark.shoot.application.port.`in`.user.command.FindUserByCodeCommand
 import com.stark.shoot.application.port.`in`.user.command.FindUserByIdCommand
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
-import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestFromCodeCommand
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -92,8 +92,8 @@ class UserCodeController(
         val targetUser = findUserUseCase.findByUserCode(findCommand)
             ?: throw ResourceNotFoundException("해당 코드(${request.targetCode}targetCode)를 가진 유저가 없습니다.")
 
-        val requestCommand = SendFriendRequestCommand.of(request.userId, targetUser.id!!.value)
-        friendRequestUseCase.sendFriendRequest(requestCommand)
+        val requestCommand = SendFriendRequestFromCodeCommand.of(request, targetUser.id!!)
+        friendRequestUseCase.sendFriendRequestFromUserCode(requestCommand)
         return ResponseDto.success(Unit, "친구 요청을 보냈습니다.")
     }
 

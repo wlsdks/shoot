@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.`in`.rest.dto
 
+import com.stark.shoot.adapter.`in`.rest.dto.user.UserResponse
 import java.time.Instant
 
 /**

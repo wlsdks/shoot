@@ -3,8 +3,8 @@ package com.stark.shoot.adapter.`in`.rest.social.group
 import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.rest.dto.social.group.AddMemberInGroupRequest
 import com.stark.shoot.adapter.`in`.rest.dto.social.group.CreateGroupRequest
-import com.stark.shoot.adapter.`in`.rest.dto.user.FriendGroupResponse
-import com.stark.shoot.adapter.`in`.rest.dto.user.toResponse
+import com.stark.shoot.adapter.`in`.rest.dto.social.group.FriendGroupResponse
+import com.stark.shoot.adapter.`in`.rest.dto.social.group.toResponse
 import com.stark.shoot.application.port.`in`.user.group.FindFriendGroupUseCase
 import com.stark.shoot.application.port.`in`.user.group.ManageFriendGroupUseCase
 import com.stark.shoot.application.port.`in`.user.group.command.*

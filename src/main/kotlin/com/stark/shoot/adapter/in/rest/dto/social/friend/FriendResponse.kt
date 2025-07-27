@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.dto.user
+package com.stark.shoot.adapter.`in`.rest.dto.social.friend
 
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
 

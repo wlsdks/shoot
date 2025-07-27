@@ -3,36 +3,7 @@ package com.stark.shoot.adapter.`in`.rest.dto.user
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
-import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.media.Content
-import org.springframework.web.multipart.MultipartFile
 import java.time.Instant
-
-data class CreateUserRequest(
-    val username: String,
-    val nickname: String,
-    val password: String,
-    val email: String,
-    val bio: String? = null,
-    @field:Parameter(content = [Content(mediaType = "multipart/form-data")])
-    val profileImage: MultipartFile? = null
-)
-
-data class UpdateProfileRequest(
-    val nickname: String?,
-    val profileImageUrl: String?,
-    val backgroundImageUrl: String?,
-    val bio: String?
-)
-
-data class SetProfileImageRequest(val profileImageUrl: String)
-data class SetBackgroundImageRequest(val backgroundImageUrl: String)
-
-data class UpdateStatusRequest(
-    val userId: String, // 추가
-    val status: UserStatus
-)
-
 
 @ApplicationDto
 data class UserResponse(

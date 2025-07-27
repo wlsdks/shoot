@@ -1,14 +1,6 @@
-package com.stark.shoot.adapter.`in`.rest.dto.user
+package com.stark.shoot.adapter.`in`.rest.dto.user.login
 
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
-
-/**
- * 사용자 로그인 요청
- */
-data class LoginRequest(
-    val username: String,
-    val password: String
-)
 
 /**
  * 로그인 응답

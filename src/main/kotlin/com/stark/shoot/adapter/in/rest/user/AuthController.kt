@@ -1,9 +1,9 @@
 package com.stark.shoot.adapter.`in`.rest.user
 
 import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
-import com.stark.shoot.adapter.`in`.rest.dto.user.LoginRequest
-import com.stark.shoot.adapter.`in`.rest.dto.user.LoginResponse
 import com.stark.shoot.adapter.`in`.rest.dto.user.UserResponse
+import com.stark.shoot.adapter.`in`.rest.dto.user.login.LoginRequest
+import com.stark.shoot.adapter.`in`.rest.dto.user.login.LoginResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
 import com.stark.shoot.application.port.`in`.user.auth.UserLoginUseCase
 import com.stark.shoot.application.port.`in`.user.auth.command.LoginCommand

@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.rest.user
 
 import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
-import com.stark.shoot.adapter.`in`.rest.dto.user.LoginResponse
+import com.stark.shoot.adapter.`in`.rest.dto.user.login.LoginResponse
 import com.stark.shoot.application.port.`in`.user.token.RefreshTokenUseCase
 import com.stark.shoot.application.port.`in`.user.token.command.RefreshTokenCommand
 import io.swagger.v3.oas.annotations.Operation

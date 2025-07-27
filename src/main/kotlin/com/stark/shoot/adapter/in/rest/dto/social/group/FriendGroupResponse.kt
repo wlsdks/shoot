@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.dto.user
+package com.stark.shoot.adapter.`in`.rest.dto.social.group
 
 import com.stark.shoot.domain.user.FriendGroup
 import com.stark.shoot.infrastructure.annotation.ApplicationDto

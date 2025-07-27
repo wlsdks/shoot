@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.rest.social.friend
 
-import com.stark.shoot.adapter.`in`.rest.dto.user.FriendResponse
+import com.stark.shoot.adapter.`in`.rest.dto.social.friend.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FindFriendUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.GetFriendsCommand
 import com.stark.shoot.application.port.`in`.user.friend.command.GetIncomingFriendRequestsCommand

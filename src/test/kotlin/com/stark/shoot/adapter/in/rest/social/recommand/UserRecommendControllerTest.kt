@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.rest.social.recommand
 
-import com.stark.shoot.adapter.`in`.rest.dto.user.FriendResponse
+import com.stark.shoot.adapter.`in`.rest.dto.social.friend.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.RecommendFriendsUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.GetRecommendedFriendsCommand
 import org.assertj.core.api.Assertions.assertThat

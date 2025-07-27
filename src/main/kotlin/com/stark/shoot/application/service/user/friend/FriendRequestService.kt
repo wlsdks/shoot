@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.CancelFriendRequestCommand
 import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestFromCodeCommand
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
 import com.stark.shoot.domain.user.FriendRequest
@@ -79,6 +80,37 @@ class FriendRequestService(
             command.targetUserId,
             FriendRequestStatus.CANCELLED
         )
+
+        // 캐시 무효화 (FriendCacheManager 사용)
+        friendCacheManager.invalidateFriendshipCaches(command.currentUserId, command.targetUserId)
+    }
+
+    override fun sendFriendRequestFromUserCode(command: SendFriendRequestFromCodeCommand) {
+        // 사용자 존재 여부 확인
+        validateUserExistence(command.currentUserId, command.targetUserId)
+
+        // 도메인 서비스를 사용하여 친구 요청 유효성 검증
+        try {
+            friendDomainService.validateFriendRequest(
+                currentUserId = command.currentUserId,
+                targetUserId = command.targetUserId,
+                isFriend = userQueryPort.checkFriendship(command.currentUserId, command.targetUserId),
+                hasOutgoingRequest = userQueryPort.checkOutgoingFriendRequest(
+                    command.currentUserId,
+                    command.targetUserId
+                ),
+                hasIncomingRequest = userQueryPort.checkIncomingFriendRequest(
+                    command.currentUserId,
+                    command.targetUserId
+                )
+            )
+        } catch (e: IllegalArgumentException) {
+            throw InvalidInputException(e.message ?: "친구 요청 유효성 검증 실패")
+        }
+
+        // 친구 요청 애그리게이트 생성 및 저장
+        val request = FriendRequest(senderId = command.currentUserId, receiverId = command.targetUserId)
+        friendRequestCommandPort.saveFriendRequest(request)
 
         // 캐시 무효화 (FriendCacheManager 사용)
         friendCacheManager.invalidateFriendshipCaches(command.currentUserId, command.targetUserId)

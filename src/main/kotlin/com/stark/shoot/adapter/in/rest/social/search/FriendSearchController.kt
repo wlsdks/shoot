@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.`in`.rest.social.search
 
 import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
-import com.stark.shoot.adapter.`in`.rest.dto.user.FriendResponse
+import com.stark.shoot.adapter.`in`.rest.dto.social.friend.FriendResponse
 import com.stark.shoot.application.port.`in`.user.friend.FriendSearchUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.SearchFriendsCommand
 import io.swagger.v3.oas.annotations.Operation

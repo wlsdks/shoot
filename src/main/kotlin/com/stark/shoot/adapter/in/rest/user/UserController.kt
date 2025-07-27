@@ -27,19 +27,10 @@ class UserController(
         summary = "사용자 생성 (회원가입)",
         description = "새로운 사용자를 생성합니다."
     )
-    @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
-    fun createUser(
-        @ModelAttribute request: CreateUserRequest
-    ): ResponseDto<UserResponse> {
-        val command = CreateUserCommand.of(
-            username = request.username,
-            nickname = request.nickname,
-            password = request.password,
-            email = request.email,
-            bio = request.bio,
-            profileImage = request.profileImage
-        )
+    @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun createUser(@RequestBody request: CreateUserRequest): ResponseDto<UserResponse> {
+        val command = CreateUserCommand.of(request)
         val user = userCreateUseCase.createUser(command)
         return ResponseDto.success(user.toResponse(), "회원가입이 완료되었습니다.")
     }

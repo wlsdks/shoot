@@ -1,5 +1,6 @@
 package com.stark.shoot.application.port.`in`.user.group.command
 
+import com.stark.shoot.adapter.`in`.rest.dto.social.group.CreateGroupRequest
 import com.stark.shoot.domain.user.vo.UserId
 
 /**
@@ -11,10 +12,14 @@ data class CreateGroupCommand(
     val description: String?
 ) {
     companion object {
-        fun of(ownerId: UserId, name: String, description: String?): CreateGroupCommand {
-            return CreateGroupCommand(ownerId, name, description)
+        fun of(request: CreateGroupRequest): CreateGroupCommand {
+            return CreateGroupCommand(
+                UserId.from(request.ownerId),
+                request.name,
+                request.description
+            )
         }
-        
+
         fun of(ownerId: Long, name: String, description: String?): CreateGroupCommand {
             return CreateGroupCommand(UserId.from(ownerId), name, description)
         }

@@ -1,6 +1,8 @@
 package com.stark.shoot.adapter.`in`.rest.social.group
 
 import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.social.group.AddMemberInGroupRequest
+import com.stark.shoot.adapter.`in`.rest.dto.social.group.CreateGroupRequest
 import com.stark.shoot.adapter.`in`.rest.dto.user.FriendGroupResponse
 import com.stark.shoot.adapter.`in`.rest.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.group.FindFriendGroupUseCase
@@ -20,12 +22,8 @@ class FriendGroupController(
 
     @Operation(summary = "그룹 생성")
     @PostMapping
-    fun createGroup(
-        @RequestParam ownerId: Long,
-        @RequestParam name: String,
-        @RequestParam(required = false) description: String?
-    ): ResponseDto<FriendGroupResponse> {
-        val command = CreateGroupCommand.of(ownerId, name, description)
+    fun createGroup(@RequestBody request: CreateGroupRequest): ResponseDto<FriendGroupResponse> {
+        val command = CreateGroupCommand.of(request)
         val group = manageUseCase.createGroup(command)
         return ResponseDto.success(group.toResponse())
     }
@@ -54,11 +52,8 @@ class FriendGroupController(
 
     @Operation(summary = "멤버 추가")
     @PostMapping("/{groupId}/members/{memberId}")
-    fun addMember(
-        @PathVariable groupId: Long,
-        @PathVariable memberId: Long
-    ): ResponseDto<FriendGroupResponse> {
-        val command = AddMemberCommand.of(groupId, memberId)
+    fun addMember(@RequestBody request: AddMemberInGroupRequest): ResponseDto<FriendGroupResponse> {
+        val command = AddMemberCommand.of(request)
         val group = manageUseCase.addMember(command)
         return ResponseDto.success(group.toResponse())
     }
@@ -96,7 +91,6 @@ class FriendGroupController(
         val command = GetGroupsCommand.of(ownerId)
         val groups = findUseCase.getGroups(command)
             .map { it.toResponse() }
-
         return ResponseDto.success(groups)
     }
 

@@ -1,9 +1,10 @@
-package com.stark.shoot.adapter.`in`.rest.mapper
+package com.stark.shoot.infrastructure.mapper
 
 import com.stark.shoot.adapter.`in`.rest.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.user.vo.UserId
 import org.springframework.stereotype.Component
+import kotlin.collections.get
 
 /**
  * 채팅방 응답 매퍼

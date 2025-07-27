@@ -32,7 +32,6 @@ class MessageController(
     ): ResponseDto<MessageResponseDto> {
         val command = EditMessageCommand.of(request.messageId, request.newContent)
         val updatedMessage = editMessageUseCase.editMessage(command)
-
         return ResponseDto.success(chatMessageMapper.toDto(updatedMessage), "메시지가 수정되었습니다.")
     }
 

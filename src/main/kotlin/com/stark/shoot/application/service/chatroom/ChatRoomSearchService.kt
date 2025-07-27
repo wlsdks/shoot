@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.chatroom
 
 import com.stark.shoot.adapter.`in`.rest.dto.chatroom.ChatRoomResponse
-import com.stark.shoot.adapter.`in`.rest.mapper.ChatRoomResponseMapper
+import com.stark.shoot.infrastructure.mapper.ChatRoomResponseMapper
 import com.stark.shoot.application.port.`in`.chatroom.ChatRoomSearchUseCase
 import com.stark.shoot.application.port.`in`.chatroom.command.SearchChatRoomsCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort

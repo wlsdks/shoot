@@ -17,7 +17,10 @@ class MultipleChatRoomController(
     private val manageChatRoomUseCase: ManageChatRoomUseCase
 ) {
 
-    @Operation(summary = "채팅방 참여자 추가", description = "채팅방에 참여자를 추가합니다.")
+    @Operation(
+        summary = "채팅방 참여자 추가",
+        description = "채팅방에 참여자를 추가합니다."
+    )
     @PostMapping("/{roomId}/participants")
     fun addParticipant(
         @PathVariable roomId: Long,
@@ -25,11 +28,13 @@ class MultipleChatRoomController(
     ): ResponseDto<Boolean> {
         val command = AddParticipantCommand.of(roomId, request.userId)
         val result = manageChatRoomUseCase.addParticipant(command)
-
         return ResponseDto.success(result, "참여자가 추가되었습니다.")
     }
 
-    @Operation(summary = "채팅방 참여자 제거", description = "채팅방에서 참여자를 제거합니다.")
+    @Operation(
+        summary = "채팅방 참여자 제거",
+        description = "채팅방에서 참여자를 제거합니다."
+    )
     @DeleteMapping("/{roomId}/participants")
     fun removeParticipant(
         @PathVariable roomId: Long,
@@ -37,11 +42,13 @@ class MultipleChatRoomController(
     ): ResponseDto<Boolean> {
         val command = RemoveParticipantCommand.of(roomId, request.userId)
         val result = manageChatRoomUseCase.removeParticipant(command)
-
         return ResponseDto.success(result, "참여자가 제거되었습니다.")
     }
 
-    @Operation(summary = "채팅방 초대", description = "채팅방에 사용자를 초대합니다.")
+    @Operation(
+        summary = "채팅방 초대",
+        description = "채팅방에 사용자를 초대합니다."
+    )
     @PostMapping("/{roomId}/invite")
     fun inviteParticipant(
         @PathVariable roomId: Long,
@@ -49,7 +56,7 @@ class MultipleChatRoomController(
     ): ResponseDto<Boolean> {
         val command = AddParticipantCommand.of(roomId, request.userId)
         val result = manageChatRoomUseCase.addParticipant(command)
-
         return ResponseDto.success(result, "사용자를 채팅방에 초대했습니다.")
     }
+
 }

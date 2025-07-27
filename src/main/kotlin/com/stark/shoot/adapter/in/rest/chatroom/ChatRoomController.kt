@@ -24,7 +24,10 @@ class ChatRoomController(
     private val manageChatRoomUseCase: ManageChatRoomUseCase
 ) {
 
-    @Operation(summary = "1:1 채팅방 생성", description = "특정 사용자와 친구의 1:1 채팅방을 생성합니다.")
+    @Operation(
+        summary = "1:1 채팅방 생성",
+        description = "특정 사용자와 친구의 1:1 채팅방을 생성합니다."
+    )
     @PostMapping("/create/direct")
     fun createDirectChat(@RequestBody request: CreateDirectChatRequest): ResponseDto<ChatRoomResponse> {
         val command = CreateDirectChatCommand.of(request)
@@ -32,7 +35,10 @@ class ChatRoomController(
         return ResponseDto.success(room, "채팅방이 생성되었습니다.")
     }
 
-    @Operation(summary = "사용자의 채팅방 목록 조회", description = "특정 사용자의 채팅방 전체 목록을 조회합니다.")
+    @Operation(
+        summary = "사용자의 채팅방 목록 조회",
+        description = "특정 사용자의 채팅방 전체 목록을 조회합니다."
+    )
     @GetMapping
     fun getChatRooms(@RequestParam userId: Long): ResponseDto<List<ChatRoomResponse>> {
         val command = GetChatRoomsCommand.of(userId)
@@ -40,7 +46,10 @@ class ChatRoomController(
         return ResponseDto.success(chatRooms)
     }
 
-    @Operation(summary = "채팅방 퇴장", description = "현재 사용자가 채팅방에서 퇴장합니다.")
+    @Operation(
+        summary = "채팅방 퇴장",
+        description = "현재 사용자가 채팅방에서 퇴장합니다."
+    )
     @DeleteMapping("/{roomId}/exit")
     fun exitChatRoom(
         @PathVariable roomId: Long,
@@ -48,11 +57,13 @@ class ChatRoomController(
     ): ResponseDto<Boolean> {
         val command = RemoveParticipantCommand.of(roomId, userId)
         val result = manageChatRoomUseCase.removeParticipant(command)
-
         return ResponseDto.success(result, "채팅방에서 퇴장했습니다.")
     }
 
-    @Operation(summary = "채팅방 제목 변경", description = "채팅방의 제목을 변경합니다.")
+    @Operation(
+        summary = "채팅방 제목 변경",
+        description = "채팅방의 제목을 변경합니다."
+    )
     @PutMapping("/{roomId}/title")
     fun updateTitle(
         @PathVariable roomId: Long,
@@ -60,7 +71,6 @@ class ChatRoomController(
     ): ResponseDto<Boolean> {
         val command = UpdateTitleCommand.of(roomId, request.title)
         val result = manageChatRoomUseCase.updateTitle(command)
-
         return ResponseDto.success(result, "채팅방 제목이 변경되었습니다.")
     }
 

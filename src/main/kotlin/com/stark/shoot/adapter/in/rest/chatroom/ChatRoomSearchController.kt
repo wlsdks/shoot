@@ -21,7 +21,10 @@ class ChatRoomSearchController(
     private val findChatRoomUseCase: FindChatRoomUseCase
 ) {
 
-    @Operation(summary = "채팅방 검색", description = "채팅방을 검색합니다.")
+    @Operation(
+        summary = "채팅방 검색",
+        description = "채팅방을 검색합니다."
+    )
     @GetMapping("/search")
     fun searchChatRooms(
         @RequestParam userId: Long,

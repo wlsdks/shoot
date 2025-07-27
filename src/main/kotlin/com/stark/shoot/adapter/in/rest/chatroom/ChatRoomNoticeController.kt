@@ -15,7 +15,10 @@ class ChatRoomNoticeController(
     private val manageChatRoomUseCase: ManageChatRoomUseCase
 ) {
 
-    @Operation(summary = "채팅방 공지사항 설정", description = "채팅방의 공지사항을 업데이트합니다.")
+    @Operation(
+        summary = "채팅방 공지사항 설정",
+        description = "채팅방의 공지사항을 업데이트합니다."
+    )
     @PutMapping("/{roomId}/announcement")
     fun updateAnnouncement(
         @PathVariable roomId: Long,

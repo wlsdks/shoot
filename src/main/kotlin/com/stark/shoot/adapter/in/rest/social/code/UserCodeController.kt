@@ -1,8 +1,8 @@
 package com.stark.shoot.adapter.`in`.rest.social.code
 
 import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
-import com.stark.shoot.adapter.`in`.rest.dto.social.SendFriendRequestByCodeRequest
-import com.stark.shoot.adapter.`in`.rest.dto.social.UpdateUserCodeRequest
+import com.stark.shoot.adapter.`in`.rest.dto.social.code.SendFriendRequestByCodeRequest
+import com.stark.shoot.adapter.`in`.rest.dto.social.code.UpdateUserCodeRequest
 import com.stark.shoot.adapter.`in`.rest.dto.user.UserResponse
 import com.stark.shoot.adapter.`in`.rest.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.FindUserUseCase

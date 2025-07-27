@@ -20,7 +20,10 @@ class FriendRemoveController(
     private val friendRemoveUseCase: FriendRemoveUseCase
 ) {
 
-    @Operation(summary = "친구 삭제", description = "친구 목록에서 사용자를 삭제합니다.")
+    @Operation(
+        summary = "친구 삭제",
+        description = "친구 목록에서 사용자를 삭제합니다."
+    )
     @DeleteMapping("/me/friends/{friendId}")
     fun removeFriend(
         authentication: Authentication,

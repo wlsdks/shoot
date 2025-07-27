@@ -20,7 +20,10 @@ class RetrieveFriendController(
     private val findFriendUseCase: FindFriendUseCase,
 ) {
 
-    @Operation(summary = "내 친구 목록 가져오기", description = "로그인 사용자의 친구 목록을 조회")
+    @Operation(
+        summary = "내 친구 목록 가져오기",
+        description = "로그인 사용자의 친구 목록을 조회"
+    )
     @GetMapping
     fun getMyFriends(
         @RequestParam userId: Long
@@ -30,7 +33,10 @@ class RetrieveFriendController(
         return ResponseDto.success(friends)
     }
 
-    @Operation(summary = "받은 친구 요청 목록", description = "내가 받은 친구 요청들(incoming)")
+    @Operation(
+        summary = "받은 친구 요청 목록",
+        description = "내가 받은 친구 요청들(incoming)"
+    )
     @GetMapping("/incoming")
     fun getIncomingFriendRequests(
         @RequestParam userId: Long
@@ -40,7 +46,10 @@ class RetrieveFriendController(
         return ResponseDto.success(incomingRequests)
     }
 
-    @Operation(summary = "보낸 친구 요청 목록", description = "내가 보낸 친구 요청들(outgoing)")
+    @Operation(
+        summary = "보낸 친구 요청 목록",
+        description = "내가 보낸 친구 요청들(outgoing)"
+    )
     @GetMapping("/outgoing")
     fun getOutgoingFriendRequests(
         @RequestParam userId: Long

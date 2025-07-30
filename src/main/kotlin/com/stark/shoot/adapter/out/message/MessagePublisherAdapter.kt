@@ -13,6 +13,7 @@ import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.event.MentionEvent
 import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.event.MessageSentEvent
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
@@ -35,7 +36,8 @@ class MessagePublisherAdapter(
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val applicationCoroutineScope: ApplicationCoroutineScope,
     private val messageDomainService: MessageDomainService,
-    private val eventPublisher: EventPublisher
+    private val eventPublisher: EventPublisher,
+    private val userQueryPort: UserQueryPort
 ) : MessagePublisherPort, MessageStatusNotificationPort {
 
     private val logger = KotlinLogging.logger {}
@@ -215,11 +217,18 @@ class MessagePublisherAdapter(
             return
         }
 
+        // 발신자 정보 조회 (실패 시 기본 값 사용)
+        val senderName = userQueryPort
+            .findUserById(message.senderId)
+            ?.nickname
+            ?.value
+            ?: "User_${message.senderId.value}"
+
         val mentionEvent = MentionEvent(
             roomId = message.roomId,
             messageId = message.id ?: return,
             senderId = message.senderId,
-            senderName = "User_${message.senderId.value}", // TODO: 실제 사용자 이름 조회 로직 필요
+            senderName = senderName,
             mentionedUserIds = mentionedUsers,
             messageContent = message.content.text
         )

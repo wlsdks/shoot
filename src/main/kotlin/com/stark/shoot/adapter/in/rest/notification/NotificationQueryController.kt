@@ -19,6 +19,13 @@ class NotificationQueryController(
     private val notificationQueryUseCase: NotificationQueryUseCase
 ) {
 
+    /**
+     * Retrieves a paginated list of notifications for the authenticated user.
+     *
+     * @param limit The maximum number of notifications to return. Defaults to 20.
+     * @param offset The number of notifications to skip before starting to collect the result set. Defaults to 0.
+     * @return A response containing the user's notifications and a success message.
+     */
     @Operation(
         summary = "알림 조회",
         description = """
@@ -44,6 +51,13 @@ class NotificationQueryController(
     }
 
 
+    /**
+     * Retrieves a paginated list of unread notifications for the authenticated user.
+     *
+     * @param limit The maximum number of unread notifications to return. Defaults to 20.
+     * @param offset The number of unread notifications to skip before starting to collect the result set. Defaults to 0.
+     * @return A response containing the list of unread notifications.
+     */
     @Operation(
         summary = "읽지 않은 알림 조회",
         description = """
@@ -69,6 +83,11 @@ class NotificationQueryController(
     }
 
 
+    /**
+     * Retrieves the count of unread notifications for the authenticated user.
+     *
+     * @return A response containing the number of unread notifications.
+     */
     @Operation(
         summary = "읽지 않은 알림 개수 조회",
         description = """
@@ -86,6 +105,14 @@ class NotificationQueryController(
     }
 
 
+    /**
+     * Retrieves notifications for the authenticated user filtered by notification type, with pagination support.
+     *
+     * @param type The notification type to filter by.
+     * @param limit The maximum number of notifications to return.
+     * @param offset The number of notifications to skip before starting to collect the result set.
+     * @return A response containing a list of notifications matching the specified type.
+     */
     @Operation(
         summary = "알림 타입별 조회",
         description = """
@@ -114,6 +141,15 @@ class NotificationQueryController(
     }
 
 
+    /**
+     * Retrieves notifications for the authenticated user filtered by source type and optionally by source ID, with pagination support.
+     *
+     * @param sourceType The type of the notification source to filter by.
+     * @param sourceId Optional identifier of the specific source to further filter notifications.
+     * @param limit The maximum number of notifications to return.
+     * @param offset The number of notifications to skip before starting to collect the result set.
+     * @return A response containing a list of notifications matching the specified source criteria.
+     */
     @Operation(
         summary = "알림 소스별 조회",
         description = """

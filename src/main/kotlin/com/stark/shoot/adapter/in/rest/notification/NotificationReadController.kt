@@ -23,6 +23,12 @@ class NotificationReadController(
     private val notificationManagementUseCase: NotificationManagementUseCase
 ) {
 
+    /**
+     * Marks a specific notification as read for the authenticated user.
+     *
+     * @param notificationId The ID of the notification to mark as read.
+     * @return A response containing the updated notification data and a success message.
+     */
     @Operation(
         summary = "알림 읽음 처리",
         description = """
@@ -46,6 +52,11 @@ class NotificationReadController(
     }
 
 
+    /**
+     * Marks all notifications as read for the authenticated user.
+     *
+     * @return A response containing the number of notifications marked as read.
+     */
     @Operation(
         summary = "모든 알림 읽음 처리",
         description = """
@@ -63,6 +74,12 @@ class NotificationReadController(
     }
 
 
+    /**
+     * Marks all notifications of a specified type as read for the authenticated user.
+     *
+     * @param type The notification type to mark as read.
+     * @return The number of notifications marked as read.
+     */
     @Operation(
         summary = "모든 알림 타입별 읽음 처리",
         description = """
@@ -86,6 +103,13 @@ class NotificationReadController(
     }
 
 
+    /**
+     * Marks all notifications from a specific source type, and optionally a specific source ID, as read for the authenticated user.
+     *
+     * @param sourceType The type of the notification source to filter by.
+     * @param sourceId Optional ID of the specific source to further filter notifications.
+     * @return The number of notifications marked as read.
+     */
     @Operation(
         summary = "모든 알림 소스별 읽음 처리",
         description = """

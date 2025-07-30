@@ -17,6 +17,13 @@ class NotificationDeleteController(
     private val notificationManagementUseCase: NotificationManagementUseCase
 ) {
 
+    /**
+     * Deletes a specific notification for a user.
+     *
+     * @param notificationId The ID of the notification to delete.
+     * @param userId The ID of the user requesting the deletion.
+     * @return A response indicating whether the notification was successfully deleted.
+     */
     @Operation(
         summary = "알림 삭제",
         description = """
@@ -39,6 +46,12 @@ class NotificationDeleteController(
     }
 
 
+    /**
+     * Deletes all notifications for the specified user.
+     *
+     * @param userId The ID of the user whose notifications will be deleted.
+     * @return A response containing the number of deleted notifications and a success message.
+     */
     @Operation(
         summary = "모든 알림 삭제",
         description = """

@@ -61,6 +61,40 @@ class NotificationManagementService(
     }
 
     /**
+     * 알림 목록을 읽음 처리하는 공통 로직을 수행하는 내부 메서드
+     *
+     * @param notifications 읽음 처리할 알림 목록
+     * @param filterUnread 읽지 않은 알림만 필터링할지 여부
+     * @return 읽음 처리된 알림 개수
+     */
+    private fun processMarkAsRead(notifications: List<Notification>, filterUnread: Boolean = true): Int {
+        // 알림이 없으면 0 반환
+        if (notifications.isEmpty()) {
+            return 0
+        }
+
+        // 필요한 경우 읽지 않은 알림만 필터링
+        val notificationsToMark = if (filterUnread) {
+            notificationDomainService.filterUnread(notifications)
+        } else {
+            notifications
+        }
+
+        // 필터링 후 알림이 없으면 0 반환
+        if (notificationsToMark.isEmpty()) {
+            return 0
+        }
+
+        // 도메인 서비스를 사용하여 알림 읽음 처리
+        val updatedNotifications = notificationDomainService.markNotificationsAsRead(notificationsToMark)
+
+        // 저장
+        notificationCommandPort.saveNotifications(updatedNotifications)
+
+        return updatedNotifications.size
+    }
+
+    /**
      * 모든 알림을 읽음 처리합니다.
      *
      * @param command 모든 알림 읽음 처리 커맨드
@@ -69,18 +103,9 @@ class NotificationManagementService(
     override fun markAllAsRead(command: MarkAllNotificationsAsReadCommand): Int {
         // 읽지 않은 알림 조회
         val notifications = notificationQueryPort.loadUnreadNotificationsForUser(command.userId, Int.MAX_VALUE, 0)
-
-        if (notifications.isEmpty()) {
-            return 0
-        }
-
-        // 도메인 서비스를 사용하여 모든 알림 읽음 처리
-        val updatedNotifications = notificationDomainService.markNotificationsAsRead(notifications)
-
-        // 저장
-        notificationCommandPort.saveNotifications(updatedNotifications)
-
-        return updatedNotifications.size
+        
+        // 이미 필터링된 알림이므로 추가 필터링 불필요
+        return processMarkAsRead(notifications, filterUnread = false)
     }
 
     /**
@@ -92,21 +117,9 @@ class NotificationManagementService(
     override fun markAllAsReadByType(command: MarkAllNotificationsByTypeAsReadCommand): Int {
         // 특정 타입의 알림 조회
         val notifications = notificationQueryPort.loadNotificationsByType(command.userId, command.type, Int.MAX_VALUE, 0)
-
-        // 읽지 않은 알림만 필터링
-        val unreadNotifications = notificationDomainService.filterUnread(notifications)
-
-        if (unreadNotifications.isEmpty()) {
-            return 0
-        }
-
-        // 도메인 서비스를 사용하여 알림 읽음 처리
-        val updatedNotifications = notificationDomainService.markNotificationsAsRead(unreadNotifications)
-
-        // 저장
-        notificationCommandPort.saveNotifications(updatedNotifications)
-
-        return updatedNotifications.size
+        
+        // 읽지 않은 알림만 처리
+        return processMarkAsRead(notifications)
     }
 
     /**
@@ -120,21 +133,29 @@ class NotificationManagementService(
         val notifications = notificationQueryPort.loadNotificationsBySource(
             command.userId, command.sourceType, command.sourceId, Int.MAX_VALUE, 0
         )
+        
+        // 읽지 않은 알림만 처리
+        return processMarkAsRead(notifications)
+    }
 
-        // 읽지 않은 알림만 필터링
-        val unreadNotifications = notificationDomainService.filterUnread(notifications)
-
-        if (unreadNotifications.isEmpty()) {
+    /**
+     * 알림 목록을 삭제 처리하는 공통 로직을 수행하는 내부 메서드
+     *
+     * @param notifications 삭제 처리할 알림 목록
+     * @return 삭제 처리된 알림 개수
+     */
+    private fun processDeleteNotifications(notifications: List<Notification>): Int {
+        if (notifications.isEmpty()) {
             return 0
         }
 
-        // 도메인 서비스를 사용하여 알림 읽음 처리
-        val updatedNotifications = notificationDomainService.markNotificationsAsRead(unreadNotifications)
+        // 도메인 서비스를 사용하여 알림 삭제 처리
+        val deletedNotifications = notificationDomainService.markNotificationsAsDeleted(notifications)
 
         // 저장
-        notificationCommandPort.saveNotifications(updatedNotifications)
+        notificationCommandPort.saveNotifications(deletedNotifications)
 
-        return updatedNotifications.size
+        return deletedNotifications.size
     }
 
     /**
@@ -171,18 +192,9 @@ class NotificationManagementService(
     override fun deleteAllNotifications(command: DeleteAllNotificationsCommand): Int {
         // 사용자의 모든 알림 조회
         val notifications = notificationQueryPort.loadNotificationsForUser(command.userId, Int.MAX_VALUE, 0)
-
-        if (notifications.isEmpty()) {
-            return 0
-        }
-
-        // 도메인 서비스를 사용하여 모든 알림 삭제 처리
-        val deletedNotifications = notificationDomainService.markNotificationsAsDeleted(notifications)
-
-        // 저장
-        notificationCommandPort.saveNotifications(deletedNotifications)
-
-        return deletedNotifications.size
+        
+        // 공통 로직을 사용하여 알림 삭제 처리
+        return processDeleteNotifications(notifications)
     }
 
 }

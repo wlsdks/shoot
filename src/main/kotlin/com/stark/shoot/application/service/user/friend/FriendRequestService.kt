@@ -25,27 +25,28 @@ class FriendRequestService(
 ) : FriendRequestUseCase {
 
     /**
-     * 친구 요청을 보냅니다.
+     * 친구 요청 처리를 위한 공통 로직을 수행하는 내부 메서드
      *
-     * @param command 친구 요청 커맨드
+     * @param currentUserId 요청을 보내는 사용자 ID
+     * @param targetUserId 요청을 받는 사용자 ID
      */
-    override fun sendFriendRequest(command: SendFriendRequestCommand) {
+    private fun processFriendRequest(currentUserId: UserId, targetUserId: UserId) {
         // 사용자 존재 여부 확인
-        validateUserExistence(command.currentUserId, command.targetUserId)
+        validateUserExistence(currentUserId, targetUserId)
 
         // 도메인 서비스를 사용하여 친구 요청 유효성 검증
         try {
             friendDomainService.validateFriendRequest(
-                currentUserId = command.currentUserId,
-                targetUserId = command.targetUserId,
-                isFriend = userQueryPort.checkFriendship(command.currentUserId, command.targetUserId),
+                currentUserId = currentUserId,
+                targetUserId = targetUserId,
+                isFriend = userQueryPort.checkFriendship(currentUserId, targetUserId),
                 hasOutgoingRequest = userQueryPort.checkOutgoingFriendRequest(
-                    command.currentUserId,
-                    command.targetUserId
+                    currentUserId,
+                    targetUserId
                 ),
                 hasIncomingRequest = userQueryPort.checkIncomingFriendRequest(
-                    command.currentUserId,
-                    command.targetUserId
+                    currentUserId,
+                    targetUserId
                 )
             )
         } catch (e: IllegalArgumentException) {
@@ -53,11 +54,15 @@ class FriendRequestService(
         }
 
         // 친구 요청 애그리게이트 생성 및 저장
-        val request = FriendRequest(senderId = command.currentUserId, receiverId = command.targetUserId)
+        val request = FriendRequest(senderId = currentUserId, receiverId = targetUserId)
         friendRequestCommandPort.saveFriendRequest(request)
 
         // 캐시 무효화 (FriendCacheManager 사용)
-        friendCacheManager.invalidateFriendshipCaches(command.currentUserId, command.targetUserId)
+        friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)
+    }
+
+    override fun sendFriendRequest(command: SendFriendRequestCommand) {
+        processFriendRequest(command.currentUserId, command.targetUserId)
     }
 
     /**
@@ -86,34 +91,7 @@ class FriendRequestService(
     }
 
     override fun sendFriendRequestFromUserCode(command: SendFriendRequestFromCodeCommand) {
-        // 사용자 존재 여부 확인
-        validateUserExistence(command.currentUserId, command.targetUserId)
-
-        // 도메인 서비스를 사용하여 친구 요청 유효성 검증
-        try {
-            friendDomainService.validateFriendRequest(
-                currentUserId = command.currentUserId,
-                targetUserId = command.targetUserId,
-                isFriend = userQueryPort.checkFriendship(command.currentUserId, command.targetUserId),
-                hasOutgoingRequest = userQueryPort.checkOutgoingFriendRequest(
-                    command.currentUserId,
-                    command.targetUserId
-                ),
-                hasIncomingRequest = userQueryPort.checkIncomingFriendRequest(
-                    command.currentUserId,
-                    command.targetUserId
-                )
-            )
-        } catch (e: IllegalArgumentException) {
-            throw InvalidInputException(e.message ?: "친구 요청 유효성 검증 실패")
-        }
-
-        // 친구 요청 애그리게이트 생성 및 저장
-        val request = FriendRequest(senderId = command.currentUserId, receiverId = command.targetUserId)
-        friendRequestCommandPort.saveFriendRequest(request)
-
-        // 캐시 무효화 (FriendCacheManager 사용)
-        friendCacheManager.invalidateFriendshipCaches(command.currentUserId, command.targetUserId)
+        processFriendRequest(command.currentUserId, command.targetUserId)
     }
 
 

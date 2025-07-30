@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.`in`.rest.notification
 
+import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.rest.dto.notification.NotificationResponse
 import com.stark.shoot.application.port.`in`.notification.NotificationQueryUseCase
 import com.stark.shoot.application.port.`in`.notification.command.*
@@ -7,11 +8,13 @@ import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.user.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
-import org.springframework.http.ResponseEntity
+import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
+@Tag(name = "알림", description = "알림 관련 API")
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/api/v1/notifications")
 class NotificationQueryController(
     private val notificationQueryUseCase: NotificationQueryUseCase
 ) {
@@ -26,17 +29,18 @@ class NotificationQueryController(
     )
     @GetMapping
     fun getNotifications(
-        @RequestParam userId: Long,
+        authentication: Authentication,
         @RequestParam(defaultValue = "20") limit: Int,
         @RequestParam(defaultValue = "0") offset: Int
-    ): ResponseEntity<List<NotificationResponse>> {
+    ): ResponseDto<List<NotificationResponse>> {
+        val userId = authentication.name.toLong()
         val command = GetNotificationsCommand(
             userId = UserId.from(userId),
             limit = limit,
             offset = offset
         )
         val notifications = notificationQueryUseCase.getNotificationsForUser(command)
-        return ResponseEntity.ok(NotificationResponse.from(notifications))
+        return ResponseDto.success(NotificationResponse.from(notifications), "알림이 성공적으로 조회되었습니다.")
     }
 
 
@@ -50,17 +54,18 @@ class NotificationQueryController(
     )
     @GetMapping("/unread")
     fun getUnreadNotifications(
-        @RequestParam userId: Long,
+        authentication: Authentication,
         @RequestParam(defaultValue = "20") limit: Int,
         @RequestParam(defaultValue = "0") offset: Int
-    ): ResponseEntity<List<NotificationResponse>> {
+    ): ResponseDto<List<NotificationResponse>> {
+        val userId = authentication.name.toLong()
         val command = GetUnreadNotificationsCommand(
             userId = UserId.from(userId),
             limit = limit,
             offset = offset
         )
         val notifications = notificationQueryUseCase.getUnreadNotificationsForUser(command)
-        return ResponseEntity.ok(NotificationResponse.from(notifications))
+        return ResponseDto.success(NotificationResponse.from(notifications), "읽지 않은 알림이 성공적으로 조회되었습니다.")
     }
 
 
@@ -71,12 +76,13 @@ class NotificationQueryController(
         """
     )
     @GetMapping("/unread/count")
-    fun getUnreadNotificationCount(@RequestParam userId: Long): ResponseEntity<Int> {
+    fun getUnreadNotificationCount(authentication: Authentication): ResponseDto<Int> {
+        val userId = authentication.name.toLong()
         val command = GetUnreadNotificationCountCommand(
             userId = UserId.from(userId)
         )
         val count = notificationQueryUseCase.getUnreadNotificationCount(command)
-        return ResponseEntity.ok(count)
+        return ResponseDto.success(count, "읽지 않은 알림 개수가 성공적으로 조회되었습니다.")
     }
 
 
@@ -90,11 +96,12 @@ class NotificationQueryController(
     )
     @GetMapping("/type/{type}")
     fun getNotificationsByType(
-        @RequestParam userId: Long,
+        authentication: Authentication,
         @PathVariable type: String,
         @RequestParam(defaultValue = "20") limit: Int,
         @RequestParam(defaultValue = "0") offset: Int
-    ): ResponseEntity<List<NotificationResponse>> {
+    ): ResponseDto<List<NotificationResponse>> {
+        val userId = authentication.name.toLong()
         val notificationType = NotificationType.valueOf(type)
         val command = GetNotificationsByTypeCommand(
             userId = UserId.from(userId),
@@ -103,7 +110,7 @@ class NotificationQueryController(
             offset = offset
         )
         val notifications = notificationQueryUseCase.getNotificationsByType(command)
-        return ResponseEntity.ok(NotificationResponse.from(notifications))
+        return ResponseDto.success(NotificationResponse.from(notifications), "타입별 알림이 성공적으로 조회되었습니다.")
     }
 
 
@@ -117,12 +124,13 @@ class NotificationQueryController(
     )
     @GetMapping("/source/{sourceType}")
     fun getNotificationsBySource(
-        @RequestParam userId: Long,
+        authentication: Authentication,
         @PathVariable sourceType: String,
         @RequestParam(required = false) sourceId: String?,
         @RequestParam(defaultValue = "20") limit: Int,
         @RequestParam(defaultValue = "0") offset: Int
-    ): ResponseEntity<List<NotificationResponse>> {
+    ): ResponseDto<List<NotificationResponse>> {
+        val userId = authentication.name.toLong()
         val source = SourceType.valueOf(sourceType)
         val command = GetNotificationsBySourceCommand(
             userId = UserId.from(userId),
@@ -132,7 +140,7 @@ class NotificationQueryController(
             offset = offset
         )
         val notifications = notificationQueryUseCase.getNotificationsBySource(command)
-        return ResponseEntity.ok(NotificationResponse.from(notifications))
+        return ResponseDto.success(NotificationResponse.from(notifications), "소스별 알림이 성공적으로 조회되었습니다.")
     }
 
 }

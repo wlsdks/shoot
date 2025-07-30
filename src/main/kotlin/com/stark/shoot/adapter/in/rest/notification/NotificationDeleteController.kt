@@ -1,16 +1,19 @@
 package com.stark.shoot.adapter.`in`.rest.notification
 
+import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
 import com.stark.shoot.application.port.`in`.notification.NotificationManagementUseCase
 import com.stark.shoot.application.port.`in`.notification.command.DeleteAllNotificationsCommand
 import com.stark.shoot.application.port.`in`.notification.command.DeleteNotificationCommand
 import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.domain.user.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
-import org.springframework.http.ResponseEntity
+import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
+@Tag(name = "알림", description = "알림 관련 API")
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/api/v1/notifications")
 class NotificationDeleteController(
     private val notificationManagementUseCase: NotificationManagementUseCase
 ) {
@@ -24,16 +27,13 @@ class NotificationDeleteController(
     )
     @DeleteMapping("/{notificationId}")
     fun deleteNotification(
+        authentication: Authentication,
         @PathVariable notificationId: String,
-        @RequestParam userId: Long
-    ): ResponseEntity<Boolean> {
-        val command = DeleteNotificationCommand(
-            notificationId = NotificationId.from(notificationId),
-            userId = UserId.from(userId)
-        )
+    ): ResponseDto<Boolean> {
+        val userId = authentication.name.toLong()
+        val command = DeleteNotificationCommand(NotificationId.from(notificationId), UserId.from(userId))
         val deleted = notificationManagementUseCase.deleteNotification(command)
-
-        return ResponseEntity.ok(deleted)
+        return ResponseDto.success(deleted, "알림이 성공적으로 삭제되었습니다.")
     }
 
 
@@ -45,12 +45,13 @@ class NotificationDeleteController(
         """
     )
     @DeleteMapping
-    fun deleteAllNotifications(@RequestParam userId: Long): ResponseEntity<Int> {
-        val command = DeleteAllNotificationsCommand(
-            userId = UserId.from(userId)
-        )
+    fun deleteAllNotifications(
+        authentication: Authentication
+    ): ResponseDto<Int> {
+        val userId = authentication.name.toLong()
+        val command = DeleteAllNotificationsCommand(UserId.from(userId))
         val count = notificationManagementUseCase.deleteAllNotifications(command)
-        return ResponseEntity.ok(count)
+        return ResponseDto.success(count, "모든 알림이 성공적으로 삭제되었습니다.")
     }
 
 }

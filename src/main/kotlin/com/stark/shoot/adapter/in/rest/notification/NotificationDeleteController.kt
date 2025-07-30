@@ -8,6 +8,7 @@ import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.domain.user.vo.UserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
 @Tag(name = "알림", description = "알림 관련 API")
@@ -26,15 +27,12 @@ class NotificationDeleteController(
     )
     @DeleteMapping("/{notificationId}")
     fun deleteNotification(
+        authentication: Authentication,
         @PathVariable notificationId: String,
-        @RequestParam userId: Long
     ): ResponseDto<Boolean> {
-        val command = DeleteNotificationCommand(
-            notificationId = NotificationId.from(notificationId),
-            userId = UserId.from(userId)
-        )
+        val userId = authentication.name.toLong()
+        val command = DeleteNotificationCommand(NotificationId.from(notificationId), UserId.from(userId))
         val deleted = notificationManagementUseCase.deleteNotification(command)
-
         return ResponseDto.success(deleted, "알림이 성공적으로 삭제되었습니다.")
     }
 
@@ -47,10 +45,11 @@ class NotificationDeleteController(
         """
     )
     @DeleteMapping
-    fun deleteAllNotifications(@RequestParam userId: Long): ResponseDto<Int> {
-        val command = DeleteAllNotificationsCommand(
-            userId = UserId.from(userId)
-        )
+    fun deleteAllNotifications(
+        authentication: Authentication
+    ): ResponseDto<Int> {
+        val userId = authentication.name.toLong()
+        val command = DeleteAllNotificationsCommand(UserId.from(userId))
         val count = notificationManagementUseCase.deleteAllNotifications(command)
         return ResponseDto.success(count, "모든 알림이 성공적으로 삭제되었습니다.")
     }

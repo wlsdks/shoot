@@ -259,3 +259,14 @@ gradle.properties
 
 dump.rdb
 redis/data/dump.rdb
+
+# Redis data files and logs
+redis/data/
+redis/logs/
+*.rdb
+*.aof
+redis-server.log
+
+# Docker volumes data
+docker-volumes/
+data/

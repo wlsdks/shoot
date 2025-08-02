@@ -24,7 +24,8 @@ class ToggleMessageReactionController(
             - 최초 반응 선택: 반응 추가
             - 추가된 반응을 선택: 반응 제거
             - 선택된 상태에서 다른 반응 선택: 기존 반응을 제거하고 새 반응을 추가
-        """
+        """,
+        deprecated = true
     )
     @PutMapping("/{messageId}/reactions")
     fun toggleReaction(

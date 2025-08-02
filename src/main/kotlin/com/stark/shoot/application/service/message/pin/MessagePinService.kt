@@ -12,7 +12,6 @@ import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
 
 @UseCase
@@ -23,7 +22,6 @@ class MessagePinService(
     private val eventPublisher: EventPublisher,
     private val messagePinDomainService: MessagePinDomainService
 ) : MessagePinUseCase {
-    private val logger = KotlinLogging.logger {}
 
     /**
      * 메시지를 고정합니다. (채팅방에는 최대 1개의 고정 메시지만 존재)

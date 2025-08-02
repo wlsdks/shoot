@@ -142,6 +142,10 @@ class SecurityConfig(
                 it.requestMatchers("/api/v1/auth/login", "/api/v1/users", "/api/v1/chatrooms/updates/**").permitAll()
                 it.requestMatchers("/ws/**").permitAll()
                 it.requestMatchers("/api/v1/auth/refresh-token").permitAll()
+
+                // Swagger UI 경로 허용
+                it.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
+
                 it.requestMatchers("/api/v1/users/me").authenticated()
                 it.requestMatchers("/api/v1/messages/mark-read").authenticated() // 명시적 인증 필요
                 it.anyRequest().authenticated()

@@ -19,6 +19,7 @@ import com.stark.shoot.domain.event.MessageSentEvent
 import com.stark.shoot.domain.event.type.EventType
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 @UseCase
@@ -41,6 +42,7 @@ class HandleMessageEventService(
      * - 메시지를 저장하고, 채팅방 메타데이터를 업데이트하며, URL 미리보기를 처리합니다.
      * - 상태 업데이트를 웹소켓을 통해 전송합니다.
      */
+    @Transactional
     override fun handle(event: MessageEvent): Boolean {
         if (event.type != EventType.MESSAGE_CREATED) return false
 

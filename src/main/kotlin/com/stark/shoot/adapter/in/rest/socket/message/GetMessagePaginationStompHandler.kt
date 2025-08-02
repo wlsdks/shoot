@@ -8,7 +8,6 @@ import com.stark.shoot.application.port.`in`.message.command.SendSyncMessagesToU
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.swagger.v3.oas.annotations.Operation
 import kotlinx.coroutines.flow.toList
 import org.springframework.http.HttpStatus
 import org.springframework.messaging.handler.annotation.MessageMapping
@@ -25,14 +24,15 @@ class GetMessagePaginationStompHandler(
 ) {
     private val logger = KotlinLogging.logger {}
 
-    @Operation(
-        summary = "메시지 조회",
-        description = """
-            요청 타입에 따라 '초기, 이전, 다음' 메시지를 페이징해서 조회한다.
-            - 요청에 담긴 SyncDirection (INITIAL, BEFORE, AFTER)에 따라 메시지를 조회합니다.
-            - API 호출 대신 WebSocket을 통해 실시간으로 메시지를 조회합니다.
-        """,
-    )
+    /**
+     * 메시지 조회
+     * 요청 타입에 따라 '초기, 이전, 다음' 메시지를 페이징해서 조회한다.
+     * - 요청에 담긴 SyncDirection (INITIAL, BEFORE, AFTER)에 따라 메시지를 조회합니다.
+     * - API 호출 대신 WebSocket을 통해 실시간으로 메시지를 조회합니다.
+     *
+     * WebSocket Endpoint: /sync
+     * Protocol: STOMP over WebSocket
+     */
     @MessageMapping("/sync")
     fun syncMessages(@Payload request: SyncRequestDto) {
         // Command 객체 생성

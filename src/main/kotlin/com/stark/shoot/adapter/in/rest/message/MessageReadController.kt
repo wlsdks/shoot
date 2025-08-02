@@ -20,7 +20,8 @@ class MessageReadController(
 
     @Operation(
         summary = "메시지 조회 (커서 기반 페이지네이션)",
-        description = "특정 채팅방(roomId)의 메시지를 `_id` 기준으로 페이지네이션하여 조회합니다."
+        description = "특정 채팅방(roomId)의 메시지를 `_id` 기준으로 페이지네이션하여 조회합니다.",
+        deprecated = true,
     )
     @GetMapping("/get")
     fun getMessages(

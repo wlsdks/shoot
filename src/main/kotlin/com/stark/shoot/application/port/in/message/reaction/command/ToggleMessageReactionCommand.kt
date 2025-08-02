@@ -21,6 +21,15 @@ data class ToggleMessageReactionCommand(
             )
         }
         
+        // 웹소켓용 - reaction 파라미터명 지원
+        fun of(messageId: String, reaction: String, userId: Long): ToggleMessageReactionCommand {
+            return ToggleMessageReactionCommand(
+                messageId = MessageId.from(messageId),
+                userId = UserId.from(userId),
+                reactionType = reaction
+            )
+        }
+
         fun of(messageId: String, authentication: Authentication, reactionType: String): ToggleMessageReactionCommand {
             val userId = authentication.name.toLong()
             return of(messageId, userId, reactionType)

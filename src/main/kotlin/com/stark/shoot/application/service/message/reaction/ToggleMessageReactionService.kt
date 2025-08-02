@@ -8,10 +8,8 @@ import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.service.MessageReactionService
-import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.message.vo.ReactionToggleResult
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
@@ -74,10 +72,11 @@ class ToggleMessageReactionService(
                 reactions = updatedMessage.reactions,
                 updatedAt = updatedMessage.updatedAt?.toString() ?: ""
             )
+
             sendSuccessResponse(command.userId, "반응이 업데이트되었습니다.", reactionResponse)
 
             // 결과에 따라 알림 및 이벤트 처리
-            handleNotificationsAndEvents(command.messageId, result)
+            handleNotificationsAndEvents(result)
 
             return reactionResponse
 
@@ -116,59 +115,10 @@ class ToggleMessageReactionService(
      * @param messageId 메시지 ID
      * @param result 토글 결과
      */
-    private fun handleNotificationsAndEvents(
-        messageId: MessageId,
-        result: ReactionToggleResult
-    ) {
-        val message = result.message
-        val userId = result.userId // 리액션을 토글한 사용자 ID
-
-        // 리액션 교체인 경우 (기존 리액션 제거 후 새 리액션 추가)
-        if (result.isReplacement && result.previousReactionType != null) {
-            // 기존 리액션 제거 알림
-            notifyReactionUpdate(messageId, message.roomId, userId, result.previousReactionType, false)
-
-            // 새 리액션 추가 알림
-            notifyReactionUpdate(messageId, message.roomId, userId, result.reactionType, true)
-        } else {
-            // 일반 추가/제거 알림
-            notifyReactionUpdate(messageId, message.roomId, userId, result.reactionType, result.isAdded)
-        }
-
+    private fun handleNotificationsAndEvents(result: ReactionToggleResult) {
         // 도메인 서비스를 통해 이벤트 생성 및 발행
         val events = messageReactionService.processReactionToggleResult(result)
         events.forEach { eventPublisher.publish(it) }
-    }
-
-    /**
-     * 메시지 반응 업데이트를 WebSocket으로 전송합니다.
-     *
-     * @param messageId 메시지 ID
-     * @param roomId 채팅방 ID
-     * @param userId 사용자 ID
-     * @param reactionType 리액션 타입
-     * @param isAdded 추가 여부
-     */
-    private fun notifyReactionUpdate(
-        messageId: MessageId,
-        roomId: ChatRoomId,
-        userId: UserId,
-        reactionType: String,
-        isAdded: Boolean
-    ) {
-        val type = ReactionType.fromCode(reactionType) ?: ReactionType.LIKE
-
-        // 특정 채팅방에 있는 모든 클라이언트에게 메시지 반응 업데이트를 전송
-        webSocketMessageBroker.sendMessage(
-            "/topic/reactions/${roomId.value}",
-            mapOf(
-                "messageId" to messageId.value,
-                "userId" to userId.value,
-                "reactionType" to reactionType,
-                "emoji" to type.emoji,
-                "isAdded" to isAdded
-            )
-        )
     }
 
 }

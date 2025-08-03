@@ -19,7 +19,12 @@ class MessageDomainService {
     /**
      * 메시지 요청으로부터 도메인 메시지 객체를 생성하고 처리합니다.
      *
-     * @param messageRequest 메시지 요청 DTO
+     * @param roomId 채팅방 ID
+     * @param senderId 발신자 ID
+     * @param contentText 메시지 내용
+     * @param contentType 메시지 타입
+     * @param tempId 임시 ID (프론트엔드에서 제공, null이면 새로 생성)
+     * @param threadId 스레드 ID (선택)
      * @param extractUrls URL 추출 함수
      * @param getCachedPreview 캐시된 미리보기 조회 함수
      * @return 처리된 도메인 메시지 객체
@@ -29,18 +34,19 @@ class MessageDomainService {
         senderId: UserId,
         contentText: String,
         contentType: MessageType,
+        tempId: String? = null,
         threadId: MessageId? = null,
         extractUrls: (String) -> List<String>,
         getCachedPreview: (String) -> ChatMessageMetadata.UrlPreview?
     ): ChatMessage {
-        // 1. 도메인 객체 생성
-        val tempId = UUID.randomUUID().toString()
+        // 1. 도메인 객체 생성 (기존 tempId 사용 또는 새로 생성)
+        val finalTempId = tempId ?: UUID.randomUUID().toString() // 기존 tempId 우선 사용
         val chatMessage = ChatMessage.create(
             roomId = roomId,
             senderId = senderId,
             text = contentText,
             type = contentType,
-            tempId = tempId,
+            tempId = finalTempId, // 프론트엔드 tempId 유지
             threadId = threadId
         )
 

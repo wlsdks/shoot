@@ -64,6 +64,7 @@ class SendMessageService(
             senderId = UserId.from(messageRequest.senderId),
             contentText = messageRequest.content.text,
             contentType = messageRequest.content.type,
+            tempId = messageRequest.tempId, // front에서 받은 기존 tempId 전달
             threadId = messageRequest.threadId?.let { MessageId.from(it) },
             extractUrls = { text -> extractUrlPort.extractUrls(text) },
             getCachedPreview = { url -> cacheUrlPreviewPort.getCachedUrlPreview(url) }

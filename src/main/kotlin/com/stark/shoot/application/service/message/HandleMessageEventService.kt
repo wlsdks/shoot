@@ -43,8 +43,6 @@ class HandleMessageEventService(
         val tempId = message.metadata.tempId
 
         return try {
-            throw IllegalArgumentException("HandleMessageEventService는 MESSAGE_CREATED 이벤트만 처리합니다. 현재 이벤트 타입: ${event.type}")
-
             // 메시지 저장 및 메타데이터 업데이트
             saveMessageAndUpdateMetadata(message)
             // URL 미리보기 처리 (백그라운드)

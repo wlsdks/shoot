@@ -32,6 +32,8 @@ class SendMessageService(
      * 2. 메시지 발행 (Redis, Kafka)
      *
      * @param command 메시지 전송 커맨드
+     * @see com.stark.shoot.adapter.in.redis.MessageRedisStreamListener redis 스트림 리스너
+     * @see HandleMessageEventService Kafka 메시지 처리 서비스
      */
     override fun sendMessage(command: SendMessageCommand) {
         val messageRequest = command.message
@@ -62,6 +64,7 @@ class SendMessageService(
             senderId = UserId.from(messageRequest.senderId),
             contentText = messageRequest.content.text,
             contentType = messageRequest.content.type,
+            tempId = messageRequest.tempId, // front에서 받은 기존 tempId 전달
             threadId = messageRequest.threadId?.let { MessageId.from(it) },
             extractUrls = { text -> extractUrlPort.extractUrls(text) },
             getCachedPreview = { url -> cacheUrlPreviewPort.getCachedUrlPreview(url) }

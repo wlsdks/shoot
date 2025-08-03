@@ -7,13 +7,13 @@ import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.MessageStatusNotificationPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageDomainService
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.event.MentionEvent
 import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.event.MessageSentEvent
-import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
@@ -49,22 +49,53 @@ class MessagePublisherAdapter(
     /**
      * 메시지를 발행합니다.
      *
+     * 최적화된 플로우:
+     * 1. Redis Stream으로 즉시 브로드캐스트 (응답성 확보)
+     * 2. Kafka로 백그라운드 영속화 (일관성 확보)
+     * 3. 실패 시에만 상태 알림 (간소화)
+     *
      * @param request 메시지 요청 DTO
      * @param domainMessage 도메인 메시지
      */
     override fun publish(request: ChatMessageRequest, domainMessage: ChatMessage) {
         applicationCoroutineScope.launch {
-            val tempId = domainMessage.metadata.tempId ?: ""
             try {
-                // 내부 suspend 함수를 활용하여 발행 로직 재사용
-                val event = messageDomainService.createMessageEvent(domainMessage)
-                publishMessageInternal(request, event, tempId)
+                // 1. Redis Stream으로 즉시 브로드캐스트
+                // 클라이언트는 즉시 메시지를 받아 UI에 표시 (낙관적 업데이트)
+                publishToRedis(request)
 
-                // 도메인 이벤트 발행 (트랜잭션 컨텍스트에서 처리됨)
+                // 2. Kafka로 백그라운드 영속화
+                val event = messageDomainService.createMessageEvent(domainMessage)
+                publishToKafkaAsync(event)
+
+                // 3. 도메인 이벤트 발행
                 publishDomainEvents(domainMessage)
+
+                // 성공 시에는 별도 상태 알림 없음 (클라이언트에서 이미 메시지 표시)
+
             } catch (throwable: Throwable) {
-                handlePublishError(request, tempId, throwable)
+                // 실패 시에만 오류 처리
+                handlePublishError(request, request.tempId.orEmpty(), throwable)
             }
+        }
+    }
+
+    /**
+     * Kafka에 비동기로 메시지를 발행합니다.
+     * 영속화 실패가 발생해도 사용자 경험에는 영향을 주지 않습니다.
+     */
+    private suspend fun publishToKafkaAsync(event: MessageEvent) {
+        try {
+            publishToKafka(
+                topic = KAFKA_CHAT_MESSAGES_TOPIC,
+                key = event.data.roomId.value.toString(),
+                event = event
+            )
+            logger.debug { "Kafka 영속화 완료: messageId=${event.data.id?.value}" }
+        } catch (e: Exception) {
+            // 영속화 실패는 로그만 남기고 사용자에게는 알리지 않음
+            // 별도 모니터링 시스템에서 이를 감지하여 재처리 가능
+            logger.error(e) { "Kafka 영속화 실패 (사용자에게 영향 없음): messageId=${event.data.id?.value}" }
         }
     }
 
@@ -99,7 +130,10 @@ class MessagePublisherAdapter(
     /**
      * 메시지 처리 중 발생한 오류를 알립니다.
      */
-    override fun notifyMessageError(roomId: Long, throwable: Throwable) {
+    override fun notifyMessageError(
+        roomId: Long,
+        throwable: Throwable
+    ) {
         ErrorResponse(
             status = 500,
             message = throwable.message ?: "메시지 처리 중 오류가 발생했습니다",
@@ -109,31 +143,17 @@ class MessagePublisherAdapter(
         }
     }
 
-
     /**
-     * 메시지 발행을 위한 내부 공통 함수
-     * Redis와 Kafka에 메시지를 발행하고 상태를 업데이트합니다.
+     * 메시지 발행 중 오류를 처리합니다.
+     * - Redis Stream에 발행 실패 시 로그 기록
+     * - Kafka 영속화 실패 시 로그 기록
+     * - 상태 업데이트 및 오류 알림
      */
-    private suspend fun publishMessageInternal(
-        request: ChatMessageRequest,
-        event: MessageEvent,
-        tempId: String
+    private fun handlePublishError(
+        message: ChatMessageRequest,
+        tempId: String,
+        throwable: Throwable
     ) {
-        // Redis 발행
-        publishToRedis(request)
-
-        // Kafka 발행
-        publishToKafka(
-            topic = KAFKA_CHAT_MESSAGES_TOPIC,
-            key = request.roomId.toString(),
-            event = event
-        )
-
-        // 상태 업데이트
-        notifyMessageStatus(request.roomId, tempId, MessageStatus.SENT_TO_KAFKA)
-    }
-
-    private fun handlePublishError(message: ChatMessageRequest, tempId: String, throwable: Throwable) {
         // 로그 기록
         logger.error(throwable) { "메시지 처리 실패: roomId=${message.roomId}, content=${message.content.text}" }
 

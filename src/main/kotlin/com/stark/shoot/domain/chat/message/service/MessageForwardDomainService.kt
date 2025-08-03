@@ -49,7 +49,7 @@ class MessageForwardDomainService {
             roomId = targetRoomId,
             senderId = forwardingUserId,
             content = forwardedContent,
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             replyToMessageId = null,
             messageReactions = MessageReactions(),
             mentions = emptySet(),

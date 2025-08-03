@@ -21,7 +21,7 @@ interface MessageStatusNotificationPort {
         status: MessageStatus,
         errorMessage: String? = null
     )
-    
+
     /**
      * 메시지 처리 중 발생한 오류를 알립니다.
      *

@@ -49,22 +49,53 @@ class MessagePublisherAdapter(
     /**
      * 메시지를 발행합니다.
      *
+     * 최적화된 플로우:
+     * 1. Redis Stream으로 즉시 브로드캐스트 (응답성 확보)
+     * 2. Kafka로 백그라운드 영속화 (일관성 확보)
+     * 3. 실패 시에만 상태 알림 (간소화)
+     *
      * @param request 메시지 요청 DTO
      * @param domainMessage 도메인 메시지
      */
     override fun publish(request: ChatMessageRequest, domainMessage: ChatMessage) {
         applicationCoroutineScope.launch {
-            val tempId = domainMessage.metadata.tempId ?: ""
             try {
-                // 내부 suspend 함수를 활용하여 발행 로직 재사용
-                val event = messageDomainService.createMessageEvent(domainMessage)
-                publishMessageInternal(request, event, tempId)
+                // 1. Redis Stream으로 즉시 브로드캐스트
+                // 클라이언트는 즉시 메시지를 받아 UI에 표시 (낙관적 업데이트)
+                publishToRedis(request)
 
-                // 도메인 이벤트 발행 (트랜잭션 컨텍스트에서 처리됨)
+                // 2. Kafka로 백그라운드 영속화
+                val event = messageDomainService.createMessageEvent(domainMessage)
+                publishToKafkaAsync(event)
+
+                // 3. 도메인 이벤트 발행
                 publishDomainEvents(domainMessage)
+
+                // 성공 시에는 별도 상태 알림 없음 (클라이언트에서 이미 메시지 표시)
+
             } catch (throwable: Throwable) {
-                handlePublishError(request, tempId, throwable)
+                // 실패 시에만 오류 처리
+                handlePublishError(request, request.tempId.orEmpty(), throwable)
             }
+        }
+    }
+
+    /**
+     * Kafka에 비동기로 메시지를 발행합니다.
+     * 영속화 실패가 발생해도 사용자 경험에는 영향을 주지 않습니다.
+     */
+    private suspend fun publishToKafkaAsync(event: MessageEvent) {
+        try {
+            publishToKafka(
+                topic = KAFKA_CHAT_MESSAGES_TOPIC,
+                key = event.data.roomId.value.toString(),
+                event = event
+            )
+            logger.debug { "Kafka 영속화 완료: messageId=${event.data.id?.value}" }
+        } catch (e: Exception) {
+            // 영속화 실패는 로그만 남기고 사용자에게는 알리지 않음
+            // 별도 모니터링 시스템에서 이를 감지하여 재처리 가능
+            logger.error(e) { "Kafka 영속화 실패 (사용자에게 영향 없음): messageId=${event.data.id?.value}" }
         }
     }
 
@@ -111,26 +142,20 @@ class MessagePublisherAdapter(
 
 
     /**
-     * 메시지 발행을 위한 내부 공통 함수
-     * Redis와 Kafka에 메시지를 발행하고 상태를 업데이트합니다.
+     * Kafka 영속화 실패 시 보상 트랜잭션 처리
      */
-    private suspend fun publishMessageInternal(
-        request: ChatMessageRequest,
-        event: MessageEvent,
-        tempId: String
-    ) {
-        // Redis 발행
-        publishToRedis(request)
-
-        // Kafka 발행
-        publishToKafka(
-            topic = KAFKA_CHAT_MESSAGES_TOPIC,
-            key = request.roomId.toString(),
-            event = event
+    private fun handleKafkaPersistenceFailure(roomId: Long, tempId: String, error: Exception) {
+        // 1. 모든 사용자에게 메시지 삭제 알림
+        webSocketMessageBroker.sendMessage(
+            "/topic/messages/delete/$roomId",
+            mapOf(
+                "tempId" to tempId,
+                "reason" to "저장 실패로 인한 메시지 삭제"
+            )
         )
 
-        // 상태 업데이트
-        notifyMessageStatus(request.roomId, tempId, MessageStatus.SENT_TO_KAFKA)
+        // 2. 발신자에게 FAILED 상태 전송
+        notifyMessageStatus(roomId, tempId, MessageStatus.FAILED, "영속화 실패: ${error.message}")
     }
 
     private fun handlePublishError(message: ChatMessageRequest, tempId: String, throwable: Throwable) {

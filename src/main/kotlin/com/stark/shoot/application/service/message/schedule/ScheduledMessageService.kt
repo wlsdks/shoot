@@ -219,7 +219,7 @@ class ScheduledMessageService(
             roomId = ChatRoomId.from(scheduledMessage.roomId),
             senderId = UserId.from(scheduledMessage.senderId),
             content = scheduledMessage.content,
-            status = MessageStatus.SENDING,
+            status = MessageStatus.SENT, // 예약 메시지는 실행 시점에 이미 처리 완료된 상태
             metadata = scheduledMessage.metadata,
             createdAt = Instant.now()
         )

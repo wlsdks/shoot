@@ -320,7 +320,7 @@ data class ChatMessage(
                 roomId = roomId,
                 senderId = senderId,
                 content = content,
-                status = MessageStatus.SENDING,
+                status = MessageStatus.SENT,  // SENDING → SENT로 변경
                 metadata = metadata,
                 threadId = threadId,
                 expiresAt = expiresAt

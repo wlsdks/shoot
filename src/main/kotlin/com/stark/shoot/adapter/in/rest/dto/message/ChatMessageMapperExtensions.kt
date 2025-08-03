@@ -54,7 +54,7 @@ fun ChatMessageRequest.toDomain(): ChatMessage {
         senderId = UserId.from(this.senderId),
         content = content,
         threadId = this.threadId?.let { MessageId.from(it) },
-        status = this.status ?: MessageStatus.SAVED,
+        status = this.status ?: MessageStatus.SENT,
         readBy = this.readBy?.mapKeys { UserId.from(it.key.toLong()) }?.toMutableMap() ?: mutableMapOf(),
         metadata = metadata
     )

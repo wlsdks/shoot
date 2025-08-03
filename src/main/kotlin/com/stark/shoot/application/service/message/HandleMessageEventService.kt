@@ -48,16 +48,12 @@ class HandleMessageEventService(
 
         // 메시지 이벤트에서 임시 ID를 추출합니다. (임시 아이디는 웹소켓 상태 표현을 위함)
         val tempId = extractTempId(event) ?: return false
-        val roomIdValue = event.data.roomId.value
-
-        // 메시지 상태를 'PROCESSING'으로 업데이트하고 웹소켓을 통해 전송합니다.
-        sendStatusUpdate(roomIdValue, tempId, MessageStatus.PROCESSING.name, null)
 
         return try {
             val savedMessage = saveAndMarkMessage(event.data)
             updateChatRoomMetadata(savedMessage)
             publishMessage(savedMessage)
-            sendStatusUpdate(roomIdValue, tempId, MessageStatus.SAVED.name, savedMessage.id?.value)
+            // 상태 전송은 MessagePublisherAdapter에서만 담당 (SENT/FAILED)
             processChatMessageForUrlPreview(savedMessage)
             true
         } catch (e: Exception) {
@@ -113,7 +109,8 @@ class HandleMessageEventService(
      * - 메시지를 특정 채팅방의 토픽으로 전송합니다.
      */
     private fun publishMessage(message: ChatMessage) {
-        webSocketMessageBroker.sendMessage("/topic/messages/${message.roomId.value}", message)
+        // Redis Stream에서 이미 브로드캐스트했으므로 중복 전송 제거
+        // webSocketMessageBroker.sendMessage("/topic/messages/${message.roomId.value}", message)
         eventPublisher.publish(MessageSentEvent.create(message))
     }
 

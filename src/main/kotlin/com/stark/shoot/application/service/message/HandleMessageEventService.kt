@@ -25,8 +25,8 @@ class HandleMessageEventService(
     private val chatRoomCommandPort: ChatRoomCommandPort,
     private val loadUrlContentPort: LoadUrlContentPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
-    private val chatRoomMetadataDomainService: ChatRoomMetadataDomainService,
     private val messageStatusNotificationPort: MessageStatusNotificationPort,
+    private val chatRoomMetadataDomainService: ChatRoomMetadataDomainService,
     private val eventPublisher: EventPublisher,
 ) : HandleMessageEventUseCase {
 
@@ -45,14 +45,41 @@ class HandleMessageEventService(
         return try {
             // 메시지 저장 및 메타데이터 업데이트
             saveMessageAndUpdateMetadata(message)
+
             // URL 미리보기 처리 (백그라운드)
             processUrlPreviewIfNeeded(message)
+
+            // 성공 시 상태 업데이트 전송
+            notifyPersistenceSuccess(message, tempId)
             true
         } catch (e: Exception) {
             logger.error(e) { "메시지 영속화 실패: messageId=${message.id?.value}" }
+            // 실패 시 사용자에게 알림
             notifyPersistenceFailure(message, tempId, e)
             false
         }
+    }
+
+    /**
+     * 영속화 성공을 사용자에게 알립니다.
+     */
+    private fun notifyPersistenceSuccess(
+        message: ChatMessage,
+        tempId: String?
+    ) {
+        if (tempId.isNullOrEmpty()) {
+            logger.debug { "tempId가 없어서 영속화 성공 알림을 건너뜀: messageId=${message.id?.value}" }
+            return
+        }
+
+        messageStatusNotificationPort.notifyMessageStatus(
+            roomId = message.roomId.value,
+            tempId = tempId,
+            status = MessageStatus.SENT,
+            errorMessage = null
+        )
+
+        logger.debug { "영속화 성공 알림 전송: roomId=${message.roomId.value}, tempId=$tempId" }
     }
 
     /**
@@ -125,9 +152,9 @@ class HandleMessageEventService(
      * URL 미리보기 처리 (필요시)
      */
     private fun processUrlPreviewIfNeeded(message: ChatMessage) {
-        if (message.metadata.needsUrlPreview && message.metadata.previewUrl != null) {
+        val previewUrl = message.metadata.previewUrl
+        if (message.metadata.needsUrlPreview && previewUrl != null) {
             try {
-                val previewUrl = message.metadata.previewUrl!!
                 val preview = loadUrlContentPort.fetchUrlContent(previewUrl)
 
                 if (preview != null) {
@@ -135,7 +162,7 @@ class HandleMessageEventService(
                     // URL 미리보기 업데이트는 별도 이벤트로 처리
                 }
             } catch (e: Exception) {
-                logger.error(e) { "URL 미리보기 처리 실패: ${message.metadata.previewUrl}" }
+                logger.error(e) { "URL 미리보기 처리 실패: $previewUrl" }
             }
         }
     }

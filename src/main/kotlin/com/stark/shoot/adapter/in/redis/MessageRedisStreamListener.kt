@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component
  * WebSocket을 통해 클라이언트에게 전달합니다.
  */
 @Component
-class RedisStreamListener(
+class MessageRedisStreamListener(
     private val redisStreamManager: RedisStreamManager,
     private val redisMessageProcessor: RedisMessageProcessor,
     private val appCoroutineScope: ApplicationCoroutineScope,

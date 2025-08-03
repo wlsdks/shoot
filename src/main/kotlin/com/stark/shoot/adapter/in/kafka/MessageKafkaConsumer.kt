@@ -27,7 +27,7 @@ class MessageKafkaConsumer(
             if (success) {
                 acknowledgment.acknowledge()
             }
+            // 실패 시 ACK하지 않아서 Kafka가 자동 재시도
         }
     }
-
 }

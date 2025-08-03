@@ -7,13 +7,13 @@ import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.MessageStatusNotificationPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageDomainService
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.event.MentionEvent
 import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.event.MessageSentEvent
-import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.infrastructure.exception.web.ErrorResponse
@@ -130,7 +130,10 @@ class MessagePublisherAdapter(
     /**
      * 메시지 처리 중 발생한 오류를 알립니다.
      */
-    override fun notifyMessageError(roomId: Long, throwable: Throwable) {
+    override fun notifyMessageError(
+        roomId: Long,
+        throwable: Throwable
+    ) {
         ErrorResponse(
             status = 500,
             message = throwable.message ?: "메시지 처리 중 오류가 발생했습니다",
@@ -140,25 +143,17 @@ class MessagePublisherAdapter(
         }
     }
 
-
     /**
-     * Kafka 영속화 실패 시 보상 트랜잭션 처리
+     * 메시지 발행 중 오류를 처리합니다.
+     * - Redis Stream에 발행 실패 시 로그 기록
+     * - Kafka 영속화 실패 시 로그 기록
+     * - 상태 업데이트 및 오류 알림
      */
-    private fun handleKafkaPersistenceFailure(roomId: Long, tempId: String, error: Exception) {
-        // 1. 모든 사용자에게 메시지 삭제 알림
-        webSocketMessageBroker.sendMessage(
-            "/topic/messages/delete/$roomId",
-            mapOf(
-                "tempId" to tempId,
-                "reason" to "저장 실패로 인한 메시지 삭제"
-            )
-        )
-
-        // 2. 발신자에게 FAILED 상태 전송
-        notifyMessageStatus(roomId, tempId, MessageStatus.FAILED, "영속화 실패: ${error.message}")
-    }
-
-    private fun handlePublishError(message: ChatMessageRequest, tempId: String, throwable: Throwable) {
+    private fun handlePublishError(
+        message: ChatMessageRequest,
+        tempId: String,
+        throwable: Throwable
+    ) {
         // 로그 기록
         logger.error(throwable) { "메시지 처리 실패: roomId=${message.roomId}, content=${message.content.text}" }
 

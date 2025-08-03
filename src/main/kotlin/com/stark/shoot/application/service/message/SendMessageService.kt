@@ -32,6 +32,8 @@ class SendMessageService(
      * 2. 메시지 발행 (Redis, Kafka)
      *
      * @param command 메시지 전송 커맨드
+     * @see MessageRedisStreamListener Redis 메시지 스트림 리스너
+     * @see HandleMessageEventService kakfa 메시지 처리 서비스
      */
     override fun sendMessage(command: SendMessageCommand) {
         val messageRequest = command.message

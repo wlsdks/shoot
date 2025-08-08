@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.redis
 
-import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.stark.shoot.adapter.`in`.redis.util.RedisMessageProcessor
 import com.stark.shoot.adapter.`in`.redis.util.RedisStreamManager
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
@@ -151,10 +151,34 @@ class MessageRedisStreamListener(
         try {
             processMessage(message)
             redisStreamManager.acknowledgeMessage(streamKey, consumerGroup, message.id)
-        } catch (e: JsonParseException) {
+        } catch (e: JsonProcessingException) {
+            // 포이즌 메시지: JSON 파싱 실패 시 ACK하여 무한 재처리 방지
             logger.error(e) { "메시지 파싱 오류 (ID: ${message.id}): ${e.message}" }
+            handlePoisonMessage(message, streamKey, "JSON 파싱 실패")
         } catch (e: Exception) {
             logger.error(e) { "메시지 처리 오류 (ID: ${message.id}, 스트림: $streamKey): ${e.message}" }
+        }
+    }
+
+    /**
+     * 포이즌 메시지를 처리합니다.
+     * 파싱 불가능하거나 처리할 수 없는 메시지를 ACK하여 PEL에서 제거합니다.
+     * 추후 DLQ(Dead Letter Queue) 기능이 추가되면 해당 로직으로 확장 가능합니다.
+     *
+     * @param message 처리 실패한 메시지 레코드
+     * @param streamKey Redis Stream 키
+     * @param reason 실패 사유
+     */
+    private fun handlePoisonMessage(message: MapRecord<*, *, *>, streamKey: String, reason: String) {
+        try {
+            // TODO: 추후 DLQ 기능 추가 시 여기에 moveToDeadLetter 로직 구현
+            // redisStreamManager.moveToDeadLetter(streamKey, message)
+
+            // 현재는 ACK만 수행하여 무한 재처리 방지
+            redisStreamManager.acknowledgeMessage(streamKey, consumerGroup, message.id)
+            logger.warn { "포이즌 메시지 ACK 처리 완료 (ID: ${message.id}, 사유: $reason)" }
+        } catch (ackException: Exception) {
+            logger.error(ackException) { "포이즌 메시지 ACK 실패 (ID: ${message.id}): ${ackException.message}" }
         }
     }
 

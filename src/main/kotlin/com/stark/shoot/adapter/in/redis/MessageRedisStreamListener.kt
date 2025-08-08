@@ -31,9 +31,12 @@ class MessageRedisStreamListener(
     @Value("\${app.redis-stream.stream-key-pattern:stream:chat:room:*}") private val streamKeyPattern: String = "stream:chat:room:*"
 ) {
     private val logger = KotlinLogging.logger {}
-
-    // 코루틴 Job 참조 (나중에 취소하기 위함)
     private var pollingJob: Job? = null
+
+    companion object {
+        private const val CONNECTION_DESTROYED_MESSAGE = "LettuceConnectionFactory was destroyed"
+        private const val CONNECTION_CLOSED_MESSAGE = "Connection closed"
+    }
 
     /**
      * 리스너 초기화 메서드로, 애플리케이션 시작 시 자동으로 실행됩니다.
@@ -60,14 +63,22 @@ class MessageRedisStreamListener(
                     pollMessages()
                     delay(pollingIntervalMs)
                 } catch (e: RedisConnectionFailureException) {
-                    logger.error(e) { "Redis 연결 실패, ${errorRetryDelayMs}ms 후 재시도" }
-                    delay(errorRetryDelayMs)
+                    handleConnectionError(e)
                 } catch (e: Exception) {
-                    logger.error(e) { "Redis Stream 폴링 중 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
-                    delay(errorRetryDelayMs)
+                    handlePollingError(e)
                 }
             }
         }
+    }
+
+    private suspend fun handleConnectionError(e: RedisConnectionFailureException) {
+        logger.error(e) { "Redis 연결 실패, ${errorRetryDelayMs}ms 후 재시도" }
+        delay(errorRetryDelayMs)
+    }
+
+    private suspend fun handlePollingError(e: Exception) {
+        logger.error(e) { "Redis Stream 폴링 중 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
+        delay(errorRetryDelayMs)
     }
 
     /**
@@ -83,44 +94,50 @@ class MessageRedisStreamListener(
 
             // 각 스트림에 대해 순차적으로 처리 (메시지 순서 보장)
             streamKeys.forEach { streamKey ->
-                try {
-                    // 스트림이 존재하는지 확인하고 없으면 생성
-                    redisStreamManager.ensureStreamExists(streamKey)
-
-                    // 소비자 그룹이 존재하는지 확인하고 없으면 생성
-                    redisStreamManager.createConsumerGroup(streamKey, consumerGroup)
-
-                    // 스트림에서 메시지 읽기
-                    val messages = redisStreamManager.readMessages(streamKey, consumerGroup)
-
-                    // 각 메시지 개별 처리 및 ACK
-                    messages.forEach { message ->
-                        try {
-                            // 메시지를 처리하고 WebSocket으로 전송
-                            processMessage(message)
-
-                            // 메시지 처리 성공 시 ACK
-                            redisStreamManager.acknowledgeMessage(streamKey, consumerGroup, message.id)
-                        } catch (e: JsonParseException) {
-                            logger.error(e) { "메시지 파싱 오류 (ID: ${message.id}): ${e.message}" }
-                        } catch (e: Exception) {
-                            logger.error(e) { "메시지 처리 오류 (ID: ${message.id}, 스트림: $streamKey): ${e.message}" }
-                        }
-                    }
-                } catch (e: Exception) {
-                    // 개별 스트림 처리 중 오류 발생 시 다른 스트림은 계속 처리
-                    logger.error(e) { "스트림 처리 중 오류 발생: $streamKey - ${e.message}" }
-                }
+                processStreamKey(streamKey)
             }
         } catch (e: Exception) {
-            if (e.message?.contains("LettuceConnectionFactory was destroyed") == true ||
-                e.message?.contains("Connection closed") == true
-            ) {
-                logger.error(e) { "Redis Stream 폴링 중 연결 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
-            } else {
-                logger.error(e) { "Redis Stream 폴링 중 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
+            handlePollMessagesError(e)
+        }
+    }
+
+    private fun processStreamKey(streamKey: String) {
+        try {
+            setupStreamInfrastructure(streamKey)
+            val messages = redisStreamManager.readMessages(streamKey, consumerGroup)
+            messages.forEach { message ->
+                processMessageSafely(message, streamKey)
             }
-            // 오류 발생 시 지정된 시간 후 재시도 (상위 코루틴에서 처리)
+        } catch (e: Exception) {
+            logger.error(e) { "스트림 처리 중 오류 발생: $streamKey - ${e.message}" }
+        }
+    }
+
+    private fun setupStreamInfrastructure(streamKey: String) {
+        redisStreamManager.ensureStreamExists(streamKey)
+        redisStreamManager.createConsumerGroup(streamKey, consumerGroup)
+    }
+
+    private fun processMessageSafely(message: MapRecord<*, *, *>, streamKey: String) {
+        try {
+            processMessage(message)
+            redisStreamManager.acknowledgeMessage(streamKey, consumerGroup, message.id)
+        } catch (e: JsonParseException) {
+            logger.error(e) { "메시지 파싱 오류 (ID: ${message.id}): ${e.message}" }
+        } catch (e: Exception) {
+            logger.error(e) { "메시지 처리 오류 (ID: ${message.id}, 스트림: $streamKey): ${e.message}" }
+        }
+    }
+
+    private fun handlePollMessagesError(e: Exception) {
+        val errorMessage = e.message
+        val isConnectionError = errorMessage?.contains(CONNECTION_DESTROYED_MESSAGE) == true ||
+                errorMessage?.contains(CONNECTION_CLOSED_MESSAGE) == true
+
+        if (isConnectionError) {
+            logger.error(e) { "Redis Stream 폴링 중 연결 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
+        } else {
+            logger.error(e) { "Redis Stream 폴링 중 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
         }
     }
 
@@ -133,27 +150,40 @@ class MessageRedisStreamListener(
      * @param record Redis Stream에서 읽은 맵 형식의 레코드
      */
     private fun processMessage(record: MapRecord<*, *, *>) {
-        // 안전한 타입 처리를 위해 toString() 사용
         val streamKey = record.stream.toString()
+        val roomId = extractRoomId(streamKey) ?: return
+        val messageValue = extractMessageValue(record) ?: return
 
-        // 스트림 키에서 채팅방 ID 추출 (null일 경우 경고 로그 출력)
-        val roomId = redisMessageProcessor.extractRoomIdFromStreamKey(streamKey) ?: run {
-            logger.warn { "채팅방 ID를 추출할 수 없음: $streamKey" }
-            return
-        }
-
-        // 레코드 값을 안전하게 추출 (null일 경우 경고 로그 출력)
-        val messageValue = record.value["message"]?.toString() ?: run {
-            logger.warn { "메시지 값이 없음: ${record.id}" }
-            return
-        }
-
-        // 메시지 처리 및 WebSocket 전송
         val success = redisMessageProcessor.processMessage(roomId, messageValue)
 
-        // 메시지 처리 성공 여부에 따라 로그 출력
         if (success) {
             logger.debug { "메시지 처리 성공: 채팅방=$roomId, 메시지ID=${record.id}" }
+        }
+    }
+
+    /**
+     * Redis Stream 키에서 채팅방 ID를 추출합니다.
+     *
+     * @param streamKey Redis Stream 키 (예: "stream:chat:room:123")
+     * @return 추출된 채팅방 ID 문자열, 추출 실패 시 null
+     */
+    private fun extractRoomId(streamKey: String): String? {
+        return redisMessageProcessor.extractRoomIdFromStreamKey(streamKey) ?: run {
+            logger.warn { "채팅방 ID를 추출할 수 없음: $streamKey" }
+            null
+        }
+    }
+
+    /**
+     * Redis Stream 레코드에서 메시지 값을 추출합니다.
+     *
+     * @param record Redis Stream 레코드
+     * @return 추출된 메시지 값 문자열, 추출 실패 시 null
+     */
+    private fun extractMessageValue(record: MapRecord<*, *, *>): String? {
+        return record.value["message"]?.toString() ?: run {
+            logger.warn { "메시지 값이 없음: ${record.id}" }
+            null
         }
     }
 
@@ -166,5 +196,4 @@ class MessageRedisStreamListener(
         pollingJob?.cancel()
         logger.info { "Redis Stream 메시지 폴링 중단됨" }
     }
-
 }

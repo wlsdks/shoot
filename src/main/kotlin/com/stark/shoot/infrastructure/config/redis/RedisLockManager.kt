@@ -9,12 +9,13 @@ import java.time.Duration
 
 @Component
 class RedisLockManager(
-    private val redisTemplate: StringRedisTemplate
+    private val redisTemplate: StringRedisTemplate,
+    private val properties: RedisLockProperties,
 ) {
     private val logger = KotlinLogging.logger {}
-    private val lockTimeout = 10000L    // 10초
-    private val lockWaitTimeout = 2000L // 2초
-    private val maxRetries = 3          // 최대 재시도 횟수
+    private val lockTimeout get() = properties.lockTimeout
+    private val lockWaitTimeout get() = properties.lockWaitTimeout
+    private val maxRetries get() = properties.maxRetries
 
     // 락 해제를 위한 Lua 스크립트를 한 번만 생성하여 재사용
     private val releaseScript = RedisScript.of(RELEASE_SCRIPT, Long::class.java)

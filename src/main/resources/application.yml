@@ -81,6 +81,12 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+redis:
+  lock:
+    lock-timeout: 10000      # 락 타임아웃 (ms)
+    lock-wait-timeout: 2000  # 락 대기 타임아웃 (ms)
+    max-retries: 3           # 최대 재시도 횟수
+
 # 알림 설정
 notification:
   # 알림 전송 방식 (redis 또는 kafka)

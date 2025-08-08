@@ -188,16 +188,24 @@ class MessageRedisStreamListener(
      *
      * @param e 발생한 예외
      */
-    private fun handlePollMessagesError(e: Exception) {
-        when (e) {
-            is RedisConnectionFailureException -> {
-                logger.error(e) { "Redis Stream 폴링 중 연결 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
-            }
+    private suspend fun handlePollMessagesError(e: Exception) {
+        // 예외의 원인을 확인
+        val cause = e.cause ?: e
 
-            else -> {
-                logger.error(e) { "Redis Stream 폴링 중 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
-            }
+        // Redis 연결 오류 여부를 확인
+        val isConnectionError =
+            cause is RedisConnectionFailureException ||
+                    cause.cause is RedisConnectionFailureException
+
+        // 연결 오류 여부에 따라 다른 로그 메시지 출력
+        if (isConnectionError) {
+            logger.error(e) { "Redis Stream 폴링 중 연결 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
+        } else {
+            logger.error(e) { "Redis Stream 폴링 중 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
         }
+
+        // 일정 시간 후 재시도
+        delay(errorRetryDelayMs)
     }
 
     /**

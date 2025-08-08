@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.socket.mapper
+package com.stark.shoot.adapter.`in`.socket.mapper
 
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentRequest
 import com.stark.shoot.adapter.`in`.socket.dto.MessageSyncInfoDto

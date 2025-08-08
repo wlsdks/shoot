@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentRequest
 import com.stark.shoot.adapter.`in`.rest.socket.dto.MessageSyncInfoDto
 import com.stark.shoot.adapter.`in`.rest.socket.dto.SyncRequestDto
 import com.stark.shoot.adapter.`in`.rest.socket.dto.SyncResponseDto
-import com.stark.shoot.adapter.`in`.rest.socket.mapper.MessageSyncMapper
+import com.stark.shoot.adapter.`in`.socket.mapper.MessageSyncMapper
 import com.stark.shoot.application.port.`in`.message.command.GetPaginationMessageCommand
 import com.stark.shoot.application.port.`in`.message.command.SendSyncMessagesToUserCommand
 import com.stark.shoot.application.port.out.message.MessageQueryPort

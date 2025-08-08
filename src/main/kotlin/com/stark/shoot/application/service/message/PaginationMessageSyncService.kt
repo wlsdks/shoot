@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.message
 
-import com.stark.shoot.adapter.`in`.rest.socket.mapper.MessageSyncMapper
+import com.stark.shoot.adapter.`in`.socket.mapper.MessageSyncMapper
 import com.stark.shoot.adapter.`in`.socket.dto.MessageSyncInfoDto
 import com.stark.shoot.adapter.`in`.socket.dto.SyncRequestDto
 import com.stark.shoot.adapter.`in`.socket.dto.SyncResponseDto

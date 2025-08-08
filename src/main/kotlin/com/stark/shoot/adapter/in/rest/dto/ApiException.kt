@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus
  */
 class ApiException(
     override val message: String,
-    val errorCode: ErrorCode,
+    val errorCode: com.stark.shoot.adapter.`in`.rest.dto.ErrorCode,
     cause: Throwable? = null
 ) : RuntimeException(message, cause) {
     val status: HttpStatus get() = errorCode.status

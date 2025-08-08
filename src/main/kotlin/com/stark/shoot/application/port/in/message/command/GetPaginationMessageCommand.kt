@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.message.command
 
-import com.stark.shoot.adapter.`in`.rest.socket.dto.SyncRequestDto
+import com.stark.shoot.adapter.`in`.socket.dto.SyncRequestDto
 
 /**
  * Command for getting paginated messages

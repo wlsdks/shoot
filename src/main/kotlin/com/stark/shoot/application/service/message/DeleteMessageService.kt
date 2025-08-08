@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.message
 
-import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.DeleteMessageUseCase
 import com.stark.shoot.application.port.`in`.message.command.DeleteMessageCommand
 import com.stark.shoot.application.port.out.message.MessageCommandPort

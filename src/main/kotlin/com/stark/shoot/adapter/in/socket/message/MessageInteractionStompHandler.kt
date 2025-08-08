@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.socket.message
+package com.stark.shoot.adapter.`in`.socket.message
 
 import com.stark.shoot.adapter.`in`.rest.dto.message.pin.PinMessageRequest
 import com.stark.shoot.adapter.`in`.rest.dto.message.reaction.ReactionRequest

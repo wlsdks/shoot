@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.message.command
 
-import com.stark.shoot.adapter.`in`.rest.socket.dto.TypingIndicatorMessage
+import com.stark.shoot.adapter.`in`.socket.dto.TypingIndicatorMessage
 
 /**
  * 타이핑 인디케이터 커맨드

@@ -1,6 +1,6 @@
-package com.stark.shoot.adapter.`in`.rest.socket.message
+package com.stark.shoot.adapter.`in`.socket.message
 
-import com.stark.shoot.adapter.`in`.rest.socket.dto.SyncRequestDto
+import com.stark.shoot.adapter.`in`.socket.dto.SyncRequestDto
 import com.stark.shoot.application.port.`in`.message.GetPaginationMessageUseCase
 import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCase
 import com.stark.shoot.application.port.`in`.message.command.GetPaginationMessageCommand
@@ -16,7 +16,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class GetMessagePaginationStompHandler(
+class MessagePaginationStompHandler(
     private val getPaginationMessageUseCase: GetPaginationMessageUseCase,
     private val sendSyncMessagesToUserUseCase: SendSyncMessagesToUserUseCase,
     private val appCoroutineScope: ApplicationCoroutineScope,

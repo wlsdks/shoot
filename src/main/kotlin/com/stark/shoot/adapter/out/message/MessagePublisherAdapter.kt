@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.out.message
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageStatusResponse
-import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.MessageStatusNotificationPort

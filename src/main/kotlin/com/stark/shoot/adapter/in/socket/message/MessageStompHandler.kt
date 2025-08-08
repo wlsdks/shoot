@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.socket.message
+package com.stark.shoot.adapter.`in`.socket.message
 
 import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
@@ -7,7 +7,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
 
 @Controller
-class SendMessageStompHandler(
+class MessageStompHandler(
     private val sendMessageUseCase: SendMessageUseCase
 ) {
 

@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.socket.dto
+package com.stark.shoot.adapter.`in`.socket.dto
 
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentRequest
 import com.stark.shoot.domain.chat.message.type.SyncDirection

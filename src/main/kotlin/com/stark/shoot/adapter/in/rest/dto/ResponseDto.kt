@@ -82,7 +82,7 @@ data class ResponseDto<T>(
         /**
          * 예외에서 실패 응답 생성
          */
-        fun <T> error(exception: ApiException): ResponseDto<T> {
+        fun <T> error(exception: com.stark.shoot.adapter.`in`.rest.dto.ApiException): ResponseDto<T> {
             return ResponseDto(
                 success = false,
                 data = null,

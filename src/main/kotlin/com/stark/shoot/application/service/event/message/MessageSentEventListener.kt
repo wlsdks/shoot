@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.event.message
 
-import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId

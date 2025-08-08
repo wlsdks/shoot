@@ -1,8 +1,8 @@
 package com.stark.shoot.adapter.`in`.rest.socket.mapper
 
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentRequest
-import com.stark.shoot.adapter.`in`.rest.socket.dto.MessageSyncInfoDto
-import com.stark.shoot.adapter.`in`.rest.socket.dto.ReactionDto
+import com.stark.shoot.adapter.`in`.socket.dto.MessageSyncInfoDto
+import com.stark.shoot.adapter.`in`.socket.dto.ReactionDto
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
 import io.github.oshai.kotlinlogging.KotlinLogging

@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.`in`.rest.message
 import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.rest.dto.message.forward.ForwardMessageToRoomRequest
 import com.stark.shoot.adapter.`in`.rest.dto.message.forward.ForwardMessageToUserRequest
-import com.stark.shoot.adapter.`in`.rest.socket.dto.ChatMessageResponse
+import com.stark.shoot.adapter.`in`.socket.dto.ChatMessageResponse
 import com.stark.shoot.application.port.`in`.message.ForwardMessageToUserUseCase
 import com.stark.shoot.application.port.`in`.message.ForwardMessageUseCase
 import com.stark.shoot.application.port.`in`.message.command.ForwardMessageCommand

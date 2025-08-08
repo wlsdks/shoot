@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.socket
+package com.stark.shoot.adapter.`in`.socket
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageStatusResponse

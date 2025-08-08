@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.message
 
-import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
-import com.stark.shoot.adapter.`in`.rest.socket.dto.TypingIndicatorMessage
+import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.socket.dto.TypingIndicatorMessage
 import com.stark.shoot.application.port.`in`.message.TypingIndicatorMessageUseCase
 import com.stark.shoot.application.port.`in`.message.command.TypingIndicatorCommand
 import com.stark.shoot.infrastructure.annotation.UseCase
@@ -201,7 +201,7 @@ class TypingIndicatorMessagesService(
 
     /**
      * 타이핑 메시지를 WebSocket을 통해 전송하는 유틸리티 메서드
-     * 
+     *
      * @param destination WebSocket 목적지 경로
      * @param message 전송할 타이핑 인디케이터 메시지
      */

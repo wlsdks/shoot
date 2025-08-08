@@ -1,6 +1,6 @@
-package com.stark.shoot.adapter.`in`.rest.socket.chatroom
+package com.stark.shoot.adapter.`in`.socket.chatroom
 
-import com.stark.shoot.adapter.`in`.rest.socket.dto.chatroom.ChatRoomListRequest
+import com.stark.shoot.adapter.`in`.socket.dto.chatroom.ChatRoomListRequest
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.command.GetChatRoomsCommand
 import org.springframework.messaging.handler.annotation.MessageMapping
@@ -24,10 +24,12 @@ class ChatRoomListStompHandler(
     fun handleChatRoomList(request: ChatRoomListRequest) {
         val command = GetChatRoomsCommand.of(request.userId)
         val rooms = findChatRoomUseCase.getChatRoomsForUser(command)
+
         messagingTemplate.convertAndSendToUser(
             request.userId.toString(),
             "/queue/rooms",
             rooms
         )
     }
+
 }

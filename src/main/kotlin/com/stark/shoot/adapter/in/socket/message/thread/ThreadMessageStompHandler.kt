@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.socket.message.thread
+package com.stark.shoot.adapter.`in`.socket.message.thread
 
 import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
 import com.stark.shoot.application.port.`in`.message.thread.SendThreadMessageUseCase
@@ -7,7 +7,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
 
 @Controller
-class SendThreadMessageStompHandler(
+class ThreadMessageStompHandler(
     private val sendThreadMessageUseCase: SendThreadMessageUseCase,
 ) {
 

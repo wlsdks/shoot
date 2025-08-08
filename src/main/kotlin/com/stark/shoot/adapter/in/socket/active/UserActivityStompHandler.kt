@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.socket.active
+package com.stark.shoot.adapter.`in`.socket.active
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.application.port.`in`.active.UserActiveUseCase

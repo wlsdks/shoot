@@ -1,6 +1,6 @@
-package com.stark.shoot.adapter.`in`.rest.socket.typing
+package com.stark.shoot.adapter.`in`.socket.typing
 
-import com.stark.shoot.adapter.`in`.rest.socket.dto.TypingIndicatorMessage
+import com.stark.shoot.adapter.`in`.socket.dto.TypingIndicatorMessage
 import com.stark.shoot.application.port.`in`.message.TypingIndicatorMessageUseCase
 import com.stark.shoot.application.port.`in`.message.command.TypingIndicatorCommand
 import org.springframework.messaging.handler.annotation.MessageMapping

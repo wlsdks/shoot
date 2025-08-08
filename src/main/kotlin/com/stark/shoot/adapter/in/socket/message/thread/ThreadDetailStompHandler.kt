@@ -1,6 +1,6 @@
-package com.stark.shoot.adapter.`in`.rest.socket.message.thread
+package com.stark.shoot.adapter.`in`.socket.message.thread
 
-import com.stark.shoot.adapter.`in`.rest.socket.dto.ThreadDetailRequestDto
+import com.stark.shoot.adapter.`in`.socket.dto.ThreadDetailRequestDto
 import com.stark.shoot.application.port.`in`.message.thread.GetThreadDetailUseCase
 import com.stark.shoot.application.port.`in`.message.thread.command.GetThreadDetailCommand
 import org.springframework.messaging.handler.annotation.MessageMapping
@@ -8,7 +8,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
 
 @Controller
-class GetThreadDetailStompHandler(
+class ThreadDetailStompHandler(
     private val getThreadDetailUseCase: GetThreadDetailUseCase,
     private val messagingTemplate: SimpMessagingTemplate,
 ) {

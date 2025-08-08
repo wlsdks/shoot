@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageMetadataRequest
 import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentRequest
-import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.domain.chat.message.type.MessageType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

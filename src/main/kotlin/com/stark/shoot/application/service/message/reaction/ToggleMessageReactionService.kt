@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.message.reaction
 
 import com.stark.shoot.adapter.`in`.rest.dto.message.reaction.ReactionResponse
-import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.reaction.ToggleMessageReactionUseCase
 import com.stark.shoot.application.port.`in`.message.reaction.command.ToggleMessageReactionCommand
 import com.stark.shoot.application.port.out.event.EventPublisher

@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.message
 
-import com.stark.shoot.adapter.`in`.rest.socket.WebSocketMessageBroker
+import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.adapter.out.persistence.mongodb.mapper.ChatMessageMapper
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
@@ -8,13 +8,13 @@ import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
-import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.event.type.EventType
@@ -67,7 +67,12 @@ class HandleMessageEventServiceTest {
         val event = MessageEvent.fromMessage(message, EventType.MESSAGE_CREATED)
 
         `when`(saveMessagePort.save(message)).thenReturn(message)
-        `when`(webSocketMessageBroker.sendMessage(anyString(), any())).thenReturn(CompletableFuture.completedFuture(true))
+        `when`(
+            webSocketMessageBroker.sendMessage(
+                anyString(),
+                any()
+            )
+        ).thenReturn(CompletableFuture.completedFuture(true))
 
         val result = service.handle(event)
 
@@ -113,7 +118,12 @@ class HandleMessageEventServiceTest {
         val event = MessageEvent.fromMessage(message, EventType.MESSAGE_CREATED)
 
         `when`(saveMessagePort.save(any())).thenThrow(RuntimeException("fail"))
-        `when`(webSocketMessageBroker.sendMessage(anyString(), any())).thenReturn(CompletableFuture.completedFuture(true))
+        `when`(
+            webSocketMessageBroker.sendMessage(
+                anyString(),
+                any()
+            )
+        ).thenReturn(CompletableFuture.completedFuture(true))
 
         val result = service.handle(event)
 

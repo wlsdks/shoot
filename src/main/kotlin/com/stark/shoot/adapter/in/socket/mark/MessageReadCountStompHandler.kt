@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.socket.mark
+package com.stark.shoot.adapter.`in`.socket.mark
 
 import com.stark.shoot.adapter.`in`.rest.dto.message.read.ChatReadRequest
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase

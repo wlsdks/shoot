@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.socket.dto
+package com.stark.shoot.adapter.`in`.socket.dto
 
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
 

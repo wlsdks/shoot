@@ -1,4 +1,4 @@
-package com.stark.shoot.adapter.`in`.rest.socket.dto
+package com.stark.shoot.adapter.`in`.socket.dto
 
 /**
  * 스레드 관련 STOMP 요청 DTO 모음

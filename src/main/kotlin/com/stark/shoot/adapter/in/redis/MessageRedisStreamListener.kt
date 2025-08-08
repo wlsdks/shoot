@@ -34,8 +34,7 @@ class MessageRedisStreamListener(
     private var pollingJob: Job? = null
 
     companion object {
-        private const val CONNECTION_DESTROYED_MESSAGE = "LettuceConnectionFactory was destroyed"
-        private const val CONNECTION_CLOSED_MESSAGE = "Connection closed"
+        private const val MESSAGE_FIELD = "message"
     }
 
     /**
@@ -71,11 +70,23 @@ class MessageRedisStreamListener(
         }
     }
 
+    /**
+     * Redis 연결 오류를 처리합니다.
+     * 연결 실패 시 로그를 출력하고, 일정 시간 후 재시도합니다.
+     *
+     * @param e 발생한 RedisConnectionFailureException
+     */
     private suspend fun handleConnectionError(e: RedisConnectionFailureException) {
         logger.error(e) { "Redis 연결 실패, ${errorRetryDelayMs}ms 후 재시도" }
         delay(errorRetryDelayMs)
     }
 
+    /**
+     * 폴링 중 발생한 오류를 처리합니다.
+     * 예외가 발생하면 로그를 출력하고, 일정 시간 후 재시도합니다.
+     *
+     * @param e 발생한 예외
+     */
     private suspend fun handlePollingError(e: Exception) {
         logger.error(e) { "Redis Stream 폴링 중 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
         delay(errorRetryDelayMs)
@@ -101,6 +112,11 @@ class MessageRedisStreamListener(
         }
     }
 
+    /**
+     * 주어진 Redis Stream 키에 대해 메시지를 읽고 처리합니다.
+     *
+     * @param streamKey Redis Stream 키
+     */
     private fun processStreamKey(streamKey: String) {
         try {
             setupStreamInfrastructure(streamKey)
@@ -113,11 +129,24 @@ class MessageRedisStreamListener(
         }
     }
 
+    /**
+     * Redis Stream 키에 대한 인프라를 설정합니다.
+     * 스트림이 존재하지 않으면 생성하고, 소비자 그룹을 설정합니다.
+     *
+     * @param streamKey Redis Stream 키
+     */
     private fun setupStreamInfrastructure(streamKey: String) {
         redisStreamManager.ensureStreamExists(streamKey)
         redisStreamManager.createConsumerGroup(streamKey, consumerGroup)
     }
 
+    /**
+     * Redis Stream에서 읽은 메시지를 안전하게 처리합니다.
+     * 메시지 처리 중 발생하는 예외를 잡아 로그로 출력하고, 메시지를 ACK 처리합니다.
+     *
+     * @param message Redis Stream에서 읽은 메시지 레코드
+     * @param streamKey Redis Stream 키
+     */
     private fun processMessageSafely(message: MapRecord<*, *, *>, streamKey: String) {
         try {
             processMessage(message)
@@ -129,15 +158,21 @@ class MessageRedisStreamListener(
         }
     }
 
+    /**
+     * Redis Stream 폴링 중 발생한 오류를 처리합니다.
+     * 예외 타입에 따라 적절한 로그 메시지를 출력합니다.
+     *
+     * @param e 발생한 예외
+     */
     private fun handlePollMessagesError(e: Exception) {
-        val errorMessage = e.message
-        val isConnectionError = errorMessage?.contains(CONNECTION_DESTROYED_MESSAGE) == true ||
-                errorMessage?.contains(CONNECTION_CLOSED_MESSAGE) == true
+        when (e) {
+            is RedisConnectionFailureException -> {
+                logger.error(e) { "Redis Stream 폴링 중 연결 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
+            }
 
-        if (isConnectionError) {
-            logger.error(e) { "Redis Stream 폴링 중 연결 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
-        } else {
-            logger.error(e) { "Redis Stream 폴링 중 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
+            else -> {
+                logger.error(e) { "Redis Stream 폴링 중 오류 발생, ${errorRetryDelayMs}ms 후 재시도" }
+            }
         }
     }
 
@@ -181,7 +216,7 @@ class MessageRedisStreamListener(
      * @return 추출된 메시지 값 문자열, 추출 실패 시 null
      */
     private fun extractMessageValue(record: MapRecord<*, *, *>): String? {
-        return record.value["message"]?.toString() ?: run {
+        return record.value[MESSAGE_FIELD]?.toString() ?: run {
             logger.warn { "메시지 값이 없음: ${record.id}" }
             null
         }
@@ -196,4 +231,5 @@ class MessageRedisStreamListener(
         pollingJob?.cancel()
         logger.info { "Redis Stream 메시지 폴링 중단됨" }
     }
+
 }

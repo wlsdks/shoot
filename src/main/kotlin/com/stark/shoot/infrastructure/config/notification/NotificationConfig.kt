@@ -3,6 +3,8 @@ package com.stark.shoot.infrastructure.config.notification
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.out.kafka.PublishNotificationKafkaAdapter
 import com.stark.shoot.adapter.out.redis.notification.SendNotificationRedisAdapter
+import com.stark.shoot.adapter.out.socket.notification.SendNotificationWebSocketAdapter
+import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
@@ -38,6 +40,7 @@ class NotificationConfig {
         @Value("\${notification.transport:redis}") notificationTransport: String,
         redisTemplate: StringRedisTemplate,
         kafkaTemplate: KafkaTemplate<String, String>,
+        webSocketMessageBroker: WebSocketMessageBroker,
         objectMapper: ObjectMapper
     ): SendNotificationPort {
         logger.info { "알림 전송 방식: $notificationTransport" }
@@ -46,6 +49,10 @@ class NotificationConfig {
             "kafka" -> {
                 logger.info { "Kafka를 사용하여 알림을 전송합니다." }
                 PublishNotificationKafkaAdapter(kafkaTemplate, objectMapper)
+            }
+            "websocket" -> {
+                logger.info { "WebSocket을 사용하여 알림을 전송합니다." }
+                SendNotificationWebSocketAdapter(webSocketMessageBroker)
             }
             else -> {
                 logger.info { "Redis를 사용하여 알림을 전송합니다." }
@@ -84,5 +91,12 @@ class NotificationConfig {
         objectMapper: ObjectMapper
     ): SendNotificationPort {
         return PublishNotificationKafkaAdapter(kafkaTemplate, objectMapper)
+    }
+
+    @Bean("websocketNotificationSender")
+    fun websocketNotificationSender(
+        webSocketMessageBroker: WebSocketMessageBroker
+    ): SendNotificationPort {
+        return SendNotificationWebSocketAdapter(webSocketMessageBroker)
     }
 }

@@ -264,14 +264,27 @@ Kafka를 사용한 알림 전송은 다음과 같은 특징이 있습니다:
 3. **확장성**: Kafka는 높은 처리량을 지원하므로, 대량의 알림을 처리할 수 있습니다.
 4. **통합**: 다른 시스템이 Kafka 토픽을 구독하여 알림을 처리할 수 있습니다.
 
-#### 6.3 알림 전송 방식 선택
+#### 6.3 WebSocket을 통한 알림 전송
 
-애플리케이션은 설정에 따라 Redis 또는 Kafka를 사용하여 알림을 전송할 수 있습니다. 이는 `NotificationConfig` 클래스에서 설정됩니다:
+`SendNotificationPort`의 또 다른 구현체인 `SendNotificationWebSocketAdapter`는 WebSocket을 사용하여 알림을 전송합니다:
+
+```kotlin
+override fun sendNotification(notification: Notification) {
+    val destination = "/topic/notifications/${'$'}{notification.userId.value}"
+    webSocketMessageBroker.sendMessage(destination, notification)
+}
+```
+
+이 방식은 서버가 사용자의 WebSocket 세션으로 직접 알림을 전달하며, 클라이언트는 해당 목적지를 구독해야 알림을 수신할 수 있습니다.
+
+#### 6.4 알림 전송 방식 선택
+
+애플리케이션은 설정에 따라 Redis, Kafka 또는 WebSocket을 사용하여 알림을 전송할 수 있습니다. 이는 `NotificationConfig` 클래스에서 설정됩니다:
 
 ```yaml
 # application.yml
 notification:
-  transport: redis  # 또는 kafka
+  transport: redis  # 또는 kafka, websocket
 ```
 
 Redis는 실시간성이 중요한 경우에 적합하고, Kafka는 내구성과 확장성이 중요한 경우에 적합합니다.
@@ -302,7 +315,7 @@ Redis는 실시간성이 중요한 경우에 적합하고, Kafka는 내구성과
 4. **수신자 식별**: 알림을 받아야 할 사용자가 식별됩니다.
 5. **알림 생성**: `ChatNotificationFactory`를 사용하여 알림이 생성됩니다.
 6. **알림 저장**: 생성된 알림이 MongoDB에 저장됩니다.
-7. **알림 전송**: 저장된 알림이 Redis Pub/Sub 또는 Kafka를 통해 사용자에게 전송됩니다(설정에 따라 다름).
+7. **알림 전송**: 저장된 알림이 Redis Pub/Sub, Kafka, 또는 WebSocket을 통해 사용자에게 전송됩니다(설정에 따라 다름).
 8. **알림 수신**: 클라이언트가 웹소켓, SSE 등을 통해 알림을 수신합니다.
 9. **알림 처리**: 사용자가 알림을 읽거나 삭제합니다.
 

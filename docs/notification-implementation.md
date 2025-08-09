@@ -14,14 +14,17 @@
 - **SendNotificationRedisAdapter**: Redis를 사용하여 알림을 전송하는 어댑터
   - Redis Pub/Sub 채널을 통해 실시간 알림 전송
   - 사용자별 채널에 알림 발행
-  
+
 - **SendNotificationKafkaAdapter**: Kafka를 사용하여 알림을 전송하는 어댑터
   - Kafka 토픽에 알림 발행
   - 사용자 ID를 파티션 키로 사용하여 순서 보장
 
+- **SendNotificationWebSocketAdapter**: WebSocket을 사용하여 알림을 전송하는 어댑터
+  - 사용자별 목적지(`/topic/notifications/{userId}`)로 실시간 알림 전송
+
 ### 3. 설정 (Configuration)
 - **NotificationConfig**: 알림 전송 방식을 선택하는 설정 클래스
-  - `notification.transport` 속성을 통해 Redis 또는 Kafka 선택 가능
+  - `notification.transport` 속성을 통해 Redis, Kafka, WebSocket 중 선택 가능
   - 기본값은 Redis
 
 ## 사용 방법
@@ -32,8 +35,8 @@
 ```yaml
 # 알림 설정
 notification:
-  # 알림 전송 방식 (redis 또는 kafka)
-  transport: redis  # 또는 kafka
+  # 알림 전송 방식 (redis, kafka, websocket)
+  transport: redis  # 또는 kafka, websocket
 ```
 
 ### 2. 코드에서 사용 방법
@@ -66,16 +69,20 @@ class NotificationService(
 @Service
 class SpecificNotificationService(
     @Qualifier("redisNotificationSender") private val redisNotificationSender: SendNotificationPort,
-    @Qualifier("kafkaNotificationSender") private val kafkaNotificationSender: SendNotificationPort
+    @Qualifier("kafkaNotificationSender") private val kafkaNotificationSender: SendNotificationPort,
+    @Qualifier("websocketNotificationSender") private val websocketNotificationSender: SendNotificationPort
 ) {
     fun sendImportantNotification(userId: Long, message: String) {
         val notification = createNotification(userId, message)
-        
+
         // Redis로 전송
         redisNotificationSender.sendNotification(notification)
-        
+
         // 중요한 알림은 Kafka로도 전송 (백업 또는 다른 시스템과 통합)
         kafkaNotificationSender.sendNotification(notification)
+
+        // 실시간 WebSocket 알림 전송
+        websocketNotificationSender.sendNotification(notification)
     }
     
     private fun createNotification(userId: Long, message: String): Notification {
@@ -112,6 +119,20 @@ Kafka를 사용하는 경우, 클라이언트는 다음과 같이 구현할 수 
 
 1. Kafka 컨슈머가 알림을 수신하여 처리
 2. 다른 시스템이 Kafka 토픽을 구독하여 알림 처리
+
+### WebSocket 클라이언트
+WebSocket 방식을 사용하는 경우, 클라이언트는 STOMP 프로토콜을 통해
+`/topic/notifications/{userId}` 경로를 구독해야 합니다. 예를 들어
+JavaScript에서는 다음과 같이 구독할 수 있습니다:
+
+```javascript
+const client = Stomp.over(ws);
+client.connect({}, () => {
+  client.subscribe('/topic/notifications/123', message => {
+    console.log(message.body);
+  });
+});
+```
 
 ## 확장 방향
 1. 알림 전송 실패 시 재시도 메커니즘 추가

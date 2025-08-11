@@ -13,26 +13,22 @@ class NotificationDomainService {
 
     /**
      * 여러 알림을 읽음 처리합니다.
+     * 가변 객체이므로 각 알림의 상태를 직접 변경합니다.
      *
      * @param notifications 알림 목록
-     * @return 읽음 처리된 알림 목록
      */
-    fun markNotificationsAsRead(
-        notifications: List<Notification>
-    ): List<Notification> {
-        return notifications.map { it.markAsRead() }
+    fun markNotificationsAsRead(notifications: List<Notification>) {
+        notifications.forEach { it.markAsRead() }
     }
 
     /**
      * 여러 알림을 삭제 처리합니다.
+     * 가변 객체이므로 각 알림의 상태를 직접 변경합니다.
      *
      * @param notifications 알림 목록
-     * @return 삭제 처리된 알림 목록
      */
-    fun markNotificationsAsDeleted(
-        notifications: List<Notification>
-    ): List<Notification> {
-        return notifications.map { it.markAsDeleted() }
+    fun markNotificationsAsDeleted(notifications: List<Notification>) {
+        notifications.forEach { it.markAsDeleted() }
     }
 
     /**

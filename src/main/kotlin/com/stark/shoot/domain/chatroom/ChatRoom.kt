@@ -18,7 +18,7 @@ data class ChatRoom(
     var participants: Set<UserId>,
     var lastMessageId: MessageId? = null,
     var lastActiveAt: Instant = Instant.now(),
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant = Instant.now(),
 
     // 필요한 경우에만 남길 선택적 필드
     var announcement: ChatRoomAnnouncement? = null,
@@ -96,20 +96,34 @@ data class ChatRoom(
          * @param userId 사용자 ID
          * @param friendId 친구 ID
          * @param friendName 친구 이름 (채팅방 제목용)
+         * @param validator 사용자 유효성 검사 함수
          * @return 새로운 1:1 채팅방
+         * @throws IllegalArgumentException 유효하지 않은 사용자인 경우
          */
         fun createDirectChat(
             userId: Long,
             friendId: Long,
-            friendName: String
+            friendName: String,
+            validator: (UserId, UserId) -> Unit = { _, _ -> }
         ): ChatRoom {
+            val userIdVo = UserId.from(userId)
+            val friendIdVo = UserId.from(friendId)
+            
+            // 비즈니스 규칙 검증
+            if (userId == friendId) {
+                throw IllegalArgumentException("자기 자신과는 채팅방을 만들 수 없습니다.")
+            }
+            
+            // 외부 검증 로직 실행 (사용자 존재 여부 등)
+            validator(userIdVo, friendIdVo)
+            
             val title = ChatRoomTitle.from("${friendName}님과의 대화")
 
             return ChatRoom(
                 title = title,
                 type = ChatRoomType.INDIVIDUAL,
                 announcement = null,
-                participants = setOf(UserId.from(userId), UserId.from(friendId)),
+                participants = setOf(userIdVo, friendIdVo),
                 pinnedParticipants = emptySet(),
                 lastMessageId = null,
                 lastActiveAt = Instant.now(),

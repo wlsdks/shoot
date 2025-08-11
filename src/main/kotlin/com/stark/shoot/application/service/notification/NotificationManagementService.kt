@@ -51,11 +51,11 @@ class NotificationManagementService(
             return notification
         }
 
-        // 도메인 모델의 메서드를 사용하여 읽음 처리
-        val updatedNotification = notification.markAsRead()
+        // 도메인 모델의 메서드를 사용하여 읽음 처리 (자신의 상태 변경)
+        notification.markAsRead()
 
         // 저장
-        val savedNotification = notificationCommandPort.saveNotification(updatedNotification)
+        val savedNotification = notificationCommandPort.saveNotification(notification)
 
         return savedNotification
     }
@@ -86,12 +86,12 @@ class NotificationManagementService(
         }
 
         // 도메인 서비스를 사용하여 알림 읽음 처리
-        val updatedNotifications = notificationDomainService.markNotificationsAsRead(notificationsToMark)
+        notificationDomainService.markNotificationsAsRead(notificationsToMark)
 
         // 저장
-        notificationCommandPort.saveNotifications(updatedNotifications)
+        notificationCommandPort.saveNotifications(notificationsToMark)
 
-        return updatedNotifications.size
+        return notificationsToMark.size
     }
 
     /**
@@ -150,12 +150,12 @@ class NotificationManagementService(
         }
 
         // 도메인 서비스를 사용하여 알림 삭제 처리
-        val deletedNotifications = notificationDomainService.markNotificationsAsDeleted(notifications)
+        notificationDomainService.markNotificationsAsDeleted(notifications)
 
         // 저장
-        notificationCommandPort.saveNotifications(deletedNotifications)
+        notificationCommandPort.saveNotifications(notifications)
 
-        return deletedNotifications.size
+        return notifications.size
     }
 
     /**
@@ -176,8 +176,8 @@ class NotificationManagementService(
         notification.validateOwnership(command.userId)
 
         // 알림 삭제 (소프트 삭제 방식)
-        val deletedNotification = notification.markAsDeleted()
-        notificationCommandPort.saveNotification(deletedNotification)
+        notification.markAsDeleted()
+        notificationCommandPort.saveNotification(notification)
 
         return true
     }

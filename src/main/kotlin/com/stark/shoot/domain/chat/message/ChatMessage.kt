@@ -20,7 +20,7 @@ data class ChatMessage(
     var expiresAt: Instant? = null,
     var messageReactions: MessageReactions = MessageReactions(),
     var mentions: Set<UserId> = emptySet(),
-    val createdAt: Instant? = Instant.now(),
+    var createdAt: Instant? = Instant.now(),
     var updatedAt: Instant? = null,
     var readBy: Map<UserId, Boolean> = emptyMap(),
     var metadata: ChatMessageMetadata = ChatMessageMetadata(),
@@ -247,6 +247,18 @@ data class ChatMessage(
             previewUrl = url
         )
         this.updatedAt = Instant.now()
+    }
+
+    /**
+     * 메시지에서 멘션된 사용자들을 추출하고 업데이트합니다.
+     *
+     * @param mentionExtractor 멘션 추출 함수
+     */
+    fun updateMentions(mentionExtractor: (String) -> Set<UserId>) {
+        if (this.content.type == MessageType.TEXT) {
+            this.mentions = mentionExtractor(this.content.text)
+            this.updatedAt = Instant.now()
+        }
     }
 
     companion object {

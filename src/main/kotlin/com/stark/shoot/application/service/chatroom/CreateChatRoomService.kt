@@ -79,7 +79,10 @@ class CreateChatRoomService(
             userId = userId,
             friendId = friendId,
             friendName = friend.nickname.value
-        )
+        ) { userIdVo, friendIdVo ->
+            // 사용자 존재 검증은 이미 위에서 수행했으므로 패스
+            // 필요시 추가 비즈니스 규칙 검증 가능
+        }
 
         // 채팅방 저장
         val savedRoom = chatRoomCommandPort.save(newChatRoom)

@@ -11,7 +11,7 @@ data class BlockedUser(
     val id: Long? = null,
     val userId: UserId,
     val blockedUserId: UserId,
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant = Instant.now(),
 ) {
     companion object {
         /**

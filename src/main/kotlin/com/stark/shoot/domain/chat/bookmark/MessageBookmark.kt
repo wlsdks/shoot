@@ -11,5 +11,5 @@ data class MessageBookmark(
     val id: String? = null,
     val messageId: MessageId,
     val userId: UserId,
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant = Instant.now(),
 )

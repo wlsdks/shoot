@@ -12,9 +12,9 @@ data class FriendRequest(
     val id: FriendRequestId? = null,
     val senderId: UserId,
     val receiverId: UserId,
-    val status: FriendRequestStatus = FriendRequestStatus.PENDING,
-    val createdAt: Instant = Instant.now(),
-    val respondedAt: Instant? = null,
+    var status: FriendRequestStatus = FriendRequestStatus.PENDING,
+    var createdAt: Instant = Instant.now(),
+    var respondedAt: Instant? = null,
 ) {
     companion object {
         /**
@@ -31,24 +31,50 @@ data class FriendRequest(
             )
         }
     }
+
     /**
      * 친구 요청을 수락합니다.
+     * 자신의 상태를 직접 변경합니다.
+     * 
+     * @throws IllegalStateException 이미 처리된 요청인 경우
      */
-    fun accept(): FriendRequest {
-        return copy(status = FriendRequestStatus.ACCEPTED, respondedAt = Instant.now())
+    fun accept() {
+        if (status != FriendRequestStatus.PENDING) {
+            throw IllegalStateException("이미 처리된 친구 요청입니다: $status")
+        }
+
+        status = FriendRequestStatus.ACCEPTED
+        respondedAt = Instant.now()
     }
 
     /**
      * 친구 요청을 거절합니다.
+     * 자신의 상태를 직접 변경합니다.
+     * 
+     * @throws IllegalStateException 이미 처리된 요청인 경우
      */
-    fun reject(): FriendRequest {
-        return copy(status = FriendRequestStatus.REJECTED, respondedAt = Instant.now())
+    fun reject() {
+        if (status != FriendRequestStatus.PENDING) {
+            throw IllegalStateException("이미 처리된 친구 요청입니다: $status")
+        }
+
+        status = FriendRequestStatus.REJECTED
+        respondedAt = Instant.now()
     }
 
     /**
      * 친구 요청을 취소합니다.
+     * 자신의 상태를 직접 변경합니다.
+     * 
+     * @throws IllegalStateException 이미 처리된 요청인 경우
      */
-    fun cancel(): FriendRequest {
-        return copy(status = FriendRequestStatus.CANCELLED, respondedAt = Instant.now())
+    fun cancel() {
+        if (status != FriendRequestStatus.PENDING) {
+            throw IllegalStateException("이미 처리된 친구 요청입니다: $status")
+        }
+
+        status = FriendRequestStatus.CANCELLED
+        respondedAt = Instant.now()
     }
+
 }

@@ -18,21 +18,27 @@ class FriendGroupDomainService {
     fun rename(
         group: FriendGroup,
         newName: String
-    ): FriendGroup = group.rename(newName)
+    ): FriendGroup {
+        group.rename(newName)
+        return group
+    }
 
     fun updateDescription(
         group: FriendGroup,
         description: String?
-    ): FriendGroup = group.updateDescription(description)
+    ): FriendGroup {
+        group.updateDescription(description)
+        return group
+    }
 
     fun addMember(
         group: FriendGroup,
         memberId: UserId
-    ): FriendGroup = group.addMember(memberId)
+    ): Boolean = group.addMember(memberId)
 
     fun removeMember(
         group: FriendGroup,
         memberId: UserId
-    ): FriendGroup = group.removeMember(memberId)
+    ): Boolean = group.removeMember(memberId)
 
 }

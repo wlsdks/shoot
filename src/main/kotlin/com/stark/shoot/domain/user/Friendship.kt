@@ -12,7 +12,7 @@ data class Friendship(
     val id: FriendshipId? = null,
     val userId: UserId,
     val friendId: UserId,
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant = Instant.now(),
 ) {
     companion object {
         /**

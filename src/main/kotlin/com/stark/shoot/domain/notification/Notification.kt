@@ -16,47 +16,31 @@ import java.time.Instant
  * 알림은 사용자에게 전달되는 메시지로, 다양한 소스(채팅, 친구 요청 등)에서 발생할 수 있습니다.
  * 알림은 읽음 상태와 삭제 상태를 가지며, 이러한 상태 변경은 도메인 로직을 통해 이루어집니다.
  */
-class Notification(
+data class Notification(
     val id: NotificationId? = null,
     val userId: UserId,
-    val title: NotificationTitle,
-    val message: NotificationMessage,
-    val type: NotificationType,
-    val sourceId: String,
-    val sourceType: SourceType,
-    val isRead: Boolean = false,
-    val createdAt: Instant = Instant.now(),
-    val readAt: Instant? = null,
-    val metadata: Map<String, Any> = emptyMap(),
-    val isDeleted: Boolean = false,
-    val deletedAt: Instant? = null
+    var title: NotificationTitle,
+    var message: NotificationMessage,
+    var type: NotificationType,
+    var sourceId: String,
+    var sourceType: SourceType,
+    var isRead: Boolean = false,
+    var createdAt: Instant = Instant.now(),
+    var readAt: Instant? = null,
+    var metadata: Map<String, Any> = emptyMap(),
+    var isDeleted: Boolean = false,
+    var deletedAt: Instant? = null
 ) {
 
     /**
      * 알림을 읽음 처리합니다.
-     *
-     * @return 읽음 처리된 알림 객체
+     * 자신의 상태를 직접 변경합니다.
      */
-    fun markAsRead(): Notification {
-        if (isRead) {
-            return this
+    fun markAsRead() {
+        if (!isRead) {
+            isRead = true
+            readAt = Instant.now()
         }
-
-        return Notification(
-            id = this.id,
-            userId = this.userId,
-            title = this.title,
-            message = this.message,
-            type = this.type,
-            sourceId = this.sourceId,
-            sourceType = this.sourceType,
-            isRead = true,
-            createdAt = this.createdAt,
-            readAt = Instant.now(),
-            metadata = this.metadata,
-            isDeleted = this.isDeleted,
-            deletedAt = this.deletedAt
-        )
     }
 
     /**
@@ -83,29 +67,13 @@ class Notification(
 
     /**
      * 알림을 소프트 삭제 처리합니다.
-     *
-     * @return 삭제 처리된 알림 객체
+     * 자신의 상태를 직접 변경합니다.
      */
-    fun markAsDeleted(): Notification {
-        if (isDeleted) {
-            return this
-        }
-
-        return Notification(
-            id = this.id,
-            userId = this.userId,
-            title = this.title,
-            message = this.message,
-            type = this.type,
-            sourceId = this.sourceId,
-            sourceType = this.sourceType,
-            isRead = this.isRead,
-            createdAt = this.createdAt,
-            readAt = this.readAt,
-            metadata = this.metadata,
-            isDeleted = true,
+    fun markAsDeleted() {
+        if (!isDeleted) {
+            isDeleted = true
             deletedAt = Instant.now()
-        )
+        }
     }
 
     companion object Factory {

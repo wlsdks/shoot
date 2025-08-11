@@ -52,10 +52,10 @@ class NotificationManagementService(
         }
 
         // 도메인 모델의 메서드를 사용하여 읽음 처리
-        val updatedNotification = notification.markAsRead()
+        notification.markAsRead()
 
         // 저장
-        val savedNotification = notificationCommandPort.saveNotification(updatedNotification)
+        val savedNotification = notificationCommandPort.saveNotification(notification)
 
         return savedNotification
     }
@@ -176,8 +176,8 @@ class NotificationManagementService(
         notification.validateOwnership(command.userId)
 
         // 알림 삭제 (소프트 삭제 방식)
-        val deletedNotification = notification.markAsDeleted()
-        notificationCommandPort.saveNotification(deletedNotification)
+        notification.markAsDeleted()
+        notificationCommandPort.saveNotification(notification)
 
         return true
     }

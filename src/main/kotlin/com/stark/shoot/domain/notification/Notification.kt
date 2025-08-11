@@ -24,39 +24,22 @@ class Notification(
     val type: NotificationType,
     val sourceId: String,
     val sourceType: SourceType,
-    val isRead: Boolean = false,
+    var isRead: Boolean = false,
     val createdAt: Instant = Instant.now(),
-    val readAt: Instant? = null,
+    var readAt: Instant? = null,
     val metadata: Map<String, Any> = emptyMap(),
-    val isDeleted: Boolean = false,
-    val deletedAt: Instant? = null
+    var isDeleted: Boolean = false,
+    var deletedAt: Instant? = null
 ) {
 
     /**
      * 알림을 읽음 처리합니다.
-     *
-     * @return 읽음 처리된 알림 객체
      */
-    fun markAsRead(): Notification {
-        if (isRead) {
-            return this
+    fun markAsRead() {
+        if (!isRead) {
+            this.isRead = true
+            this.readAt = Instant.now()
         }
-
-        return Notification(
-            id = this.id,
-            userId = this.userId,
-            title = this.title,
-            message = this.message,
-            type = this.type,
-            sourceId = this.sourceId,
-            sourceType = this.sourceType,
-            isRead = true,
-            createdAt = this.createdAt,
-            readAt = Instant.now(),
-            metadata = this.metadata,
-            isDeleted = this.isDeleted,
-            deletedAt = this.deletedAt
-        )
     }
 
     /**
@@ -83,29 +66,12 @@ class Notification(
 
     /**
      * 알림을 소프트 삭제 처리합니다.
-     *
-     * @return 삭제 처리된 알림 객체
      */
-    fun markAsDeleted(): Notification {
-        if (isDeleted) {
-            return this
+    fun markAsDeleted() {
+        if (!isDeleted) {
+            this.isDeleted = true
+            this.deletedAt = Instant.now()
         }
-
-        return Notification(
-            id = this.id,
-            userId = this.userId,
-            title = this.title,
-            message = this.message,
-            type = this.type,
-            sourceId = this.sourceId,
-            sourceType = this.sourceType,
-            isRead = this.isRead,
-            createdAt = this.createdAt,
-            readAt = this.readAt,
-            metadata = this.metadata,
-            isDeleted = true,
-            deletedAt = Instant.now()
-        )
     }
 
     companion object Factory {

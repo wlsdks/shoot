@@ -20,7 +20,8 @@ class NotificationDomainService {
     fun markNotificationsAsRead(
         notifications: List<Notification>
     ): List<Notification> {
-        return notifications.map { it.markAsRead() }
+        notifications.forEach { it.markAsRead() }
+        return notifications
     }
 
     /**
@@ -32,7 +33,8 @@ class NotificationDomainService {
     fun markNotificationsAsDeleted(
         notifications: List<Notification>
     ): List<Notification> {
-        return notifications.map { it.markAsDeleted() }
+        notifications.forEach { it.markAsDeleted() }
+        return notifications
     }
 
     /**

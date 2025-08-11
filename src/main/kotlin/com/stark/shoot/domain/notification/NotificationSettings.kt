@@ -9,9 +9,9 @@ import java.time.Instant
  */
 data class NotificationSettings(
     val userId: UserId,
-    val preferences: Map<NotificationType, Boolean> = emptyMap(),
-    val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant? = null,
+    var preferences: Map<NotificationType, Boolean> = emptyMap(),
+    var createdAt: Instant = Instant.now(),
+    var updatedAt: Instant? = null,
 ) {
     /** 특정 알림 타입이 활성화되어 있는지 확인한다 */
     fun isEnabled(type: NotificationType): Boolean {
@@ -19,16 +19,18 @@ data class NotificationSettings(
     }
 
     /** 알림 타입의 활성화 여부를 변경한다 */
-    fun updatePreference(type: NotificationType, enabled: Boolean): NotificationSettings {
+    fun updatePreference(type: NotificationType, enabled: Boolean) {
         val updated = preferences.toMutableMap()
         updated[type] = enabled
-        return copy(preferences = updated, updatedAt = Instant.now())
+        preferences = updated
+        updatedAt = Instant.now()
     }
 
     /** 여러 알림 타입의 설정을 한번에 업데이트한다 */
-    fun updateAll(prefs: Map<NotificationType, Boolean>): NotificationSettings {
+    fun updateAll(prefs: Map<NotificationType, Boolean>) {
         val updated = preferences.toMutableMap()
         updated.putAll(prefs)
-        return copy(preferences = updated, updatedAt = Instant.now())
+        preferences = updated
+        updatedAt = Instant.now()
     }
 }

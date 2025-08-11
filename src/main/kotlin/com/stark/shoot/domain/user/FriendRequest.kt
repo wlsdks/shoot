@@ -13,7 +13,7 @@ data class FriendRequest(
     val senderId: UserId,
     val receiverId: UserId,
     var status: FriendRequestStatus = FriendRequestStatus.PENDING,
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant = Instant.now(),
     var respondedAt: Instant? = null,
 ) {
     companion object {
@@ -31,27 +31,50 @@ data class FriendRequest(
             )
         }
     }
+
     /**
      * 친구 요청을 수락합니다.
+     * 자신의 상태를 직접 변경합니다.
+     * 
+     * @throws IllegalStateException 이미 처리된 요청인 경우
      */
     fun accept() {
-        this.status = FriendRequestStatus.ACCEPTED
-        this.respondedAt = Instant.now()
+        if (status != FriendRequestStatus.PENDING) {
+            throw IllegalStateException("이미 처리된 친구 요청입니다: $status")
+        }
+
+        status = FriendRequestStatus.ACCEPTED
+        respondedAt = Instant.now()
     }
 
     /**
      * 친구 요청을 거절합니다.
+     * 자신의 상태를 직접 변경합니다.
+     * 
+     * @throws IllegalStateException 이미 처리된 요청인 경우
      */
     fun reject() {
-        this.status = FriendRequestStatus.REJECTED
-        this.respondedAt = Instant.now()
+        if (status != FriendRequestStatus.PENDING) {
+            throw IllegalStateException("이미 처리된 친구 요청입니다: $status")
+        }
+
+        status = FriendRequestStatus.REJECTED
+        respondedAt = Instant.now()
     }
 
     /**
      * 친구 요청을 취소합니다.
+     * 자신의 상태를 직접 변경합니다.
+     * 
+     * @throws IllegalStateException 이미 처리된 요청인 경우
      */
     fun cancel() {
-        this.status = FriendRequestStatus.CANCELLED
-        this.respondedAt = Instant.now()
+        if (status != FriendRequestStatus.PENDING) {
+            throw IllegalStateException("이미 처리된 친구 요청입니다: $status")
+        }
+
+        status = FriendRequestStatus.CANCELLED
+        respondedAt = Instant.now()
     }
+
 }

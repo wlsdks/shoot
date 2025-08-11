@@ -20,7 +20,7 @@ data class ChatMessage(
     var expiresAt: Instant? = null,
     var messageReactions: MessageReactions = MessageReactions(),
     var mentions: Set<UserId> = emptySet(),
-    val createdAt: Instant? = Instant.now(),
+    var createdAt: Instant? = Instant.now(),
     var updatedAt: Instant? = null,
     var readBy: Map<UserId, Boolean> = emptyMap(),
     var metadata: ChatMessageMetadata = ChatMessageMetadata(),

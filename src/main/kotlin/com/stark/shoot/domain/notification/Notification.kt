@@ -16,29 +16,30 @@ import java.time.Instant
  * 알림은 사용자에게 전달되는 메시지로, 다양한 소스(채팅, 친구 요청 등)에서 발생할 수 있습니다.
  * 알림은 읽음 상태와 삭제 상태를 가지며, 이러한 상태 변경은 도메인 로직을 통해 이루어집니다.
  */
-class Notification(
+data class Notification(
     val id: NotificationId? = null,
     val userId: UserId,
-    val title: NotificationTitle,
-    val message: NotificationMessage,
-    val type: NotificationType,
-    val sourceId: String,
-    val sourceType: SourceType,
+    var title: NotificationTitle,
+    var message: NotificationMessage,
+    var type: NotificationType,
+    var sourceId: String,
+    var sourceType: SourceType,
     var isRead: Boolean = false,
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant = Instant.now(),
     var readAt: Instant? = null,
-    val metadata: Map<String, Any> = emptyMap(),
+    var metadata: Map<String, Any> = emptyMap(),
     var isDeleted: Boolean = false,
     var deletedAt: Instant? = null
 ) {
 
     /**
      * 알림을 읽음 처리합니다.
+     * 자신의 상태를 직접 변경합니다.
      */
     fun markAsRead() {
         if (!isRead) {
-            this.isRead = true
-            this.readAt = Instant.now()
+            isRead = true
+            readAt = Instant.now()
         }
     }
 
@@ -66,11 +67,12 @@ class Notification(
 
     /**
      * 알림을 소프트 삭제 처리합니다.
+     * 자신의 상태를 직접 변경합니다.
      */
     fun markAsDeleted() {
         if (!isDeleted) {
-            this.isDeleted = true
-            this.deletedAt = Instant.now()
+            isDeleted = true
+            deletedAt = Instant.now()
         }
     }
 

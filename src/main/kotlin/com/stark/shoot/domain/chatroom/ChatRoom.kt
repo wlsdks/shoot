@@ -18,7 +18,7 @@ data class ChatRoom(
     var participants: Set<UserId>,
     var lastMessageId: MessageId? = null,
     var lastActiveAt: Instant = Instant.now(),
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant = Instant.now(),
 
     // 필요한 경우에만 남길 선택적 필드
     var announcement: ChatRoomAnnouncement? = null,

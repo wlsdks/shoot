@@ -51,17 +51,17 @@ class FriendGroupService(
         val group = friendGroupQueryPort.findById(command.groupId)
             ?: throw ResourceNotFoundException("그룹을 찾을 수 없습니다: ${command.groupId}")
 
-        val updated = domainService.addMember(group, command.memberId)
+        domainService.addMember(group, command.memberId)
 
-        return friendGroupCommandPort.save(updated)
+        return friendGroupCommandPort.save(group)
     }
 
     override fun removeMember(command: RemoveMemberCommand): FriendGroup {
         val group = friendGroupQueryPort.findById(command.groupId)
             ?: throw ResourceNotFoundException("그룹을 찾을 수 없습니다: ${command.groupId}")
 
-        val updated = domainService.removeMember(group, command.memberId)
-        return friendGroupCommandPort.save(updated)
+        domainService.removeMember(group, command.memberId)
+        return friendGroupCommandPort.save(group)
     }
 
     override fun deleteGroup(command: DeleteGroupCommand) {

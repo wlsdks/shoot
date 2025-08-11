@@ -77,7 +77,7 @@ data class User(
 
     /**
      * 사용자 코드 재생성
-     * 
+     *
      * @return 새로 생성된 사용자 코드
      */
     fun generateUserCode(): UserCode {
@@ -88,19 +88,19 @@ data class User(
 
     /**
      * 사용자 코드를 특정 값으로 변경
-     * 
+     *
      * @param newCode 새로운 유저 코드
      * @param codeValidator 코드 중복 검사 함수
      * @throws IllegalArgumentException 중복된 코드인 경우
      */
     fun changeUserCode(
-        newCode: UserCode, 
+        newCode: UserCode,
         codeValidator: (UserCode) -> Boolean
     ) {
         if (!codeValidator(newCode)) {
-            throw IllegalArgumentException("이미 사용 중인 유저 코드입니다: ${newCode.value}")
+            throw InvalidUserDataException("이미 사용 중인 유저 코드입니다: ${newCode.value}")
         }
-        
+
         this.userCode = newCode
         this.updatedAt = Instant.now()
     }
@@ -108,7 +108,7 @@ data class User(
     /**
      * 사용자 계정 삭제 (소프트 삭제)
      */
-    fun delete() {
+    fun markAsDeleted() {
         this.isDeleted = true
         this.status = UserStatus.OFFLINE
         this.updatedAt = Instant.now()
@@ -118,7 +118,7 @@ data class User(
      * 프로필 정보 업데이트
      *
      * @param nickname 새 닉네임 (null인 경우 기존 값 유지)
-     * @param bio 새 자기소개 (null인 경우 기존 값 유지)  
+     * @param bio 새 자기소개 (null인 경우 기존 값 유지)
      * @param profileImageUrl 새 프로필 이미지 URL (null인 경우 기존 값 유지)
      * @param backgroundImageUrl 새 배경 이미지 URL (null인 경우 기존 값 유지)
      * @throws InvalidUserDataException 유효하지 않은 데이터가 제공된 경우
@@ -134,7 +134,7 @@ data class User(
         bio?.let { this.bio = UserBio.from(it) }
         profileImageUrl?.let { this.profileImageUrl = ProfileImageUrl.from(it) }
         backgroundImageUrl?.let { this.backgroundImageUrl = BackgroundImageUrl.from(it) }
-        
+
         this.updatedAt = Instant.now()
     }
 

@@ -10,9 +10,9 @@ data class ScheduledMessage(
     val id: MessageId? = null,
     val roomId: Long,
     val senderId: Long,
-    val content: MessageContent,
-    val scheduledAt: Instant,
-    val createdAt: Instant = Instant.now(),
-    val status: ScheduledMessageStatus = ScheduledMessageStatus.PENDING,
-    val metadata: ChatMessageMetadata = ChatMessageMetadata()
+    var content: MessageContent,
+    var scheduledAt: Instant,
+    var createdAt: Instant = Instant.now(),
+    var status: ScheduledMessageStatus = ScheduledMessageStatus.PENDING,
+    var metadata: ChatMessageMetadata = ChatMessageMetadata()
 )

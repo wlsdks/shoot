@@ -10,41 +10,47 @@ import java.time.Instant
 data class FriendGroup(
     val id: Long? = null,
     val ownerId: UserId,
-    val name: FriendGroupName,
-    val description: String? = null,
-    val memberIds: Set<UserId> = emptySet(),
-    val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant? = null,
+    var name: FriendGroupName,
+    var description: String? = null,
+    var memberIds: Set<UserId> = emptySet(),
+    var createdAt: Instant = Instant.now(),
+    var updatedAt: Instant? = null,
 ) {
     /** 그룹 이름 변경 */
-    fun rename(newName: String): FriendGroup {
+    fun rename(newName: String) {
         val nameVo = FriendGroupName.from(newName)
-        return copy(name = nameVo, updatedAt = Instant.now())
+        name = nameVo
+        updatedAt = Instant.now()
     }
 
     /** 그룹 설명 업데이트 */
-    fun updateDescription(newDescription: String?): FriendGroup {
-        return copy(description = newDescription, updatedAt = Instant.now())
+    fun updateDescription(newDescription: String?) {
+        description = newDescription
+        updatedAt = Instant.now()
     }
 
     /** 그룹에 멤버 추가 */
-    fun addMember(userId: UserId): FriendGroup {
+    fun addMember(userId: UserId): Boolean {
         if (memberIds.contains(userId)) {
-            return this
+            return false
         }
         val updatedMembers = memberIds.toMutableSet()
         updatedMembers.add(userId)
-        return copy(memberIds = updatedMembers, updatedAt = Instant.now())
+        memberIds = updatedMembers
+        updatedAt = Instant.now()
+        return true
     }
 
     /** 그룹에서 멤버 제거 */
-    fun removeMember(userId: UserId): FriendGroup {
+    fun removeMember(userId: UserId): Boolean {
         if (!memberIds.contains(userId)) {
-            return this
+            return false
         }
         val updatedMembers = memberIds.toMutableSet()
         updatedMembers.remove(userId)
-        return copy(memberIds = updatedMembers, updatedAt = Instant.now())
+        memberIds = updatedMembers
+        updatedAt = Instant.now()
+        return true
     }
 
 }

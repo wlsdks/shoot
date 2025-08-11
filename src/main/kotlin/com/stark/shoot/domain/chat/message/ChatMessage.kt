@@ -249,6 +249,18 @@ data class ChatMessage(
         this.updatedAt = Instant.now()
     }
 
+    /**
+     * 메시지에서 멘션된 사용자들을 추출하고 업데이트합니다.
+     *
+     * @param mentionExtractor 멘션 추출 함수
+     */
+    fun updateMentions(mentionExtractor: (String) -> Set<UserId>) {
+        if (this.content.type == MessageType.TEXT) {
+            this.mentions = mentionExtractor(this.content.text)
+            this.updatedAt = Instant.now()
+        }
+    }
+
     companion object {
 
         /**

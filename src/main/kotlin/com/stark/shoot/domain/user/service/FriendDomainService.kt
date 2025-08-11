@@ -73,7 +73,7 @@ class FriendDomainService {
         friendRequest: FriendRequest
     ): FriendAcceptResult {
         // 친구 요청 상태 변경
-        val updatedRequest = friendRequest.accept()
+        friendRequest.accept()
 
         // 양방향 친구 관계 생성
         val friendship1 = Friendship.create(friendRequest.receiverId, friendRequest.senderId)
@@ -86,7 +86,7 @@ class FriendDomainService {
         )
 
         return FriendAcceptResult(
-            updatedRequest = updatedRequest,
+            updatedRequest = friendRequest,
             friendships = listOf(friendship1, friendship2),
             events = events
         )

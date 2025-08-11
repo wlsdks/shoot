@@ -12,9 +12,9 @@ data class FriendRequest(
     val id: FriendRequestId? = null,
     val senderId: UserId,
     val receiverId: UserId,
-    val status: FriendRequestStatus = FriendRequestStatus.PENDING,
+    var status: FriendRequestStatus = FriendRequestStatus.PENDING,
     val createdAt: Instant = Instant.now(),
-    val respondedAt: Instant? = null,
+    var respondedAt: Instant? = null,
 ) {
     companion object {
         /**
@@ -34,21 +34,24 @@ data class FriendRequest(
     /**
      * 친구 요청을 수락합니다.
      */
-    fun accept(): FriendRequest {
-        return copy(status = FriendRequestStatus.ACCEPTED, respondedAt = Instant.now())
+    fun accept() {
+        this.status = FriendRequestStatus.ACCEPTED
+        this.respondedAt = Instant.now()
     }
 
     /**
      * 친구 요청을 거절합니다.
      */
-    fun reject(): FriendRequest {
-        return copy(status = FriendRequestStatus.REJECTED, respondedAt = Instant.now())
+    fun reject() {
+        this.status = FriendRequestStatus.REJECTED
+        this.respondedAt = Instant.now()
     }
 
     /**
      * 친구 요청을 취소합니다.
      */
-    fun cancel(): FriendRequest {
-        return copy(status = FriendRequestStatus.CANCELLED, respondedAt = Instant.now())
+    fun cancel() {
+        this.status = FriendRequestStatus.CANCELLED
+        this.respondedAt = Instant.now()
     }
 }

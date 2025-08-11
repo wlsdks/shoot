@@ -23,8 +23,8 @@ data class ChatMessage(
     val createdAt: Instant? = Instant.now(),
     val updatedAt: Instant? = null,
     val isDeleted: Boolean = false,
-    val readBy: MutableMap<UserId, Boolean> = mutableMapOf(),
-    var metadata: ChatMessageMetadata = ChatMessageMetadata(),
+    val readBy: Map<UserId, Boolean> = emptyMap(),
+    val metadata: ChatMessageMetadata = ChatMessageMetadata(),
 
     // 메시지 고정기능
     val isPinned: Boolean = false,
@@ -45,8 +45,7 @@ data class ChatMessage(
      * @return 업데이트된 ChatMessage 객체
      */
     fun markAsRead(userId: UserId): ChatMessage {
-        val updatedReadBy = this.readBy.toMutableMap()
-        updatedReadBy[userId] = true
+        val updatedReadBy = this.readBy + (userId to true)
 
         return this.copy(
             readBy = updatedReadBy,

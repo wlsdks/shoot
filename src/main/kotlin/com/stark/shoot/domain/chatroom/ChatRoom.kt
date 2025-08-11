@@ -15,14 +15,14 @@ data class ChatRoom(
     val id: ChatRoomId? = null,
     val title: ChatRoomTitle? = null,
     val type: ChatRoomType,
-    val participants: MutableSet<UserId>,
+    val participants: Set<UserId>,
     val lastMessageId: MessageId? = null,
     val lastActiveAt: Instant = Instant.now(),
     val createdAt: Instant = Instant.now(),
 
     // 필요한 경우에만 남길 선택적 필드
     val announcement: ChatRoomAnnouncement? = null,
-    val pinnedParticipants: MutableSet<UserId> = mutableSetOf(),
+    val pinnedParticipants: Set<UserId> = emptySet(),
     val updatedAt: Instant? = null,
 ) {
     /**
@@ -52,16 +52,16 @@ data class ChatRoom(
         newPinnedParticipants: Set<UserId> = this.pinnedParticipants
     ): ParticipantChanges {
         // 추가할 참여자 (새로운 참여자)
-        val participantsToAdd = newParticipants - this.participants.toSet()
+        val participantsToAdd = newParticipants - this.participants
 
         // 제거할 참여자 (더 이상 참여하지 않는 사용자)
-        val participantsToRemove = this.participants.toSet() - newParticipants
+        val participantsToRemove = this.participants - newParticipants
 
         // 핀 상태가 변경된 참여자
         val pinnedStatusChanges = mutableMapOf<UserId, Boolean>()
 
         // 새 참여자 중 핀 상태 확인
-        (this.participants.toSet() intersect newParticipants).forEach { participantId ->
+        (this.participants intersect newParticipants).forEach { participantId ->
             val wasPinned = this.pinnedParticipants.contains(participantId)
             val isPinned = newPinnedParticipants.contains(participantId)
 
@@ -109,8 +109,8 @@ data class ChatRoom(
                 title = title,
                 type = ChatRoomType.INDIVIDUAL,
                 announcement = null,
-                participants = mutableSetOf(UserId.from(userId), UserId.from(friendId)),
-                pinnedParticipants = mutableSetOf(),
+                participants = setOf(UserId.from(userId), UserId.from(friendId)),
+                pinnedParticipants = emptySet(),
                 lastMessageId = null,
                 lastActiveAt = Instant.now(),
                 createdAt = Instant.now()
@@ -152,10 +152,8 @@ data class ChatRoom(
             return this
         }
 
-        val updatedParticipants = this.participants.toMutableSet()
-        updatedParticipants.add(userId)
         return this.copy(
-            participants = updatedParticipants,
+            participants = participants + userId,
             updatedAt = Instant.now()
         )
     }
@@ -172,10 +170,8 @@ data class ChatRoom(
             return this
         }
 
-        val updatedParticipants = this.participants.toMutableSet()
-        updatedParticipants.remove(userId)
         return this.copy(
-            participants = updatedParticipants,
+            participants = participants - userId,
             updatedAt = Instant.now()
         )
     }
@@ -184,18 +180,14 @@ data class ChatRoom(
      * 여러 참여자 추가
      */
     fun addParticipants(userIds: Collection<UserId>): ChatRoom {
-        val updatedParticipants = this.participants.toMutableSet()
-        updatedParticipants.addAll(userIds)
-        return this.copy(participants = updatedParticipants)
+        return this.copy(participants = participants + userIds)
     }
 
     /**
      * 여러 참여자 제거
      */
     fun removeParticipants(userIds: Collection<UserId>): ChatRoom {
-        val updatedParticipants = this.participants.toMutableSet()
-        updatedParticipants.removeAll(userIds.toSet())
-        return this.copy(participants = updatedParticipants)
+        return this.copy(participants = participants - userIds.toSet())
     }
 
     /**
@@ -248,27 +240,22 @@ data class ChatRoom(
         userId: UserId,
         isFavorite: Boolean,
         userPinnedRoomsCount: Int
-    ): MutableSet<UserId> {
-        val currentPinned = this.pinnedParticipants.toMutableSet()
-        val isAlreadyPinned = currentPinned.contains(userId)
+    ): Set<UserId> {
+        val isAlreadyPinned = pinnedParticipants.contains(userId)
 
-        // 이미 즐겨찾기된 채팅방을 다시 즐겨찾기하려고 하면 제거 (토글 동작)
-        if (isFavorite && isAlreadyPinned) {
-            currentPinned.remove(userId)
-        }
-        // 즐겨찾기 추가 요청이고 아직 즐겨찾기되지 않은 경우
-        else if (isFavorite) {
-            if (userPinnedRoomsCount >= MAX_PINNED) {
-                throw FavoriteLimitExceededException("최대 핀 채팅방 개수를 초과했습니다. (MAX_PINNED=$MAX_PINNED)")
+        return when {
+            // 이미 즐겨찾기된 채팅방을 다시 즐겨찾기하려고 하면 제거 (토글 동작)
+            isFavorite && isAlreadyPinned -> pinnedParticipants - userId
+            // 즐겨찾기 추가 요청이고 아직 즐겨찾기되지 않은 경우
+            isFavorite -> {
+                if (userPinnedRoomsCount >= MAX_PINNED) {
+                    throw FavoriteLimitExceededException("최대 핀 채팅방 개수를 초과했습니다. (MAX_PINNED=$MAX_PINNED)")
+                }
+                pinnedParticipants + userId
             }
-            currentPinned.add(userId)
+            // 즐겨찾기 해제 요청
+            else -> pinnedParticipants - userId
         }
-        // 즐겨찾기 해제 요청
-        else {
-            currentPinned.remove(userId)
-        }
-
-        return currentPinned
     }
 
     /**

@@ -25,7 +25,7 @@ class UserMapper {
 
     fun toDomain(userEntity: UserEntity): User {
         return User(
-            id = userEntity.id?.let { UserId.from(it) },
+            id = userEntity.id?.let(UserId::from),
             username = Username.from(userEntity.username),
             nickname = Nickname.from(userEntity.nickname),
             status = userEntity.status,

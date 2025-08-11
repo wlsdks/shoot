@@ -7,20 +7,20 @@ import java.time.Instant
 
 data class User(
     val id: UserId? = null,
-    var username: Username,
-    var nickname: Nickname,
-    var status: UserStatus = UserStatus.OFFLINE,
-    var passwordHash: String? = null,
-    var userCode: UserCode,
+    val username: Username,
+    val nickname: Nickname,
+    val status: UserStatus = UserStatus.OFFLINE,
+    val passwordHash: String? = null,
+    val userCode: UserCode,
     val createdAt: Instant = Instant.now(),
 
     // 필요한 경우에만 남길 선택적 필드
-    var profileImageUrl: ProfileImageUrl? = null,
-    var backgroundImageUrl: BackgroundImageUrl? = null,
-    var lastSeenAt: Instant? = null,
-    var bio: UserBio? = null,
-    var isDeleted: Boolean = false,
-    var updatedAt: Instant? = null,
+    val profileImageUrl: ProfileImageUrl? = null,
+    val backgroundImageUrl: BackgroundImageUrl? = null,
+    val lastSeenAt: Instant? = null,
+    val bio: UserBio? = null,
+    val isDeleted: Boolean = false,
+    val updatedAt: Instant? = null,
 ) {
 
     companion object {

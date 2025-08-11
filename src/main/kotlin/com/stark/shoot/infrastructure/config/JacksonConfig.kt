@@ -25,7 +25,7 @@ class JacksonConfig {
             return try {
                 UserId.from(key.toLong())
             } catch (e: Exception) {
-                throw ctxt.weirdKeyException(String::class.java, key, "UserId로 변환할 수 없습니다: $key")
+                throw ctxt.weirdKeyException(key::class.java, key, "UserId로 변환할 수 없습니다: $key")
             }
         }
     }

@@ -10,16 +10,10 @@ class ParticipantsConverter : AttributeConverter<List<Long>, String> {
 
     private val mapper = jacksonObjectMapper()
 
-    override fun convertToDatabaseColumn(
-        attribute: List<Long>?
-    ): String {
-        return attribute?.let { mapper.writeValueAsString(it) } ?: "[]"
-    }
+    override fun convertToDatabaseColumn(attribute: List<Long>?): String =
+        attribute?.let { mapper.writeValueAsString(it) } ?: "[]"
 
-    override fun convertToEntityAttribute(
-        dbData: String?
-    ): List<Long> {
-        return dbData?.let { mapper.readValue(it) } ?: emptyList()
-    }
+    override fun convertToEntityAttribute(dbData: String?): List<Long> =
+        dbData?.let { mapper.readValue(it) } ?: emptyList()
 
 }

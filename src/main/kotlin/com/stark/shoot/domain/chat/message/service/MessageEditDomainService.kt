@@ -73,7 +73,8 @@ class MessageEditDomainService {
         }
 
         // 도메인 객체의 메서드를 사용하여 메시지 수정
-        return message.editMessage(newContent)
+        message.editMessage(newContent)
+        return message
     }
 
 }

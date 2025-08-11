@@ -13,17 +13,17 @@ import java.time.format.DateTimeFormatter
 
 data class ChatRoom(
     val id: ChatRoomId? = null,
-    val title: ChatRoomTitle? = null,
+    var title: ChatRoomTitle? = null,
     val type: ChatRoomType,
-    val participants: Set<UserId>,
-    val lastMessageId: MessageId? = null,
-    val lastActiveAt: Instant = Instant.now(),
+    var participants: Set<UserId>,
+    var lastMessageId: MessageId? = null,
+    var lastActiveAt: Instant = Instant.now(),
     val createdAt: Instant = Instant.now(),
 
     // 필요한 경우에만 남길 선택적 필드
-    val announcement: ChatRoomAnnouncement? = null,
-    val pinnedParticipants: Set<UserId> = emptySet(),
-    val updatedAt: Instant? = null,
+    var announcement: ChatRoomAnnouncement? = null,
+    var pinnedParticipants: Set<UserId> = emptySet(),
+    var updatedAt: Instant? = null,
 ) {
     /**
      * 참여자 변경 정보를 담는 데이터 클래스
@@ -122,93 +122,83 @@ data class ChatRoom(
      * 채팅방 정보 업데이트
      */
     fun update(
-        id: ChatRoomId? = this.id,
-        title: ChatRoomTitle? = this.title,
-        type: ChatRoomType = this.type,
-        announcement: ChatRoomAnnouncement? = this.announcement,
-        lastMessageId: MessageId? = this.lastMessageId,
-        lastActiveAt: Instant = this.lastActiveAt
-    ): ChatRoom {
-        return this.copy(
-            id = id,
-            title = title,
-            type = type,
-            announcement = announcement,
-            lastMessageId = lastMessageId,
-            lastActiveAt = lastActiveAt,
-            updatedAt = Instant.now()
-        )
+        title: ChatRoomTitle? = null,
+        announcement: ChatRoomAnnouncement? = null,
+        lastMessageId: MessageId? = null,
+        lastActiveAt: Instant? = null
+    ) {
+        title?.let { this.title = it }
+        announcement?.let { this.announcement = it }
+        lastMessageId?.let { this.lastMessageId = it }
+        lastActiveAt?.let { this.lastActiveAt = it }
+        this.updatedAt = Instant.now()
     }
 
     /**
      * 참여자 추가
      *
      * @param userId 추가할 사용자 ID
-     * @return 업데이트된 ChatRoom 객체 (이미 참여 중인 경우 현재 객체 반환)
+     * @return 추가 성공 여부
      */
-    fun addParticipant(userId: UserId): ChatRoom {
+    fun addParticipant(userId: UserId): Boolean {
         // 이미 참여 중인지 확인
         if (participants.contains(userId)) {
-            return this
+            return false
         }
 
-        return this.copy(
-            participants = participants + userId,
-            updatedAt = Instant.now()
-        )
+        this.participants = participants + userId
+        this.updatedAt = Instant.now()
+        return true
     }
 
     /**
      * 참여자 제거
      *
      * @param userId 제거할 사용자 ID
-     * @return 업데이트된 ChatRoom 객체 (참여자가 아닌 경우 현재 객체 반환)
+     * @return 제거 성공 여부
      */
-    fun removeParticipant(userId: UserId): ChatRoom {
+    fun removeParticipant(userId: UserId): Boolean {
         // 참여자가 아닌 경우
         if (!participants.contains(userId)) {
-            return this
+            return false
         }
 
-        return this.copy(
-            participants = participants - userId,
-            updatedAt = Instant.now()
-        )
+        this.participants = participants - userId
+        this.updatedAt = Instant.now()
+        return true
     }
 
     /**
      * 여러 참여자 추가
      */
-    fun addParticipants(userIds: Collection<UserId>): ChatRoom {
-        return this.copy(participants = participants + userIds)
+    fun addParticipants(userIds: Collection<UserId>) {
+        this.participants = participants + userIds
+        this.updatedAt = Instant.now()
     }
 
     /**
      * 여러 참여자 제거
      */
-    fun removeParticipants(userIds: Collection<UserId>): ChatRoom {
-        return this.copy(participants = participants - userIds.toSet())
+    fun removeParticipants(userIds: Collection<UserId>) {
+        this.participants = participants - userIds.toSet()
+        this.updatedAt = Instant.now()
     }
 
     /**
      * 참여자 목록 업데이트 (기존 참여자 유지하고 새 참여자 추가, 제외된 참여자 제거)
      */
-    fun updateParticipants(newParticipants: Collection<UserId>): ChatRoom {
+    fun updateParticipants(newParticipants: Collection<UserId>) {
         val newParticipantsSet = newParticipants.toSet()
         val participantsToAdd = newParticipantsSet - this.participants
         val participantsToRemove = this.participants - newParticipantsSet
 
-        var updatedChatRoom = this
-
         if (participantsToAdd.isNotEmpty()) {
-            updatedChatRoom = updatedChatRoom.addParticipants(participantsToAdd)
+            this.addParticipants(participantsToAdd)
         }
 
         if (participantsToRemove.isNotEmpty()) {
-            updatedChatRoom = updatedChatRoom.removeParticipants(participantsToRemove)
+            this.removeParticipants(participantsToRemove)
         }
-
-        return updatedChatRoom
     }
 
     /**
@@ -217,15 +207,14 @@ data class ChatRoom(
      * @param userId 사용자 ID
      * @param isFavorite 즐겨찾기 여부
      * @param userPinnedRoomsCount 사용자가 현재 핀한 채팅방 수
-     * @return 업데이트된 ChatRoom 객체
      */
     fun updateFavoriteStatus(
         userId: UserId,
         isFavorite: Boolean,
         userPinnedRoomsCount: Int
-    ): ChatRoom {
-        val updatedPinned = updatePinnedParticipants(userId, isFavorite, userPinnedRoomsCount)
-        return this.copy(pinnedParticipants = updatedPinned)
+    ) {
+        this.pinnedParticipants = updatePinnedParticipants(userId, isFavorite, userPinnedRoomsCount)
+        this.updatedAt = Instant.now()
     }
 
     /**
@@ -262,13 +251,10 @@ data class ChatRoom(
      * 채팅방 공지사항 업데이트
      *
      * @param announcement 새 공지사항 (null인 경우 공지사항 삭제)
-     * @return 업데이트된 ChatRoom 객체
      */
-    fun updateAnnouncement(announcement: ChatRoomAnnouncement?): ChatRoom {
-        return this.copy(
-            announcement = announcement,
-            updatedAt = Instant.now()
-        )
+    fun updateAnnouncement(announcement: ChatRoomAnnouncement?) {
+        this.announcement = announcement
+        this.updatedAt = Instant.now()
     }
 
     /**

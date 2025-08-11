@@ -59,8 +59,7 @@ class ChatMessageMapper {
             mentions = document.mentions.map { UserId.from(it) }.toSet(),
             createdAt = document.createdAt,
             updatedAt = document.updatedAt,
-            isDeleted = document.isDeleted,
-            readBy = document.readBy.mapKeys { UserId.from(it.key) }.toMutableMap(),
+            readBy = document.readBy.mapKeys { UserId.from(it.key) },
             isPinned = document.isPinned,
             pinnedBy = document.pinnedBy?.let { UserId.from(it) },
             pinnedAt = document.pinnedAt

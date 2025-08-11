@@ -26,10 +26,11 @@ class ChatRoomMetadataDomainService {
             ?: throw IllegalArgumentException("메시지 ID가 없습니다.")
 
         // 채팅방 메타데이터 업데이트 (마지막 메시지 ID, 마지막 활동 시간)
-        return chatRoom.update(
+        chatRoom.update(
             lastMessageId = messageId,
             lastActiveAt = Instant.now()
         )
+        return chatRoom
     }
 
 }

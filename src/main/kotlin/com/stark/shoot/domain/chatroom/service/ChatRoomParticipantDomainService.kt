@@ -23,7 +23,8 @@ class ChatRoomParticipantDomainService {
         chatRoom: ChatRoom,
         userId: UserId
     ): ChatRoom {
-        return chatRoom.addParticipant(userId)
+        chatRoom.addParticipant(userId)
+        return chatRoom
     }
 
     /**
@@ -33,9 +34,9 @@ class ChatRoomParticipantDomainService {
         chatRoom: ChatRoom,
         userId: UserId
     ): RemovalResult {
-        val updatedRoom = chatRoom.removeParticipant(userId)
-        val shouldDelete = updatedRoom.shouldBeDeleted()
-        return RemovalResult(updatedRoom, shouldDelete)
+        chatRoom.removeParticipant(userId)
+        val shouldDelete = chatRoom.shouldBeDeleted()
+        return RemovalResult(chatRoom, shouldDelete)
     }
 
     /**
@@ -51,19 +52,18 @@ class ChatRoomParticipantDomainService {
         changes: ChatRoom.ParticipantChanges,
         pinnedCountProvider: (Long) -> Int
     ): ChatRoom {
-        var room = chatRoom
         if (changes.participantsToAdd.isNotEmpty()) {
-            room = room.addParticipants(changes.participantsToAdd)
+            chatRoom.addParticipants(changes.participantsToAdd)
         }
 
         if (changes.participantsToRemove.isNotEmpty()) {
-            room = room.removeParticipants(changes.participantsToRemove)
+            chatRoom.removeParticipants(changes.participantsToRemove)
         }
 
         changes.pinnedStatusChanges.forEach { (userId, isPinned) ->
-            room = room.updateFavoriteStatus(userId, isPinned, pinnedCountProvider(userId.value))
+            chatRoom.updateFavoriteStatus(userId, isPinned, pinnedCountProvider(userId.value))
         }
 
-        return room
+        return chatRoom
     }
 }

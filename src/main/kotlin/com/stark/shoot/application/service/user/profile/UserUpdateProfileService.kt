@@ -30,14 +30,14 @@ class UserUpdateProfileService(
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${command.userId}")
 
         // 도메인 객체의 메서드를 직접 호출하여 프로필 업데이트
-        val updatedUser = user.updateProfile(
+        user.updateProfile(
             nickname = command.nickname?.value,
             bio = command.bio?.value,
             profileImageUrl = command.profileImageUrl?.value,
             backgroundImageUrl = command.backgroundImageUrl?.value
         )
 
-        return userCommandPort.updateUser(updatedUser)
+        return userCommandPort.updateUser(user)
     }
 
     /**
@@ -52,11 +52,11 @@ class UserUpdateProfileService(
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${command.userId}")
 
         // 도메인 객체의 메서드를 직접 호출하여 프로필 이미지 변경
-        val updatedUser = user.changeProfileImage(
+        user.changeProfileImage(
             imageUrl = command.profileImageUrl.value
         )
 
-        return userCommandPort.updateUser(updatedUser)
+        return userCommandPort.updateUser(user)
     }
 
     /**
@@ -71,11 +71,11 @@ class UserUpdateProfileService(
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${command.userId}")
 
         // 도메인 객체의 메서드를 직접 호출하여 배경 이미지 변경
-        val updatedUser = user.changeBackgroundImage(
+        user.changeBackgroundImage(
             imageUrl = command.backgroundImageUrl.value
         )
 
-        return userCommandPort.updateUser(updatedUser)
+        return userCommandPort.updateUser(user)
     }
 
 }

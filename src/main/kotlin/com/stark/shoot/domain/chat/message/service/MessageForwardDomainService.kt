@@ -53,7 +53,6 @@ class MessageForwardDomainService {
             replyToMessageId = null,
             messageReactions = MessageReactions(),
             mentions = emptySet(),
-            isDeleted = false,
             createdAt = Instant.now(),
             updatedAt = null
         )

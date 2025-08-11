@@ -129,7 +129,8 @@ class MessageReadService(
      * 메시지 읽음 상태를 업데이트합니다.
      */
     private fun updateMessageReadStatus(message: ChatMessage, userId: UserId): ChatMessage {
-        return messageCommandPort.save(message.markAsRead(userId))
+        message.markAsRead(userId)
+        return messageCommandPort.save(message)
     }
 
     /**
@@ -270,10 +271,10 @@ class MessageReadService(
         }
 
         // 도메인 객체의 메서드를 사용하여 모든 메시지를 한 번에 업데이트하도록 최적화
-        val markedMessages = messages.map { it.markAsRead(userId) }
+        messages.forEach { it.markAsRead(userId) }
 
         // 일괄 저장으로 DB 쿼리 최소화
-        return messageCommandPort.saveAll(markedMessages)
+        return messageCommandPort.saveAll(messages)
             .mapNotNull { it.id }
             .also { messageIds ->
                 logger.debug { "일괄 읽음 처리 완료: ${messageIds.size}개 메시지, userId=$userId" }

@@ -8,19 +8,19 @@ import java.time.Instant
 data class User(
     val id: UserId? = null,
     val username: Username,
-    val nickname: Nickname,
-    val status: UserStatus = UserStatus.OFFLINE,
-    val passwordHash: String? = null,
-    val userCode: UserCode,
+    var nickname: Nickname,
+    var status: UserStatus = UserStatus.OFFLINE,
+    var passwordHash: String? = null,
+    var userCode: UserCode,
     val createdAt: Instant = Instant.now(),
 
     // 필요한 경우에만 남길 선택적 필드
-    val profileImageUrl: ProfileImageUrl? = null,
-    val backgroundImageUrl: BackgroundImageUrl? = null,
-    val lastSeenAt: Instant? = null,
-    val bio: UserBio? = null,
-    val isDeleted: Boolean = false,
-    val updatedAt: Instant? = null,
+    var profileImageUrl: ProfileImageUrl? = null,
+    var backgroundImageUrl: BackgroundImageUrl? = null,
+    var lastSeenAt: Instant? = null,
+    var bio: UserBio? = null,
+    var isDeleted: Boolean = false,
+    var updatedAt: Instant? = null,
 ) {
 
     companion object {
@@ -76,35 +76,32 @@ data class User(
     }
 
     /**
-     * 사용자 코드 생성
-     *
-     * @return 생성된 8자리 사용자 코드
+     * 사용자 코드 재생성
+     * 
+     * @return 새로 생성된 사용자 코드
      */
     fun generateUserCode(): UserCode {
-        return UserCode.generate()
+        this.userCode = UserCode.generate()
+        this.updatedAt = Instant.now()
+        return this.userCode
     }
 
     /**
      * 사용자 계정 삭제 (소프트 삭제)
-     *
-     * @return 삭제 표시된 User 객체
      */
-    fun delete(): User {
-        return this.copy(
-            isDeleted = true,
-            status = UserStatus.OFFLINE,
-            updatedAt = Instant.now()
-        )
+    fun delete() {
+        this.isDeleted = true
+        this.status = UserStatus.OFFLINE
+        this.updatedAt = Instant.now()
     }
 
     /**
      * 프로필 정보 업데이트
      *
      * @param nickname 새 닉네임 (null인 경우 기존 값 유지)
-     * @param bio 새 자기소개 (null인 경우 기존 값 유지)
+     * @param bio 새 자기소개 (null인 경우 기존 값 유지)  
      * @param profileImageUrl 새 프로필 이미지 URL (null인 경우 기존 값 유지)
      * @param backgroundImageUrl 새 배경 이미지 URL (null인 경우 기존 값 유지)
-     * @return 업데이트된 User 객체
      * @throws InvalidUserDataException 유효하지 않은 데이터가 제공된 경우
      */
     fun updateProfile(
@@ -112,47 +109,34 @@ data class User(
         bio: String? = null,
         profileImageUrl: String? = null,
         backgroundImageUrl: String? = null
-    ): User {
-        // 닉네임 유효성 검증
-        val nicknameVo = nickname?.let { Nickname.from(it) }
-        val bioVo = bio?.let { UserBio.from(it) }
-        val profileUrlVo = profileImageUrl?.let { ProfileImageUrl.from(it) }
-        val backgroundUrlVo = backgroundImageUrl?.let { BackgroundImageUrl.from(it) }
-
-        // 업데이트된 사용자 정보 반환
-        return this.copy(
-            nickname = nicknameVo ?: this.nickname,
-            bio = bioVo ?: this.bio,
-            profileImageUrl = profileUrlVo ?: this.profileImageUrl,
-            backgroundImageUrl = backgroundUrlVo ?: this.backgroundImageUrl,
-            updatedAt = Instant.now()
-        )
+    ) {
+        // 유효성 검증 및 업데이트
+        nickname?.let { this.nickname = Nickname.from(it) }
+        bio?.let { this.bio = UserBio.from(it) }
+        profileImageUrl?.let { this.profileImageUrl = ProfileImageUrl.from(it) }
+        backgroundImageUrl?.let { this.backgroundImageUrl = BackgroundImageUrl.from(it) }
+        
+        this.updatedAt = Instant.now()
     }
 
     /**
      * 프로필 이미지 변경
      *
      * @param imageUrl 새 프로필 이미지 URL
-     * @return 업데이트된 User 객체
      */
-    fun changeProfileImage(imageUrl: String): User {
-        return this.copy(
-            profileImageUrl = ProfileImageUrl.from(imageUrl),
-            updatedAt = Instant.now()
-        )
+    fun changeProfileImage(imageUrl: String) {
+        this.profileImageUrl = ProfileImageUrl.from(imageUrl)
+        this.updatedAt = Instant.now()
     }
 
     /**
      * 배경 이미지 변경
      *
      * @param imageUrl 새 배경 이미지 URL
-     * @return 업데이트된 User 객체
      */
-    fun changeBackgroundImage(imageUrl: String): User {
-        return this.copy(
-            backgroundImageUrl = BackgroundImageUrl.from(imageUrl),
-            updatedAt = Instant.now()
-        )
+    fun changeBackgroundImage(imageUrl: String) {
+        this.backgroundImageUrl = BackgroundImageUrl.from(imageUrl)
+        this.updatedAt = Instant.now()
     }
 
 }

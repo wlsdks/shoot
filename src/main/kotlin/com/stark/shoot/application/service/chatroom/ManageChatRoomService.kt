@@ -114,10 +114,10 @@ class ManageChatRoomService(
 
         withChatRoom(roomId) { chatRoom ->
             // 공지사항 업데이트 (도메인 객체의 메서드 사용)
-            val updatedRoom = chatRoom.updateAnnouncement(announcement)
+            chatRoom.updateAnnouncement(announcement)
 
             // 결과 반환 (업데이트된 채팅방과 Unit 결과)
-            Pair(updatedRoom, Unit)
+            Pair(chatRoom, Unit)
         }
     }
 
@@ -133,10 +133,10 @@ class ManageChatRoomService(
 
         return withChatRoom(roomId) { chatRoom ->
             // 제목 업데이트 (도메인 객체의 update 메서드 사용)
-            val updatedRoom = chatRoom.update(title = title)
+            chatRoom.update(title = title)
 
             // 결과 반환 (업데이트된 채팅방과 성공 여부)
-            Pair(updatedRoom, true)
+            Pair(chatRoom, true)
         }
     }
 

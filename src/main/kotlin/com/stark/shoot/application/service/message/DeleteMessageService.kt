@@ -32,8 +32,8 @@ class DeleteMessageService(
                 }
 
             // 도메인 객체의 메서드를 사용하여 메시지 삭제 상태로 변경
-            val deletedMessage = existingMessage.markAsDeleted()
-            val savedMessage = messageCommandPort.save(deletedMessage)
+            existingMessage.markAsDeleted()
+            val savedMessage = messageCommandPort.save(existingMessage)
 
             // 채팅방의 모든 참여자에게 메시지 삭제 알림
             webSocketMessageBroker.sendMessage(

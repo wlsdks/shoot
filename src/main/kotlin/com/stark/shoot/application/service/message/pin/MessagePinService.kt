@@ -76,10 +76,10 @@ class MessagePinService(
         }
 
         // 도메인 객체의 메서드를 사용하여 메시지 고정 상태 업데이트
-        val updatedMessage = message.updatePinStatus(false)
+        message.updatePinStatus(false)
 
         // 메시지 저장
-        val savedMessage = messageCommandPort.save(updatedMessage)
+        val savedMessage = messageCommandPort.save(message)
 
         // WebSocket을 통해 실시간 업데이트 전송
         sendPinStatusToClients(savedMessage, command.userId, false)

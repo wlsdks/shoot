@@ -13,24 +13,29 @@ data class ChatMessage(
     val id: MessageId? = null,
     val roomId: ChatRoomId,
     val senderId: UserId,
-    val content: MessageContent,
-    val status: MessageStatus,
-    val replyToMessageId: MessageId? = null,
-    val threadId: MessageId? = null,
-    val expiresAt: Instant? = null,
-    val messageReactions: MessageReactions = MessageReactions(),
-    val mentions: Set<UserId> = emptySet(),
+    var content: MessageContent,
+    var status: MessageStatus,
+    var replyToMessageId: MessageId? = null,
+    var threadId: MessageId? = null,
+    var expiresAt: Instant? = null,
+    var messageReactions: MessageReactions = MessageReactions(),
+    var mentions: Set<UserId> = emptySet(),
     val createdAt: Instant? = Instant.now(),
-    val updatedAt: Instant? = null,
-    val isDeleted: Boolean = false,
-    val readBy: Map<UserId, Boolean> = emptyMap(),
-    val metadata: ChatMessageMetadata = ChatMessageMetadata(),
+    var updatedAt: Instant? = null,
+    var readBy: Map<UserId, Boolean> = emptyMap(),
+    var metadata: ChatMessageMetadata = ChatMessageMetadata(),
 
     // 메시지 고정기능
-    val isPinned: Boolean = false,
-    val pinnedBy: UserId? = null,
-    val pinnedAt: Instant? = null
+    var isPinned: Boolean = false,
+    var pinnedBy: UserId? = null,
+    var pinnedAt: Instant? = null
 ) {
+    /**
+     * 메시지 삭제 상태 (하위 호환성용)
+     * content.isDeleted로 위임
+     */
+    val isDeleted: Boolean
+        get() = content.isDeleted
     /**
      * 메시지의 반응 맵을 반환합니다.
      * 이는 하위 호환성을 위한 속성입니다.
@@ -42,15 +47,10 @@ data class ChatMessage(
      * 메시지 읽음 상태 업데이트
      *
      * @param userId 사용자 ID
-     * @return 업데이트된 ChatMessage 객체
      */
-    fun markAsRead(userId: UserId): ChatMessage {
-        val updatedReadBy = this.readBy + (userId to true)
-
-        return this.copy(
-            readBy = updatedReadBy,
-            metadata = this.metadata.copy(readAt = Instant.now())
-        )
+    fun markAsRead(userId: UserId) {
+        this.readBy = this.readBy + (userId to true)
+        this.metadata = this.metadata.copy(readAt = Instant.now())
     }
 
     /**
@@ -67,10 +67,10 @@ data class ChatMessage(
      * 메시지 만료 시간을 설정합니다.
      *
      * @param instant 만료 시각
-     * @return 업데이트된 ChatMessage 객체
      */
-    fun setExpiration(instant: Instant?): ChatMessage {
-        return this.copy(expiresAt = instant, updatedAt = Instant.now())
+    fun setExpiration(instant: Instant?) {
+        this.expiresAt = instant
+        this.updatedAt = Instant.now()
     }
 
     /**
@@ -78,27 +78,21 @@ data class ChatMessage(
      *
      * @param isPinned 고정 여부
      * @param userId 고정/해제한 사용자 ID (고정 시에만 사용)
-     * @return 업데이트된 ChatMessage 객체
      */
     fun updatePinStatus(
         isPinned: Boolean,
         userId: UserId? = null
-    ): ChatMessage {
-        return if (isPinned) {
-            this.copy(
-                isPinned = true,
-                pinnedBy = userId,
-                pinnedAt = Instant.now(),
-                updatedAt = Instant.now()
-            )
+    ) {
+        if (isPinned) {
+            this.isPinned = true
+            this.pinnedBy = userId
+            this.pinnedAt = Instant.now()
         } else {
-            this.copy(
-                isPinned = false,
-                pinnedBy = null,
-                pinnedAt = null,
-                updatedAt = Instant.now()
-            )
+            this.isPinned = false
+            this.pinnedBy = null
+            this.pinnedAt = null
         }
+        this.updatedAt = Instant.now()
     }
 
     /**
@@ -119,12 +113,12 @@ data class ChatMessage(
         }
 
         // 새 메시지 고정
-        val pinnedMessage = this.updatePinStatus(true, userId)
+        this.updatePinStatus(true, userId)
 
-        // 기존 고정 메시지가 있으면 해제 정보 반환
-        val messageToUnpin = currentPinnedMessage?.updatePinStatus(false)
+        // 기존 고정 메시지가 있으면 해제
+        currentPinnedMessage?.updatePinStatus(false)
 
-        return PinMessageResult(pinnedMessage, messageToUnpin)
+        return PinMessageResult(this, currentPinnedMessage)
     }
 
     /**
@@ -132,10 +126,9 @@ data class ChatMessage(
      * 텍스트 타입의 메시지만 수정 가능합니다.
      *
      * @param newContent 새로운 메시지 내용
-     * @return 업데이트된 ChatMessage 객체
      * @throws IllegalArgumentException 메시지 내용이 비어있거나, 이미 삭제된 메시지이거나, 텍스트 타입이 아닌 경우
      */
-    fun editMessage(newContent: String): ChatMessage {
+    fun editMessage(newContent: String) {
         // 내용 유효성 검사
         if (newContent.isBlank()) {
             throw IllegalArgumentException("메시지 내용은 비어있을 수 없습니다.")
@@ -152,34 +145,20 @@ data class ChatMessage(
         }
 
         // 내용 업데이트 및 편집 여부 설정
-        val updatedContent = this.content.copy(
+        this.content = this.content.copy(
             text = newContent,
             isEdited = true
         )
-
-        // 업데이트된 메시지 생성
-        return this.copy(
-            content = updatedContent,
-            updatedAt = Instant.now()
-        )
+        this.updatedAt = Instant.now()
     }
 
     /**
      * 메시지를 삭제 상태로 변경합니다.
-     *
-     * @return 업데이트된 ChatMessage 객체
      */
-    fun markAsDeleted(): ChatMessage {
+    fun markAsDeleted() {
         // 삭제 상태로 변경 (isDeleted 플래그 설정)
-        val updatedContent = this.content.copy(
-            isDeleted = true
-        )
-
-        // 업데이트된 메시지 생성
-        return this.copy(
-            content = updatedContent,
-            updatedAt = Instant.now()
-        )
+        this.content = this.content.copy(isDeleted = true)
+        this.updatedAt = Instant.now()
     }
 
     /**
@@ -198,7 +177,6 @@ data class ChatMessage(
         val userExistingReactionType = messageReactions.findUserExistingReactionType(userId.value)
 
         // 토글 처리 결과 변수
-        val updatedReactions: MessageReactions
         val isAdded: Boolean
         val previousReactionType: String?
         val isReplacement: Boolean
@@ -207,7 +185,7 @@ data class ChatMessage(
         when {
             // 1. 같은 리액션을 선택한 경우: 제거
             userExistingReactionType == reactionType.code -> {
-                updatedReactions = messageReactions.removeReaction(userId.value, reactionType.code)
+                this.messageReactions = messageReactions.removeReaction(userId.value, reactionType.code)
                 isAdded = false
                 previousReactionType = null
                 isReplacement = false
@@ -216,7 +194,7 @@ data class ChatMessage(
             // 2. 다른 리액션이 이미 있는 경우: 기존 리액션 제거 후 새 리액션 추가
             userExistingReactionType != null -> {
                 val reactionsAfterRemove = messageReactions.removeReaction(userId.value, userExistingReactionType)
-                updatedReactions = reactionsAfterRemove.addReaction(userId.value, reactionType.code)
+                this.messageReactions = reactionsAfterRemove.addReaction(userId.value, reactionType.code)
                 isAdded = true
                 previousReactionType = userExistingReactionType
                 isReplacement = true
@@ -224,23 +202,19 @@ data class ChatMessage(
 
             // 3. 리액션이 없는 경우: 새 리액션 추가
             else -> {
-                updatedReactions = messageReactions.addReaction(userId.value, reactionType.code)
+                this.messageReactions = messageReactions.addReaction(userId.value, reactionType.code)
                 isAdded = true
                 previousReactionType = null
                 isReplacement = false
             }
         }
 
-        // 업데이트된 메시지 생성
-        val updatedMessage = this.copy(
-            messageReactions = updatedReactions,
-            updatedAt = Instant.now()
-        )
+        this.updatedAt = Instant.now()
 
         // ReactionToggleResult 반환
         return ReactionToggleResult(
-            reactions = updatedReactions,
-            message = updatedMessage,
+            reactions = this.messageReactions,
+            message = this,
             userId = userId,
             reactionType = reactionType.code,
             isAdded = isAdded,
@@ -253,36 +227,26 @@ data class ChatMessage(
      * URL 미리보기 정보를 설정합니다.
      *
      * @param urlPreview URL 미리보기 정보
-     * @return 업데이트된 ChatMessage 객체
      */
-    fun setUrlPreview(urlPreview: ChatMessageMetadata.UrlPreview): ChatMessage {
-        val updatedMetadata = this.metadata.copy(
+    fun setUrlPreview(urlPreview: ChatMessageMetadata.UrlPreview) {
+        this.metadata = this.metadata.copy(
             urlPreview = urlPreview,
             needsUrlPreview = false
         )
-
-        return this.copy(
-            metadata = updatedMetadata,
-            updatedAt = Instant.now()
-        )
+        this.updatedAt = Instant.now()
     }
 
     /**
      * URL 미리보기가 필요함을 표시합니다.
      *
      * @param url 미리보기가 필요한 URL
-     * @return 업데이트된 ChatMessage 객체
      */
-    fun markNeedsUrlPreview(url: String): ChatMessage {
-        val updatedMetadata = this.metadata.copy(
+    fun markNeedsUrlPreview(url: String) {
+        this.metadata = this.metadata.copy(
             needsUrlPreview = true,
             previewUrl = url
         )
-
-        return this.copy(
-            metadata = updatedMetadata,
-            updatedAt = Instant.now()
-        )
+        this.updatedAt = Instant.now()
     }
 
     companion object {
@@ -354,13 +318,15 @@ data class ChatMessage(
             val url = urls.first()
             val cachedPreview = getCachedPreview(url)
 
-            return if (cachedPreview != null) {
+            if (cachedPreview != null) {
                 // 캐시된 미리보기가 있으면 설정
                 message.setUrlPreview(cachedPreview)
             } else {
                 // 캐시된 미리보기가 없으면 필요함을 표시
                 message.markNeedsUrlPreview(url)
             }
+            
+            return message
         }
 
     }

@@ -127,7 +127,8 @@ class HandleMessageEventService(
 
         // 보낸 사람은 메시지를 읽은 것으로 표시
         if (savedMessage.readBy[savedMessage.senderId] != true) {
-            savedMessage = saveMessagePort.save(savedMessage.markAsRead(savedMessage.senderId))
+            savedMessage.markAsRead(savedMessage.senderId)
+            savedMessage = saveMessagePort.save(savedMessage)
         }
 
         // 채팅방의 마지막 읽은 메시지 ID 업데이트

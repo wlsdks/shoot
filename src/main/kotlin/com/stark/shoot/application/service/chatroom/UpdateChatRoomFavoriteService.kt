@@ -36,13 +36,13 @@ class UpdateChatRoomFavoriteService(
         val pinnedRooms = chatRoomQueryPort.findByUserId(userId)
 
         // 도메인 객체에서 즐겨찾기 상태 업데이트 (비즈니스 로직은 도메인 객체 내부에서 처리)
-        val updatedChatRoom = chatRoom.updateFavoriteStatus(
+        chatRoom.updateFavoriteStatus(
             userId = userId,
             isFavorite = isFavorite,
             userPinnedRoomsCount = pinnedRooms.size
         )
 
-        val saved = chatRoomCommandPort.save(updatedChatRoom)
+        val saved = chatRoomCommandPort.save(chatRoom)
         return ChatRoomResponse.from(saved, userId.value)
     }
 

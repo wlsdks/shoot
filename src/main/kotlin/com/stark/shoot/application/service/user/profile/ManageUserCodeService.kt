@@ -29,15 +29,14 @@ class ManageUserCodeService(
         val user = userQueryPort.findUserById(command.userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${command.userId}")
 
-        // 중복 코드 확인
-        val existingUserWithCode = userQueryPort.findByUserCode(command.newCode)
-        if (existingUserWithCode != null && existingUserWithCode.id != command.userId) {
-            throw DuplicateResourceException("이미 사용 중인 유저 코드입니다: ${command.newCode}")
+        // 도메인 객체에 코드 변경 위임 (중복 검사 포함)
+        user.changeUserCode(command.newCode) { newCode ->
+            val existingUser = userQueryPort.findByUserCode(newCode)
+            existingUser == null || existingUser.id == command.userId
         }
 
-        // 유저 코드 업데이트
-        val updatedUser = user.copy(id = user.id, userCode = command.newCode)
-        updateUserCodePort.updateUserCode(updatedUser)
+        // 업데이트된 사용자 저장
+        updateUserCodePort.updateUserCode(user)
     }
 
     /**
@@ -50,12 +49,11 @@ class ManageUserCodeService(
         val user = userQueryPort.findUserById(command.userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${command.userId}")
 
-        // 새로운 랜덤 코드 생성
-        val randomCode = user.generateUserCode()
+        // 도메인 객체에 코드 재생성 위임
+        user.generateUserCode()
 
-        // 유저 코드 업데이트
-        val updatedUser = user.copy(id = user.id, userCode = randomCode)
-        userCommandPort.updateUser(updatedUser)
+        // 업데이트된 사용자 저장
+        userCommandPort.updateUser(user)
     }
 
 }

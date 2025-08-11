@@ -87,6 +87,25 @@ data class User(
     }
 
     /**
+     * 사용자 코드를 특정 값으로 변경
+     * 
+     * @param newCode 새로운 유저 코드
+     * @param codeValidator 코드 중복 검사 함수
+     * @throws IllegalArgumentException 중복된 코드인 경우
+     */
+    fun changeUserCode(
+        newCode: UserCode, 
+        codeValidator: (UserCode) -> Boolean
+    ) {
+        if (!codeValidator(newCode)) {
+            throw IllegalArgumentException("이미 사용 중인 유저 코드입니다: ${newCode.value}")
+        }
+        
+        this.userCode = newCode
+        this.updatedAt = Instant.now()
+    }
+
+    /**
      * 사용자 계정 삭제 (소프트 삭제)
      */
     fun delete() {

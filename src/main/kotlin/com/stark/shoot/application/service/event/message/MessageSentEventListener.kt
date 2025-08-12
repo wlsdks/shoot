@@ -57,11 +57,16 @@ class MessageSentEventListener(
                 )
 
                 // 개별 사용자에게 채팅방 목록 업데이트 전송
-                // todo: 일단은 전부 다 보내지만, 나중에 채팅방 내부에 있는 사용자는 안보내도 되도록 개선할 수 있음
+                // 비동기 전송으로 성능 최적화
                 webSocketMessageBroker.sendMessage(
                     "/topic/user/${participantId.value}/chatrooms",
-                    chatRoomUpdate
-                )
+                    chatRoomUpdate,
+                    retryCount = 2 // 채팅방 목록 업데이트는 재시도 횟수 축소
+                ).whenComplete { success, throwable ->
+                    if (!success || throwable != null) {
+                        logger.warn { "Failed to send chatroom update to user ${participantId.value}: ${throwable?.message}" }
+                    }
+                }
             } catch (e: Exception) {
                 logger.error(e) { "Failed to update chat room list for user ${participantId.value}" }
             }
@@ -81,9 +86,9 @@ class MessageSentEventListener(
         if (userId == senderId) return 0
 
         return try {
-            // MongoDB count 쿼리를 사용한 최적화된 안읽은 메시지 개수 조회
             messageQueryPort.countUnreadMessages(userId, roomId)
         } catch (e: Exception) {
+            logger.warn(e) { "Failed to count unread messages for user $userId in room $roomId" }
             0
         }
     }

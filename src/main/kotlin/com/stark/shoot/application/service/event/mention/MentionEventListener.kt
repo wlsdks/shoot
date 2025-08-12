@@ -20,24 +20,38 @@ class MentionEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMention(event: MentionEvent) {
-        event.mentionedUserIds.forEach { userId ->
-            val mentionNotification = mapOf(
-                "type" to "MENTION",
-                "roomId" to event.roomId.value,
-                "messageId" to event.messageId.value,
-                "senderName" to event.senderName,
-                "content" to event.messageContent,
-                "timestamp" to event.timestamp.toString()
-            )
+        val mentionNotification = mapOf(
+            "type" to "MENTION",
+            "roomId" to event.roomId.value,
+            "messageId" to event.messageId.value,
+            "senderName" to event.senderName,
+            "content" to event.messageContent,
+            "timestamp" to event.timestamp.toString()
+        )
+        
+        var successCount = 0
+        var failureCount = 0
 
+        event.mentionedUserIds.forEach { userId ->
             // 개별 사용자에게 멘션 알림 전송
             webSocketMessageBroker.sendMessage(
                 "/topic/user/${userId.value}/notifications",
-                mentionNotification
-            )
+                mentionNotification,
+                retryCount = 2 // 멘션은 중요한 알림이므로 재시도
+            ).whenComplete { success, throwable ->
+                if (success) {
+                    successCount++
+                } else {
+                    failureCount++
+                    logger.warn { "Failed to send mention notification to user ${userId.value}: ${throwable?.message}" }
+                }
+                
+                // 모든 전솨이 완료되면 로그 출력
+                if (successCount + failureCount == event.mentionedUserIds.size) {
+                    logger.info { "Mention notifications completed: $successCount success, $failureCount failure" }
+                }
+            }
         }
-
-        logger.info { "Mention notifications sent to ${event.mentionedUserIds.size} users" }
     }
 
 }

@@ -30,10 +30,15 @@ class ReactionEventListener(
         // 채팅방의 모든 사용자에게 반응 업데이트 전송
         webSocketMessageBroker.sendMessage(
             "/topic/chat/${event.roomId.value}/reactions",
-            reactionUpdate
-        )
-
-        logger.debug { "Reaction update sent for message ${event.messageId.value}" }
+            reactionUpdate,
+            retryCount = 1 // 반응은 실시간성이 중요하므로 재시도 최소화
+        ).whenComplete { success, throwable ->
+            if (success) {
+                logger.debug { "Reaction update sent for message ${event.messageId.value}" }
+            } else {
+                logger.warn { "Failed to send reaction update for message ${event.messageId.value}: ${throwable?.message}" }
+            }
+        }
     }
 
 }

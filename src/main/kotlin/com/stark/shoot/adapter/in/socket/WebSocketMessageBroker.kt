@@ -54,6 +54,10 @@ class WebSocketMessageBroker(
                         else -> "WebSocket 메시지 전송 실패"
                     }
                     logger.error(e) { "$errorMessage: $destination, 시도 횟수: $attempt" }
+                    
+                    if (attempt < retryCount) {
+                        delay(1000L * attempt) // 지수 백오프
+                    }
                 }
             }
 
@@ -65,6 +69,7 @@ class WebSocketMessageBroker(
                     }
                     val value = objectMapper.writeValueAsString(payload)
                     redisTemplate.opsForValue().set(key, value, 24, TimeUnit.HOURS)
+                    logger.warn { "WebSocket 전송 실패로 Redis에 저장: $key" }
                 } catch (e: Exception) {
                     logger.error(e) { "Redis에 실패한 메시지 저장 중 오류 발생" }
                 }
@@ -81,7 +86,10 @@ class WebSocketMessageBroker(
         return result
     }
 
-    // 새로 추가하는 메서드
+    /**
+     * 특정 사용자에게 메시지 전송
+     * 재시도 로직과 지수 백오프 적용
+     */
     fun sendToUser(
         userId: String,
         destination: String,
@@ -122,13 +130,22 @@ class WebSocketMessageBroker(
                 }
             }
 
+            result.complete(success)
+            
             if (success) {
-                result.complete(true)
-                logger.info { "사용자에게 메시지 전송 완료: userId=$userId, destination=$destination" }
+                logger.debug { "사용자에게 메시지 전송 완료: userId=$userId, destination=$destination" }
             } else {
-                result.complete(false)
                 logger.error {
                     "사용자 메시지 전송 최종 실패: userId=$userId, destination=$destination, 총 시도 횟수=$attempt"
+                }
+                // 실패한 메시지를 Redis에 저장
+                try {
+                    val key = "failed-user-message:$userId:${System.currentTimeMillis()}"
+                    val value = objectMapper.writeValueAsString(payload)
+                    redisTemplate.opsForValue().set(key, value, 24, TimeUnit.HOURS)
+                    logger.warn { "사용자 메시지 전송 실패로 Redis에 저장: $key" }
+                } catch (e: Exception) {
+                    logger.error(e) { "Redis에 실패한 사용자 메시지 저장 중 오류 발생" }
                 }
             }
         }

@@ -25,20 +25,23 @@ class JwtAuthFilter(
         val token = extractToken(request)
 
         // 2) 토큰이 존재하면 인증 시도
-        token?.let { 
-            try {
-                val authentication = jwtAuthenticationService.authenticateToken(it)
-                SecurityContextHolder.getContext().authentication = authentication
-                logger.debug { "JWT authentication successful for request to ${request.requestURI}" }
-            } catch (ex: JwtAuthenticationException) {
-                logger.error { "JWT authentication failed: ${ex.message} for request to ${request.requestURI}" }
-                if (isProtectedEndpoint(request)) {
-                    logger.warn { "Failed JWT authentication attempt to protected endpoint: ${request.requestURI}" }
+        when {
+            token != null -> {
+                try {
+                    val authentication = jwtAuthenticationService.authenticateToken(token)
+                    SecurityContextHolder.getContext().authentication = authentication
+                    logger.debug { "JWT authentication successful for request to ${request.requestURI}" }
+                } catch (ex: JwtAuthenticationException) {
+                    logger.error { "JWT authentication failed: ${ex.message} for request to ${request.requestURI}" }
+                    if (isProtectedEndpoint(request)) {
+                        logger.warn { "Failed JWT authentication attempt to protected endpoint: ${request.requestURI}" }
+                    }
+                } catch (ex: Exception) {
+                    logger.error { "JWT authentication failed: ${ex.message} for request to ${request.requestURI}" }
                 }
-            } catch (ex: Exception) {
-                logger.error { "JWT authentication failed: ${ex.message} for request to ${request.requestURI}" }
             }
-        } ?: logger.debug { "No JWT token found in request to ${request.requestURI}" }
+            else -> logger.debug { "No JWT token found in request to ${request.requestURI}" }
+        }
 
         filterChain.doFilter(request, response)
     }
@@ -57,7 +60,7 @@ class JwtAuthFilter(
             // 필요에 따라 추가
         )
 
-        return protectedPatterns.any { pattern -> path.startsWith(pattern) }
+        return protectedPatterns.any { path.startsWith(it) }
     }
 
     /**

@@ -44,7 +44,9 @@ class ExceptionHandlingAspect {
             // 예외 변환
             throw when (e) {
                 is MethodArgumentNotValidException -> {
-                    val errors = e.bindingResult.fieldErrors.joinToString("; ") { "${it.field}: ${it.defaultMessage}" }
+                    val errors = e.bindingResult.fieldErrors.joinToString("; ") { 
+                        "${it.field}: ${it.defaultMessage}" 
+                    }
                     ApiException("유효하지 않은 입력: $errors", ErrorCode.INVALID_INPUT, e)
                 }
                 is MethodArgumentTypeMismatchException ->

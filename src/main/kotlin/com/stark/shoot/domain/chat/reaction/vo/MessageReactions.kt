@@ -13,9 +13,7 @@ data class MessageReactions(
          *
          * @return 빈 MessageReactions 객체
          */
-        fun create(): MessageReactions {
-            return MessageReactions()
-        }
+        fun create(): MessageReactions = MessageReactions()
 
         /**
          * 초기 반응이 있는 메시지 반응 객체 생성
@@ -27,11 +25,9 @@ data class MessageReactions(
         fun createWithInitialReaction(
             reactionType: String,
             userId: Long
-        ): MessageReactions {
-            return MessageReactions(
-                reactions = mapOf(reactionType to setOf(userId))
-            )
-        }
+        ): MessageReactions = MessageReactions(
+            reactions = mapOf(reactionType to setOf(userId))
+        )
     }
 
     /**
@@ -49,7 +45,7 @@ data class MessageReactions(
         val updatedUsers = currentUsers + userId
         val updatedReactions = reactions + (reactionType to updatedUsers)
         
-        return this.copy(reactions = updatedReactions)
+        return copy(reactions = updatedReactions)
     }
 
     /**
@@ -72,7 +68,7 @@ data class MessageReactions(
             reactions + (reactionType to updatedUsers)
         }
         
-        return this.copy(reactions = updatedReactions)
+        return copy(reactions = updatedReactions)
     }
 
     /**

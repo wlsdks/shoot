@@ -33,7 +33,7 @@ data class ChatRoom(
         val participantsToRemove: Set<UserId> = emptySet(),
         val pinnedStatusChanges: Map<UserId, Boolean> = emptyMap()
     ) {
-        fun isEmpty(): Boolean = 
+        fun isEmpty(): Boolean =
             participantsToAdd.isEmpty() && participantsToRemove.isEmpty() && pinnedStatusChanges.isEmpty()
     }
 
@@ -58,9 +58,9 @@ data class ChatRoom(
         val pinnedStatusChanges = mutableMapOf<UserId, Boolean>()
 
         // 새 참여자 중 핀 상태 확인
-        (this.participants intersect newParticipants).forEach { participantId ->
-            val wasPinned = this.pinnedParticipants.contains(participantId)
-            val isPinned = newPinnedParticipants.contains(participantId)
+        (participants intersect newParticipants).forEach { participantId ->
+            val wasPinned = participantId in pinnedParticipants
+            val isPinned = participantId in newPinnedParticipants
 
             if (wasPinned != isPinned) {
                 pinnedStatusChanges[participantId] = isPinned
@@ -69,7 +69,7 @@ data class ChatRoom(
 
         // 새로 추가되는 참여자 중 핀 상태인 참여자 추가
         participantsToAdd.forEach { participantId ->
-            if (newPinnedParticipants.contains(participantId)) {
+            if (participantId in newPinnedParticipants) {
                 pinnedStatusChanges[participantId] = true
             }
         }
@@ -152,10 +152,7 @@ data class ChatRoom(
      * @return 추가 성공 여부
      */
     fun addParticipant(userId: UserId): Boolean {
-        // 이미 참여 중인지 확인
-        if (participants.contains(userId)) {
-            return false
-        }
+        if (userId in participants) return false
 
         this.participants = participants + userId
         this.updatedAt = Instant.now()
@@ -169,10 +166,7 @@ data class ChatRoom(
      * @return 제거 성공 여부
      */
     fun removeParticipant(userId: UserId): Boolean {
-        // 참여자가 아닌 경우
-        if (!participants.contains(userId)) {
-            return false
-        }
+        if (userId !in participants) return false
 
         this.participants = participants - userId
         this.updatedAt = Instant.now()
@@ -241,7 +235,7 @@ data class ChatRoom(
         isFavorite: Boolean,
         userPinnedRoomsCount: Int
     ): Set<UserId> {
-        val isAlreadyPinned = pinnedParticipants.contains(userId)
+        val isAlreadyPinned = userId in pinnedParticipants
 
         return when {
             // 이미 즐겨찾기된 채팅방을 다시 즐겨찾기하려고 하면 제거 (토글 동작)

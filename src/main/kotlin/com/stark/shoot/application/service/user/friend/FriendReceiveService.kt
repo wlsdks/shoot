@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.user.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendReceiveUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.AcceptFriendRequestCommand
 import com.stark.shoot.application.port.`in`.user.friend.command.RejectFriendRequestCommand
-import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestQueryPort
@@ -24,7 +24,7 @@ class FriendReceiveService(
     private val friendCommandPort: FriendCommandPort,
     private val friendRequestQueryPort: FriendRequestQueryPort,
     private val friendRequestCommandPort: FriendRequestCommandPort,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublishPort,
     private val friendDomainService: FriendDomainService,
     private val friendCacheManager: FriendCacheManager
 ) : FriendReceiveUseCase {
@@ -55,7 +55,7 @@ class FriendReceiveService(
         }
 
         // 이벤트 발행
-        result.events.forEach { event -> eventPublisher.publish(event) }
+        result.events.forEach { event -> eventPublisher.publishEvent(event) }
 
         // 캐시 무효화
         friendCacheManager.invalidateFriendshipCaches(currentUserId, requesterId)
@@ -71,7 +71,7 @@ class FriendReceiveService(
         val requesterId = command.requesterId
 
         // 친구 요청 조회 및 유효성 검사
-        val friendRequest = findFriendRequest(currentUserId, requesterId)
+        findFriendRequest(currentUserId, requesterId)
 
         // 친구 요청 상태 업데이트
         friendRequestCommandPort.updateStatus(requesterId, currentUserId, FriendRequestStatus.REJECTED)

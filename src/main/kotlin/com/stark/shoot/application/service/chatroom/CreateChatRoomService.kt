@@ -5,7 +5,7 @@ import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.command.CreateDirectChatCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
-import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
@@ -21,7 +21,7 @@ class CreateChatRoomService(
     private val chatRoomQueryPort: ChatRoomQueryPort,
     private val chatRoomCommandPort: ChatRoomCommandPort,
     private val userQueryPort: UserQueryPort,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublishPort,
     private val chatRoomEventService: ChatRoomEventService,
     private val chatRoomDomainService: ChatRoomDomainService,
 ) : CreateChatRoomUseCase {
@@ -37,7 +37,7 @@ class CreateChatRoomService(
         val friendId = command.friendId
 
         // 1. 사용자와 친구가 존재하는지 확인
-        val user = userQueryPort.findUserById(userId)
+        userQueryPort.findUserById(userId)
             ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${userId.value}")
 
         val friend = userQueryPort.findUserById(friendId)
@@ -65,7 +65,7 @@ class CreateChatRoomService(
 
         // 이벤트를 이벤트 퍼블리셔를 통해 발행
         events.forEach { event ->
-            eventPublisher.publish(event)
+            eventPublisher.publishEvent(event)
         }
     }
 
@@ -79,7 +79,7 @@ class CreateChatRoomService(
             userId = userId,
             friendId = friendId,
             friendName = friend.nickname.value
-        ) { userIdVo, friendIdVo ->
+        ) { _, _ ->
             // 사용자 존재 검증은 이미 위에서 수행했으므로 패스
             // 필요시 추가 비즈니스 규칙 검증 가능
         }

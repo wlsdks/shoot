@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.rest.dto.message.reaction.ReactionResponse
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.reaction.ToggleMessageReactionUseCase
 import com.stark.shoot.application.port.`in`.message.reaction.command.ToggleMessageReactionCommand
-import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.service.MessageReactionService
@@ -21,7 +21,7 @@ class ToggleMessageReactionService(
     private val messageQueryPort: MessageQueryPort,
     private val messageCommandPort: MessageCommandPort,
     private val webSocketMessageBroker: WebSocketMessageBroker,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublishPort,
     private val messageReactionService: MessageReactionService
 ) : ToggleMessageReactionUseCase {
 
@@ -118,7 +118,7 @@ class ToggleMessageReactionService(
     private fun handleNotificationsAndEvents(result: ReactionToggleResult) {
         // 도메인 서비스를 통해 이벤트 생성 및 발행
         val events = messageReactionService.processReactionToggleResult(result)
-        events.forEach { eventPublisher.publish(it) }
+        events.forEach { eventPublisher.publishEvent(it) }
     }
 
 }

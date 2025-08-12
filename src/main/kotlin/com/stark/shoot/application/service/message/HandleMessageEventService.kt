@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.message
 import com.stark.shoot.application.port.`in`.message.HandleMessageEventUseCase
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
-import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageStatusNotificationPort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
@@ -27,7 +27,7 @@ class HandleMessageEventService(
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
     private val messageStatusNotificationPort: MessageStatusNotificationPort,
     private val chatRoomMetadataDomainService: ChatRoomMetadataDomainService,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublishPort,
 ) : HandleMessageEventUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -116,7 +116,7 @@ class HandleMessageEventService(
         updateChatRoomMetadata(savedMessage)
 
         // 3. 도메인 이벤트 발행
-        eventPublisher.publish(MessageSentEvent.create(savedMessage))
+        eventPublisher.publishEvent(MessageSentEvent.create(savedMessage))
     }
 
     /**

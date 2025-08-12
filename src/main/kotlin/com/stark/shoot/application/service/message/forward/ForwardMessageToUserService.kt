@@ -4,7 +4,7 @@ import com.stark.shoot.application.port.`in`.message.ForwardMessageToUserUseCase
 import com.stark.shoot.application.port.`in`.message.command.ForwardMessageToUserCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
-import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
@@ -27,7 +27,7 @@ class ForwardMessageToUserService(
     private val messageQueryPort: MessageQueryPort,
     private val messageCommandPort: MessageCommandPort,
     private val userQueryPort: UserQueryPort,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublishPort,
     private val chatRoomEventService: ChatRoomEventService,
     private val chatRoomDomainService: ChatRoomDomainService,
     private val messageForwardDomainService: MessageForwardDomainService,
@@ -83,7 +83,7 @@ class ForwardMessageToUserService(
         val savedRoom = chatRoomCommandPort.save(newChatRoom)
 
         chatRoomEventService.createChatRoomCreatedEvents(savedRoom).forEach { event ->
-            eventPublisher.publish(event)
+            eventPublisher.publishEvent(event)
         }
 
         return savedRoom

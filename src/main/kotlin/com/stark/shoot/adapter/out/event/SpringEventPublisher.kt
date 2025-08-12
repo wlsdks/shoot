@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.out.event
 
-import com.stark.shoot.application.port.out.event.EventPublisher
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.domain.event.DomainEvent
 import org.springframework.context.ApplicationEventPublisher
@@ -13,14 +12,10 @@ import org.springframework.stereotype.Component
 @Component
 class SpringEventPublisher(
     private val applicationEventPublisher: ApplicationEventPublisher
-) : EventPublishPort, EventPublisher {
+) : EventPublishPort {
 
     override fun publishEvent(event: DomainEvent) {
         applicationEventPublisher.publishEvent(event)
     }
 
-    @Deprecated("Use publishEvent instead")
-    override fun publish(event: DomainEvent) {
-        publishEvent(event)
-    }
 }

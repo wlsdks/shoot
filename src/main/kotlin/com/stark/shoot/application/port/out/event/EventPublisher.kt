@@ -23,10 +23,3 @@ interface EventPublishPort {
     }
 }
 
-/**
- * @deprecated EventPublishPort를 사용하세요
- */
-@Deprecated("Use EventPublishPort instead", ReplaceWith("EventPublishPort"))
-interface EventPublisher {
-    fun publish(event: DomainEvent)
-}

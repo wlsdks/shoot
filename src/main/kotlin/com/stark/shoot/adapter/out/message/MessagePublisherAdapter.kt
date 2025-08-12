@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
-import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.MessageStatusNotificationPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
@@ -36,7 +36,7 @@ class MessagePublisherAdapter(
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val applicationCoroutineScope: ApplicationCoroutineScope,
     private val messageDomainService: MessageDomainService,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublishPort,
     private val userQueryPort: UserQueryPort
 ) : MessagePublisherPort, MessageStatusNotificationPort {
 
@@ -214,7 +214,7 @@ class MessagePublisherAdapter(
         try {
             // 1. MessageSentEvent 발행
             val messageSentEvent = MessageSentEvent.create(message)
-            eventPublisher.publish(messageSentEvent)
+            eventPublisher.publishEvent(messageSentEvent)
 
             // 2. 멘션이 포함된 경우 MentionEvent 발행
             if (message.mentions.isNotEmpty()) {
@@ -253,7 +253,7 @@ class MessagePublisherAdapter(
             messageContent = message.content.text
         )
 
-        eventPublisher.publish(mentionEvent)
+        eventPublisher.publishEvent(mentionEvent)
         logger.debug { "MentionEvent published for ${mentionedUsers.size} users" }
     }
 

@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.pin.MessagePinUseCase
 import com.stark.shoot.application.port.`in`.message.pin.command.PinMessageCommand
 import com.stark.shoot.application.port.`in`.message.pin.command.UnpinMessageCommand
-import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -19,7 +19,7 @@ class MessagePinService(
     private val messageQueryPort: MessageQueryPort,
     private val messageCommandPort: MessageCommandPort,
     private val webSocketMessageBroker: WebSocketMessageBroker,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublishPort,
     private val messagePinDomainService: MessagePinDomainService
 ) : MessagePinUseCase {
 
@@ -128,7 +128,7 @@ class MessagePinService(
         val pinEvent = messagePinDomainService.createPinEvent(message, userId, isPinned)
 
         if (pinEvent != null) {
-            eventPublisher.publish(pinEvent)
+            eventPublisher.publishEvent(pinEvent)
         }
     }
 

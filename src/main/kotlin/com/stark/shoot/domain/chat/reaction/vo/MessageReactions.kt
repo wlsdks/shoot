@@ -45,17 +45,10 @@ data class MessageReactions(
         userId: Long,
         reactionType: String
     ): MessageReactions {
-        val updatedReactions = this.reactions.toMutableMap()
-
-        // 해당 반응 타입에 대한 사용자 목록 가져오기 또는 새로 생성
-        val usersWithReaction = updatedReactions[reactionType]?.toMutableSet() ?: mutableSetOf()
-
-        // 사용자 ID 추가
-        usersWithReaction.add(userId)
-
-        // 업데이트된 사용자 목록 저장
-        updatedReactions[reactionType] = usersWithReaction
-
+        val currentUsers = reactions[reactionType] ?: emptySet()
+        val updatedUsers = currentUsers + userId
+        val updatedReactions = reactions + (reactionType to updatedUsers)
+        
         return this.copy(reactions = updatedReactions)
     }
 
@@ -70,21 +63,15 @@ data class MessageReactions(
         userId: Long,
         reactionType: String
     ): MessageReactions {
-        val updatedReactions = this.reactions.toMutableMap()
-
-        // 해당 반응 타입에 대한 사용자 목록이 없으면 변경 없음
-        val usersWithReaction = updatedReactions[reactionType]?.toMutableSet() ?: return this
-
-        // 사용자 ID 제거
-        usersWithReaction.remove(userId)
-
-        // 사용자 목록이 비어있으면 해당 반응 타입 자체를 제거
-        if (usersWithReaction.isEmpty()) {
-            updatedReactions.remove(reactionType)
+        val currentUsers = reactions[reactionType] ?: return this
+        val updatedUsers = currentUsers - userId
+        
+        val updatedReactions = if (updatedUsers.isEmpty()) {
+            reactions - reactionType
         } else {
-            updatedReactions[reactionType] = usersWithReaction
+            reactions + (reactionType to updatedUsers)
         }
-
+        
         return this.copy(reactions = updatedReactions)
     }
 

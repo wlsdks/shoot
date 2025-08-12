@@ -33,11 +33,8 @@ data class ChatRoom(
         val participantsToRemove: Set<UserId> = emptySet(),
         val pinnedStatusChanges: Map<UserId, Boolean> = emptyMap()
     ) {
-        fun isEmpty(): Boolean {
-            return participantsToAdd.isEmpty() &&
-                    participantsToRemove.isEmpty() &&
-                    pinnedStatusChanges.isEmpty()
-        }
+        fun isEmpty(): Boolean = 
+            participantsToAdd.isEmpty() && participantsToRemove.isEmpty() && pinnedStatusChanges.isEmpty()
     }
 
     /**
@@ -273,23 +270,13 @@ data class ChatRoom(
 
     /**
      * 채팅방이 비어있는지 확인 (참여자가 없는지)
-     *
-     * @return 채팅방이 비어있으면 true, 아니면 false
      */
-    fun isEmpty(): Boolean {
-        return participants.isEmpty()
-    }
+    fun isEmpty(): Boolean = participants.isEmpty()
 
     /**
      * 채팅방이 삭제되어야 하는지 확인
-     * 현재는 참여자가 없는 경우에만 삭제 대상으로 판단하지만,
-     * 추후 다른 비즈니스 규칙이 추가될 수 있음
-     *
-     * @return 삭제되어야 하면 true, 아니면 false
      */
-    fun shouldBeDeleted(): Boolean {
-        return isEmpty()
-    }
+    fun shouldBeDeleted(): Boolean = isEmpty()
 
     /**
      * 1:1 채팅방인지 확인하고 특정 두 사용자만 포함하는지 확인
@@ -301,12 +288,10 @@ data class ChatRoom(
     fun isDirectChatBetween(
         userId1: UserId,
         userId2: UserId
-    ): Boolean {
-        return type == ChatRoomType.INDIVIDUAL &&
-                participants.size == 2 &&
-                participants.contains(userId1) &&
-                participants.contains(userId2)
-    }
+    ): Boolean =
+        type == ChatRoomType.INDIVIDUAL && 
+        participants.size == 2 && 
+        setOf(userId1, userId2) == participants
 
     /**
      * 채팅방 제목 생성

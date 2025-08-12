@@ -10,9 +10,7 @@ import java.util.concurrent.CompletableFuture
 /**
  * CompletableFuture를 코루틴으로 변환하는 확장 함수
  */
-suspend fun <T> CompletableFuture<T>.awaitResult(): T = withContext(Dispatchers.IO) {
-    this@awaitResult.await()
-}
+suspend fun <T> CompletableFuture<T>.awaitResult(): T = await()
 
 
 /**

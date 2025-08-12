@@ -21,17 +21,9 @@ abstract class BaseEntity {
     @LastModifiedDate
     open var updatedAt: Instant? = null
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is BaseEntity) return false
+    override fun equals(other: Any?): Boolean =
+        this === other || (other is BaseEntity && id == other.id)
 
-        if (id != other.id) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
 }

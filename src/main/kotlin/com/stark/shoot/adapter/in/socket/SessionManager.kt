@@ -3,7 +3,6 @@ package com.stark.shoot.adapter.`in`.socket
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import java.time.Instant
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -30,13 +29,13 @@ class SessionManager {
     )
     
     // userId -> UserSession
-    private val userSessions = ConcurrentHashMap<String, UserSession>()
+    private val userSessions = mutableMapOf<String, UserSession>()
     
     // sessionId -> userId (빠른 역방향 조회)
-    private val sessionToUser = ConcurrentHashMap<String, String>()
+    private val sessionToUser = mutableMapOf<String, String>()
     
     // chatRoomId -> Set<userId>
-    private val chatRoomSessions = ConcurrentHashMap<String, MutableSet<String>>()
+    private val chatRoomSessions = mutableMapOf<String, MutableSet<String>>()
     
     /**
      * 사용자 세션 추가
@@ -119,8 +118,10 @@ class SessionManager {
      * 사용자 활동 시간 업데이트
      */
     fun updateLastActivity(userId: String) {
-        userSessions[userId]?.let { session ->
-            userSessions[userId] = session.copy(lastActivityAt = Instant.now())
+        lock.write {
+            userSessions[userId]?.let { session ->
+                userSessions[userId] = session.copy(lastActivityAt = Instant.now())
+            }
         }
     }
     
@@ -179,18 +180,21 @@ class SessionManager {
      */
     fun cleanupInactiveSessions(inactiveThresholdMinutes: Long = 5) {
         val cutoff = Instant.now().minusSeconds(inactiveThresholdMinutes * 60)
-        val inactiveSessions = mutableListOf<String>()
-        
-        lock.read {
-            userSessions.values.forEach { session ->
-                if (session.lastActivityAt.isBefore(cutoff)) {
-                    inactiveSessions.add(session.sessionId)
+        val inactiveSessions = userSessions.values
+            .filter { it.lastActivityAt.isBefore(cutoff) }
+            .map { it.sessionId }
+
+        inactiveSessions.forEach { sessionId ->
+            val userId = sessionToUser.remove(sessionId)
+            if (userId != null) {
+                val session = userSessions.remove(userId)
+                session?.activeChatRooms?.forEach { chatRoomId ->
+                    chatRoomSessions[chatRoomId]?.remove(userId)
+                    if (chatRoomSessions[chatRoomId]?.isEmpty() == true) {
+                        chatRoomSessions.remove(chatRoomId)
+                    }
                 }
             }
-        }
-        
-        inactiveSessions.forEach { sessionId ->
-            removeUserSession(sessionId)
         }
         
         if (inactiveSessions.isNotEmpty()) {

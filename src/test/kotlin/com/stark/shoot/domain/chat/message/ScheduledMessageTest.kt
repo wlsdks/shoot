@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("예약 메시지 테스트")
 class ScheduledMessageTest {

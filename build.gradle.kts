@@ -68,6 +68,9 @@ dependencies {
 
     // mockito 오류 해결 (java 21)
     testImplementation("org.mockito:mockito-core:5.15.2")
+    
+    // hamcrest matchers for better assertions
+    testImplementation("org.hamcrest:hamcrest:2.2")
 
     // in-memory database for JPA tests
     testImplementation("com.h2database:h2")

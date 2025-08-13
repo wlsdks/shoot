@@ -35,6 +35,27 @@ class ApplicationCoroutineScope {
         }
     }
 
+    /**
+     * CoroutineScope를 사용해 비동기 작업을 실행하고 결과를 반환합니다.
+     *
+     * @param block 비동기 작업
+     * @return Deferred
+     */
+    fun <T> async(block: suspend CoroutineScope.() -> T): Deferred<T> {
+        activeJobs.incrementAndGet()
+        return scope.async {
+            try {
+                block()
+            } catch (e: Exception) {
+                // 중앙 집중식 예외 처리
+                logger.error(e) { "코루틴 실행중 예외 발생" }
+                throw e
+            } finally {
+                activeJobs.decrementAndGet()
+            }
+        }
+    }
+
 
     /**
      * 현재 활성화된 코루틴 개수를 반환합니다.

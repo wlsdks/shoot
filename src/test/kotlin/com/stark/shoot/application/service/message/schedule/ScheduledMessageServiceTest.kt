@@ -26,6 +26,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.*
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("예약 메시지 서비스 테스트")
 class ScheduledMessageServiceTest {

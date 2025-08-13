@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.message.pin
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.pin.command.PinMessageCommand
 import com.stark.shoot.application.port.`in`.message.pin.command.UnpinMessageCommand
-import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -32,7 +32,7 @@ class MessagePinServiceTest {
         val messageQueryPort = mock(MessageQueryPort::class.java)
         val messageCommandPort = mock(MessageCommandPort::class.java)
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
-        val eventPublisher = mock(EventPublisher::class.java)
+        val eventPublisher = mock(EventPublishPort::class.java)
         val messagePinDomainService = mock(MessagePinDomainService::class.java)
 
         val messagePinService = MessagePinService(
@@ -68,7 +68,7 @@ class MessagePinServiceTest {
         val messageQueryPort = mock(MessageQueryPort::class.java)
         val messageCommandPort = mock(MessageCommandPort::class.java)
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
-        val eventPublisher = mock(EventPublisher::class.java)
+        val eventPublisher = mock(EventPublishPort::class.java)
         val messagePinDomainService = mock(MessagePinDomainService::class.java)
 
         val messagePinService = MessagePinService(
@@ -88,7 +88,7 @@ class MessagePinServiceTest {
             roomId = roomId,
             senderId = UserId.from(3L),
             content = MessageContent("고정되지 않은 메시지", MessageType.TEXT),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now(),
             isPinned = false
         )
@@ -118,7 +118,7 @@ class MessagePinServiceTest {
         val messageQueryPort = mock(MessageQueryPort::class.java)
         val messageCommandPort = mock(MessageCommandPort::class.java)
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
-        val eventPublisher = mock(EventPublisher::class.java)
+        val eventPublisher = mock(EventPublishPort::class.java)
         val messagePinDomainService = mock(MessagePinDomainService::class.java)
 
         val messagePinService = MessagePinService(

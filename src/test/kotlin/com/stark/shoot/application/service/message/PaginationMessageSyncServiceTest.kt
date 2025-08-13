@@ -1,9 +1,9 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentRequest
-import com.stark.shoot.adapter.`in`.rest.socket.dto.MessageSyncInfoDto
-import com.stark.shoot.adapter.`in`.rest.socket.dto.SyncRequestDto
-import com.stark.shoot.adapter.`in`.rest.socket.dto.SyncResponseDto
+import com.stark.shoot.adapter.`in`.socket.dto.MessageSyncInfoDto
+import com.stark.shoot.adapter.`in`.socket.dto.SyncRequestDto
+import com.stark.shoot.adapter.`in`.socket.dto.SyncResponseDto
 import com.stark.shoot.adapter.`in`.socket.mapper.MessageSyncMapper
 import com.stark.shoot.application.port.`in`.message.command.GetPaginationMessageCommand
 import com.stark.shoot.application.port.`in`.message.command.SendSyncMessagesToUserCommand
@@ -29,6 +29,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("페이지네이션 메시지 동기화 서비스 테스트")
 class PaginationMessageSyncServiceTest {
@@ -207,7 +208,7 @@ class PaginationMessageSyncServiceTest {
                     id = "1",
                     timestamp = Instant.now(),
                     senderId = 3L,
-                    status = MessageStatus.SAVED.name,
+                    status = MessageStatus.SENT.name,
                     content = MessageContentRequest(
                         text = "테스트 메시지 1",
                         type = MessageType.TEXT
@@ -217,7 +218,7 @@ class PaginationMessageSyncServiceTest {
                     id = "2",
                     timestamp = Instant.now(),
                     senderId = 4L,
-                    status = MessageStatus.SAVED.name,
+                    status = MessageStatus.SENT.name,
                     content = MessageContentRequest(
                         text = "테스트 메시지 2",
                         type = MessageType.TEXT
@@ -244,7 +245,7 @@ class PaginationMessageSyncServiceTest {
             roomId = ChatRoomId.from(roomId),
             senderId = UserId.from(3L),
             content = MessageContent("테스트 메시지 $id", MessageType.TEXT),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now()
         )
     }

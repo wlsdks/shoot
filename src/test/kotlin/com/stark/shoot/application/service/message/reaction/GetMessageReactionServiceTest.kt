@@ -43,7 +43,7 @@ class GetMessageReactionServiceTest {
                 roomId = ChatRoomId.from(1L),
                 senderId = UserId.from(1L),
                 content = MessageContent("테스트 메시지", MessageType.TEXT),
-                status = MessageStatus.SAVED,
+                status = MessageStatus.SENT,
                 messageReactions = MessageReactions(reactions)
             )
 

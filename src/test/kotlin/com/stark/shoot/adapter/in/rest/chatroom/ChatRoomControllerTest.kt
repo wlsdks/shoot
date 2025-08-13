@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.rest.chatroom
 
 import com.stark.shoot.adapter.`in`.rest.dto.chatroom.ChatRoomResponse
+import com.stark.shoot.adapter.`in`.rest.dto.chatroom.CreateDirectChatRequest
 import com.stark.shoot.adapter.`in`.rest.dto.chatroom.TitleRequest
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
@@ -29,15 +30,14 @@ class ChatRoomControllerTest {
     @DisplayName("[happy] 1:1 채팅방 생성 요청을 처리하고 생성된 채팅방을 반환한다")
     fun `1대1 채팅방 생성 요청을 처리하고 생성된 채팅방을 반환한다`() {
         // given
-        val userId = 1L
-        val friendId = 2L
+        val request = CreateDirectChatRequest(userId = 1L, friendId = 2L)
         val chatRoomResponse = createChatRoomResponse(1L, "채팅방", false)
 
-        `when`(createChatRoomUseCase.createDirectChat(CreateDirectChatCommand.of(userId, friendId)))
+        `when`(createChatRoomUseCase.createDirectChat(CreateDirectChatCommand.of(request)))
             .thenReturn(chatRoomResponse)
 
         // when
-        val response = controller.createDirectChat(userId, friendId)
+        val response = controller.createDirectChat(request)
 
         // then
         assertThat(response).isNotNull
@@ -45,7 +45,7 @@ class ChatRoomControllerTest {
         assertThat(response.data).isEqualTo(chatRoomResponse)
         assertThat(response.message).isEqualTo("채팅방이 생성되었습니다.")
 
-        verify(createChatRoomUseCase).createDirectChat(CreateDirectChatCommand.of(userId, friendId))
+        verify(createChatRoomUseCase).createDirectChat(CreateDirectChatCommand.of(request))
     }
 
     @Test

@@ -22,13 +22,15 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import java.time.Instant
 import java.util.*
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("메시지 조회 MongoDB 어댑터 테스트")
 class MessageQueryMongoAdapterTest {
 
     private val chatMessageRepository = mock(ChatMessageMongoRepository::class.java)
+    private val mongoTemplate = mock(org.springframework.data.mongodb.core.MongoTemplate::class.java)
     private val chatMessageMapper = mock(ChatMessageMapper::class.java)
-    private val adapter = MessageQueryMongoAdapter(chatMessageRepository, chatMessageMapper)
+    private val adapter = MessageQueryMongoAdapter(chatMessageRepository, mongoTemplate, chatMessageMapper)
 
     private fun createChatMessage(id: String = "123456789012345678901234"): ChatMessage {
         return ChatMessage(
@@ -36,7 +38,7 @@ class MessageQueryMongoAdapterTest {
             roomId = ChatRoomId.from(1L),
             senderId = UserId.from(2L),
             content = MessageContent("Test message", MessageType.TEXT),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now()
         )
     }

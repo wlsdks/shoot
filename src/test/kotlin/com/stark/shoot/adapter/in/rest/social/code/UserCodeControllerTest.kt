@@ -5,8 +5,12 @@ import com.stark.shoot.application.port.`in`.user.code.ManageUserCodeUseCase
 import com.stark.shoot.application.port.`in`.user.code.command.RemoveUserCodeCommand
 import com.stark.shoot.application.port.`in`.user.code.command.UpdateUserCodeCommand
 import com.stark.shoot.application.port.`in`.user.command.FindUserByIdCommand
+import com.stark.shoot.application.port.`in`.user.command.FindUserByCodeCommand
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestCommand
+import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestFromCodeCommand
+import com.stark.shoot.adapter.`in`.rest.dto.social.code.UpdateUserCodeRequest
+import com.stark.shoot.adapter.`in`.rest.dto.social.code.SendFriendRequestByCodeRequest
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.*
@@ -74,10 +78,11 @@ class UserCodeControllerTest {
         // given
         val userId = 1L
         val newCode = "NEWCODE123"
-        val command = UpdateUserCodeCommand.of(userId, newCode)
+        val request = UpdateUserCodeRequest(userId, newCode)
+        val command = UpdateUserCodeCommand.of(request)
 
         // when
-        val response = controller.updateUserCode(userId, newCode)
+        val response = controller.updateUserCode(request)
 
         // then
         assertThat(response).isNotNull
@@ -93,7 +98,7 @@ class UserCodeControllerTest {
         // given
         val code = "FINDME123"
         val user = createUser(2L, "findme", "찾아주세요", code)
-        val command = SendFriendRequestByCodeCommand.of(code)
+        val command = FindUserByCodeCommand.of(code)
 
         `when`(findUserUseCase.findByUserCode(command)).thenReturn(user)
 
@@ -117,7 +122,7 @@ class UserCodeControllerTest {
     fun `존재하지 않는 유저 코드로 조회하면 null을 반환한다`() {
         // given
         val code = "NOTEXIST"
-        val command = SendFriendRequestByCodeCommand.of(code)
+        val command = FindUserByCodeCommand.of(code)
 
         `when`(findUserUseCase.findByUserCode(command)).thenReturn(null)
 
@@ -158,13 +163,14 @@ class UserCodeControllerTest {
         val userId = 1L
         val targetCode = "FRIEND123"
         val targetUser = createUser(3L, "friend", "친구", targetCode)
-        val findCommand = SendFriendRequestByCodeCommand.of(targetCode)
-        val requestCommand = SendFriendRequestCommand.of(userId, 3L)
+        val request = SendFriendRequestByCodeRequest(userId, targetCode)
+        val findCommand = FindUserByCodeCommand.of(targetCode)
+        val requestCommand = SendFriendRequestFromCodeCommand.of(request, UserId.from(3L))
 
         `when`(findUserUseCase.findByUserCode(findCommand)).thenReturn(targetUser)
 
         // when
-        val response = controller.sendFriendRequestByCode(userId, targetCode)
+        val response = controller.sendFriendRequestByCode(request)
 
         // then
         assertThat(response).isNotNull
@@ -172,7 +178,7 @@ class UserCodeControllerTest {
         assertThat(response.message).isEqualTo("친구 요청을 보냈습니다.")
 
         verify(findUserUseCase).findByUserCode(findCommand)
-        verify(friendRequestUseCase).sendFriendRequest(requestCommand)
+        verify(friendRequestUseCase).sendFriendRequestFromUserCode(requestCommand)
     }
 
     @Test
@@ -181,13 +187,14 @@ class UserCodeControllerTest {
         // given
         val userId = 1L
         val targetCode = "NOTEXIST"
-        val findCommand = SendFriendRequestByCodeCommand.of(targetCode)
+        val request = SendFriendRequestByCodeRequest(userId, targetCode)
+        val findCommand = FindUserByCodeCommand.of(targetCode)
 
         `when`(findUserUseCase.findByUserCode(findCommand)).thenReturn(null)
 
         // when & then
         assertThrows<ResourceNotFoundException> {
-            controller.sendFriendRequestByCode(userId, targetCode)
+            controller.sendFriendRequestByCode(request)
         }
 
         verify(findUserUseCase).findByUserCode(findCommand)

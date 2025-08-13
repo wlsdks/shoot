@@ -10,6 +10,7 @@ import org.mockito.Mockito.*
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("ChatRoomListController 단위 테스트")
 class ChatRoomListControllerTest {

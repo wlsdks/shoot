@@ -11,6 +11,9 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
+import com.stark.shoot.adapter.`in`.rest.dto.social.group.CreateGroupRequest
+import com.stark.shoot.adapter.`in`.rest.dto.social.group.AddMemberInGroupRequest
 
 @DisplayName("FriendGroupController 단위 테스트")
 class FriendGroupControllerTest {
@@ -28,13 +31,14 @@ class FriendGroupControllerTest {
         val description = "자주 만나는 친구들"
 
         val group = createFriendGroup(1L, ownerId, name, description)
-        val command = CreateGroupCommand.of(ownerId, name, description)
+        val request = CreateGroupRequest(ownerId, name, description)
+        val command = CreateGroupCommand.of(request)
 
         `when`(manageUseCase.createGroup(command))
             .thenReturn(group)
 
         // when
-        val response = controller.createGroup(ownerId, name, description)
+        val response = controller.createGroup(request)
 
         // then
         assertThat(response).isNotNull
@@ -113,13 +117,14 @@ class FriendGroupControllerTest {
             memberIds = setOf(memberId)
         )
 
-        val command = AddMemberCommand.of(groupId, memberId)
+        val request = AddMemberInGroupRequest(groupId, memberId)
+        val command = AddMemberCommand.of(request)
 
         `when`(manageUseCase.addMember(command))
             .thenReturn(group)
 
         // when
-        val response = controller.addMember(groupId, memberId)
+        val response = controller.addMember(request)
 
         // then
         assertThat(response).isNotNull

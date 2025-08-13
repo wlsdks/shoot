@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("ChatRoomResponseMapper 테스트")
 class ChatRoomResponseMapperTest {

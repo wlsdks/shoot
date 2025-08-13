@@ -3,6 +3,8 @@ package com.stark.shoot.adapter.`in`.rest.message.schedule
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentResponseDto
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageMetadataResponseDto
 import com.stark.shoot.adapter.`in`.rest.dto.message.schedule.ScheduledMessageResponseDto
+import com.stark.shoot.adapter.`in`.rest.dto.message.schedule.ScheduleMessageRequest
+import com.stark.shoot.adapter.`in`.rest.dto.message.schedule.ScheduleMessageSendNowRequest
 import com.stark.shoot.application.port.`in`.message.schedule.ScheduledMessageUseCase
 import com.stark.shoot.application.port.`in`.message.schedule.command.*
 import com.stark.shoot.domain.chat.message.type.MessageType
@@ -15,6 +17,7 @@ import org.springframework.security.core.Authentication
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("ScheduledMessageController 단위 테스트")
 class ScheduledMessageControllerTest {
@@ -47,7 +50,8 @@ class ScheduledMessageControllerTest {
         `when`(scheduledMessageUseCase.scheduleMessage(command)).thenReturn(responseDto)
 
         // when
-        val response = controller.scheduleMessage(roomId, content, scheduledAt, authentication)
+        val request = ScheduleMessageRequest(roomId, content, scheduledAt)
+        val response = controller.scheduleMessage(request, authentication)
 
         // then
         assertThat(response).isNotNull
@@ -189,7 +193,8 @@ class ScheduledMessageControllerTest {
         `when`(scheduledMessageUseCase.sendScheduledMessageNow(command)).thenReturn(responseDto)
 
         // when
-        val response = controller.sendScheduledMessageNow(scheduledMessageId, authentication)
+        val request = ScheduleMessageSendNowRequest(scheduledMessageId)
+        val response = controller.sendScheduledMessageNow(request, authentication)
 
         // then
         assertThat(response).isNotNull

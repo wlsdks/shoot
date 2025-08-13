@@ -16,6 +16,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("메시지 명령 MongoDB 어댑터 테스트")
 class MessageCommandMongoAdapterTest {
@@ -30,7 +31,7 @@ class MessageCommandMongoAdapterTest {
             roomId = ChatRoomId.from(1L),
             senderId = UserId.from(2L),
             content = MessageContent("Test message", MessageType.TEXT),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now()
         )
     }

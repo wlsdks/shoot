@@ -14,12 +14,15 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.Authentication
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("NotificationQueryController 단위 테스트")
 class NotificationQueryControllerTest {
 
     private val notificationQueryUseCase = mock(NotificationQueryUseCase::class.java)
+    private val authentication = mock(Authentication::class.java)
     private val controller = NotificationQueryController(notificationQueryUseCase)
 
     @Test
@@ -54,20 +57,22 @@ class NotificationQueryControllerTest {
             limit = limit,
             offset = offset
         )
+        
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationQueryUseCase.getNotificationsForUser(command)).thenReturn(notifications)
 
         // when
-        val response = controller.getNotifications(userId, limit, offset)
+        val response = controller.getNotifications(authentication, limit, offset)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).hasSize(2)
-        assertThat(response.body?.get(0)?.id).isEqualTo("notification1")
-        assertThat(response.body?.get(0)?.title).isEqualTo("첫 번째 알림")
-        assertThat(response.body?.get(0)?.type).isEqualTo(NotificationType.NEW_MESSAGE.name)
-        assertThat(response.body?.get(1)?.id).isEqualTo("notification2")
-        assertThat(response.body?.get(1)?.title).isEqualTo("두 번째 알림")
-        assertThat(response.body?.get(1)?.type).isEqualTo(NotificationType.MENTION.name)
+        assertThat(response.success).isTrue()
+        assertThat(response.data).hasSize(2)
+        assertThat(response.data?.get(0)?.id).isEqualTo("notification1")
+        assertThat(response.data?.get(0)?.title).isEqualTo("첫 번째 알림")
+        assertThat(response.data?.get(0)?.type).isEqualTo(NotificationType.NEW_MESSAGE.name)
+        assertThat(response.data?.get(1)?.id).isEqualTo("notification2")
+        assertThat(response.data?.get(1)?.title).isEqualTo("두 번째 알림")
+        assertThat(response.data?.get(1)?.type).isEqualTo(NotificationType.MENTION.name)
 
         verify(notificationQueryUseCase).getNotificationsForUser(
             GetNotificationsCommand(
@@ -112,18 +117,20 @@ class NotificationQueryControllerTest {
             limit = limit,
             offset = offset
         )
+        
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationQueryUseCase.getUnreadNotificationsForUser(command)).thenReturn(notifications)
 
         // when
-        val response = controller.getUnreadNotifications(userId, limit, offset)
+        val response = controller.getUnreadNotifications(authentication, limit, offset)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).hasSize(2)
-        assertThat(response.body?.get(0)?.id).isEqualTo("notification1")
-        assertThat(response.body?.get(0)?.isRead).isFalse()
-        assertThat(response.body?.get(1)?.id).isEqualTo("notification2")
-        assertThat(response.body?.get(1)?.isRead).isFalse()
+        assertThat(response.success).isTrue()
+        assertThat(response.data).hasSize(2)
+        assertThat(response.data?.get(0)?.id).isEqualTo("notification1")
+        assertThat(response.data?.get(0)?.isRead).isFalse()
+        assertThat(response.data?.get(1)?.id).isEqualTo("notification2")
+        assertThat(response.data?.get(1)?.isRead).isFalse()
 
         verify(notificationQueryUseCase).getUnreadNotificationsForUser(
             GetUnreadNotificationsCommand(
@@ -144,14 +151,15 @@ class NotificationQueryControllerTest {
         val command = GetUnreadNotificationCountCommand(
             userId = UserId.from(userId)
         )
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationQueryUseCase.getUnreadNotificationCount(command)).thenReturn(unreadCount)
 
         // when
-        val response = controller.getUnreadNotificationCount(userId)
+        val response = controller.getUnreadNotificationCount(authentication)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isEqualTo(unreadCount)
+        assertThat(response.success).isTrue()
+        assertThat(response.data).isEqualTo(unreadCount)
 
         verify(notificationQueryUseCase).getUnreadNotificationCount(
             GetUnreadNotificationCountCommand(
@@ -194,16 +202,18 @@ class NotificationQueryControllerTest {
             limit = limit,
             offset = offset
         )
+        
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationQueryUseCase.getNotificationsByType(command)).thenReturn(notifications)
 
         // when
-        val response = controller.getNotificationsByType(userId, type, limit, offset)
+        val response = controller.getNotificationsByType(authentication, type, limit, offset)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).hasSize(2)
-        assertThat(response.body?.get(0)?.type).isEqualTo(NotificationType.FRIEND_REQUEST.name)
-        assertThat(response.body?.get(1)?.type).isEqualTo(NotificationType.FRIEND_REQUEST.name)
+        assertThat(response.success).isTrue()
+        assertThat(response.data).hasSize(2)
+        assertThat(response.data?.get(0)?.type).isEqualTo(NotificationType.FRIEND_REQUEST.name)
+        assertThat(response.data?.get(1)?.type).isEqualTo(NotificationType.FRIEND_REQUEST.name)
 
         verify(notificationQueryUseCase).getNotificationsByType(
             GetNotificationsByTypeCommand(
@@ -253,18 +263,20 @@ class NotificationQueryControllerTest {
             limit = limit,
             offset = offset
         )
+        
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationQueryUseCase.getNotificationsBySource(command)).thenReturn(notifications)
 
         // when
-        val response = controller.getNotificationsBySource(userId, sourceType, sourceId, limit, offset)
+        val response = controller.getNotificationsBySource(authentication, sourceType, sourceId, limit, offset)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).hasSize(2)
-        assertThat(response.body?.get(0)?.sourceType).isEqualTo(SourceType.CHAT.name)
-        assertThat(response.body?.get(0)?.sourceId).isEqualTo(sourceId)
-        assertThat(response.body?.get(1)?.sourceType).isEqualTo(SourceType.CHAT.name)
-        assertThat(response.body?.get(1)?.sourceId).isEqualTo(sourceId)
+        assertThat(response.success).isTrue()
+        assertThat(response.data).hasSize(2)
+        assertThat(response.data?.get(0)?.sourceType).isEqualTo(SourceType.CHAT.name)
+        assertThat(response.data?.get(0)?.sourceId).isEqualTo(sourceId)
+        assertThat(response.data?.get(1)?.sourceType).isEqualTo(SourceType.CHAT.name)
+        assertThat(response.data?.get(1)?.sourceId).isEqualTo(sourceId)
 
         verify(notificationQueryUseCase).getNotificationsBySource(
             GetNotificationsBySourceCommand(

@@ -24,7 +24,7 @@ class SpringEventPublisherTest {
         val event = TestDomainEvent()
 
         // when
-        eventPublisher.publish(event)
+        eventPublisher.publishEvent(event)
 
         // then
         verify(applicationEventPublisher).publishEvent(event)
@@ -42,7 +42,7 @@ class SpringEventPublisherTest {
 
         // when
         events.forEach { event ->
-            eventPublisher.publish(event)
+            eventPublisher.publishEvent(event)
         }
 
         // then

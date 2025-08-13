@@ -33,7 +33,7 @@ class KafkaMessagePublishAdapterTest {
             roomId = ChatRoomId.from(1L),
             senderId = UserId.from(2L),
             content = MessageContent("Test message", MessageType.TEXT),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now()
         )
     }

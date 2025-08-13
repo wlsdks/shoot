@@ -4,6 +4,7 @@ import com.stark.shoot.domain.event.FriendAddedEvent
 import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.Friendship
 import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.infrastructure.exception.UserException
 
 /**
  * 친구 관련 도메인 서비스
@@ -30,22 +31,22 @@ class FriendDomainService {
     ) {
         // 자기 자신에게 요청하는 경우 방지
         if (currentUserId == targetUserId) {
-            throw IllegalArgumentException("자기 자신에게 친구 요청을 보낼 수 없습니다.")
+            throw UserException.SelfFriendRequestNotAllowed()
         }
 
         // 이미 친구인지 확인
         if (isFriend) {
-            throw IllegalArgumentException("이미 친구 상태입니다.")
+            throw UserException.AlreadyFriends()
         }
 
         // 이미 친구 요청을 보냈는지 확인
         if (hasOutgoingRequest) {
-            throw IllegalArgumentException("이미 친구 요청을 보냈습니다.")
+            throw UserException.FriendRequestAlreadySent()
         }
 
         // 상대방으로부터 이미 친구 요청을 받은 상태인지 확인
         if (hasIncomingRequest) {
-            throw IllegalArgumentException("상대방이 이미 친구 요청을 보냈습니다. 수락하거나 거절해주세요.")
+            throw UserException.FriendRequestAlreadyReceived()
         }
     }
 

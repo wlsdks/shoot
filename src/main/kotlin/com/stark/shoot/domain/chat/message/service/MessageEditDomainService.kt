@@ -3,6 +3,7 @@ package com.stark.shoot.domain.chat.message.service
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chatroom.service.EditabilityResult
+import com.stark.shoot.infrastructure.exception.MessageException
 import java.time.Duration
 import java.time.Instant
 
@@ -64,12 +65,12 @@ class MessageEditDomainService {
         // 편집 가능 여부 확인
         val editabilityResult = canEditMessage(message)
         if (!editabilityResult.canEdit) {
-            throw IllegalArgumentException(editabilityResult.reason ?: "메시지를 수정할 수 없습니다.")
+            throw MessageException.NotEditable(editabilityResult.reason)
         }
 
         // 내용 유효성 검사
         if (newContent.isBlank()) {
-            throw IllegalArgumentException("메시지 내용은 비어있을 수 없습니다.")
+            throw MessageException.EmptyContent()
         }
 
         // 도메인 객체의 메서드를 사용하여 메시지 수정

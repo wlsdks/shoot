@@ -2,6 +2,7 @@ package com.stark.shoot.domain.chat.message.service
 
 import com.stark.shoot.domain.chat.message.vo.ReactionToggleResult
 import com.stark.shoot.domain.event.MessageReactionEvent
+import com.stark.shoot.infrastructure.exception.MessageException
 
 /**
  * 메시지 리액션 관련 도메인 서비스
@@ -19,7 +20,7 @@ class MessageReactionService {
         val events = mutableListOf<MessageReactionEvent>()
         val message = result.message
         val userId = result.userId
-        val messageId = message.id ?: throw IllegalArgumentException("메시지 ID가 없습니다.")
+        val messageId = message.id ?: throw MessageException.MissingId()
 
         // 리액션 교체인 경우 (기존 리액션 제거 후 새 리액션 추가)
         if (result.isReplacement && result.previousReactionType != null) {

@@ -120,3 +120,25 @@ jwt:
   refresh-token:
     # 리프레시 토큰 만료 시간 (분) - 기본값 30일
     expiration: 43200
+
+# 도메인 규칙 설정
+app:
+  domain:
+    chat-room:
+      max-participants: 100        # 그룹 채팅 최대 참여자 수
+      min-group-participants: 2    # 그룹 채팅 최소 참여자 수
+      max-pinned-messages: 5       # 채팅방 최대 고정 메시지 수
+  # Redis Stream 설정
+  redis-stream:
+    polling-interval-ms: 100       # 폴링 간격 (ms)
+    error-retry-delay-ms: 1000     # 오류 발생 시 재시도 대기 시간 (ms)
+    consumer-group: chat-consumers # 소비자 그룹 이름
+    stream-key-pattern: "stream:chat:room:*" # 스트림 키 패턴
+    max-concurrent-streams: 10     # 동시 처리할 최대 스트림 수
+    message:
+      max-content-length: 4000     # 메시지 최대 길이
+      max-attachment-size: 52428800 # 첨부파일 최대 크기 (50MB)
+      batch-size: 100              # 메시지 배치 처리 크기
+    friend:
+      max-friend-count: 1000       # 최대 친구 수
+      recommendation-limit: 20     # 친구 추천 기본 제한

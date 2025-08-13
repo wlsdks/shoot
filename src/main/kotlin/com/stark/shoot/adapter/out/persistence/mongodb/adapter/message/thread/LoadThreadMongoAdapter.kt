@@ -85,4 +85,16 @@ class LoadThreadMongoAdapter(
         return chatMessageRepository.countByThreadId(threadId.value.toObjectId())
     }
 
+    override fun countByThreadIds(threadIds: List<MessageId>): Map<MessageId, Long> {
+        if (threadIds.isEmpty()) return emptyMap()
+        
+        val objectIds = threadIds.map { it.value.toObjectId() }
+        val counts = chatMessageRepository.countByThreadIds(objectIds)
+        
+        // ThreadCountResult를 MessageId -> Long Map으로 변환
+        return counts.associate { result ->
+            MessageId.from(result._id.toString()) to result.count
+        }
+    }
+
 }

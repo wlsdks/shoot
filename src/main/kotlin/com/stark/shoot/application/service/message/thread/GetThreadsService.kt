@@ -26,8 +26,16 @@ class GetThreadsService(
             threadQueryPort.findThreadRootsByRoomId(roomId, limit)
         }
 
+        // N+1 문제 해결: 모든 스레드 ID에 대한 답글 수를 배치로 조회
+        val threadIds = rootMessages.mapNotNull { it.id }
+        val replyCounts = if (threadIds.isNotEmpty()) {
+            threadQueryPort.countByThreadIds(threadIds)
+        } else {
+            emptyMap()
+        }
+
         return rootMessages.map { message ->
-            val count = threadQueryPort.countByThreadId(message.id!!)
+            val count = replyCounts[message.id!!] ?: 0L
             ThreadSummaryDto(
                 rootMessage = chatMessageMapper.toDto(message),
                 replyCount = count

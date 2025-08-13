@@ -21,6 +21,8 @@ import java.time.Instant
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import jakarta.annotation.PreDestroy
+import java.util.concurrent.Future
 
 @Component
 class ScheduledMessageProcessor(
@@ -68,8 +70,8 @@ class ScheduledMessageProcessor(
      * 여러 메시지를 병렬로 처리합니다.
      */
     private fun processMessagesBatch(messages: List<ScheduledMessage>) {
-        // 각 메시지를 별도 스레드에서 처리
-        messages.forEach { message ->
+        // 각 메시지를 별도 스레드에서 처리하고 Future로 추적
+        val futures = messages.map { message ->
             executorService.submit {
                 // 분산 락을 사용하여 동일 메시지의 중복 처리 방지
                 val lockKey = "scheduled-message:${message.id}"
@@ -89,17 +91,61 @@ class ScheduledMessageProcessor(
             }
         }
 
-        // 모든 작업이 완료될 때까지 최대 30초 대기 후 스레드 풀 재생성
+        // 모든 작업이 완료될 때까지 최대 30초 대기 (스레드 풀은 재사용)
+        waitForCompletion(futures)
+    }
+
+    /**
+     * 모든 Future 작업의 완료를 기다립니다.
+     * 스레드 풀을 종료하지 않고 재사용합니다.
+     */
+    private fun waitForCompletion(futures: List<Future<*>>) {
+        val startTime = System.currentTimeMillis()
+        val timeoutMs = 30_000L // 30초
+        
+        try {
+            for (future in futures) {
+                val remainingTime = timeoutMs - (System.currentTimeMillis() - startTime)
+                if (remainingTime <= 0) {
+                    logger.warn { "예약 메시지 처리 시간 초과, 남은 작업들을 취소합니다." }
+                    futures.forEach { it.cancel(true) }
+                    break
+                }
+                
+                try {
+                    future.get(remainingTime, TimeUnit.MILLISECONDS)
+                } catch (e: Exception) {
+                    logger.error(e) { "예약 메시지 처리 중 오류 발생: ${e.message}" }
+                }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "예약 메시지 배치 처리 중 예외 발생" }
+            futures.forEach { future ->
+                try {
+                    future.cancel(true)
+                } catch (cancelEx: Exception) {
+                    logger.debug(cancelEx) { "Future 취소 중 오류 발생" }
+                }
+            }
+        }
+    }
+
+    /**
+     * 애플리케이션 종료 시 스레드 풀을 정리합니다.
+     */
+    @PreDestroy
+    fun shutdown() {
+        logger.info { "ScheduledMessageProcessor 종료 중..." }
         try {
             executorService.shutdown()
-            if (!executorService.awaitTermination(30, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+                logger.warn { "스레드 풀이 정상적으로 종료되지 않아 강제 종료합니다." }
                 executorService.shutdownNow()
-                logger.warn { "일부 예약 메시지 처리가 시간 내에 완료되지 않았습니다." }
             }
         } catch (e: InterruptedException) {
             executorService.shutdownNow()
             Thread.currentThread().interrupt()
-            logger.error(e) { "예약 메시지 처리 중 인터럽트 발생" }
+            logger.error(e) { "스레드 풀 종료 중 인터럽트 발생" }
         }
     }
 

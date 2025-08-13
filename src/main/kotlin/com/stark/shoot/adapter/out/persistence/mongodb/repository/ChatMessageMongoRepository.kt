@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.out.persistence.mongodb.repository
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.ChatMessageDocument
 import org.bson.types.ObjectId
 import org.springframework.data.domain.Pageable
+import org.springframework.data.mongodb.repository.Aggregation
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.data.mongodb.repository.Query
 
@@ -52,5 +53,23 @@ interface ChatMessageMongoRepository : MongoRepository<ChatMessageDocument, Obje
     ): List<ChatMessageDocument>
 
     fun countByThreadId(threadId: ObjectId): Long
+
+    /**
+     * 여러 스레드 ID에 대한 답글 수를 배치로 조회합니다.
+     * N+1 쿼리 문제를 해결하기 위해 사용됩니다.
+     */
+    @Aggregation(pipeline = [
+        "{ '\$match': { 'threadId': { '\$in': ?0 } } }",
+        "{ '\$group': { '_id': '\$threadId', 'count': { '\$sum': 1 } } }"
+    ])
+    fun countByThreadIds(threadIds: List<ObjectId>): List<ThreadCountResult>
+
+    /**
+     * 스레드별 답글 수 결과를 담는 데이터 클래스
+     */
+    data class ThreadCountResult(
+        val _id: ObjectId,
+        val count: Long
+    )
 
 }

@@ -2,6 +2,7 @@ package com.stark.shoot.infrastructure.util
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -15,11 +16,15 @@ suspend fun <T> CompletableFuture<T>.awaitResult(): T = await()
 
 /**
  * 코루틴 컨텍스트에서 CompletableFuture로 변환하는 함수
+ * ApplicationCoroutineScope를 사용하여 중앙 집중식 코루틴 관리
  */
-fun <T> runAsync(block: suspend CoroutineScope.() -> T): CompletableFuture<T> {
+fun <T> runAsync(
+    coroutineScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+    block: suspend CoroutineScope.() -> T
+): CompletableFuture<T> {
     val future = CompletableFuture<T>()
 
-    CoroutineScope(Dispatchers.IO).launch {
+    coroutineScope.launch {
         try {
             val result = block()
             future.complete(result)

@@ -4,10 +4,12 @@ import com.stark.shoot.domain.chat.message.service.*
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
 import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
+import com.stark.shoot.domain.chatroom.service.ChatRoomValidationDomainService
 import com.stark.shoot.domain.notification.service.NotificationDomainService
 import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.service.block.UserBlockDomainService
 import com.stark.shoot.domain.user.service.group.FriendGroupDomainService
+import com.stark.shoot.infrastructure.config.domain.DomainConstants
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -17,7 +19,9 @@ import org.springframework.context.annotation.Configuration
  * 이곳에서 명시적으로 빈을 정의한다.
  */
 @Configuration
-class DomainServiceConfig {
+class DomainServiceConfig(
+    private val domainConstants: DomainConstants
+) {
 
     @Bean fun friendDomainService() = FriendDomainService()
 
@@ -30,6 +34,8 @@ class DomainServiceConfig {
     @Bean fun chatRoomEventService() = ChatRoomEventService()
 
     @Bean fun chatRoomMetadataDomainService() = ChatRoomMetadataDomainService()
+
+    @Bean fun chatRoomValidationDomainService() = ChatRoomValidationDomainService(domainConstants)
 
     @Bean fun messageDomainService() = MessageDomainService()
 

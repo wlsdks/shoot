@@ -7,6 +7,7 @@ import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.exception.FavoriteLimitExceededException
+import com.stark.shoot.infrastructure.exception.ChatRoomException
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -82,7 +83,7 @@ data class ChatRoom(
     }
 
     companion object {
-        private const val MAX_PINNED = 5
+        // 최대 고정 메시지 수는 DomainConstants에서 관리됨
 
         // 타임스탬프 포맷터 (예: "오후 3:15")
         private val formatter = DateTimeFormatter.ofPattern("a h:mm")
@@ -108,7 +109,7 @@ data class ChatRoom(
             
             // 비즈니스 규칙 검증
             if (userId == friendId) {
-                throw IllegalArgumentException("자기 자신과는 채팅방을 만들 수 없습니다.")
+                throw ChatRoomException.SelfChatNotAllowed()
             }
             
             // 외부 검증 로직 실행 (사용자 존재 여부 등)
@@ -212,13 +213,15 @@ data class ChatRoom(
      * @param userId 사용자 ID
      * @param isFavorite 즐겨찾기 여부
      * @param userPinnedRoomsCount 사용자가 현재 핀한 채팅방 수
+     * @param maxPinnedLimit 최대 핀 가능한 채팅방 수
      */
     fun updateFavoriteStatus(
         userId: UserId,
         isFavorite: Boolean,
-        userPinnedRoomsCount: Int
+        userPinnedRoomsCount: Int,
+        maxPinnedLimit: Int
     ) {
-        this.pinnedParticipants = updatePinnedParticipants(userId, isFavorite, userPinnedRoomsCount)
+        this.pinnedParticipants = updatePinnedParticipants(userId, isFavorite, userPinnedRoomsCount, maxPinnedLimit)
         this.updatedAt = Instant.now()
     }
 
@@ -228,12 +231,14 @@ data class ChatRoom(
      * @param userId 사용자 ID
      * @param isFavorite 즐겨찾기 여부
      * @param userPinnedRoomsCount 사용자가 현재 핀한 채팅방 수 (현재 채팅방 제외)
+     * @param maxPinnedLimit 최대 핀 가능한 채팅방 수
      * @return 업데이트된 고정 참여자 목록
      */
     private fun updatePinnedParticipants(
         userId: UserId,
         isFavorite: Boolean,
-        userPinnedRoomsCount: Int
+        userPinnedRoomsCount: Int,
+        maxPinnedLimit: Int
     ): Set<UserId> {
         val isAlreadyPinned = userId in pinnedParticipants
 
@@ -242,8 +247,8 @@ data class ChatRoom(
             isFavorite && isAlreadyPinned -> pinnedParticipants - userId
             // 즐겨찾기 추가 요청이고 아직 즐겨찾기되지 않은 경우
             isFavorite -> {
-                if (userPinnedRoomsCount >= MAX_PINNED) {
-                    throw FavoriteLimitExceededException("최대 핀 채팅방 개수를 초과했습니다. (MAX_PINNED=$MAX_PINNED)")
+                if (userPinnedRoomsCount >= maxPinnedLimit) {
+                    throw FavoriteLimitExceededException("최대 핀 채팅방 개수를 초과했습니다. (최대: ${maxPinnedLimit}개)")
                 }
                 pinnedParticipants + userId
             }

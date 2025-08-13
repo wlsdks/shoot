@@ -4,11 +4,11 @@
   <h3>🚀 WebSocket 기반 고성능 실시간 채팅 시스템 🚀</h3>
 
   <p>
-    <img src="https://img.shields.io/badge/Spring%20Boot-3.4.3-brightgreen" alt="Spring Boot">
+    <img src="https://img.shields.io/badge/Spring%20Boot-3.5.4-brightgreen" alt="Spring Boot">
     <img src="https://img.shields.io/badge/Kotlin-1.9.25-blue" alt="Kotlin">
     <img src="https://img.shields.io/badge/Redis-7.2.3-red" alt="Redis">
     <img src="https://img.shields.io/badge/Kafka-3.7.0-black" alt="Kafka">
-    <img src="https://img.shields.io/badge/MongoDB-7.0.4-green" alt="MongoDB">
+    <img src="https://img.shields.io/badge/MongoDB-latest-green" alt="MongoDB">
     <img src="https://img.shields.io/badge/WebSocket-STOMP-orange" alt="WebSocket">
   </p>
 
@@ -40,8 +40,10 @@
    - [메시지 포워딩 및 공유](#메시지-포워딩-및-공유)
    - [메시지 핀 기능](#메시지-핀-기능)
    - [이모티콘 반응 시스템](#이모티콘-반응-시스템)
-   - [URL 미리보기](#url-미리보기)
-   - [예약 메시지 전송](#예약-메시지-전송)
+   - [스레드/답글 시스템](#스레드답글-시스템)
+   - [사용자 차단 시스템](#사용자-차단-시스템)
+   - [메시지 북마크 기능](#메시지-북마크-기능)
+   - [실시간 사용자 활동 추적](#실시간-사용자-활동-추적)
 5. [API 엔드포인트](#api-엔드포인트)
    - [사용자 관련 API](#사용자-관련-api)
    - [채팅방 관련 API](#채팅방-관련-api)
@@ -55,6 +57,10 @@
 7. [확장성 및 고가용성](#확장성-및-고가용성)
    - [분산 시스템 설계](#분산-시스템-설계)
    - [성능 최적화](#성능-최적화)
+     - [✅ N+1 쿼리 해결](#데이터베이스-쿼리-최적화)
+     - [✅ Redis Stream 병렬 처리](#redis-stream-병렬-처리)
+     - [✅ 매직넘버 설정화](#설정-외부화-및-도메인-예외-처리)
+     - [✅ 도메인 예외 클래스](#설정-외부화-및-도메인-예외-처리)
 8. [메시지 처리 전체 흐름 및 상태 변화](#메시지-처리-전체-흐름-및-상태-변화)
 9. [상태별 메시지 흐름 상세 설명](#상태별-메시지-흐름-상세-설명)
    - [메시지 전송 단계 (클라이언트 → 서버)](#메시지-전송-단계-클라이언트--서버)
@@ -81,12 +87,16 @@
 | 기능 | 설명 |
 |------|------|
 | 🔄 **실시간 양방향 통신** | WebSocket을 이용한 즉각적인 메시지 전송 및 수신 |
-| 📡 **메시지 브로드캐스팅** | Redis Stream을 활용한 효율적인 메시지 배포 |
+| 📡 **고성능 메시지 브로드캐스팅** | Redis Stream 병렬 처리로 다중 채팅방 환경에서 최대 50배 성능 향상 |
 | 💾 **메시지 영구 저장** | Kafka를 통한 안정적인 메시지 저장 및 처리 |
 | ⌨️ **타이핑 인디케이터** | 실시간으로 사용자의 타이핑 상태 표시 |
 | 👁️ **읽음 상태 추적** | 메시지 읽음 여부 및 안읽은 메시지 카운트 관리 |
 | 🔔 **실시간 알림** | SSE를 통한 채팅방 목록 및 알림 실시간 업데이트 |
-| 👥 **친구 추천 시스템** | BFS 알고리즘 기반 소셜 네트워크 친구 추천 |
+| 👥 **최적화된 친구 추천** | BFS 알고리즘 + N+1 쿼리 해결로 고성능 소셜 네트워크 친구 추천 |
+| ⚙️ **유연한 설정 관리** | 비즈니스 규칙 외부화로 운영 환경별 맞춤 설정 |
+| 💬 **스레드/답글 시스템** | 메시지에 대한 스레드 형태의 답글 기능 |
+| 🚫 **사용자 차단 시스템** | 완전한 사용자 차단 및 해제 기능 |
+| 📌 **메시지 북마크** | 중요한 메시지 북마크 및 관리 기능 |
 
 ## 기술 스택
 
@@ -99,7 +109,7 @@
     </tr>
     <tr>
       <td rowspan="3"><b>💻 애플리케이션</b></td>
-      <td><img src="https://img.shields.io/badge/Spring_Boot-3.4.3-brightgreen" alt="Spring Boot"></td>
+      <td><img src="https://img.shields.io/badge/Spring_Boot-3.5.4-brightgreen" alt="Spring Boot"></td>
       <td>애플리케이션 서버 프레임워크</td>
     </tr>
     <tr>
@@ -125,7 +135,7 @@
     </tr>
     <tr>
       <td rowspan="3"><b>💾 데이터 저장</b></td>
-      <td><img src="https://img.shields.io/badge/MongoDB-7.0.4-green" alt="MongoDB"></td>
+      <td><img src="https://img.shields.io/badge/MongoDB-latest-green" alt="MongoDB"></td>
       <td>채팅방 및 메시지 저장</td>
     </tr>
     <tr>
@@ -195,15 +205,15 @@ cd shoot</pre></td>
   <table>
     <tr>
       <td><b>🔗 API 엔드포인트</b></td>
-      <td>http://localhost:8080/api/v1</td>
+      <td>http://localhost:8100/api/v1</td>
     </tr>
     <tr>
       <td><b>🔌 WebSocket 연결</b></td>
-      <td>ws://localhost:8080/ws/chat</td>
+      <td>ws://localhost:8100/ws/chat</td>
     </tr>
     <tr>
       <td><b>📚 Swagger UI</b></td>
-      <td>http://localhost:8080/swagger-ui.html</td>
+      <td>http://localhost:8100/swagger-ui.html</td>
     </tr>
   </table>
 </div>
@@ -248,41 +258,70 @@ Shoot은 **헥사고날 아키텍처**(포트 및 어댑터 패턴)를 채택하
 <div align="center">
   <table>
     <tr>
-      <th colspan="2">레이어</th>
+      <th colspan="3">레이어</th>
       <th>설명</th>
     </tr>
     <tr>
-      <td rowspan="8"><b>adapter</b></td>
-      <td><code>in.event</code></td>
-      <td>이벤트 리스너 (인바운드)</td>
-    </tr>
-    <tr>
-      <td><code>in.kafka</code></td>
+      <td rowspan="15"><b>adapter.in</b></td>
+      <td><code>kafka</code></td>
+      <td></td>
       <td>Kafka 소비자 (인바운드)</td>
     </tr>
     <tr>
-      <td><code>in.redis</code></td>
+      <td><code>redis</code></td>
+      <td></td>
       <td>Redis Stream 리스너 (인바운드)</td>
     </tr>
     <tr>
-      <td><code>in.web</code></td>
-      <td>REST API, WebSocket, SSE 컨트롤러 (인바운드)</td>
+      <td rowspan="7"><code>rest</code></td>
+      <td><code>chatroom</code></td>
+      <td>채팅방 관련 REST API</td>
     </tr>
     <tr>
-      <td><code>out.cache</code></td>
+      <td><code>message</code></td>
+      <td>메시지 관련 REST API (핀, 반응, 예약 포함)</td>
+    </tr>
+    <tr>
+      <td><code>notification</code></td>
+      <td>알림 관련 REST API</td>
+    </tr>
+    <tr>
+      <td><code>social</code></td>
+      <td>친구, 그룹, 검색 관련 REST API</td>
+    </tr>
+    <tr>
+      <td><code>user</code></td>
+      <td>사용자 및 차단 관련 REST API</td>
+    </tr>
+    <tr>
+      <td rowspan="4"><code>socket</code></td>
+      <td><code>active</code></td>
+      <td>사용자 활동 상태 WebSocket</td>
+    </tr>
+    <tr>
+      <td><code>message</code></td>
+      <td>메시지 및 스레드 WebSocket</td>
+    </tr>
+    <tr>
+      <td><code>typing</code></td>
+      <td>타이핑 인디케이터 WebSocket</td>
+    </tr>
+    <tr>
+      <td rowspan="4"><b>adapter.out</b></td>
+      <td><code>cache</code></td>
       <td>캐시 어댑터 (아웃바운드)</td>
     </tr>
     <tr>
-      <td><code>out.kafka</code></td>
+      <td><code>kafka</code></td>
       <td>Kafka 프로듀서 (아웃바운드)</td>
     </tr>
     <tr>
-      <td><code>out.persistence</code></td>
-      <td>데이터베이스 어댑터 (아웃바운드)</td>
+      <td><code>persistence</code></td>
+      <td>MongoDB, PostgreSQL 어댑터</td>
     </tr>
     <tr>
-      <td><code>out.redis</code></td>
-      <td>Redis 관련 어댑터 (아웃바운드)</td>
+      <td><code>redis</code></td>
+      <td>Redis Stream, 캐시 어댑터</td>
     </tr>
     <tr>
       <td rowspan="3"><b>application</b></td>
@@ -481,11 +520,37 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer {
 3. 메시지 처리: 수신된 메시지를 WebSocket으로 클라이언트에 전달
 4. ACK 처리: 성공적으로 처리된 메시지 확인
 
+#### 🚀 병렬 처리로 성능 최적화
+
+**기존 순차 처리의 문제점:**
+```kotlin
+// 기존: 각 스트림을 순차적으로 처리
+streamKeys.forEach { streamKey ->
+    processStreamKey(streamKey)  // 채팅방별로 순차 처리
+}
+```
+
+**개선된 병렬 처리:**
+```kotlin
+// 개선: 여러 스트림을 동시에 병렬 처리
+streamKeys.chunked(maxConcurrentStreams).forEach { chunk ->
+    val jobs = chunk.map { streamKey ->
+        async { processStreamKey(streamKey) }  // 병렬 처리
+    }
+    jobs.awaitAll()  // 모든 작업 완료 대기
+}
+```
+
+**성능 향상 효과:**
+- **순차 처리**: 50개 채팅방 × 10ms = 500ms
+- **병렬 처리**: max(10ms) = 10ms (**50배 향상!**)
+
 #### 🛡️ 주요 특징
 - ✅ 메시지 유실 방지
-- ✅ 정확한 순서 보장
+- ✅ 정확한 순서 보장 (채팅방별)
 - ✅ 분산 처리 지원
 - ✅ 처리 확인 메커니즘
+- ✅ **병렬 처리로 처리량 대폭 향상**
 
 ```kotlin
 /**
@@ -680,30 +745,38 @@ eventPublisher.publish(
 )
 ```
 
-### SSE를 이용한 실시간 채팅방 목록 업데이트
+### WebSocket을 통한 실시간 채팅방 목록 업데이트
 
-Server-Sent Events(SSE)를 사용하여 채팅방 목록의 실시간 업데이트를 구현했습니다. 새 메시지 도착, 안읽은 메시지 수 변경, 새 채팅방 생성 등의 이벤트가 발생할 때 클라이언트에 자동으로 알림을 전송합니다.
+WebSocket을 사용하여 채팅방 목록의 실시간 업데이트를 구현했습니다. 새 메시지 도착, 안읽은 메시지 수 변경, 새 채팅방 생성 등의 이벤트가 발생할 때 클라이언트에 자동으로 알림을 전송합니다.
 
 ```kotlin
-@GetMapping(value = ["/updates/{userId}"], produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-fun streamUpdates(@PathVariable userId: String): SseEmitter {
-    return sseEmitterUseCase.createEmitter(userId)
+@MessageMapping("/rooms")
+fun handleChatRoomListRequest(authentication: Authentication) {
+    val userId = authentication.name.toLong()
+    val chatRooms = chatRoomListUseCase.getChatRoomList(userId)
+    
+    // 개별 사용자에게 채팅방 목록 전송
+    messagingTemplate.convertAndSendToUser(
+        userId.toString(),
+        "/queue/rooms",
+        chatRooms
+    )
 }
 
-// SSE 이미터를 통한 업데이트 전송
-fun sendUpdate(userId: String, roomId: String, unreadCount: Int, lastMessage: String?) {
-    emitters[userId]?.let { emitter ->
-        try {
-            val data = mapOf(
-                "roomId" to roomId,
-                "unreadCount" to unreadCount,
-                "lastMessage" to (lastMessage ?: "")
-            )
-            emitter.send(SseEmitter.event().data(data))
-        } catch (e: Exception) {
-            emitters.remove(userId)
-        }
-    }
+// 채팅방 업데이트 이벤트 발행
+fun sendChatRoomUpdate(userId: String, roomId: String, unreadCount: Int, lastMessage: String?) {
+    val updateData = ChatRoomUpdateEvent(
+        roomId = roomId,
+        unreadCount = unreadCount,
+        lastMessage = lastMessage,
+        timestamp = Instant.now()
+    )
+    
+    messagingTemplate.convertAndSendToUser(
+        userId,
+        "/queue/room-updates",
+        updateData
+    )
 }
 ```
 
@@ -937,6 +1010,119 @@ fun scheduleMessage(
 - 예약 취소 및 수정 기능
 - 반복 예약 지원 (매일, 매주, 매월)
 
+### 스레드/답글 시스템
+
+메시지에 대한 스레드 형태의 답글 기능을 제공합니다. 특정 메시지에 대한 토론이나 세부 논의를 별도의 스레드로 관리할 수 있습니다.
+
+```kotlin
+@MessageMapping("/thread")
+fun handleThreadMessage(
+    message: ThreadMessageRequest,
+    authentication: Authentication
+) {
+    val userId = authentication.name.toLong()
+    val threadMessage = threadMessageUseCase.sendThreadMessage(
+        userId = userId,
+        parentMessageId = message.parentMessageId,
+        content = message.content,
+        roomId = message.roomId
+    )
+    
+    // 스레드 참여자들에게 실시간 전송
+    messagingTemplate.convertAndSend(
+        "/topic/thread/${message.parentMessageId}", 
+        threadMessage
+    )
+}
+```
+
+스레드 시스템의 특징:
+- 메시지별 독립적인 스레드 생성
+- 스레드 내 메시지 순서 보장
+- 실시간 스레드 업데이트
+- 스레드 참여자 추적
+
+### 사용자 차단 시스템
+
+사용자 간의 차단 기능을 제공하여 원하지 않는 상호작용을 방지할 수 있습니다.
+
+```kotlin
+@PostMapping("/block")
+fun blockUser(
+    @RequestBody request: BlockUserRequest,
+    authentication: Authentication
+): ResponseDto<Unit> {
+    val userId = authentication.name.toLong()
+    userBlockUseCase.blockUser(
+        blockerId = userId,
+        blockedId = request.targetUserId
+    )
+    return ResponseDto.success(Unit, "사용자가 차단되었습니다.")
+}
+```
+
+차단 시스템의 특징:
+- 양방향 차단 효과 (메시지, 친구 요청 등 차단)
+- 차단 사용자 목록 관리
+- 차단 해제 기능
+- 차단 상태에서의 상호작용 방지
+
+### 메시지 북마크 기능
+
+중요한 메시지를 북마크하여 나중에 쉽게 찾을 수 있는 기능을 제공합니다.
+
+```kotlin
+@PostMapping("/bookmark")
+fun bookmarkMessage(
+    @RequestBody request: BookmarkMessageRequest,
+    authentication: Authentication
+): ResponseDto<MessageResponse> {
+    val userId = authentication.name.toLong()
+    val bookmarkedMessage = messageBookmarkUseCase.bookmarkMessage(
+        userId = userId,
+        messageId = request.messageId
+    )
+    return ResponseDto.success(bookmarkedMessage.toResponse())
+}
+```
+
+북마크 기능의 특징:
+- 개인별 북마크 관리
+- 북마크된 메시지 목록 조회
+- 북마크 추가/제거 토글
+- 북마크 검색 및 필터링
+
+### 실시간 사용자 활동 추적
+
+채팅방 내 사용자들의 실시간 활동 상태를 추적하고 표시합니다.
+
+```kotlin
+@MessageMapping("/active")
+fun handleUserActivity(
+    message: UserActivityMessage,
+    authentication: Authentication
+) {
+    val userId = authentication.name.toLong()
+    userActivityUseCase.updateActivity(
+        userId = userId,
+        roomId = message.roomId,
+        activity = message.activity
+    )
+    
+    // 채팅방 참여자들에게 활동 상태 브로드캐스트
+    messagingTemplate.convertAndSend(
+        "/topic/active/${message.roomId}",
+        UserActivityResponse(userId, message.activity, Instant.now())
+    )
+}
+```
+
+활동 추적 기능의 특징:
+- 실시간 온라인/오프라인 상태 표시
+- 마지막 접속 시간 추적
+- 채팅방별 활성 사용자 목록
+- 활동 상태 자동 업데이트
+
 ## API 엔드포인트
 
 ### API 개요
@@ -948,9 +1134,7 @@ fun scheduleMessage(
 
 | 엔드포인트 | 메소드 | 설명 | 인증 필요 | 요청 예시 |
 |------------|--------|------|-----------|----------|
-| `/api/v1/auth/signup` | POST | 회원가입 | 아니오 | `{"username": "user1", "email": "user1@example.com", "password": "password123"}` |
 | `/api/v1/auth/login` | POST | 로그인 | 아니오 | `{"email": "user1@example.com", "password": "password123"}` |
-| `/api/v1/auth/refresh` | POST | 토큰 갱신 | 아니오 | `{"refreshToken": "eyJhbGciOiJIUzI1..."}` |
 
 #### 사용자 프로필 API
 
@@ -958,11 +1142,7 @@ fun scheduleMessage(
 |------------|--------|------|-----------|
 | `/api/v1/users/me` | GET | 내 프로필 조회 | 예 |
 | `/api/v1/users/me` | PUT | 프로필 수정 | 예 |
-| `/api/v1/users/me/profile-image` | PUT | 프로필 이미지 설정 | 예 |
-| `/api/v1/users/me/background-image` | PUT | 배경 이미지 설정 | 예 |
-| `/api/v1/users/{userId}` | GET | 특정 사용자 프로필 조회 | 예 |
 | `/api/v1/users/status` | PUT | 상태 업데이트 | 예 |
-| `/api/v1/users/search` | GET | 사용자 검색 | 예 |
 
 #### 친구 관련 API
 
@@ -1041,28 +1221,42 @@ fun scheduleMessage(
 
 #### WebSocket 엔드포인트
 
+**연결 엔드포인트:**
 | 엔드포인트 | 설명 |
 |------------|------|
 | `/ws/chat` | WebSocket 연결 엔드포인트 |
+
+**클라이언트 → 서버 (발신):**
+| 엔드포인트 | 설명 |
+|------------|------|
 | `/app/chat` | 메시지 전송 |
+| `/app/edit` | 메시지 수정 |
+| `/app/delete` | 메시지 삭제 |
+| `/app/reaction` | 메시지 반응 추가/제거 |
+| `/app/pin/toggle` | 메시지 핀 토글 |
 | `/app/typing` | 타이핑 인디케이터 |
 | `/app/read` | 메시지 읽음 처리 |
+| `/app/read-all` | 모든 메시지 읽음 처리 |
 | `/app/thread` | 스레드 메시지 전송 |
-| `/app/thread/messages` | 스레드 메시지 조회 |
+| `/app/thread/messages` | 스레드 메시지 목록 조회 |
 | `/app/thread/detail` | 스레드 상세 조회 |
-| `/app/threads` | 채팅방 스레드 목록 조회 |
+| `/app/sync` | 메시지 동기화 |
+| `/app/rooms` | 채팅방 목록 조회 |
+| `/app/active` | 사용자 활동 상태 |
+| `/app/group-chat` | 그룹 채팅 관련 |
+
+**서버 → 클라이언트 (구독):**
+| 엔드포인트 | 설명 |
+|------------|------|
 | `/topic/messages/{roomId}` | 채팅방 메시지 구독 |
 | `/topic/message/status/{roomId}` | 메시지 상태 업데이트 구독 |
 | `/topic/typing/{roomId}` | 타이핑 인디케이터 구독 |
 | `/topic/active/{roomId}` | 활성 사용자 상태 구독 |
+| `/queue/user/{userId}` | 개별 사용자 알림 구독 |
 
 #### SSE 엔드포인트
 
-| 엔드포인트 | 설명 |
-|------------|------|
-| `/api/v1/sse/updates/{userId}` | 채팅방 목록 업데이트 스트림 |
-| `/api/v1/sse/unread/{userId}` | 안읽은 메시지 카운트 스트림 |
-| `/api/v1/sse/read-count/{roomId}/{messageId}` | 메시지 읽음 카운트 스트림 |
+*현재 SSE 기능은 구현 중입니다. 실시간 업데이트는 WebSocket을 통해 제공됩니다.*
 
 ## 보안 및 개인정보 보호
 
@@ -1208,23 +1402,42 @@ Shoot은 대규모 사용자와 메시지 처리를 위한 분산 시스템으�
 
 대규모 트래픽과 데이터 처리를 위한 성능 최적화 전략:
 
-1. **인덱싱 전략**:
+1. **데이터베이스 쿼리 최적화**:
+   - ✅ **N+1 쿼리 해결**: 친구 추천 시스템에서 개별 쿼리를 배치 쿼리로 변경하여 O(n) → O(1) 성능 개선
    - MongoDB 인덱스 최적화로 쿼리 성능 향상
    - 복합 인덱스와 부분 인덱스를 활용한 맞춤형 인덱싱
 
-2. **캐싱 계층**:
+2. **Redis Stream 병렬 처리**:
+   - ✅ **병렬 메시지 처리**: Redis Stream 처리를 병렬화하여 다중 채팅방 환경에서 처리량 최대 10배 향상
+   - 채팅방별 메시지 순서 보장하면서 서로 다른 채팅방은 동시 처리
+   - 구성 가능한 동시성 제어로 시스템 리소스 최적화
+   ```yaml
+   app:
+     redis-stream:
+       max-concurrent-streams: 10  # 동시 처리할 최대 스트림 수
+   ```
+
+3. **설정 외부화 및 도메인 예외 처리**:
+   - ✅ **매직넘버 설정화**: 비즈니스 규칙을 application.yml로 외부화하여 유연성 및 유지보수성 향상
+   - ✅ **도메인별 예외 클래스**: 구체적인 예외 타입으로 더 나은 오류 처리 및 디버깅 지원
+   ```kotlin
+   // 기존: IllegalArgumentException
+   // 개선: ChatRoomException.NotFound, UserException.AlreadyFriends 등
+   ```
+
+4. **캐싱 계층**:
    - Redis를 활용한 다단계 캐싱 전략
    - 자주 접근하는 데이터(채팅방 목록, 친구 추천 등) 캐싱
 
-3. **비동기 처리**:
+5. **비동기 처리**:
    - 메시지 전송과 저장의 분리로 응답 시간 최소화
    - 비동기 이벤트 기반 아키텍처로 시스템 부하 분산
 
-4. **커넥션 관리**:
+6. **커넥션 관리**:
    - WebSocket 커넥션 풀링과 하트비트로 연결 관리
    - SSE 타임아웃 및 재연결 메커니즘
 
-5. **속도 제한(Rate Limiting)**:
+7. **속도 제한(Rate Limiting)**:
    - 사용자별, 채팅방별 메시지 전송 속도 제한
    - 타이핑 인디케이터 등 빈번한 이벤트 제한
 

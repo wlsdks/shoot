@@ -2,6 +2,7 @@ package com.stark.shoot.domain.chatroom.service
 
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chatroom.ChatRoom
+import com.stark.shoot.infrastructure.exception.MessageException
 import java.time.Instant
 
 /**
@@ -23,7 +24,7 @@ class ChatRoomMetadataDomainService {
     ): ChatRoom {
         // 메시지 ID가 없는 경우 예외 발생
         val messageId = message.id
-            ?: throw IllegalArgumentException("메시지 ID가 없습니다.")
+            ?: throw MessageException.MissingId()
 
         // 채팅방 메타데이터 업데이트 (마지막 메시지 ID, 마지막 활동 시간)
         chatRoom.update(

@@ -8,6 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import org.springframework.beans.factory.annotation.Value
@@ -28,7 +30,8 @@ class MessageRedisStreamListener(
     @Value("\${app.redis-stream.polling-interval-ms:100}") private val pollingIntervalMs: Long = 100,
     @Value("\${app.redis-stream.error-retry-delay-ms:1000}") private val errorRetryDelayMs: Long = 1000,
     @Value("\${app.redis-stream.consumer-group:chat-consumers}") private val consumerGroup: String = "chat-consumers",
-    @Value("\${app.redis-stream.stream-key-pattern:stream:chat:room:*}") private val streamKeyPattern: String = "stream:chat:room:*"
+    @Value("\${app.redis-stream.stream-key-pattern:stream:chat:room:*}") private val streamKeyPattern: String = "stream:chat:room:*",
+    @Value("\${app.redis-stream.max-concurrent-streams:10}") private val maxConcurrentStreams: Int = 10
 ) {
     private val logger = KotlinLogging.logger {}
     private var pollingJob: Job? = null
@@ -94,6 +97,7 @@ class MessageRedisStreamListener(
 
     /**
      * Redis Stream에서 새로운 메시지를 주기적으로 폴링합니다.
+     * 여러 스트림을 병렬로 처리하여 성능을 향상시킵니다.
      */
     private suspend fun pollMessages() {
         try {
@@ -103,12 +107,32 @@ class MessageRedisStreamListener(
             // 스트림 키가 없으면 종료
             if (streamKeys.isEmpty()) return
 
-            // 각 스트림에 대해 순차적으로 처리 (메시지 순서 보장)
-            streamKeys.forEach { streamKey ->
-                processStreamKey(streamKey)
+            // 스트림을 청크로 나누어 병렬 처리 (동시 처리 스트림 수 제한)
+            streamKeys.chunked(maxConcurrentStreams).forEach { chunk ->
+                processStreamKeysInParallel(chunk)
             }
         } catch (e: Exception) {
             handlePollMessagesError(e)
+        }
+    }
+
+    /**
+     * 여러 스트림 키를 병렬로 처리합니다.
+     * 각 스트림 내에서는 메시지 순서를 보장하되, 서로 다른 스트림은 동시에 처리합니다.
+     *
+     * @param streamKeys 병렬 처리할 스트림 키 목록
+     */
+    private suspend fun processStreamKeysInParallel(streamKeys: List<String>) {
+        try {
+            val jobs = streamKeys.map { streamKey ->
+                appCoroutineScope.async {
+                    processStreamKey(streamKey)
+                }
+            }
+            // 모든 병렬 작업 완료까지 대기
+            jobs.awaitAll()
+        } catch (e: Exception) {
+            logger.error(e) { "병렬 스트림 처리 중 오류 발생: ${e.message}" }
         }
     }
 
@@ -117,7 +141,7 @@ class MessageRedisStreamListener(
      *
      * @param streamKey Redis Stream 키
      */
-    private fun processStreamKey(streamKey: String) {
+    private suspend fun processStreamKey(streamKey: String) {
         try {
             setupStreamInfrastructure(streamKey)
             val messages = redisStreamManager.readMessages(streamKey, consumerGroup)

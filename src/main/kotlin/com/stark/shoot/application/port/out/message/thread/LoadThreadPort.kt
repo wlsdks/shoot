@@ -15,4 +15,13 @@ interface LoadThreadPort {
     ): List<ChatMessage>
 
     fun countByThreadId(threadId: MessageId): Long
+    
+    /**
+     * 여러 스레드 ID에 대한 답글 수를 배치로 조회합니다.
+     * N+1 쿼리 문제를 해결하기 위해 사용됩니다.
+     * 
+     * @param threadIds 답글 수를 조회할 스레드 ID 목록
+     * @return 스레드 ID를 키로 하고 답글 수를 값으로 하는 Map
+     */
+    fun countByThreadIds(threadIds: List<MessageId>): Map<MessageId, Long>
 }

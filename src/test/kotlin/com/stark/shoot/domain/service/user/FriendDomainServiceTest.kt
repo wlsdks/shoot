@@ -4,10 +4,12 @@ import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import com.stark.shoot.infrastructure.exception.UserException
 
 @DisplayName("친구 도메인 서비스 테스트")
 class FriendDomainServiceTest {
@@ -19,7 +21,7 @@ class FriendDomainServiceTest {
         @Test
         @DisplayName("[bad] 자신에게 요청하면 예외가 발생한다")
         fun `자신에게 요청하면 예외`() {
-            assertThrows<IllegalArgumentException> {
+            assertThrows<UserException.SelfFriendRequestNotAllowed> {
                 service.validateFriendRequest(UserId.from(1L), UserId.from(1L), false, false, false)
             }
         }
@@ -27,7 +29,7 @@ class FriendDomainServiceTest {
         @Test
         @DisplayName("[bad] 이미 친구인 경우 예외가 발생한다")
         fun `이미 친구인 경우 예외`() {
-            assertThrows<IllegalArgumentException> {
+            assertThrows<UserException.AlreadyFriends> {
                 service.validateFriendRequest(UserId.from(1L), UserId.from(2L), true, false, false)
             }
         }
@@ -35,7 +37,7 @@ class FriendDomainServiceTest {
         @Test
         @DisplayName("[bad] 이미 친구 요청을 보낸 경우 예외가 발생한다")
         fun `이미 친구 요청을 보낸 경우 예외`() {
-            assertThrows<IllegalArgumentException> {
+            assertThrows<UserException.FriendRequestAlreadySent> {
                 service.validateFriendRequest(UserId.from(1L), UserId.from(2L), false, true, false)
             }
         }
@@ -43,7 +45,7 @@ class FriendDomainServiceTest {
         @Test
         @DisplayName("[bad] 상대방이 이미 친구 요청을 보낸 경우 예외가 발생한다")
         fun `상대방이 이미 친구 요청을 보낸 경우 예외`() {
-            assertThrows<IllegalArgumentException> {
+            assertThrows<UserException.FriendRequestAlreadyReceived> {
                 service.validateFriendRequest(UserId.from(1L), UserId.from(2L), false, false, true)
             }
         }
@@ -83,7 +85,8 @@ class FriendDomainServiceTest {
             val friendRequest = FriendRequest.create(
                 senderId = UserId.from(2L),
                 receiverId = UserId.from(1L)
-            ).accept() // 친구 요청 수락
+            )
+            // Note: processFriendAccept will call accept() internally
 
             val result = service.processFriendAccept(friendRequest)
 
@@ -105,7 +108,8 @@ class FriendDomainServiceTest {
             val friendRequest = FriendRequest.create(
                 senderId = UserId.from(2L),
                 receiverId = UserId.from(1L)
-            ).accept() // 친구 요청 수락
+            )
+            // Note: processFriendAccept will call accept() internally
 
             val result = service.processFriendAccept(friendRequest)
 
@@ -127,7 +131,8 @@ class FriendDomainServiceTest {
             val friendRequest = FriendRequest.create(
                 senderId = UserId.from(2L),
                 receiverId = UserId.from(1L)
-            ).accept() // 친구 요청 수락
+            )
+            // Note: processFriendAccept will call accept() internally
 
             val result = service.processFriendAccept(friendRequest)
 

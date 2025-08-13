@@ -16,6 +16,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("메시지 리액션 도메인 서비스 테스트")
 class MessageReactionServiceTest {
@@ -26,7 +27,7 @@ class MessageReactionServiceTest {
         roomId = ChatRoomId.from(1L),
         senderId = UserId.from(2L),
         content = MessageContent("hi", MessageType.TEXT),
-        status = MessageStatus.SAVED,
+        status = MessageStatus.SENT,
         createdAt = Instant.now()
     )
 

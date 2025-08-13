@@ -28,7 +28,7 @@ class MessagePinDomainServiceTest {
                 roomId = ChatRoomId.from(1L),
                 senderId = UserId.from(2L),
                 content = MessageContent("hi", MessageType.TEXT),
-                status = MessageStatus.SAVED,
+                status = MessageStatus.SENT,
                 createdAt = Instant.now()
             )
 
@@ -44,7 +44,7 @@ class MessagePinDomainServiceTest {
                 roomId = ChatRoomId.from(1L),
                 senderId = UserId.from(2L),
                 content = MessageContent("hi", MessageType.TEXT),
-                status = MessageStatus.SAVED,
+                status = MessageStatus.SENT,
                 createdAt = Instant.now()
             )
 

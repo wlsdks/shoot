@@ -15,6 +15,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import com.stark.shoot.infrastructure.exception.MessageException
 import java.time.Instant
 
 @DisplayName("채팅방 메타데이터 도메인 서비스 테스트")
@@ -34,10 +35,10 @@ class ChatRoomMetadataDomainServiceTest {
             roomId = ChatRoomId.from(1L),
             senderId = UserId.from(2L),
             content = MessageContent("hi", MessageType.TEXT),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now()
         )
-        assertThrows<IllegalArgumentException> { service.updateChatRoomWithNewMessage(room, msg) }
+        assertThrows<MessageException.MissingId> { service.updateChatRoomWithNewMessage(room, msg) }
     }
 
     @Test
@@ -49,17 +50,18 @@ class ChatRoomMetadataDomainServiceTest {
             type = ChatRoomType.GROUP,
             participants = mutableSetOf(UserId.from(1L))
         )
+        val originalLastActiveAt = room.lastActiveAt
         val msg = ChatMessage(
             id = MessageId.from("m1"),
             roomId = ChatRoomId.from(1L),
             senderId = UserId.from(2L),
             content = MessageContent("hi", MessageType.TEXT),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now()
         )
         val updated = service.updateChatRoomWithNewMessage(room, msg)
         assertThat(updated.lastMessageId?.value).isEqualTo("m1")
-        assertThat(updated.lastActiveAt).isAfter(room.lastActiveAt)
+        assertThat(updated.lastActiveAt).isAfter(originalLastActiveAt)
     }
 
 }

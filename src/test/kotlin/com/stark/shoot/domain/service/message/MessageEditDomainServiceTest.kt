@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import com.stark.shoot.infrastructure.exception.MessageException
 import java.time.Instant
 
 @DisplayName("메시지 편집 도메인 서비스 테스트")
@@ -25,7 +26,7 @@ class MessageEditDomainServiceTest {
         roomId = ChatRoomId.from(1L),
         senderId = UserId.from(2L),
         content = MessageContent("text", MessageType.TEXT),
-        status = MessageStatus.SAVED,
+        status = MessageStatus.SENT,
         createdAt = createdAt
     )
 
@@ -69,7 +70,7 @@ class MessageEditDomainServiceTest {
     @DisplayName("[bad] 편집 불가능한 메시지를 수정하면 예외가 발생한다")
     fun `편집 불가능한 메시지를 수정하면 예외가 발생한다`() {
         val msg = baseMessage().copy(content = MessageContent("text", MessageType.FILE))
-        assertThrows<IllegalArgumentException> { service.editMessage(msg, "x") }
+        assertThrows<MessageException.NotEditable> { service.editMessage(msg, "x") }
     }
 
 }

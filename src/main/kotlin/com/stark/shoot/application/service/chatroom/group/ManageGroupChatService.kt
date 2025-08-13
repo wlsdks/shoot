@@ -9,6 +9,7 @@ import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.chatroom.ChatRoom
+import com.stark.shoot.domain.chatroom.service.ChatRoomValidationDomainService
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
@@ -16,6 +17,8 @@ import com.stark.shoot.domain.event.ChatRoomParticipantChangedEvent
 import com.stark.shoot.domain.event.ChatRoomTitleChangedEvent
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.exception.ChatRoomException
+import com.stark.shoot.infrastructure.exception.UserException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 
@@ -25,7 +28,8 @@ class ManageGroupChatService(
     private val chatRoomQueryPort: ChatRoomQueryPort,
     private val chatRoomCommandPort: ChatRoomCommandPort,
     private val userQueryPort: UserQueryPort,
-    private val eventPublishPort: EventPublishPort
+    private val eventPublishPort: EventPublishPort,
+    private val chatRoomValidationDomainService: ChatRoomValidationDomainService
 ) : ManageGroupChatUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -40,16 +44,16 @@ class ManageGroupChatService(
         val managedBy = UserId.from(command.managedBy)
         
         val chatRoom = chatRoomQueryPort.findById(roomId) 
-            ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다: ${command.chatRoomId}")
+            ?: throw ChatRoomException.NotFound( command.chatRoomId)
 
         // 그룹 채팅방인지 확인
-        require(chatRoom.type == ChatRoomType.GROUP) { 
-            "그룹 채팅방이 아닙니다." 
+        if (chatRoom.type != ChatRoomType.GROUP) {
+            throw ChatRoomException.NotGroupChat()
         }
 
         // 관리자가 채팅방 참여자인지 확인
-        require(managedBy in chatRoom.participants) { 
-            "채팅방 참여자만 다른 참여자를 관리할 수 있습니다." 
+        if (managedBy !in chatRoom.participants) {
+            throw ChatRoomException.NotParticipant("채팅방 참여자만 다른 참여자를 관리할 수 있습니다.")
         }
 
         // 현재 참여자 목록 생성
@@ -59,10 +63,10 @@ class ManageGroupChatService(
         val participantsToAdd = command.participantsToAdd.map { UserId.from(it) }.toSet()
         participantsToAdd.forEach { userId ->
             if (!userQueryPort.existsById(userId)) {
-                throw IllegalArgumentException("존재하지 않는 사용자입니다: ${userId.value}")
+                throw UserException.NotFound(userId.value)
             }
             if (userId in currentParticipants) {
-                throw IllegalArgumentException("이미 참여 중인 사용자입니다: ${userId.value}")
+                throw UserException.AlreadyParticipant(userId.value)
             }
         }
         
@@ -70,7 +74,7 @@ class ManageGroupChatService(
         val participantsToRemove = command.participantsToRemove.map { UserId.from(it) }.toSet()
         participantsToRemove.forEach { userId ->
             if (userId !in currentParticipants) {
-                throw IllegalArgumentException("참여하지 않은 사용자입니다: ${userId.value}")
+                throw UserException.NotParticipant(userId.value)
             }
         }
 
@@ -78,8 +82,7 @@ class ManageGroupChatService(
         val newParticipants = (currentParticipants + participantsToAdd) - participantsToRemove
 
         // 참여자 변경 검증
-        require(newParticipants.size >= 2) { "그룹 채팅방은 최소 2명의 참여자가 필요합니다." }
-        require(newParticipants.size <= 100) { "그룹 채팅방은 최대 100명까지 참여할 수 있습니다." }
+        chatRoomValidationDomainService.validateGroupChatParticipants(newParticipants.size)
         
         val changes = ChatRoom.ParticipantChanges(
             participantsToAdd = participantsToAdd,
@@ -112,16 +115,16 @@ class ManageGroupChatService(
         val updatedBy = UserId.from(command.updatedBy)
         
         val chatRoom = chatRoomQueryPort.findById(roomId)
-            ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다: ${command.chatRoomId}")
+            ?: throw ChatRoomException.NotFound( command.chatRoomId)
 
         // 그룹 채팅방인지 확인
-        require(chatRoom.type == ChatRoomType.GROUP) { 
-            "그룹 채팅방이 아닙니다." 
+        if (chatRoom.type != ChatRoomType.GROUP) {
+            throw ChatRoomException.NotGroupChat()
         }
 
         // 수정자가 채팅방 참여자인지 확인
-        require(updatedBy in chatRoom.participants) { 
-            "채팅방 참여자만 제목을 변경할 수 있습니다." 
+        if (updatedBy !in chatRoom.participants) {
+            throw ChatRoomException.NotParticipant("채팅방 참여자만 제목을 변경할 수 있습니다.")
         }
 
         val oldTitle = chatRoom.title?.value
@@ -156,16 +159,16 @@ class ManageGroupChatService(
         val userId = UserId.from(command.userId)
         
         val chatRoom = chatRoomQueryPort.findById(roomId)
-            ?: throw IllegalArgumentException("채팅방을 찾을 수 없습니다: ${command.chatRoomId}")
+            ?: throw ChatRoomException.NotFound( command.chatRoomId)
 
         // 그룹 채팅방인지 확인
-        require(chatRoom.type == ChatRoomType.GROUP) { 
-            "그룹 채팅방이 아닙니다." 
+        if (chatRoom.type != ChatRoomType.GROUP) {
+            throw ChatRoomException.NotGroupChat()
         }
 
         // 사용자가 실제로 참여 중인지 확인
-        require(userId in chatRoom.participants) { 
-            "채팅방에 참여하고 있지 않습니다." 
+        if (userId !in chatRoom.participants) {
+            throw ChatRoomException.NotParticipant("채팅방에 참여하고 있지 않습니다.")
         }
 
         // 참여자에서 사용자 제거

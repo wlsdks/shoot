@@ -6,6 +6,7 @@ import com.stark.shoot.application.port.`in`.chatroom.command.UpdateFavoriteStat
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.domain.chatroom.ChatRoom
+import com.stark.shoot.domain.chatroom.service.ChatRoomValidationDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
@@ -14,7 +15,8 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class UpdateChatRoomFavoriteService(
     private val chatRoomQueryPort: ChatRoomQueryPort,
-    private val chatRoomCommandPort: ChatRoomCommandPort
+    private val chatRoomCommandPort: ChatRoomCommandPort,
+    private val chatRoomValidationDomainService: ChatRoomValidationDomainService
 ) : UpdateChatRoomFavoriteUseCase {
 
     /**
@@ -39,7 +41,8 @@ class UpdateChatRoomFavoriteService(
         chatRoom.updateFavoriteStatus(
             userId = userId,
             isFavorite = isFavorite,
-            userPinnedRoomsCount = pinnedRooms.size
+            userPinnedRoomsCount = pinnedRooms.size,
+            maxPinnedLimit = chatRoomValidationDomainService.domainConstants.chatRoom.maxPinnedMessages
         )
 
         val saved = chatRoomCommandPort.save(chatRoom)

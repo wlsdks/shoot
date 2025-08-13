@@ -2,13 +2,16 @@ package com.stark.shoot.domain.chatroom.service
 
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.infrastructure.config.domain.DomainConstants
 import org.springframework.stereotype.Service
 
 /**
  * 채팅방 참여자 관리 도메인 서비스
  */
 @Service
-class ChatRoomParticipantDomainService {
+class ChatRoomParticipantDomainService(
+    private val domainConstants: DomainConstants
+) {
 
     data class RemovalResult(
         val chatRoom: ChatRoom,
@@ -61,7 +64,12 @@ class ChatRoomParticipantDomainService {
         }
 
         changes.pinnedStatusChanges.forEach { (userId, isPinned) ->
-            chatRoom.updateFavoriteStatus(userId, isPinned, pinnedCountProvider(userId.value))
+            chatRoom.updateFavoriteStatus(
+                userId = userId,
+                isFavorite = isPinned,
+                userPinnedRoomsCount = pinnedCountProvider(userId.value),
+                maxPinnedLimit = domainConstants.chatRoom.maxPinnedMessages
+            )
         }
 
         return chatRoom

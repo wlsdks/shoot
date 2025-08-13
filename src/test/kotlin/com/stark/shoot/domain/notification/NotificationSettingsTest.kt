@@ -21,7 +21,7 @@ class NotificationSettingsTest {
     @DisplayName("[happy] 선호도 설정을 변경할 수 있다")
     fun updatePreference() {
         val settings = NotificationSettings(userId = UserId.from(1L))
-            .updatePreference(NotificationType.NEW_MESSAGE, false)
+        settings.updatePreference(NotificationType.NEW_MESSAGE, false)
         assertFalse(settings.isEnabled(NotificationType.NEW_MESSAGE))
     }
 
@@ -29,7 +29,7 @@ class NotificationSettingsTest {
     @DisplayName("[happy] 일괄 설정을 적용할 수 있다")
     fun updateAll() {
         val settings = NotificationSettings(userId = UserId.from(1L))
-            .updateAll(mapOf(NotificationType.MENTION to false))
+        settings.updateAll(mapOf(NotificationType.MENTION to false))
         assertFalse(settings.isEnabled(NotificationType.MENTION))
         assertTrue(settings.isEnabled(NotificationType.NEW_MESSAGE))
     }

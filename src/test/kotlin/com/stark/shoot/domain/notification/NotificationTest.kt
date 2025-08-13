@@ -23,10 +23,10 @@ class NotificationTest {
             sourceId = "s",
             sourceType = SourceType.CHAT
         )
-        val read = n.markAsRead()
-        assertTrue(read.isRead)
-        val deleted = read.markAsDeleted()
-        assertTrue(deleted.isDeleted)
+        n.markAsRead()
+        assertTrue(n.isRead)
+        n.markAsDeleted()
+        assertTrue(n.isDeleted)
     }
 
     @Test

@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("고정 메시지 조회 서비스 테스트")
 class GetPinnedMessageServiceTest {
@@ -40,7 +41,7 @@ class GetPinnedMessageServiceTest {
                 roomId = roomId,
                 senderId = UserId.from(2L),
                 content = MessageContent("고정된 메시지", MessageType.TEXT),
-                status = MessageStatus.SAVED,
+                status = MessageStatus.SENT,
                 createdAt = Instant.now(),
                 isPinned = true,
                 pinnedBy = UserId.from(3L),

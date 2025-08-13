@@ -102,7 +102,7 @@ class SendThreadMessageServiceTest {
             roomId = ChatRoomId.from(1L),
             senderId = UserId.from(3L),
             content = MessageContent("root", MessageType.TEXT),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now()
         )
 
@@ -124,6 +124,7 @@ class SendThreadMessageServiceTest {
             UserId.from(request.senderId),
             request.content.text,
             request.content.type,
+            null, // tempId
             MessageId.from(threadId),
             extractUrls,
             getCachedPreview

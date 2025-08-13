@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("GetPinnedMessageController 단위 테스트")
 class GetPinnedMessageControllerTest {
@@ -112,7 +113,7 @@ class GetPinnedMessageControllerTest {
                 text = content,
                 type = MessageType.TEXT
             ),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = now,
             updatedAt = now,
             isPinned = isPinned,

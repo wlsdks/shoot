@@ -10,11 +10,13 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.Authentication
 
 @DisplayName("NotificationDeleteController 단위 테스트")
 class NotificationDeleteControllerTest {
 
     private val notificationManagementUseCase = mock(NotificationManagementUseCase::class.java)
+    private val authentication = mock(Authentication::class.java)
     private val controller = NotificationDeleteController(notificationManagementUseCase)
 
     @Test
@@ -29,14 +31,15 @@ class NotificationDeleteControllerTest {
             userId = UserId.from(userId)
         )
         
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationManagementUseCase.deleteNotification(command)).thenReturn(true)
 
         // when
-        val response = controller.deleteNotification(notificationId, userId)
+        val response = controller.deleteNotification(authentication, notificationId)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isTrue()
+        assertThat(response.success).isTrue()
+        assertThat(response.data).isTrue()
 
         verify(notificationManagementUseCase).deleteNotification(command)
     }
@@ -53,14 +56,15 @@ class NotificationDeleteControllerTest {
             userId = UserId.from(userId)
         )
         
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationManagementUseCase.deleteNotification(command)).thenReturn(false)
 
         // when
-        val response = controller.deleteNotification(notificationId, userId)
+        val response = controller.deleteNotification(authentication, notificationId)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isFalse()
+        assertThat(response.success).isTrue()
+        assertThat(response.data).isFalse()
 
         verify(notificationManagementUseCase).deleteNotification(command)
     }
@@ -76,14 +80,15 @@ class NotificationDeleteControllerTest {
             userId = UserId.from(userId)
         )
         
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationManagementUseCase.deleteAllNotifications(command)).thenReturn(deletedCount)
 
         // when
-        val response = controller.deleteAllNotifications(userId)
+        val response = controller.deleteAllNotifications(authentication)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isEqualTo(deletedCount)
+        assertThat(response.success).isTrue()
+        assertThat(response.data).isEqualTo(deletedCount)
 
         verify(notificationManagementUseCase).deleteAllNotifications(command)
     }
@@ -98,14 +103,15 @@ class NotificationDeleteControllerTest {
             userId = UserId.from(userId)
         )
         
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationManagementUseCase.deleteAllNotifications(command)).thenReturn(0)
 
         // when
-        val response = controller.deleteAllNotifications(userId)
+        val response = controller.deleteAllNotifications(authentication)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isEqualTo(0)
+        assertThat(response.success).isTrue()
+        assertThat(response.data).isEqualTo(0)
 
         verify(notificationManagementUseCase).deleteAllNotifications(command)
     }

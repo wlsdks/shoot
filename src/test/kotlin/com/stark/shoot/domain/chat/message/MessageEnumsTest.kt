@@ -23,10 +23,7 @@ class MessageEnumsTest {
     fun `MessageStatus 값 확인`() {
         val values = MessageStatus.values()
         assertThat(values.map { it.name }).containsExactly(
-            "SENDING",
-            "PROCESSING",
-            "SENT_TO_KAFKA",
-            "SAVED",
+            "SENT",
             "FAILED"
         )
     }

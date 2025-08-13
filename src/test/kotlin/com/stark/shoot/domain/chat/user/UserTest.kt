@@ -271,12 +271,12 @@ class UserTest {
             )
 
             // when
-            val deletedUser = user.delete()
+            user.markAsDeleted()
 
             // then
-            assertThat(deletedUser.isDeleted).isTrue()
-            assertThat(deletedUser.status).isEqualTo(UserStatus.OFFLINE)
-            assertThat(deletedUser.updatedAt).isNotNull()
+            assertThat(user.isDeleted).isTrue()
+            assertThat(user.status).isEqualTo(UserStatus.OFFLINE)
+            assertThat(user.updatedAt).isNotNull()
         }
     }
 }

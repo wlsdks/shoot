@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.rest.chatroom
 
 import com.stark.shoot.adapter.`in`.rest.dto.chatroom.ChatRoomResponse
+import com.stark.shoot.adapter.`in`.rest.dto.chatroom.ChatRoomFavoriteRequest
 import com.stark.shoot.application.port.`in`.chatroom.UpdateChatRoomFavoriteUseCase
 import com.stark.shoot.application.port.`in`.chatroom.command.UpdateFavoriteStatusCommand
 import org.assertj.core.api.Assertions.assertThat
@@ -31,11 +32,12 @@ class ChatRoomFavoriteControllerTest {
             isPinned = true
         )
 
-        val command = UpdateFavoriteStatusCommand.of(roomId, userId, isFavorite)
+        val request = ChatRoomFavoriteRequest(roomId, userId, isFavorite)
+        val command = UpdateFavoriteStatusCommand.of(request)
         `when`(updateFavoriteUseCase.updateFavoriteStatus(command)).thenReturn(chatRoomResponse)
 
         // when
-        val response = controller.updateFavorite(roomId, userId, isFavorite)
+        val response = controller.updateFavorite(request)
 
         // then
         assertThat(response).isNotNull
@@ -60,11 +62,12 @@ class ChatRoomFavoriteControllerTest {
             isPinned = false
         )
 
-        val command = UpdateFavoriteStatusCommand.of(roomId, userId, isFavorite)
+        val request = ChatRoomFavoriteRequest(roomId, userId, isFavorite)
+        val command = UpdateFavoriteStatusCommand.of(request)
         `when`(updateFavoriteUseCase.updateFavoriteStatus(command)).thenReturn(chatRoomResponse)
 
         // when
-        val response = controller.updateFavorite(roomId, userId, isFavorite)
+        val response = controller.updateFavorite(request)
 
         // then
         assertThat(response).isNotNull

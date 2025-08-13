@@ -16,17 +16,19 @@ class NotificationDomainServiceTest {
     @Test
     @DisplayName("[happy] 읽음 처리 후 삭제 상태로 변경할 수 있다")
     fun markAsReadAndDeleted() {
-        val n = Notification.create(UserId.from(1L), "t", "m", NotificationType.NEW_MESSAGE, "s", SourceType.CHAT)
-        val read = service.markNotificationsAsRead(listOf(n))
-        val deleted = service.markNotificationsAsDeleted(read)
-        assertEquals(true, deleted[0].isDeleted)
+        val n = Notification.create(UserId.from(1L), "t", "m", NotificationType.NEW_MESSAGE, "s", SourceType.CHAT_ROOM)
+        val notifications = listOf(n)
+        service.markNotificationsAsRead(notifications)
+        service.markNotificationsAsDeleted(notifications)
+        assertEquals(true, notifications[0].isDeleted)
     }
 
     @Test
     @DisplayName("[happy] 읽지 않은 알림만 필터링한다")
     fun filterUnread() {
-        val n1 = Notification.create(UserId.from(1L), "t", "m", NotificationType.NEW_MESSAGE, "s", SourceType.CHAT)
-        val n2 = n1.markAsRead()
+        val n1 = Notification.create(UserId.from(1L), "t", "m", NotificationType.NEW_MESSAGE, "s", SourceType.CHAT_ROOM)
+        val n2 = Notification.create(UserId.from(1L), "t", "m", NotificationType.NEW_MESSAGE, "s", SourceType.CHAT_ROOM)
+        n2.markAsRead()
         val unread = service.filterUnread(listOf(n1, n2))
         assertEquals(1, unread.size)
     }
@@ -34,15 +36,14 @@ class NotificationDomainServiceTest {
     @Test
     @DisplayName("[happy] 이벤트로부터 알림을 생성할 수 있다")
     fun createNotificationsFromEvent() {
-        val event = object : NotificationEvent(
+        val event = NotificationEvent(
             type = NotificationType.NEW_MESSAGE,
+            title = "title",
+            message = "msg",
             sourceId = "1",
-            sourceType = SourceType.CHAT
-        ) {
-            override fun getRecipients(): Set<UserId> = setOf(UserId.from(1L), UserId.from(2L))
-            override fun getTitle(): String = "title"
-            override fun getMessage(): String = "msg"
-        }
+            sourceType = SourceType.CHAT_ROOM,
+            recipients = listOf(UserId.from(1L), UserId.from(2L))
+        )
 
         val result = service.createNotificationsFromEvent(event)
         assertEquals(2, result.size)

@@ -1,6 +1,7 @@
 package com.stark.shoot.application.port.`in`.user.friend.command
 
 import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.adapter.`in`.rest.dto.social.friend.CancelFriendRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -13,7 +14,8 @@ class CancelFriendRequestCommandTest {
         val targetUserId = 2L
 
         // When
-        val command = CancelFriendRequestCommand.of(currentUserId, targetUserId)
+        val request = CancelFriendRequest(currentUserId, targetUserId)
+        val command = CancelFriendRequestCommand.of(request)
 
         // Then
         assertEquals(UserId.from(currentUserId), command.currentUserId)

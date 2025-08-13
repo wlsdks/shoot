@@ -2,6 +2,7 @@ package com.stark.shoot.infrastructure.config.redis
 
 import com.stark.shoot.infrastructure.exception.web.LockAcquisitionException
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -22,7 +23,8 @@ class RedisLockManagerTest {
     @BeforeEach
     fun setUp() {
         reset(redisTemplate, valueOps)
-        manager = RedisLockManager(redisTemplate)
+        val properties = RedisLockProperties()
+        manager = RedisLockManager(redisTemplate, properties)
         `when`(redisTemplate.opsForValue()).thenReturn(valueOps)
     }
 

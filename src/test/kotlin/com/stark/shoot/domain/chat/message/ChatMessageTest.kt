@@ -44,7 +44,7 @@ class ChatMessageTest {
             assertThat(message.senderId).isEqualTo(senderId)
             assertThat(message.content.text).isEqualTo(text)
             assertThat(message.content.type).isEqualTo(type)
-            assertThat(message.status).isEqualTo(MessageStatus.SENDING)
+            assertThat(message.status).isEqualTo(MessageStatus.SENT)
             assertThat(message.metadata.tempId).isEqualTo(tempId)
             assertThat(message.createdAt).isNotNull()
         }
@@ -67,12 +67,12 @@ class ChatMessageTest {
             val userId = UserId.from(3L)
 
             // when
-            val updatedMessage = message.markAsRead(userId)
+            message.markAsRead(userId)
 
             // then
-            assertThat(updatedMessage.readBy).containsKey(userId)
-            assertThat(updatedMessage.readBy[userId]).isTrue()
-            assertThat(updatedMessage.metadata.readAt).isNotNull()
+            assertThat(message.readBy).containsKey(userId)
+            assertThat(message.readBy[userId]).isTrue()
+            assertThat(message.metadata.readAt).isNotNull()
         }
     }
 
@@ -93,12 +93,12 @@ class ChatMessageTest {
             val userId = UserId.from(3L)
 
             // when
-            val pinnedMessage = message.updatePinStatus(true, userId)
+            message.updatePinStatus(true, userId)
 
             // then
-            assertThat(pinnedMessage.isPinned).isTrue()
-            assertThat(pinnedMessage.pinnedBy).isEqualTo(userId)
-            assertThat(pinnedMessage.pinnedAt).isNotNull()
+            assertThat(message.isPinned).isTrue()
+            assertThat(message.pinnedBy).isEqualTo(userId)
+            assertThat(message.pinnedAt).isNotNull()
         }
 
         @Test
@@ -112,15 +112,15 @@ class ChatMessageTest {
                 type = MessageType.TEXT
             )
             val userId = UserId.from(3L)
-            val pinnedMessage = message.updatePinStatus(true, userId)
+            message.updatePinStatus(true, userId)
 
             // when
-            val unpinnedMessage = pinnedMessage.updatePinStatus(false)
+            message.updatePinStatus(false)
 
             // then
-            assertThat(unpinnedMessage.isPinned).isFalse()
-            assertThat(unpinnedMessage.pinnedBy).isNull()
-            assertThat(unpinnedMessage.pinnedAt).isNull()
+            assertThat(message.isPinned).isFalse()
+            assertThat(message.pinnedBy).isNull()
+            assertThat(message.pinnedAt).isNull()
         }
     }
 
@@ -167,10 +167,10 @@ class ChatMessageTest {
                 type = MessageType.TEXT
             )
             val userId = UserId.from(3L)
-            val pinnedExistingMessage = existingMessage.updatePinStatus(true, userId)
+            existingMessage.updatePinStatus(true, userId)
 
             // when
-            val result = newMessage.pinMessageInRoom(userId, pinnedExistingMessage)
+            val result = newMessage.pinMessageInRoom(userId, existingMessage)
 
             // then
             assertThat(result.pinnedMessage.isPinned).isTrue()
@@ -193,13 +193,13 @@ class ChatMessageTest {
                 type = MessageType.TEXT
             )
             val userId = UserId.from(3L)
-            val pinnedMessage = message.updatePinStatus(true, userId)
+            message.updatePinStatus(true, userId)
 
             // when
-            val result = pinnedMessage.pinMessageInRoom(userId, null)
+            val result = message.pinMessageInRoom(userId, null)
 
             // then
-            assertThat(result.pinnedMessage).isEqualTo(pinnedMessage)
+            assertThat(result.pinnedMessage).isEqualTo(message)
             assertThat(result.unpinnedMessage).isNull()
         }
     }
@@ -221,12 +221,12 @@ class ChatMessageTest {
             val newContent = "수정된 내용입니다"
 
             // when
-            val editedMessage = message.editMessage(newContent)
+            message.editMessage(newContent)
 
             // then
-            assertThat(editedMessage.content.text).isEqualTo(newContent)
-            assertThat(editedMessage.content.isEdited).isTrue()
-            assertThat(editedMessage.updatedAt).isNotNull()
+            assertThat(message.content.text).isEqualTo(newContent)
+            assertThat(message.content.isEdited).isTrue()
+            assertThat(message.updatedAt).isNotNull()
         }
 
         @Test
@@ -257,11 +257,11 @@ class ChatMessageTest {
                 text = "안녕하세요",
                 type = MessageType.TEXT
             )
-            val deletedMessage = message.markAsDeleted()
+            message.markAsDeleted()
             val newContent = "수정된 내용입니다"
 
             // when & then
-            assertThatThrownBy { deletedMessage.editMessage(newContent) }
+            assertThatThrownBy { message.editMessage(newContent) }
                 .isInstanceOf(IllegalArgumentException::class.java)
                 .hasMessageContaining("삭제된 메시지는 수정할 수 없습니다")
         }
@@ -301,11 +301,11 @@ class ChatMessageTest {
             )
 
             // when
-            val deletedMessage = message.markAsDeleted()
+            message.markAsDeleted()
 
             // then
-            assertThat(deletedMessage.content.isDeleted).isTrue()
-            assertThat(deletedMessage.updatedAt).isNotNull()
+            assertThat(message.content.isDeleted).isTrue()
+            assertThat(message.updatedAt).isNotNull()
         }
     }
 
@@ -412,12 +412,12 @@ class ChatMessageTest {
             )
 
             // when
-            val updatedMessage = message.setUrlPreview(urlPreview)
+            message.setUrlPreview(urlPreview)
 
             // then
-            assertThat(updatedMessage.metadata.urlPreview).isEqualTo(urlPreview)
-            assertThat(updatedMessage.metadata.needsUrlPreview).isFalse()
-            assertThat(updatedMessage.updatedAt).isNotNull()
+            assertThat(message.metadata.urlPreview).isEqualTo(urlPreview)
+            assertThat(message.metadata.needsUrlPreview).isFalse()
+            assertThat(message.updatedAt).isNotNull()
         }
 
         @Test
@@ -433,12 +433,12 @@ class ChatMessageTest {
             val url = "https://example.com"
 
             // when
-            val updatedMessage = message.markNeedsUrlPreview(url)
+            message.markNeedsUrlPreview(url)
 
             // then
-            assertThat(updatedMessage.metadata.needsUrlPreview).isTrue()
-            assertThat(updatedMessage.metadata.previewUrl).isEqualTo(url)
-            assertThat(updatedMessage.updatedAt).isNotNull()
+            assertThat(message.metadata.needsUrlPreview).isTrue()
+            assertThat(message.metadata.previewUrl).isEqualTo(url)
+            assertThat(message.updatedAt).isNotNull()
         }
     }
 

@@ -25,7 +25,7 @@ class MessageForwardDomainServiceTest {
             roomId = ChatRoomId.from(1L),
             senderId = UserId.from(2L),
             content = MessageContent("hello", MessageType.TEXT),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now()
         )
 
@@ -46,7 +46,7 @@ class MessageForwardDomainServiceTest {
         assertThat(msg.roomId.value).isEqualTo(3L)
         assertThat(msg.senderId.value).isEqualTo(4L)
         assertThat(msg.content).isEqualTo(content)
-        assertThat(msg.status).isEqualTo(MessageStatus.SAVED)
+        assertThat(msg.status).isEqualTo(MessageStatus.SENT)
     }
 
 }

@@ -6,13 +6,23 @@ import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
 import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.infrastructure.config.domain.DomainConstants
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 @DisplayName("채팅방 참여자 도메인 서비스 테스트")
 class ChatRoomParticipantDomainServiceTest {
-    private val service = ChatRoomParticipantDomainService()
+    private val chatRoomConstants = mock(DomainConstants.ChatRoomConstants::class.java)
+    private val domainConstants = mock(DomainConstants::class.java)
+    private val service = ChatRoomParticipantDomainService(domainConstants)
+    
+    init {
+        `when`(domainConstants.chatRoom).thenReturn(chatRoomConstants)
+        `when`(chatRoomConstants.maxPinnedMessages).thenReturn(5)
+    }
 
     @Test
     @DisplayName("[happy] 참여자 변경 정보를 적용할 수 있다")

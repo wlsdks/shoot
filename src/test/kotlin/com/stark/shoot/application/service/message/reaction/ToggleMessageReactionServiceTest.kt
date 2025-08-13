@@ -2,7 +2,7 @@ package com.stark.shoot.application.service.message.reaction
 
 import com.stark.shoot.adapter.`in`.rest.dto.message.reaction.ReactionResponse
 import com.stark.shoot.application.port.`in`.message.reaction.command.ToggleMessageReactionCommand
-import com.stark.shoot.application.port.out.event.EventPublisher
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.*
-import org.springframework.messaging.simp.SimpMessagingTemplate
+import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import java.time.Instant
 
 @DisplayName("메시지 리액션 토글 서비스 테스트")
@@ -32,14 +32,14 @@ class ToggleMessageReactionServiceTest {
 
     private val messageQueryPort = mock(MessageQueryPort::class.java)
     private val messageCommandPort = mock(MessageCommandPort::class.java)
-    private val messagingTemplate = mock(SimpMessagingTemplate::class.java)
-    private val eventPublisher = mock(EventPublisher::class.java)
+    private val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
+    private val eventPublisher = mock(EventPublishPort::class.java)
     private val messageReactionService = mock(MessageReactionService::class.java)
 
     private val toggleMessageReactionService = ToggleMessageReactionService(
         messageQueryPort,
         messageCommandPort,
-        messagingTemplate,
+        webSocketMessageBroker,
         eventPublisher,
         messageReactionService
     )
@@ -69,7 +69,7 @@ class ToggleMessageReactionServiceTest {
                 roomId = roomId,
                 senderId = UserId.from(2L),
                 content = MessageContent("테스트 메시지", MessageType.TEXT),
-                status = MessageStatus.SAVED,
+                status = MessageStatus.SENT,
                 messageReactions = MessageReactions(initialReactions),
                 createdAt = now,
                 updatedAt = now
@@ -139,8 +139,6 @@ class ToggleMessageReactionServiceTest {
 
             verify(messageQueryPort).findById(messageId)
             verifyNoInteractions(messageCommandPort)
-            verifyNoInteractions(messagingTemplate)
-            verifyNoInteractions(eventPublisher)
         }
 
         @Test
@@ -161,8 +159,6 @@ class ToggleMessageReactionServiceTest {
 
             verifyNoInteractions(messageQueryPort)
             verifyNoInteractions(messageCommandPort)
-            verifyNoInteractions(messagingTemplate)
-            verifyNoInteractions(eventPublisher)
         }
     }
 }

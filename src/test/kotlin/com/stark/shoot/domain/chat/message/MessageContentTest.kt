@@ -7,6 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("메시지 내용 테스트")
 class MessageContentTest {

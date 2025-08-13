@@ -36,8 +36,8 @@ class MessageControllerTest {
         // given
         val messageId = "message123"
         val newContent = "수정된 메시지 내용"
-        val request = EditMessageRequest(messageId, newContent)
-        val command = EditMessageCommand.of(messageId, newContent)
+        val request = EditMessageRequest(messageId, newContent, 2L)
+        val command = EditMessageCommand.of(messageId, newContent, 2L)
 
         val updatedMessage = createChatMessage(messageId, newContent, true)
         val responseDto = createMessageResponseDto(messageId, newContent, true)
@@ -63,8 +63,8 @@ class MessageControllerTest {
     fun `메시지 삭제 요청을 처리하고 삭제된 메시지를 반환한다`() {
         // given
         val messageId = "message123"
-        val request = DeleteMessageRequest(messageId)
-        val command = DeleteMessageCommand.of(messageId)
+        val request = DeleteMessageRequest(messageId, 2L)
+        val command = DeleteMessageCommand.of(messageId, 2L)
 
         val deletedMessage = createChatMessage(messageId, "원본 메시지", false, true)
         val responseDto = createMessageResponseDto(messageId, "원본 메시지", false, true)
@@ -102,7 +102,7 @@ class MessageControllerTest {
                 isEdited = isEdited,
                 isDeleted = isDeleted
             ),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now(),
             updatedAt = Instant.now()
         )
@@ -127,7 +127,7 @@ class MessageControllerTest {
                 attachments = emptyList(),
                 urlPreview = null
             ),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now(),
             updatedAt = Instant.now()
         )

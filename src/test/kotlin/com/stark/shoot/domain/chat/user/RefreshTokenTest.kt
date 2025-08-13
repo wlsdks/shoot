@@ -177,23 +177,13 @@ class RefreshTokenTest {
             val beforeUpdate = Instant.now().minusMillis(100)
 
             // when
-            val updatedToken = refreshToken.updateLastUsed()
+            refreshToken.updateLastUsed()
             val afterUpdate = Instant.now().plusMillis(100)
 
             // then
-            assertThat(updatedToken.lastUsedAt).isNotNull()
-            assertThat(updatedToken.lastUsedAt).isAfterOrEqualTo(beforeUpdate)
-            assertThat(updatedToken.lastUsedAt).isBeforeOrEqualTo(afterUpdate)
-
-            // 다른 속성은 변경되지 않아야 함
-            assertThat(updatedToken.id).isEqualTo(refreshToken.id)
-            assertThat(updatedToken.userId).isEqualTo(refreshToken.userId)
-            assertThat(updatedToken.token).isEqualTo(refreshToken.token)
-            assertThat(updatedToken.expirationDate).isEqualTo(refreshToken.expirationDate)
-            assertThat(updatedToken.deviceInfo).isEqualTo(refreshToken.deviceInfo)
-            assertThat(updatedToken.ipAddress).isEqualTo(refreshToken.ipAddress)
-            assertThat(updatedToken.createdAt).isEqualTo(refreshToken.createdAt)
-            assertThat(updatedToken.isRevoked).isEqualTo(refreshToken.isRevoked)
+            assertThat(refreshToken.lastUsedAt).isNotNull()
+            assertThat(refreshToken.lastUsedAt).isAfterOrEqualTo(beforeUpdate)
+            assertThat(refreshToken.lastUsedAt).isBeforeOrEqualTo(afterUpdate)
         }
 
         @Test
@@ -210,14 +200,14 @@ class RefreshTokenTest {
             val beforeUpdate = Instant.now().minusMillis(100)
 
             // when
-            val updatedToken = refreshToken.updateLastUsed()
+            refreshToken.updateLastUsed()
             val afterUpdate = Instant.now().plusMillis(100)
 
             // then
-            assertThat(updatedToken.lastUsedAt).isNotNull()
-            assertThat(updatedToken.lastUsedAt).isAfterOrEqualTo(beforeUpdate)
-            assertThat(updatedToken.lastUsedAt).isBeforeOrEqualTo(afterUpdate)
-            assertThat(updatedToken.lastUsedAt).isAfter(oldLastUsedAt)
+            assertThat(refreshToken.lastUsedAt).isNotNull()
+            assertThat(refreshToken.lastUsedAt).isAfterOrEqualTo(beforeUpdate)
+            assertThat(refreshToken.lastUsedAt).isBeforeOrEqualTo(afterUpdate)
+            assertThat(refreshToken.lastUsedAt).isAfter(oldLastUsedAt)
         }
     }
 
@@ -237,20 +227,10 @@ class RefreshTokenTest {
             )
 
             // when
-            val revokedToken = refreshToken.revoke()
+            refreshToken.revoke()
 
             // then
-            assertThat(revokedToken.isRevoked).isTrue()
-
-            // 다른 속성은 변경되지 않아야 함
-            assertThat(revokedToken.id).isEqualTo(refreshToken.id)
-            assertThat(revokedToken.userId).isEqualTo(refreshToken.userId)
-            assertThat(revokedToken.token).isEqualTo(refreshToken.token)
-            assertThat(revokedToken.expirationDate).isEqualTo(refreshToken.expirationDate)
-            assertThat(revokedToken.deviceInfo).isEqualTo(refreshToken.deviceInfo)
-            assertThat(revokedToken.ipAddress).isEqualTo(refreshToken.ipAddress)
-            assertThat(revokedToken.createdAt).isEqualTo(refreshToken.createdAt)
-            assertThat(revokedToken.lastUsedAt).isEqualTo(refreshToken.lastUsedAt)
+            assertThat(refreshToken.isRevoked).isTrue()
         }
 
         @Test
@@ -265,11 +245,10 @@ class RefreshTokenTest {
             )
 
             // when
-            val revokedToken = refreshToken.revoke()
+            refreshToken.revoke()
 
             // then
-            assertThat(revokedToken.isRevoked).isTrue()
-            assertThat(revokedToken).isEqualTo(refreshToken)
+            assertThat(refreshToken.isRevoked).isTrue()
         }
     }
 }

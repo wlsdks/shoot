@@ -6,6 +6,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("사용자 VO 테스트")
 class UserValueObjectsTest {

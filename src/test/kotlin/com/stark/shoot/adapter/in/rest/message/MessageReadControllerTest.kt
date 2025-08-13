@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("MessageReadController 단위 테스트")
 class MessageReadControllerTest {
@@ -65,7 +66,7 @@ class MessageReadControllerTest {
                 isEdited = false,
                 isDeleted = false
             ),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = Instant.now()
         )
     }

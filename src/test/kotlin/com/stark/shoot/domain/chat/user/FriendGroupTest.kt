@@ -19,18 +19,18 @@ class FriendGroupTest {
         @DisplayName("[happy] 그룹 이름을 변경할 수 있다")
         fun `그룹 이름을 변경할 수 있다`() {
             val group = FriendGroup(ownerId = UserId.from(1L), name = FriendGroupName.from("친구들"))
-            val updated = group.rename("베프")
-            assertThat(updated.name.value).isEqualTo("베프")
-            assertThat(updated.updatedAt).isNotNull()
+            group.rename("베프")
+            assertThat(group.name.value).isEqualTo("베프")
+            assertThat(group.updatedAt).isNotNull()
         }
 
         @Test
         @DisplayName("[happy] 그룹 설명을 수정할 수 있다")
         fun `그룹 설명을 수정할 수 있다`() {
             val group = FriendGroup(ownerId = UserId.from(1L), name = FriendGroupName.from("친구들"))
-            val updated = group.updateDescription("오래된 친구")
-            assertThat(updated.description).isEqualTo("오래된 친구")
-            assertThat(updated.updatedAt).isNotNull()
+            group.updateDescription("오래된 친구")
+            assertThat(group.description).isEqualTo("오래된 친구")
+            assertThat(group.updatedAt).isNotNull()
         }
     }
 
@@ -42,8 +42,9 @@ class FriendGroupTest {
         @DisplayName("[happy] 멤버를 추가할 수 있다")
         fun `멤버를 추가할 수 있다`() {
             val group = FriendGroup(ownerId = UserId.from(1L), name = FriendGroupName.from("친구들"))
-            val updated = group.addMember(UserId.from(2L))
-            assertThat(updated.memberIds).contains(UserId.from(2L))
+            val result = group.addMember(UserId.from(2L))
+            assertThat(result).isTrue()
+            assertThat(group.memberIds).contains(UserId.from(2L))
         }
 
         @Test
@@ -55,7 +56,7 @@ class FriendGroupTest {
                 memberIds = setOf(UserId.from(2L))
             )
             val updated = group.addMember(UserId.from(2L))
-            assertThat(updated).isEqualTo(group)
+            assertThat(updated).isFalse() // No change expected since member already exists
         }
 
         @Test
@@ -66,8 +67,9 @@ class FriendGroupTest {
                 name = FriendGroupName.from("친구들"),
                 memberIds = setOf(UserId.from(2L), UserId.from(3L))
             )
-            val updated = group.removeMember(UserId.from(2L))
-            assertThat(updated.memberIds).doesNotContain(UserId.from(2L))
+            val result = group.removeMember(UserId.from(2L))
+            assertThat(result).isTrue()
+            assertThat(group.memberIds).doesNotContain(UserId.from(2L))
         }
 
         @Test
@@ -80,7 +82,7 @@ class FriendGroupTest {
                     memberIds = setOf(UserId.from(2L))
                 )
             val updated = group.removeMember(UserId.from(3L))
-            assertThat(updated).isEqualTo(group)
+            assertThat(updated).isFalse() // No change expected since member doesn't exist
         }
     }
 }

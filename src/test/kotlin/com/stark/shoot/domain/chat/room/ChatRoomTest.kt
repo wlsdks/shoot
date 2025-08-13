@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("채팅방 테스트")
 class ChatRoomTest {
@@ -85,7 +86,7 @@ class ChatRoomTest {
             val newLastActiveAt = Instant.now().plusSeconds(3600)
 
             // when
-            val updatedChatRoom = chatRoom.update(
+            chatRoom.update(
                 title = ChatRoomTitle.from(newTitle),
                 announcement = newAnnouncement,
                 lastMessageId = newLastMessageId,
@@ -93,13 +94,13 @@ class ChatRoomTest {
             )
 
             // then
-            assertThat(updatedChatRoom.id).isEqualTo(chatRoom.id)
-            assertThat(updatedChatRoom.title?.value).isEqualTo(newTitle)
-            assertThat(updatedChatRoom.type).isEqualTo(chatRoom.type)
-            assertThat(updatedChatRoom.announcement).isEqualTo(newAnnouncement)
-            assertThat(updatedChatRoom.lastMessageId).isEqualTo(newLastMessageId)
-            assertThat(updatedChatRoom.lastActiveAt).isEqualTo(newLastActiveAt)
-            assertThat(updatedChatRoom.updatedAt).isNotNull()
+            assertThat(chatRoom.id).isEqualTo(chatRoom.id)
+            assertThat(chatRoom.title?.value).isEqualTo(newTitle)
+            assertThat(chatRoom.type).isEqualTo(chatRoom.type)
+            assertThat(chatRoom.announcement).isEqualTo(newAnnouncement)
+            assertThat(chatRoom.lastMessageId).isEqualTo(newLastMessageId)
+            assertThat(chatRoom.lastActiveAt).isEqualTo(newLastActiveAt)
+            assertThat(chatRoom.updatedAt).isNotNull()
         }
 
         @Test
@@ -114,11 +115,11 @@ class ChatRoomTest {
             val newAnnouncement = ChatRoomAnnouncement.from("새 공지사항")
 
             // when
-            val updatedChatRoom = chatRoom.updateAnnouncement(newAnnouncement)
+            chatRoom.updateAnnouncement(newAnnouncement)
 
             // then
-            assertThat(updatedChatRoom.announcement).isEqualTo(newAnnouncement)
-            assertThat(updatedChatRoom.updatedAt).isNotNull()
+            assertThat(chatRoom.announcement).isEqualTo(newAnnouncement)
+            assertThat(chatRoom.updatedAt).isNotNull()
         }
 
         @Test
@@ -133,11 +134,11 @@ class ChatRoomTest {
             )
 
             // when
-            val updatedChatRoom = chatRoom.updateAnnouncement(null)
+            chatRoom.updateAnnouncement(null)
 
             // then
-            assertThat(updatedChatRoom.announcement).isNull()
-            assertThat(updatedChatRoom.updatedAt).isNotNull()
+            assertThat(chatRoom.announcement).isNull()
+            assertThat(chatRoom.updatedAt).isNotNull()
         }
     }
 
@@ -157,11 +158,12 @@ class ChatRoomTest {
             val newUserId = UserId.from(3L)
 
             // when
-            val updatedChatRoom = chatRoom.addParticipant(newUserId)
+            val result = chatRoom.addParticipant(newUserId)
 
             // then
-            assertThat(updatedChatRoom.participants).contains(newUserId)
-            assertThat(updatedChatRoom.participants.size).isEqualTo(3)
+            assertThat(result).isTrue()
+            assertThat(chatRoom.participants).contains(newUserId)
+            assertThat(chatRoom.participants.size).isEqualTo(3)
         }
 
         @Test
@@ -176,11 +178,11 @@ class ChatRoomTest {
             val existingUserId = UserId.from(1L)
 
             // when
-            val updatedChatRoom = chatRoom.addParticipant(existingUserId)
+            val result = chatRoom.addParticipant(existingUserId)
 
             // then
-            assertThat(updatedChatRoom).isEqualTo(chatRoom)
-            assertThat(updatedChatRoom.participants.size).isEqualTo(2)
+            assertThat(result).isFalse()
+            assertThat(chatRoom.participants.size).isEqualTo(2)
         }
 
         @Test
@@ -195,11 +197,12 @@ class ChatRoomTest {
             val userIdToRemove = UserId.from(2L)
 
             // when
-            val updatedChatRoom = chatRoom.removeParticipant(userIdToRemove)
+            val result = chatRoom.removeParticipant(userIdToRemove)
 
             // then
-            assertThat(updatedChatRoom.participants).doesNotContain(userIdToRemove)
-            assertThat(updatedChatRoom.participants.size).isEqualTo(2)
+            assertThat(result).isTrue()
+            assertThat(chatRoom.participants).doesNotContain(userIdToRemove)
+            assertThat(chatRoom.participants.size).isEqualTo(2)
         }
 
         @Test
@@ -214,11 +217,11 @@ class ChatRoomTest {
             val nonExistingUserId = UserId.from(3L)
 
             // when
-            val updatedChatRoom = chatRoom.removeParticipant(nonExistingUserId)
+            val result = chatRoom.removeParticipant(nonExistingUserId)
 
             // then
-            assertThat(updatedChatRoom).isEqualTo(chatRoom)
-            assertThat(updatedChatRoom.participants.size).isEqualTo(2)
+            assertThat(result).isFalse()
+            assertThat(chatRoom.participants.size).isEqualTo(2)
         }
 
         @Test
@@ -233,11 +236,11 @@ class ChatRoomTest {
             val newUserIds = listOf(UserId.from(3L), UserId.from(4L), UserId.from(5L))
 
             // when
-            val updatedChatRoom = chatRoom.addParticipants(newUserIds)
+            chatRoom.addParticipants(newUserIds)
 
             // then
-            assertThat(updatedChatRoom.participants).containsAll(newUserIds)
-            assertThat(updatedChatRoom.participants.size).isEqualTo(5)
+            assertThat(chatRoom.participants).containsAll(newUserIds)
+            assertThat(chatRoom.participants.size).isEqualTo(5)
         }
 
         @Test
@@ -258,11 +261,11 @@ class ChatRoomTest {
             val userIdsToRemove = listOf(UserId.from(2L), UserId.from(4L))
 
             // when
-            val updatedChatRoom = chatRoom.removeParticipants(userIdsToRemove)
+            chatRoom.removeParticipants(userIdsToRemove)
 
             // then
-            assertThat(updatedChatRoom.participants).doesNotContainAnyElementsOf(userIdsToRemove)
-            assertThat(updatedChatRoom.participants.size).isEqualTo(3)
+            assertThat(chatRoom.participants).doesNotContainAnyElementsOf(userIdsToRemove)
+            assertThat(chatRoom.participants.size).isEqualTo(3)
         }
 
         @Test
@@ -278,12 +281,12 @@ class ChatRoomTest {
                 listOf(UserId.from(2L), UserId.from(3L), UserId.from(4L), UserId.from(5L)) // 1L 제거, 4L, 5L 추가
 
             // when
-            val updatedChatRoom = chatRoom.updateParticipants(newParticipants)
+            chatRoom.updateParticipants(newParticipants)
 
             // then
-            assertThat(updatedChatRoom.participants).containsExactlyInAnyOrderElementsOf(newParticipants)
-            assertThat(updatedChatRoom.participants).doesNotContain(UserId.from(1L))
-            assertThat(updatedChatRoom.participants.size).isEqualTo(4)
+            assertThat(chatRoom.participants).containsExactlyInAnyOrderElementsOf(newParticipants)
+            assertThat(chatRoom.participants).doesNotContain(UserId.from(1L))
+            assertThat(chatRoom.participants.size).isEqualTo(4)
         }
     }
 
@@ -355,12 +358,13 @@ class ChatRoomTest {
             val userId = UserId.from(1L)
             val isFavorite = true
             val userPinnedRoomsCount = 0
+            val maxPinnedLimit = 10
 
             // when
-            val updatedChatRoom = chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount)
+            chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount, maxPinnedLimit)
 
             // then
-            assertThat(updatedChatRoom.pinnedParticipants).contains(userId)
+            assertThat(chatRoom.pinnedParticipants).contains(userId)
         }
 
         @Test
@@ -376,12 +380,13 @@ class ChatRoomTest {
             )
             val isFavorite = true
             val userPinnedRoomsCount = 1
+            val maxPinnedLimit = 10
 
             // when
-            val updatedChatRoom = chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount)
+            chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount, maxPinnedLimit)
 
             // then
-            assertThat(updatedChatRoom.pinnedParticipants).doesNotContain(userId)
+            assertThat(chatRoom.pinnedParticipants).doesNotContain(userId)
         }
 
         @Test
@@ -397,12 +402,13 @@ class ChatRoomTest {
             )
             val isFavorite = false
             val userPinnedRoomsCount = 1
+            val maxPinnedLimit = 10
 
             // when
-            val updatedChatRoom = chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount)
+            chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount, maxPinnedLimit)
 
             // then
-            assertThat(updatedChatRoom.pinnedParticipants).doesNotContain(userId)
+            assertThat(chatRoom.pinnedParticipants).doesNotContain(userId)
         }
 
         @Test
@@ -417,10 +423,11 @@ class ChatRoomTest {
             val userId = UserId.from(1L)
             val isFavorite = true
             val userPinnedRoomsCount = 5 // 최대 개수
+            val maxPinnedLimit = 5
 
             // when & then
             assertThrows<FavoriteLimitExceededException> {
-                chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount)
+                chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount, maxPinnedLimit)
             }
         }
     }

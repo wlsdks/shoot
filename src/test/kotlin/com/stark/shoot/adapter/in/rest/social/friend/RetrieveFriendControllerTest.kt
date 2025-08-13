@@ -9,6 +9,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("RetrieveFriendController 단위 테스트")
 class RetrieveFriendControllerTest {

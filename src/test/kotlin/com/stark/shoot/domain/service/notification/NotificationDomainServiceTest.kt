@@ -59,11 +59,11 @@ class NotificationDomainServiceTest {
             )
 
             // when
-            val result = notificationDomainService.markNotificationsAsRead(notifications)
+            notificationDomainService.markNotificationsAsRead(notifications)
 
             // then
-            assertThat(result).hasSize(3)
-            result.forEach { notification ->
+            assertThat(notifications).hasSize(3)
+            notifications.forEach { notification: Notification ->
                 assertThat(notification.isRead).isTrue()
                 assertThat(notification.readAt).isNotNull()
             }
@@ -77,12 +77,13 @@ class NotificationDomainServiceTest {
             val readAt = readNotification.readAt
 
             // when
-            val result = notificationDomainService.markNotificationsAsRead(listOf(readNotification))
+            val notifications = listOf(readNotification)
+            notificationDomainService.markNotificationsAsRead(notifications)
 
             // then
-            assertThat(result).hasSize(1)
-            assertThat(result[0].isRead).isTrue()
-            assertThat(result[0].readAt).isEqualTo(readAt)
+            assertThat(notifications).hasSize(1)
+            assertThat(notifications.first().isRead).isTrue()
+            assertThat(notifications.first().readAt).isEqualTo(readAt)
         }
     }
 
@@ -101,11 +102,11 @@ class NotificationDomainServiceTest {
             )
 
             // when
-            val result = notificationDomainService.markNotificationsAsDeleted(notifications)
+            notificationDomainService.markNotificationsAsDeleted(notifications)
 
             // then
-            assertThat(result).hasSize(3)
-            result.forEach { notification ->
+            assertThat(notifications).hasSize(3)
+            notifications.forEach { notification: Notification ->
                 assertThat(notification.isDeleted).isTrue()
                 assertThat(notification.deletedAt).isNotNull()
             }
@@ -119,12 +120,13 @@ class NotificationDomainServiceTest {
             val deletedAt = deletedNotification.deletedAt
 
             // when
-            val result = notificationDomainService.markNotificationsAsDeleted(listOf(deletedNotification))
+            val notifications = listOf(deletedNotification)
+            notificationDomainService.markNotificationsAsDeleted(notifications)
 
             // then
-            assertThat(result).hasSize(1)
-            assertThat(result[0].isDeleted).isTrue()
-            assertThat(result[0].deletedAt).isEqualTo(deletedAt)
+            assertThat(notifications).hasSize(1)
+            assertThat(notifications.first().isDeleted).isTrue()
+            assertThat(notifications.first().deletedAt).isEqualTo(deletedAt)
         }
     }
 
@@ -147,7 +149,7 @@ class NotificationDomainServiceTest {
 
             // then
             assertThat(result).hasSize(2)
-            result.forEach { notification ->
+            result.forEach { notification: Notification ->
                 assertThat(notification.isRead).isFalse()
             }
         }
@@ -184,9 +186,9 @@ class NotificationDomainServiceTest {
             )
 
             val event = mock(NotificationEvent::class.java)
-            `when`(event.getRecipients()).thenReturn(recipients)
-            `when`(event.getTitle()).thenReturn("Test Event Title")
-            `when`(event.getMessage()).thenReturn("Test event message")
+            `when`(event.recipients).thenReturn(recipients.toList())
+            `when`(event.title).thenReturn("Test Event Title")
+            `when`(event.message).thenReturn("Test event message")
             `when`(event.type).thenReturn(NotificationType.NEW_MESSAGE)
             `when`(event.sourceId).thenReturn("test-source-id")
             `when`(event.sourceType).thenReturn(SourceType.CHAT_ROOM)
@@ -217,7 +219,7 @@ class NotificationDomainServiceTest {
         fun `수신자가 없으면 빈 목록을 반환한다`() {
             // given
             val event = mock(NotificationEvent::class.java)
-            `when`(event.getRecipients()).thenReturn(emptySet())
+            `when`(event.recipients).thenReturn(emptyList())
 
             // when
             val result = notificationDomainService.createNotificationsFromEvent(event)

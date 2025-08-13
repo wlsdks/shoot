@@ -4,6 +4,7 @@ import com.stark.shoot.domain.chat.reaction.type.ReactionType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("리액션 타입 비즈니스 로직 테스트")
 class ReactionTypeTest {

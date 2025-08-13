@@ -50,14 +50,7 @@ class UserControllerTest {
             profileImage = profileImage
         )
 
-        val command = CreateUserCommand.of(
-            username = username,
-            nickname = nickname,
-            password = password,
-            email = email,
-            bio = bio,
-            profileImage = profileImage
-        )
+        val command = CreateUserCommand.of(request)
 
         val user = User(
             id = UserId.from(1L),

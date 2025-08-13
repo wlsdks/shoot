@@ -17,12 +17,14 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.Authentication
 import java.time.Instant
 
 @DisplayName("NotificationReadController 단위 테스트")
 class NotificationReadControllerTest {
 
     private val notificationManagementUseCase = mock(NotificationManagementUseCase::class.java)
+    private val authentication = mock(Authentication::class.java)
     private val controller = NotificationReadController(notificationManagementUseCase)
 
     @Test
@@ -49,16 +51,17 @@ class NotificationReadControllerTest {
             readAt = now
         )
         
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationManagementUseCase.markAsRead(command)).thenReturn(readNotification)
 
         // when
-        val response = controller.markAsRead(notificationId, userId)
+        val response = controller.markAsRead(authentication, notificationId)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body?.id).isEqualTo(notificationId)
-        assertThat(response.body?.isRead).isTrue()
-        assertThat(response.body?.readAt).isEqualTo(now)
+        assertThat(response.success).isTrue()
+        assertThat(response.data?.id).isEqualTo(notificationId)
+        assertThat(response.data?.isRead).isTrue()
+        assertThat(response.data?.readAt).isEqualTo(now)
 
         verify(notificationManagementUseCase).markAsRead(command)
     }
@@ -74,14 +77,15 @@ class NotificationReadControllerTest {
             userId = UserId.from(userId)
         )
         
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationManagementUseCase.markAllAsRead(command)).thenReturn(markedCount)
 
         // when
-        val response = controller.markAllAsRead(userId)
+        val response = controller.markAllAsRead(authentication)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isEqualTo(markedCount)
+        assertThat(response.success).isTrue()
+        assertThat(response.data).isEqualTo(markedCount)
 
         verify(notificationManagementUseCase).markAllAsRead(command)
     }
@@ -99,14 +103,15 @@ class NotificationReadControllerTest {
             type = NotificationType.valueOf(type)
         )
         
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationManagementUseCase.markAllAsReadByType(command)).thenReturn(markedCount)
 
         // when
-        val response = controller.markAllAsReadByType(userId, type)
+        val response = controller.markAllAsReadByType(authentication, type)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isEqualTo(markedCount)
+        assertThat(response.success).isTrue()
+        assertThat(response.data).isEqualTo(markedCount)
 
         verify(notificationManagementUseCase).markAllAsReadByType(command)
     }
@@ -126,14 +131,15 @@ class NotificationReadControllerTest {
             sourceId = sourceId
         )
         
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationManagementUseCase.markAllAsReadBySource(command)).thenReturn(markedCount)
 
         // when
-        val response = controller.markAllAsReadBySource(userId, sourceType, sourceId)
+        val response = controller.markAllAsReadBySource(authentication, sourceType, sourceId)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isEqualTo(markedCount)
+        assertThat(response.success).isTrue()
+        assertThat(response.data).isEqualTo(markedCount)
 
         verify(notificationManagementUseCase).markAllAsReadBySource(command)
     }
@@ -152,14 +158,15 @@ class NotificationReadControllerTest {
             sourceId = null
         )
         
+        `when`(authentication.name).thenReturn(userId.toString())
         `when`(notificationManagementUseCase.markAllAsReadBySource(command)).thenReturn(markedCount)
 
         // when
-        val response = controller.markAllAsReadBySource(userId, sourceType, null)
+        val response = controller.markAllAsReadBySource(authentication, sourceType, null)
 
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isEqualTo(markedCount)
+        assertThat(response.success).isTrue()
+        assertThat(response.data).isEqualTo(markedCount)
 
         verify(notificationManagementUseCase).markAllAsReadBySource(command)
     }

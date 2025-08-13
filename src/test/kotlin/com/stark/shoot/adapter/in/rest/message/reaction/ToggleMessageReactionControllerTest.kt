@@ -26,7 +26,7 @@ class ToggleMessageReactionControllerTest {
         val userId = 1L
         val reactionType = "like"
         
-        val request = ReactionRequest(reactionType)
+        val request = ReactionRequest(messageId, reactionType, userId)
         
         `when`(authentication.name).thenReturn(userId.toString())
         
@@ -38,7 +38,7 @@ class ToggleMessageReactionControllerTest {
         val updatedAt = Instant.now().toString()
         val response = ReactionResponse.from(messageId, updatedReactions, updatedAt)
         
-        val command = ToggleMessageReactionCommand.of(messageId, userId, reactionType)
+        val command = ToggleMessageReactionCommand.of(messageId, authentication, reactionType)
         `when`(toggleMessageReactionUseCase.toggleReaction(command)).thenReturn(response)
 
         // when
@@ -61,7 +61,7 @@ class ToggleMessageReactionControllerTest {
         val userId = 1L
         val reactionType = "sad"
         
-        val request = ReactionRequest(reactionType)
+        val request = ReactionRequest(messageId, reactionType, userId)
         
         `when`(authentication.name).thenReturn(userId.toString())
         
@@ -73,7 +73,7 @@ class ToggleMessageReactionControllerTest {
         val updatedAt = Instant.now().toString()
         val response = ReactionResponse.from(messageId, updatedReactions, updatedAt)
         
-        val command = ToggleMessageReactionCommand.of(messageId, userId, reactionType)
+        val command = ToggleMessageReactionCommand.of(messageId, authentication, reactionType)
         `when`(toggleMessageReactionUseCase.toggleReaction(command)).thenReturn(response)
 
         // when

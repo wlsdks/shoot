@@ -114,7 +114,7 @@ class MessagePinControllerTest {
                 text = content,
                 type = MessageType.TEXT
             ),
-            status = MessageStatus.SAVED,
+            status = MessageStatus.SENT,
             createdAt = now,
             updatedAt = now,
             isPinned = isPinned,

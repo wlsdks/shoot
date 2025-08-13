@@ -10,6 +10,8 @@ import com.stark.shoot.domain.user.vo.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.hamcrest.Matchers.hasSize
+import com.stark.shoot.infrastructure.exception.ChatRoomException
 
 @DisplayName("채팅방 이벤트 도메인 서비스 테스트")
 class ChatRoomEventServiceTest {
@@ -38,7 +40,7 @@ class ChatRoomEventServiceTest {
             type = ChatRoomType.GROUP,
             participants = mutableSetOf(UserId.from(1L))
         )
-        org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
+        org.junit.jupiter.api.assertThrows<ChatRoomException.MissingId> {
             service.createChatRoomCreatedEvents(room)
         }
     }

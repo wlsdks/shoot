@@ -16,6 +16,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.mockito.Mockito.*
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("스레드 상세 조회 서비스 테스트")
 class GetThreadDetailServiceTest {
@@ -52,7 +53,7 @@ class GetThreadDetailServiceTest {
                 roomId = ChatRoomId.from(1L),
                 senderId = UserId.from(2L),
                 content = MessageContent("root", MessageType.TEXT),
-                status = MessageStatus.SAVED,
+                status = MessageStatus.SENT,
                 createdAt = Instant.now()
             )
             val reply = ChatMessage(
@@ -60,7 +61,7 @@ class GetThreadDetailServiceTest {
                 roomId = ChatRoomId.from(1L),
                 senderId = UserId.from(3L),
                 content = MessageContent("reply", MessageType.TEXT),
-                status = MessageStatus.SAVED,
+                status = MessageStatus.SENT,
                 threadId = messageIdObj,
                 createdAt = Instant.now()
             )

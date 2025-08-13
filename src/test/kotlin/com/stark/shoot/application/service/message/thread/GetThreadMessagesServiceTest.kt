@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import java.time.Instant
+import org.hamcrest.Matchers.hasSize
 
 @DisplayName("스레드 메시지 조회 서비스 테스트")
 class GetThreadMessagesServiceTest {
@@ -42,7 +43,7 @@ class GetThreadMessagesServiceTest {
                 roomId = ChatRoomId.from(1L),
                 senderId = UserId.from(2L),
                 content = MessageContent("hello", MessageType.TEXT),
-                status = MessageStatus.SAVED,
+                status = MessageStatus.SENT,
                 threadId = MessageId.from(threadId),
                 createdAt = Instant.now()
             )

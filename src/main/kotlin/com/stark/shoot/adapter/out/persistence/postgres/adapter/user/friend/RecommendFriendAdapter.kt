@@ -112,7 +112,8 @@ class RecommendFriendAdapter(
     }
 
     /**
-     * BFS 알고리즘을 사용하여 친구 네트워크를 탐색하고 추천 친구를 찾음
+     * BFS 알고리즘을 사용하여 친구 네트워크를 탐색하고 추천 친구를 찾음 (N+1 쿼리 최적화)
+     * - 배치 쿼리를 사용하여 성능 최적화
      * - 가까운 거리의 사용자부터 추천 (친구의 친구, 친구의 친구의 친구 등)
      * - 각 거리 내에서는 상호 친구 수가 많은 순으로 정렬
      */
@@ -151,54 +152,72 @@ class RecommendFriendAdapter(
         // 현재 처리 중인 거리
         var currentDistance = 1
         // 현재 거리에서 찾은 추천 후보들
-        val currentLevelCandidates = mutableListOf<Pair<UserEntity, Int>>()
+        val currentLevelCandidates = mutableListOf<Pair<Long, Int>>() // UserEntity 대신 ID만 저장
 
         // BFS 탐색 시작
         while (queue.isNotEmpty() && recommendedUsers.size < limit) {
-            val (currentUserId, distance) = queue.poll()
+            // 현재 레벨의 모든 사용자 ID 수집
+            val currentLevelUserIds = mutableListOf<Long>()
+            var currentLevelDistance = -1
+            
+            // 같은 거리의 모든 사용자들을 한 번에 수집
+            while (queue.isNotEmpty()) {
+                val (currentUserId, distance) = queue.peek()
+                
+                if (currentLevelDistance == -1) {
+                    currentLevelDistance = distance
+                }
+                
+                if (distance != currentLevelDistance) {
+                    break // 다른 거리가 나오면 중단
+                }
+                
+                queue.poll()
+                currentLevelUserIds.add(currentUserId.value)
+            }
 
             // 거리가 변경되면 이전 거리의 후보들을 처리
-            if (distance > currentDistance) {
-                // 상호 친구 수로 정렬하여 추천 목록에 추가
-                val sortedCandidates = currentLevelCandidates.sortedByDescending { it.second }
-                for ((entity, _) in sortedCandidates) {
-                    recommendedUsers.add(userMapper.toDomain(entity))
+            if (currentLevelDistance > currentDistance && currentLevelCandidates.isNotEmpty()) {
+                // 배치로 사용자 엔티티 조회 및 상호 친구 수 계산
+                val candidateUsers = findUsersWithMutualFriendCounts(currentLevelCandidates, userId)
+                val sortedCandidates = candidateUsers.sortedByDescending { it.second }
+                
+                for ((user, _) in sortedCandidates) {
+                    recommendedUsers.add(user)
                     if (recommendedUsers.size >= limit) break
                 }
 
                 // 다음 거리로 이동
                 currentLevelCandidates.clear()
-                currentDistance = distance
+                currentDistance = currentLevelDistance
 
                 // 이미 충분한 추천을 찾았으면 종료
                 if (recommendedUsers.size >= limit) break
             }
 
-            // 현재 사용자의 친구들 조회
-            val nextFriends = friendshipMappingRepository.findAllByUserId(currentUserId.value)
+            // 배치로 현재 레벨 사용자들의 친구들 조회
+            if (currentLevelUserIds.isNotEmpty()) {
+                val batchFriendsMap = findFriendsBatch(currentLevelUserIds)
+                
+                for (currentUserIdLong in currentLevelUserIds) {
+                    val friendIds = batchFriendsMap[currentUserIdLong] ?: continue
+                    
+                    for (nextIdLong in friendIds) {
+                        val nextId = UserId.from(nextIdLong)
 
-            for (friendship in nextFriends) {
-                val nextIdLong = friendship.friend.id
-                val nextId = UserId.from(nextIdLong)
+                        // 아직 방문하지 않은 사용자만 처리
+                        if (!visited.contains(nextId)) {
+                            visited.add(nextId)
 
-                // 아직 방문하지 않은 사용자만 처리
-                if (!visited.contains(nextId)) {
-                    visited.add(nextId)
+                            // 이미 친구인 사용자는 큐에 추가하지 않음
+                            if (!excludeIds.contains(nextId)) {
+                                // 다음 거리의 사용자는 큐에 추가
+                                queue.add(Pair(nextId, currentLevelDistance + 1))
 
-                    // 이미 친구인 사용자는 큐에 추가하지 않음
-                    if (!excludeIds.contains(nextId)) {
-                        // 다음 거리의 사용자는 큐에 추가
-                        queue.add(Pair(nextId, distance + 1))
-
-                        // 현재 거리의 사용자는 추천 후보로 추가
-                        if (distance == currentDistance) {
-                            // 상호 친구 수 계산
-                            val mutualFriendCount = countMutualFriends(userId, nextId)
-
-                            // 사용자 엔티티 조회
-                            val userEntity = entityManager.find(UserEntity::class.java, nextIdLong)
-                            if (userEntity != null) {
-                                currentLevelCandidates.add(Pair(userEntity, mutualFriendCount))
+                                // 현재 거리의 사용자는 추천 후보로 추가
+                                if (currentLevelDistance == currentDistance) {
+                                    currentLevelCandidates.add(Pair(nextIdLong, 0)) // 상호 친구 수는 나중에 배치로 계산
+                                }
                             }
                         }
                     }
@@ -208,9 +227,11 @@ class RecommendFriendAdapter(
 
         // 마지막 거리의 후보들도 처리
         if (currentLevelCandidates.isNotEmpty() && recommendedUsers.size < limit) {
-            val sortedCandidates = currentLevelCandidates.sortedByDescending { it.second }
-            for ((entity, _) in sortedCandidates) {
-                recommendedUsers.add(userMapper.toDomain(entity))
+            val candidateUsers = findUsersWithMutualFriendCounts(currentLevelCandidates, userId)
+            val sortedCandidates = candidateUsers.sortedByDescending { it.second }
+            
+            for ((user, _) in sortedCandidates) {
+                recommendedUsers.add(user)
                 if (recommendedUsers.size >= limit) break
             }
         }
@@ -219,27 +240,110 @@ class RecommendFriendAdapter(
     }
 
     /**
-     * 두 사용자 간의 상호 친구 수를 계산
+     * 배치로 친구 목록을 조회하여 N+1 쿼리 문제 해결
+     */
+    private fun findFriendsBatch(userIds: List<Long>): Map<Long, List<Long>> {
+        if (userIds.isEmpty()) return emptyMap()
+        
+        val query = """
+            SELECT f.user.id, f.friend.id
+            FROM FriendshipMappingEntity f
+            WHERE f.user.id IN :userIds
+        """
+        
+        val results = entityManager.createQuery(query)
+            .setParameter("userIds", userIds)
+            .resultList as List<Array<Any>>
+            
+        return results.groupBy(
+            keySelector = { it[0] as Long },
+            valueTransform = { it[1] as Long }
+        )
+    }
+    
+    /**
+     * 배치로 사용자 엔티티 조회 및 상호 친구 수 계산
+     */
+    private fun findUsersWithMutualFriendCounts(
+        candidateIds: List<Pair<Long, Int>>,
+        userId: UserId
+    ): List<Pair<User, Int>> {
+        if (candidateIds.isEmpty()) return emptyList()
+        
+        val userIds = candidateIds.map { it.first }
+        
+        // 배치로 사용자 엔티티 조회
+        val userEntities = findUsersBatch(userIds)
+        
+        // 배치로 상호 친구 수 계산
+        val mutualFriendCounts = countMutualFriendsBatch(userId, userIds)
+        
+        return candidateIds.mapNotNull { (candidateId, _) ->
+            val userEntity = userEntities[candidateId]
+            val mutualCount = mutualFriendCounts[candidateId] ?: 0
+            
+            userEntity?.let { entity ->
+                Pair(userMapper.toDomain(entity), mutualCount)
+            }
+        }
+    }
+    
+    /**
+     * 배치로 사용자 엔티티 조회
+     */
+    private fun findUsersBatch(userIds: List<Long>): Map<Long, UserEntity> {
+        if (userIds.isEmpty()) return emptyMap()
+        
+        val query = """
+            SELECT u FROM UserEntity u
+            WHERE u.id IN :userIds
+        """
+        
+        val entities = entityManager.createQuery(query, UserEntity::class.java)
+            .setParameter("userIds", userIds)
+            .resultList
+            
+        return entities.associateBy { it.id }
+    }
+    
+    /**
+     * 배치로 상호 친구 수 계산
+     */
+    private fun countMutualFriendsBatch(
+        userId: UserId,
+        candidateUserIds: List<Long>
+    ): Map<Long, Int> {
+        if (candidateUserIds.isEmpty()) return emptyMap()
+        
+        val userId1Value = userId.value
+        
+        val query = """
+            SELECT f2.user.id, COUNT(f1.friend.id)
+            FROM FriendshipMappingEntity f1, FriendshipMappingEntity f2
+            WHERE f1.user.id = :userId1Value
+              AND f2.user.id IN :candidateUserIds
+              AND f1.friend.id = f2.friend.id
+            GROUP BY f2.user.id
+        """
+        
+        val results = entityManager.createQuery(query)
+            .setParameter("userId1Value", userId1Value)
+            .setParameter("candidateUserIds", candidateUserIds)
+            .resultList as List<Array<Any>>
+            
+        return results.associate { 
+            (it[0] as Long) to (it[1] as Long).toInt()
+        }
+    }
+
+    /**
+     * 두 사용자 간의 상호 친구 수를 계산 (단일 조회용, 레거시 호환)
      */
     private fun countMutualFriends(
         userId1: UserId,
         userId2: UserId
     ): Int {
-        val userId1Value = userId1.value
-        val userId2Value = userId2.value
-
-        val query = """
-            SELECT COUNT(f1.friend.id)
-            FROM FriendshipMappingEntity f1, FriendshipMappingEntity f2
-            WHERE f1.user.id = :userId1Value
-              AND f2.user.id = :userId2Value
-              AND f1.friend.id = f2.friend.id
-        """
-
-        return entityManager.createQuery(query, Long::class.java)
-            .setParameter("userId1Value", userId1Value)
-            .setParameter("userId2Value", userId2Value)
-            .singleResult.toInt()
+        return countMutualFriendsBatch(userId1, listOf(userId2.value))[userId2.value] ?: 0
     }
 
     /**

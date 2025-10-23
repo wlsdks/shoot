@@ -1,6 +1,5 @@
 package com.stark.shoot.adapter.out.message
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageStatusResponse
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
@@ -20,18 +19,15 @@ import com.stark.shoot.infrastructure.exception.web.ErrorResponse
 import com.stark.shoot.infrastructure.exception.web.KafkaPublishException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.future.await
-import org.springframework.data.redis.connection.stream.StreamRecords
-import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.kafka.core.KafkaTemplate
 import java.time.Instant
 
 /**
- * 메시지를 Redis와 Kafka에 발행하고 상태 알림을 담당하는 어댑터
+ * 메시지를 Kafka에 발행하고 상태 알림을 담당하는 어댑터
+ * Kafka를 통한 단일 메시지 경로로 영속화 및 실시간 전달을 모두 처리합니다.
  */
 @Adapter
 class MessagePublisherAdapter(
-    private val redisTemplate: StringRedisTemplate,
-    private val objectMapper: ObjectMapper,
     private val kafkaTemplate: KafkaTemplate<String, MessageEvent>,
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val applicationCoroutineScope: ApplicationCoroutineScope,
@@ -49,10 +45,12 @@ class MessagePublisherAdapter(
     /**
      * 메시지를 발행합니다.
      *
-     * 최적화된 플로우:
-     * 1. Redis Stream으로 즉시 브로드캐스트 (응답성 확보)
-     * 2. Kafka로 백그라운드 영속화 (일관성 확보)
-     * 3. 실패 시에만 상태 알림 (간소화)
+     * 단일 경로 플로우 (Kafka Only):
+     * 1. Kafka로 메시지 발행 (영속화 + 실시간 전달)
+     * 2. 도메인 이벤트 발행
+     * 3. 실패 시 상태 알림
+     *
+     * Kafka Consumer에서 MongoDB 저장 및 WebSocket 브로드캐스트를 처리합니다.
      *
      * @param request 메시지 요청 DTO
      * @param domainMessage 도메인 메시지
@@ -60,21 +58,15 @@ class MessagePublisherAdapter(
     override fun publish(request: ChatMessageRequest, domainMessage: ChatMessage) {
         applicationCoroutineScope.launch {
             try {
-                // 1. Redis Stream으로 즉시 브로드캐스트
-                // 클라이언트는 즉시 메시지를 받아 UI에 표시 (낙관적 업데이트)
-                publishToRedis(request)
-
-                // 2. Kafka로 백그라운드 영속화
+                // 1. Kafka로 메시지 발행 (단일 경로)
                 val event = messageDomainService.createMessageEvent(domainMessage)
                 publishToKafkaAsync(event)
 
-                // 3. 도메인 이벤트 발행
+                // 2. 도메인 이벤트 발행
                 publishDomainEvents(domainMessage)
 
-                // 성공 시에는 별도 상태 알림 없음 (클라이언트에서 이미 메시지 표시)
-
             } catch (throwable: Throwable) {
-                // 실패 시에만 오류 처리
+                // 실패 시 오류 처리
                 handlePublishError(request, request.tempId.orEmpty(), throwable)
             }
         }
@@ -163,27 +155,6 @@ class MessagePublisherAdapter(
         // 상태 업데이트 (tempId가 있는 경우만)
         tempId.takeIf { it.isNotEmpty() }?.let {
             notifyMessageStatus(message.roomId, it, MessageStatus.FAILED, throwable.message)
-        }
-    }
-
-    /**
-     * Redis에 메시지를 직접 발행합니다.
-     *
-     * @param message 발행할 메시지 요청
-     */
-    private suspend fun publishToRedis(message: ChatMessageRequest) {
-        val streamKey = "stream:chat:room:${message.roomId}"
-        try {
-            val messageJson = objectMapper.writeValueAsString(message)
-            val record = StreamRecords.newRecord()
-                .ofMap(mapOf("message" to messageJson))
-                .withStreamKey(streamKey)
-
-            redisTemplate.opsForStream<String, String>().add(record)
-                .also { messageId -> logger.debug { "Redis Stream에 메시지 발행 완료: $streamKey, id: $messageId" } }
-        } catch (e: Exception) {
-            logger.error(e) { "Redis Stream 발행 실패: $streamKey, ${e.message}" }
-            throw e
         }
     }
 

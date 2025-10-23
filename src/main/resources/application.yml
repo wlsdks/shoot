@@ -50,30 +50,36 @@ spring:
     consumer:
       bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
       group-id: shoot
-      # 컨슈머 동시성 설정
-      concurrency: 1
-      # 컨슈머 추가 설정
+      # 컨슈머 최적화 설정 (실시간 전달)
       auto-offset-reset: latest
       enable-auto-commit: false
-      fetch-min-bytes: 1024
-      fetch-max-wait: 500
-      max-poll-records: 500
+      fetch-min-bytes: 1           # 최소 1바이트만 있어도 즉시 반환 (레이턴시 최소화)
+      fetch-max-wait: 10           # 최대 10ms 대기
+      max-poll-records: 100        # 한번에 100개 처리
     producer:
       bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
+      # 프로듀서 최적화 설정 (저지연)
+      acks: 1                      # leader만 확인 (빠른 전송)
+      compression-type: none       # 압축 안함 (CPU 절약)
+      batch-size: 16384            # 16KB 배치 크기
+      linger-ms: 0                 # 즉시 전송 (배칭 대기 안함)
+      properties:
+        enable.idempotence: true   # 중복 메시지 방지
+        max.in.flight.requests.per.connection: 5
     topics:
       chat-messages:
-        partitions: 128 # 대용량 처리용
-        replicas: 2 # 복제 팩터 (Docker Compose에서 2로 설정됨)
+        partitions: 3              # 병렬 처리용 (consumer concurrency와 일치)
+        replicas: 2                # 복제 팩터
       chat-notifications:
-        partitions: 32
+        partitions: 3
         replicas: 2
       chat-events:
-        partitions: 32
+        partitions: 3
         replicas: 2
       dead-letter-topic:
-        partitions: 16
+        partitions: 1
         replicas: 2
-        retention-ms: 604800000 # 7일 (ms)
+        retention-ms: 604800000    # 7일 (ms)
 
   # 파일 업로드 설정
   servlet:
@@ -128,13 +134,6 @@ app:
       max-participants: 100        # 그룹 채팅 최대 참여자 수
       min-group-participants: 2    # 그룹 채팅 최소 참여자 수
       max-pinned-messages: 5       # 채팅방 최대 고정 메시지 수
-  # Redis Stream 설정
-  redis-stream:
-    polling-interval-ms: 100       # 폴링 간격 (ms)
-    error-retry-delay-ms: 1000     # 오류 발생 시 재시도 대기 시간 (ms)
-    consumer-group: chat-consumers # 소비자 그룹 이름
-    stream-key-pattern: "stream:chat:room:*" # 스트림 키 패턴
-    max-concurrent-streams: 10     # 동시 처리할 최대 스트림 수
     message:
       max-content-length: 4000     # 메시지 최대 길이
       max-attachment-size: 52428800 # 첨부파일 최대 크기 (50MB)

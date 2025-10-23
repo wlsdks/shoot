@@ -25,6 +25,8 @@ class MessageSentEventListener(
      * - 채팅방 참여자들의 채팅방 목록을 실시간 업데이트
      * - 안읽은 메시지 개수, 마지막 메시지, 시간 등을 업데이트
      * 트랜잭션 커밋 후에 실행되어 데이터 일관성을 보장합니다.
+     *
+     * N+1 쿼리 최적화: 배치 쿼리로 한번에 모든 참여자의 unread count 조회
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMessageSent(event: MessageSentEvent) {
@@ -37,11 +39,21 @@ class MessageSentEventListener(
             return
         }
 
+        // 배치 쿼리로 모든 참여자의 unread count를 한번에 조회 (N+1 문제 해결)
+        val unreadCounts = try {
+            messageQueryPort.countUnreadMessagesBatch(chatRoom.participants, roomId)
+        } catch (e: Exception) {
+            logger.warn(e) { "Failed to batch count unread messages for room $roomId" }
+            // 실패 시 모든 참여자 0으로 초기화
+            chatRoom.participants.associateWith { 0 }
+        }
+
         // 각 참여자별로 채팅방 목록 업데이트 정보 전송
         chatRoom.participants.forEach { participantId ->
             try {
-                // 해당 사용자의 안읽은 메시지 개수 계산
-                val unreadCount = calculateUnreadCount(participantId, roomId, message.senderId)
+                // 발신자는 항상 0, 나머지는 배치 쿼리 결과 사용
+                val unreadCount = if (participantId == message.senderId) 0
+                                  else unreadCounts[participantId] ?: 0
 
                 // 채팅방 목록 업데이트 데이터 생성
                 val chatRoomUpdate = mapOf(
@@ -70,26 +82,6 @@ class MessageSentEventListener(
             } catch (e: Exception) {
                 logger.error(e) { "Failed to update chat room list for user ${participantId.value}" }
             }
-        }
-    }
-
-
-    /**
-     * 사용자의 특정 채팅방 안읽은 메시지 개수 계산
-     */
-    private fun calculateUnreadCount(
-        userId: UserId,
-        roomId: ChatRoomId,
-        senderId: UserId
-    ): Int {
-        // 메시지 발송자는 안읽은 메시지가 0개 (자신이 보냈으니)
-        if (userId == senderId) return 0
-
-        return try {
-            messageQueryPort.countUnreadMessages(userId, roomId)
-        } catch (e: Exception) {
-            logger.warn(e) { "Failed to count unread messages for user $userId in room $roomId" }
-            0
         }
     }
 

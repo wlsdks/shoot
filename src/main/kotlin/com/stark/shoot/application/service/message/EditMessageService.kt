@@ -9,7 +9,9 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageEditDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.transaction.annotation.Transactional
 
+@Transactional
 @UseCase
 class EditMessageService(
     private val messageQueryPort: MessageQueryPort,

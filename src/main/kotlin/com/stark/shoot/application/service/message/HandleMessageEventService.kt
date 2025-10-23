@@ -121,15 +121,16 @@ class HandleMessageEventService(
 
     /**
      * 메시지를 저장하고 보낸 사람을 읽은 것으로 표시합니다.
+     * 성능 최적화: 저장 전에 markAsRead를 호출하여 단일 저장으로 개선
      */
     private fun saveAndMarkMessage(message: ChatMessage): ChatMessage {
-        var savedMessage = saveMessagePort.save(message)
-
-        // 보낸 사람은 메시지를 읽은 것으로 표시
-        if (savedMessage.readBy[savedMessage.senderId] != true) {
-            savedMessage.markAsRead(savedMessage.senderId)
-            savedMessage = saveMessagePort.save(savedMessage)
+        // 저장 전에 발신자를 읽음 처리 (이중 저장 방지)
+        if (message.readBy[message.senderId] != true) {
+            message.markAsRead(message.senderId)
         }
+
+        // 단일 저장으로 MongoDB 쓰기 부하 50% 감소
+        val savedMessage = saveMessagePort.save(message)
 
         // 채팅방의 마지막 읽은 메시지 ID 업데이트
         savedMessage.id?.let { id ->

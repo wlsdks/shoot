@@ -72,13 +72,16 @@ class CreateGroupChatService(
 
     /**
      * 참여자 검증
+     * ✅ N+1 쿼리 최적화: 배치 쿼리로 한번에 모든 참여자 존재 여부 확인
      */
     private fun validateParticipants(participants: Set<UserId>) {
-        // 모든 참여자가 존재하는지 확인
-        participants.forEach { userId ->
-            if (!userQueryPort.existsById(userId)) {
-                throw UserException.NotFound(userId.value)
-            }
+        // 배치 쿼리로 존재하지 않는 사용자 ID 조회
+        val missingUserIds = userQueryPort.findMissingUserIds(participants)
+
+        // 존재하지 않는 사용자가 있으면 예외 발생
+        if (missingUserIds.isNotEmpty()) {
+            val firstMissing = missingUserIds.first()
+            throw UserException.NotFound(firstMissing.value)
         }
     }
 

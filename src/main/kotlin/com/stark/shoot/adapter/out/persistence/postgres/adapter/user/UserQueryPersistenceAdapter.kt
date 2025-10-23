@@ -87,6 +87,27 @@ class UserQueryPersistenceAdapter(
     }
 
     /**
+     * 여러 사용자 ID의 존재 여부를 배치로 확인
+     * N+1 쿼리 문제를 방지하기 위한 배치 검증
+     *
+     * PostgreSQL IN 쿼리를 사용하여 한 번의 쿼리로 모든 사용자 존재 여부를 확인합니다.
+     */
+    override fun findMissingUserIds(userIds: Set<UserId>): Set<UserId> {
+        if (userIds.isEmpty()) return emptySet()
+
+        // 모든 사용자 ID를 Long으로 변환
+        val userIdValues = userIds.map { it.value }
+
+        // IN 쿼리로 한 번에 존재하는 사용자 조회
+        val existingUserIds = userRepository.findAllById(userIdValues)
+            .map { it.id!! }
+            .toSet()
+
+        // 존재하지 않는 사용자 ID 필터링
+        return userIds.filter { it.value !in existingUserIds }.toSet()
+    }
+
+    /**
      * 친구 관계 확인 (양방향 모두 확인)
      */
     override fun checkFriendship(

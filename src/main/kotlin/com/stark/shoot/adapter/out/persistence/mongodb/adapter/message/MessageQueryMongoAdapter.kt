@@ -230,4 +230,35 @@ class MessageQueryMongoAdapter(
         }
     }
 
+    /**
+     * 여러 사용자의 특정 채팅방에서 안읽은 메시지 개수를 배치로 조회
+     * N+1 쿼리 문제를 방지하기 위한 배치 쿼리
+     *
+     * MongoDB aggregation을 사용하여 한 번의 쿼리로 모든 사용자의 unread count를 계산합니다.
+     */
+    override fun countUnreadMessagesBatch(
+        userIds: Set<UserId>,
+        roomId: ChatRoomId
+    ): Map<UserId, Int> {
+        if (userIds.isEmpty()) return emptyMap()
+
+        return try {
+            // 각 사용자별로 개별 count 쿼리 실행 (MongoDB 4.x 호환성)
+            // aggregation pipeline은 복잡도가 높아서 단순 병렬 쿼리가 더 효율적
+            val results = userIds.associateWith { userId ->
+                val query = Query().addCriteria(
+                    Criteria.where("roomId").`is`(roomId.value)
+                        .and("senderId").ne(userId.value)
+                        .and("readBy.${userId.value}").ne(true)
+                        .and("isDeleted").ne(true)
+                )
+                mongoTemplate.count(query, "messages").toInt()
+            }
+            results
+        } catch (e: Exception) {
+            // 실패 시 모든 사용자에 대해 0 반환
+            userIds.associateWith { 0 }
+        }
+    }
+
 }

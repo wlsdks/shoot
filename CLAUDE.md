@@ -61,6 +61,88 @@ src/main/kotlin/com/shoot/
 - Configuration (Security, WebSocket, DB)
 - 공통 유틸리티, 예외 처리
 
+## Business Rules
+
+### 메시지 (Message)
+- 상태: SENDING → SENT_TO_KAFKA → PROCESSING → SAVED / FAILED
+- 최대 길이: 4,000자 (DomainConstants)
+- 첨부파일: 최대 50MB
+- 채팅방당 최대 고정 메시지: 5개
+- 삭제: 소프트 삭제 (isDeleted 플래그)
+- 수정: TEXT 타입만 가능, 삭제된 메시지 수정 불가
+- **수정 시간 제한: 24시간** (생성 후 24시간 이후 수정 불가)
+- 빈 내용으로 수정 불가
+
+### 사용자 (User)
+- Username: 3-20자
+- Nickname: 1-30자
+- Password: 최소 8자
+- UserCode: 8자리 대문자+숫자, 중복 불가
+- 최대 친구 수: 1,000명
+
+### 채팅방 (ChatRoom)
+- 1:1 채팅: 정확히 2명
+- 그룹 채팅: 2~100명
+- 자기 자신과 채팅 생성 불가
+- 참여자 없으면 자동 삭제
+- 최대 핀 채팅방: 사용자별 제한 (DomainConstants)
+
+### 친구 (Friend)
+- 요청 상태: PENDING → ACCEPTED / REJECTED / CANCELLED
+- PENDING 상태에서만 처리 가능 (이미 처리된 요청 재처리 불가)
+- 추천: BFS 알고리즘 (최대 depth: 3)
+- 중복 요청 불가
+- **자기 자신에게 친구 요청 불가**
+- 이미 친구인 경우 요청 불가
+- 이미 보낸 요청이 있으면 재요청 불가
+- 상대방으로부터 이미 받은 요청이 있으면 새 요청 불가
+- 친구 관계: 양방향 (Friendship 2개 생성)
+
+### 리액션 (Reaction)
+- 타입: LIKE, LOVE, HAHA, WOW, SAD, ANGRY
+- 사용자당 메시지별 1개 리액션 (다른 리액션 선택 시 교체)
+
+### 채팅방 설정 (ChatRoomSettings)
+- 알림 활성화 (isNotificationEnabled, 기본: true)
+- 메시지 보존 기간 (retentionDays, 기본: null = 무기한)
+- 암호화 설정 (isEncrypted, 기본: false)
+- 커스텀 설정 (customSettings: Map<String, Any>)
+
+### WebSocket 제한
+- Heartbeat: 5초 (서버 ↔ 클라이언트)
+- 메시지 크기: 최대 64KB
+- 버퍼 크기: 256KB
+- 전송 시간 제한: 10초
+- 첫 메시지 대기: 30초
+- SockJS disconnect delay: 2초
+- Rate Limiting: 타이핑 인디케이터 1초 제한
+
+### 도메인 상수 (DomainConstants)
+- `chatRoom.maxParticipants`: 100
+- `chatRoom.minGroupParticipants`: 2
+- `chatRoom.maxPinnedMessages`: 5
+- `message.maxContentLength`: 4000
+- `message.maxAttachmentSize`: 52428800 (50MB)
+- `message.batchSize`: 100
+- `friend.maxFriendCount`: 1000
+- `friend.recommendationLimit`: 20
+
+### 이벤트 발행 규칙
+- 트랜잭션 커밋 후: `@TransactionalEventListener` 사용
+- SpringEventPublisher로 발행
+- 이벤트 타입: MESSAGE_CREATED, FRIEND_ADDED, CHAT_ROOM_CREATED 등
+- Kafka 토픽: 채팅방 ID 기반 파티셔닝으로 메시지 순서 보장
+
+### 동시성 제어
+- Redis 기반 분산락 사용 (`RedisLockManager`)
+- 락 키: `chatroom:{roomId}`, `user:{userId}` 등
+- 자동 만료 시간 설정으로 데드락 방지
+- Lua 스크립트로 안전한 락 해제 (소유자 검증)
+- 지수 백오프 재시도 메커니즘
+- 채팅방별 독립적 락으로 병렬성 유지
+
+**📖 상세 도메인 모델**: `DOMAIN.md` 참조
+
 ## Development Rules
 
 ### DO
@@ -70,12 +152,14 @@ src/main/kotlin/com/shoot/
 - `in` 연산자 사용 (`.contains()` 대신)
 - 불필요한 `this` 제거
 - Event-driven으로 도메인 간 통신
+- DomainConstants에서 상수값 참조
 
 ### DON'T
 - Domain에서 infrastructure 직접 의존 금지
 - Adapter에 비즈니스 로직 작성 금지
 - Controller에서 직접 repository 호출 금지
 - 중복 주석 작성 금지
+- 매직넘버 하드코딩 금지 (DomainConstants 사용)
 
 ## Workflow
 

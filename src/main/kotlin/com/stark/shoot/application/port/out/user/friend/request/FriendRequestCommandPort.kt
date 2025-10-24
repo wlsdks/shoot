@@ -23,12 +23,20 @@ interface FriendRequestCommandPort {
      */
     fun saveFriendRequest(request: FriendRequest)
 
-    /** 
+    /**
      * 상태 업데이트
-     * 
+     *
      * @param senderId 요청을 보낸 사용자 ID
      * @param receiverId 요청을 받은 사용자 ID
      * @param status 업데이트할 상태
      */
     fun updateStatus(senderId: UserId, receiverId: UserId, status: FriendRequestStatus)
+
+    /**
+     * 사용자의 모든 친구 요청을 삭제합니다.
+     * 보낸 요청과 받은 요청 모두 삭제됩니다.
+     *
+     * @param userId 삭제할 사용자 ID
+     */
+    fun deleteAllByUserId(userId: UserId)
 }

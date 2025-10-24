@@ -71,6 +71,12 @@ class FriendRequestCommandAdapter(
         }
     }
 
+    override fun deleteAllByUserId(userId: UserId) {
+        // 보낸 요청과 받은 요청 모두 삭제
+        friendRequestRepository.deleteBySenderId(userId.value)
+        friendRequestRepository.deleteByReceiverId(userId.value)
+    }
+
     private fun mapToDomain(
         entity: FriendRequestEntity
     ): FriendRequest {

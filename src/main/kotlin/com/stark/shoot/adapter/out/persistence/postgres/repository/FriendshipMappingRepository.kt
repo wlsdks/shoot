@@ -16,10 +16,26 @@ interface FriendshipMappingRepository : JpaRepository<FriendshipMappingEntity, L
 
     @Modifying
     @Query("""
-        DELETE 
-        FROM FriendshipMappingEntity f 
-        WHERE f.user.id = :userId 
-            AND f.friend.id = :friendId 
+        DELETE
+        FROM FriendshipMappingEntity f
+        WHERE f.user.id = :userId
+            AND f.friend.id = :friendId
     """)
     fun deleteByUserIdAndFriendId(@Param("userId") userId: Long, @Param("friendId") friendId: Long)
+
+    @Modifying
+    @Query("""
+        DELETE
+        FROM FriendshipMappingEntity f
+        WHERE f.user.id = :userId
+    """)
+    fun deleteByUserId(@Param("userId") userId: Long)
+
+    @Modifying
+    @Query("""
+        DELETE
+        FROM FriendshipMappingEntity f
+        WHERE f.friend.id = :friendId
+    """)
+    fun deleteByFriendId(@Param("friendId") friendId: Long)
 }

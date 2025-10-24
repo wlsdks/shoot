@@ -134,16 +134,11 @@ class UserDeleteService(
     /**
      * 사용자의 모든 친구 관계를 삭제합니다.
      * 양방향 친구 관계를 모두 제거합니다.
-     *
-     * TODO: FriendCommandPort에 deleteAllFriendships 메서드 추가하여 일괄 삭제 구현
-     * 현재는 Port에 일괄 삭제 메서드가 없어 개별 처리가 필요합니다.
      */
     private fun cleanupFriendships(userId: com.stark.shoot.domain.user.vo.UserId) {
         try {
-            // TODO: 친구 목록을 조회하여 하나씩 삭제하거나
-            // TODO: FriendCommandPort.deleteAllFriendships(userId) 메서드 추가 필요
-            logger.warn { "Friend cleanup not fully implemented - requires batch delete method in FriendCommandPort" }
-            logger.info { "Skipping friendship cleanup for userId=${userId.value} (to be implemented)" }
+            friendCommandPort.deleteAllFriendships(userId)
+            logger.info { "Cleaned up all friendships for userId=${userId.value}" }
 
         } catch (e: Exception) {
             logger.error(e) { "Failed to cleanup friendships for userId=${userId.value}" }
@@ -154,16 +149,11 @@ class UserDeleteService(
     /**
      * 사용자의 모든 친구 요청을 정리합니다.
      * 보낸 요청과 받은 요청 모두 삭제합니다.
-     *
-     * TODO: FriendRequestCommandPort에 deleteAllByUserId 메서드 추가하여 일괄 삭제 구현
-     * 현재는 Port에 일괄 삭제 메서드가 없어 개별 처리가 필요합니다.
      */
     private fun cleanupFriendRequests(userId: com.stark.shoot.domain.user.vo.UserId) {
         try {
-            // TODO: 친구 요청 목록을 조회하여 하나씩 삭제하거나
-            // TODO: FriendRequestCommandPort.deleteAllByUserId(userId) 메서드 추가 필요
-            logger.warn { "Friend request cleanup not fully implemented - requires batch delete method in FriendRequestCommandPort" }
-            logger.info { "Skipping friend request cleanup for userId=${userId.value} (to be implemented)" }
+            friendRequestCommandPort.deleteAllByUserId(userId)
+            logger.info { "Cleaned up all friend requests for userId=${userId.value}" }
 
         } catch (e: Exception) {
             logger.error(e) { "Failed to cleanup friend requests for userId=${userId.value}" }

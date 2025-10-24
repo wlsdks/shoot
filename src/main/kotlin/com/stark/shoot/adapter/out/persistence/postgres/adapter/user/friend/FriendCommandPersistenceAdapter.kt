@@ -86,4 +86,12 @@ class FriendCommandPersistenceAdapter(
         friendshipMappingRepository.deleteByUserIdAndFriendId(userId.value, friendId.value)
     }
 
+    override fun deleteAllFriendships(userId: UserId) {
+        // 양방향 친구 관계 모두 삭제
+        // 1. userId가 user인 관계 삭제
+        friendshipMappingRepository.deleteByUserId(userId.value)
+        // 2. userId가 friend인 관계 삭제 (역방향)
+        friendshipMappingRepository.deleteByFriendId(userId.value)
+    }
+
 }

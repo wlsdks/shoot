@@ -4,8 +4,11 @@ import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.CancelFriendRequestCommand
 import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestCommand
 import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestFromCodeCommand
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
+import com.stark.shoot.domain.event.FriendRequestCancelledEvent
+import com.stark.shoot.domain.event.FriendRequestSentEvent
 import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.type.FriendRequestStatus
@@ -13,7 +16,9 @@ import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 
 @Transactional
 @UseCase
@@ -21,8 +26,11 @@ class FriendRequestService(
     private val userQueryPort: UserQueryPort,
     private val friendRequestCommandPort: FriendRequestCommandPort,
     private val friendDomainService: FriendDomainService,
-    private val friendCacheManager: FriendCacheManager
+    private val friendCacheManager: FriendCacheManager,
+    private val eventPublisher: EventPublishPort
 ) : FriendRequestUseCase {
+
+    private val logger = KotlinLogging.logger {}
 
     /**
      * 친구 요청 처리를 위한 공통 로직을 수행하는 내부 메서드
@@ -59,6 +67,9 @@ class FriendRequestService(
 
         // 캐시 무효화 (FriendCacheManager 사용)
         friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)
+
+        // 친구 요청 전송 이벤트 발행 (트랜잭션 커밋 후 알림 전송 등 처리)
+        publishFriendRequestSentEvent(currentUserId, targetUserId)
     }
 
     override fun sendFriendRequest(command: SendFriendRequestCommand) {
@@ -88,6 +99,9 @@ class FriendRequestService(
 
         // 캐시 무효화 (FriendCacheManager 사용)
         friendCacheManager.invalidateFriendshipCaches(command.currentUserId, command.targetUserId)
+
+        // 친구 요청 취소 이벤트 발행
+        publishFriendRequestCancelledEvent(command.currentUserId, command.targetUserId)
     }
 
     override fun sendFriendRequestFromUserCode(command: SendFriendRequestFromCodeCommand) {
@@ -111,6 +125,41 @@ class FriendRequestService(
         }
         if (!userQueryPort.existsById(targetUserId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $targetUserId")
+        }
+    }
+
+    /**
+     * 친구 요청 전송 이벤트를 발행합니다.
+     * 트랜잭션 커밋 후 리스너들이 알림 전송 등의 처리를 수행할 수 있습니다.
+     */
+    private fun publishFriendRequestSentEvent(senderId: UserId, receiverId: UserId) {
+        try {
+            val event = FriendRequestSentEvent.create(
+                senderId = senderId,
+                receiverId = receiverId,
+                sentAt = Instant.now()
+            )
+            eventPublisher.publishEvent(event)
+            logger.debug { "FriendRequestSentEvent published: sender=${senderId.value}, receiver=${receiverId.value}" }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to publish FriendRequestSentEvent: sender=${senderId.value}, receiver=${receiverId.value}" }
+        }
+    }
+
+    /**
+     * 친구 요청 취소 이벤트를 발행합니다.
+     */
+    private fun publishFriendRequestCancelledEvent(senderId: UserId, receiverId: UserId) {
+        try {
+            val event = FriendRequestCancelledEvent.create(
+                senderId = senderId,
+                receiverId = receiverId,
+                cancelledAt = Instant.now()
+            )
+            eventPublisher.publishEvent(event)
+            logger.debug { "FriendRequestCancelledEvent published: sender=${senderId.value}, receiver=${receiverId.value}" }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to publish FriendRequestCancelledEvent: sender=${senderId.value}, receiver=${receiverId.value}" }
         }
     }
 

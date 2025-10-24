@@ -8,6 +8,7 @@ import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestQueryPort
 import com.stark.shoot.application.port.out.user.friend.FriendCommandPort
+import com.stark.shoot.domain.event.FriendRequestRejectedEvent
 import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.type.FriendRequestStatus
@@ -15,7 +16,9 @@ import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 
 @Transactional
 @UseCase
@@ -28,6 +31,8 @@ class FriendReceiveService(
     private val friendDomainService: FriendDomainService,
     private val friendCacheManager: FriendCacheManager
 ) : FriendReceiveUseCase {
+
+    private val logger = KotlinLogging.logger {}
 
     /**
      * 친구 요청을 수락합니다.
@@ -78,6 +83,9 @@ class FriendReceiveService(
 
         // 캐시 무효화
         friendCacheManager.invalidateFriendshipCaches(currentUserId, requesterId)
+
+        // 친구 요청 거절 이벤트 발행 (트랜잭션 커밋 후 알림 전송 등 처리)
+        publishFriendRequestRejectedEvent(requesterId, currentUserId)
     }
 
 
@@ -104,6 +112,24 @@ class FriendReceiveService(
         return friendRequestQueryPort
             .findRequest(requesterId, currentUserId, FriendRequestStatus.PENDING)
             ?: throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
+    }
+
+    /**
+     * 친구 요청 거절 이벤트를 발행합니다.
+     * 트랜잭션 커밋 후 리스너들이 알림 전송 등의 처리를 수행할 수 있습니다.
+     */
+    private fun publishFriendRequestRejectedEvent(senderId: UserId, receiverId: UserId) {
+        try {
+            val event = FriendRequestRejectedEvent.create(
+                senderId = senderId,
+                receiverId = receiverId,
+                rejectedAt = Instant.now()
+            )
+            eventPublisher.publishEvent(event)
+            logger.debug { "FriendRequestRejectedEvent published: sender=${senderId.value}, receiver=${receiverId.value}" }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to publish FriendRequestRejectedEvent: sender=${senderId.value}, receiver=${receiverId.value}" }
+        }
     }
 
 }

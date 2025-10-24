@@ -3,13 +3,16 @@ package com.stark.shoot.application.service.message
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
 import com.stark.shoot.application.port.`in`.message.command.EditMessageCommand
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageEditDomainService
+import com.stark.shoot.domain.event.MessageEditedEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 
 @Transactional
 @UseCase
@@ -17,7 +20,8 @@ class EditMessageService(
     private val messageQueryPort: MessageQueryPort,
     private val messageCommandPort: MessageCommandPort,
     private val messageEditDomainService: MessageEditDomainService,
-    private val webSocketMessageBroker: WebSocketMessageBroker
+    private val webSocketMessageBroker: WebSocketMessageBroker,
+    private val eventPublisher: EventPublishPort
 ) : EditMessageUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -37,8 +41,12 @@ class EditMessageService(
                 }
 
             // 메시지 수정
+            val oldContent = existingMessage.content.text
             val updatedMessage = messageEditDomainService.editMessage(existingMessage, command.newContent)
             val savedMessage = messageCommandPort.save(updatedMessage)
+
+            // 도메인 이벤트 발행 (트랜잭션 커밋 후 리스너들이 처리)
+            publishMessageEditedEvent(savedMessage, command.userId, oldContent, savedMessage.content.text)
 
             // 채팅방의 모든 참여자에게 메시지 편집 알림
             webSocketMessageBroker.sendMessage(
@@ -81,6 +89,32 @@ class EditMessageService(
                 "data" to null
             )
         )
+    }
+
+    /**
+     * 메시지 수정 이벤트를 발행합니다.
+     * 트랜잭션 커밋 후 리스너들이 감사 로그, 분석 등의 처리를 수행할 수 있습니다.
+     */
+    private fun publishMessageEditedEvent(
+        message: ChatMessage,
+        userId: com.stark.shoot.domain.user.vo.UserId,
+        oldContent: String,
+        newContent: String
+    ) {
+        try {
+            val event = MessageEditedEvent.create(
+                messageId = message.id ?: return,
+                roomId = message.roomId,
+                userId = userId,
+                oldContent = oldContent,
+                newContent = newContent,
+                editedAt = Instant.now()
+            )
+            eventPublisher.publishEvent(event)
+            logger.debug { "MessageEditedEvent published for message ${message.id?.value}" }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to publish MessageEditedEvent for message ${message.id?.value}" }
+        }
     }
 
 }

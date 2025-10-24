@@ -17,7 +17,8 @@ import java.time.Instant
     indexes = [
         Index(name = "idx_outbox_processed", columnList = "processed"),
         Index(name = "idx_outbox_created_at", columnList = "created_at"),
-        Index(name = "idx_outbox_saga_id", columnList = "saga_id")
+        Index(name = "idx_outbox_saga_id", columnList = "saga_id"),
+        Index(name = "idx_outbox_idempotency_key", columnList = "idempotency_key", unique = true)
     ]
 )
 class OutboxEventEntity(
@@ -30,6 +31,13 @@ class OutboxEventEntity(
      */
     @Column(nullable = false, length = 100)
     val sagaId: String,
+
+    /**
+     * 멱등성 키 (중복 요청 방지)
+     * 형식: tempId-senderId 또는 sagaId
+     */
+    @Column(nullable = false, unique = true, length = 255, name = "idempotency_key")
+    val idempotencyKey: String,
 
     /**
      * 이벤트 타입 (클래스명)

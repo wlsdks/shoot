@@ -20,6 +20,16 @@ interface OutboxEventRepository : JpaRepository<OutboxEventEntity, Long> {
     fun findBySagaIdOrderByCreatedAtAsc(sagaId: String): List<OutboxEventEntity>
 
     /**
+     * 멱등성 키로 이벤트 조회 (중복 요청 체크용)
+     */
+    fun findByIdempotencyKey(idempotencyKey: String): OutboxEventEntity?
+
+    /**
+     * 멱등성 키 존재 여부 확인
+     */
+    fun existsByIdempotencyKey(idempotencyKey: String): Boolean
+
+    /**
      * 특정 상태의 이벤트 조회
      */
     fun findBySagaStateAndProcessedFalse(sagaState: SagaState): List<OutboxEventEntity>

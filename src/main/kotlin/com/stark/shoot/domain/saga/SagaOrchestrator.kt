@@ -61,6 +61,8 @@ class SagaOrchestrator<T : Any>(
     private fun compensate(executedSteps: List<SagaStep<T>>, context: T) {
         logger.warn { "Starting compensation for ${executedSteps.size} executed steps" }
 
+        var allCompensationsSucceeded = true
+
         // 역순으로 보상 트랜잭션 실행
         executedSteps.reversed().forEach { step ->
             try {
@@ -69,14 +71,25 @@ class SagaOrchestrator<T : Any>(
 
                 if (!success) {
                     logger.error { "Compensation failed for step: ${step.stepName()}" }
+                    allCompensationsSucceeded = false
                 } else {
                     logger.info { "Compensation completed for step: ${step.stepName()}" }
                 }
             } catch (e: Exception) {
                 logger.error(e) { "Compensation threw exception for step: ${step.stepName()}" }
+                allCompensationsSucceeded = false
             }
         }
 
-        logger.warn { "Compensation process completed" }
+        // Context 상태 업데이트 (MessageSagaContext인 경우)
+        if (context is com.stark.shoot.domain.saga.message.MessageSagaContext) {
+            if (allCompensationsSucceeded) {
+                context.markCompensated()
+            } else {
+                context.markFailed(Exception("Compensation failed for one or more steps"))
+            }
+        }
+
+        logger.warn { "Compensation process completed: allSucceeded=$allCompensationsSucceeded" }
     }
 }

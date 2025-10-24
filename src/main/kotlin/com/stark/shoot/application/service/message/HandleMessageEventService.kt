@@ -12,23 +12,27 @@ import com.stark.shoot.domain.event.type.EventType
 import com.stark.shoot.domain.saga.SagaState
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.transaction.annotation.Transactional
 
 /**
  * 메시지 이벤트 처리 서비스 (Saga 패턴 적용)
  *
  * MongoDB + PostgreSQL 분산 트랜잭션을 Saga 패턴으로 처리합니다.
- * - MongoDB: 메시지 저장
- * - PostgreSQL: 채팅방 메타데이터 업데이트 + Outbox 이벤트 저장
+ * - Step 1: MongoDB 메시지 저장 (독립 트랜잭션)
+ * - Step 2: PostgreSQL 채팅방 메타데이터 업데이트 (@Transactional 시작)
+ * - Step 3: PostgreSQL Outbox 이벤트 저장 (Step 2의 트랜잭션에 참여)
  *
- * 실패 시 보상 트랜잭션이 자동으로 실행됩니다.
+ * 트랜잭션 경계:
+ * - Step 1은 독립적으로 실행 (MongoDB)
+ * - Step 2, 3는 하나의 PostgreSQL 트랜잭션으로 묶임
+ * - 실패 시 보상 트랜잭션이 자동으로 역순 실행
  */
 @UseCase
 class HandleMessageEventService(
     private val messageSagaOrchestrator: MessageSagaOrchestrator,
     private val loadUrlContentPort: LoadUrlContentPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
-    private val messageStatusNotificationPort: MessageStatusNotificationPort
+    private val messageStatusNotificationPort: MessageStatusNotificationPort,
+    private val outboxEventRepository: com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxEventRepository
 ) : HandleMessageEventUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -36,10 +40,10 @@ class HandleMessageEventService(
     /**
      * 메시지를 Saga 패턴으로 저장하고 상태 업데이트를 전송합니다.
      *
-     * @Transactional: PostgreSQL 트랜잭션 (채팅방 메타데이터 + Outbox)
-     * MongoDB는 별도로 관리되며, 실패 시 보상 트랜잭션으로 롤백됩니다.
+     * 트랜잭션은 각 Step에서 관리:
+     * - UpdateChatRoomMetadataStep: @Transactional 시작
+     * - PublishEventToOutboxStep: @Transactional(MANDATORY)로 참여
      */
-    @Transactional
     override fun handle(event: MessageEvent): Boolean {
         if (event.type != EventType.MESSAGE_CREATED) return false
 

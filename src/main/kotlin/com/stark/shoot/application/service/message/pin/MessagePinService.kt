@@ -12,8 +12,10 @@ import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
+@Transactional
 @UseCase
 class MessagePinService(
     private val messageQueryPort: MessageQueryPort,

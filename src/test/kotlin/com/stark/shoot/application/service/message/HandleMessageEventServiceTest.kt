@@ -7,6 +7,7 @@ import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
+import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
@@ -39,6 +40,7 @@ class HandleMessageEventServiceTest {
         val loadUrlContentPort = mock(LoadUrlContentPort::class.java, withSettings().lenient())
         val cacheUrlPreviewPort = mock(CacheUrlPreviewPort::class.java, withSettings().lenient())
         val messageStatusNotificationPort = mock(MessageStatusNotificationPort::class.java, withSettings().lenient())
+        val userQueryPort = mock(UserQueryPort::class.java, withSettings().lenient())
 
         val service = HandleMessageEventService(
             saveMessagePort,
@@ -48,7 +50,8 @@ class HandleMessageEventServiceTest {
             cacheUrlPreviewPort,
             messageStatusNotificationPort,
             chatRoomMetadataDomainService,
-            eventPublisher
+            eventPublisher,
+            userQueryPort
         )
 
         val message = ChatMessage(
@@ -83,6 +86,7 @@ class HandleMessageEventServiceTest {
         val loadUrlContentPort = mock(LoadUrlContentPort::class.java, withSettings().lenient())
         val cacheUrlPreviewPort = mock(CacheUrlPreviewPort::class.java, withSettings().lenient())
         val messageStatusNotificationPort = mock(MessageStatusNotificationPort::class.java, withSettings().lenient())
+        val userQueryPort = mock(UserQueryPort::class.java, withSettings().lenient())
 
         val service = HandleMessageEventService(
             saveMessagePort,
@@ -92,7 +96,8 @@ class HandleMessageEventServiceTest {
             cacheUrlPreviewPort,
             messageStatusNotificationPort,
             chatRoomMetadataDomainService,
-            eventPublisher
+            eventPublisher,
+            userQueryPort
         )
 
         val message = ChatMessage(

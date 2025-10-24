@@ -15,7 +15,9 @@ import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.transaction.annotation.Transactional
 
+@Transactional
 @UseCase
 class ToggleMessageReactionService(
     private val messageQueryPort: MessageQueryPort,

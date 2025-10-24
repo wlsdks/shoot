@@ -9,7 +9,8 @@ import com.stark.shoot.domain.event.MessageReactionEvent
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.context.event.EventListener
+import org.springframework.transaction.event.TransactionPhase
+import org.springframework.transaction.event.TransactionalEventListener
 
 /**
  * 메시지 반응 이벤트를 수신하여 알림을 생성하고 전송하는 리스너 클래스입니다.
@@ -31,10 +32,11 @@ class ReactionEventNotificationListener(
 
     /**
      * 메시지 반응 이벤트를 수신하여 알림 처리를 시작하는 메서드입니다.
+     * 트랜잭션 커밋 후 실행되어 데이터 일관성을 보장합니다.
      *
      * @param event 처리할 메시지 반응 이벤트
      */
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleReactionEvent(event: MessageReactionEvent) {
         try {
             // 메시지 조회

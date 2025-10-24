@@ -11,6 +11,7 @@ import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
+import com.stark.shoot.domain.event.MentionEvent
 import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.event.MessageSentEvent
 import com.stark.shoot.domain.event.type.EventType
@@ -28,6 +29,7 @@ class HandleMessageEventService(
     private val messageStatusNotificationPort: MessageStatusNotificationPort,
     private val chatRoomMetadataDomainService: ChatRoomMetadataDomainService,
     private val eventPublisher: EventPublishPort,
+    private val userQueryPort: com.stark.shoot.application.port.out.user.UserQueryPort,
 ) : HandleMessageEventUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -115,8 +117,8 @@ class HandleMessageEventService(
         // 2. 채팅방 메타데이터 업데이트
         updateChatRoomMetadata(savedMessage)
 
-        // 3. 도메인 이벤트 발행
-        eventPublisher.publishEvent(MessageSentEvent.create(savedMessage))
+        // 3. 도메인 이벤트 발행 (MongoDB 저장 후 발행으로 데이터 일관성 보장)
+        publishDomainEvents(savedMessage)
     }
 
     /**
@@ -167,6 +169,58 @@ class HandleMessageEventService(
                 logger.error(e) { "URL 미리보기 처리 실패: $previewUrl" }
             }
         }
+    }
+
+    /**
+     * 도메인 이벤트를 발행합니다.
+     * MessageSentEvent와 필요시 MentionEvent를 발행합니다.
+     * MongoDB 저장 후 발행하므로 데이터 일관성이 보장됩니다.
+     */
+    private fun publishDomainEvents(message: ChatMessage) {
+        try {
+            // 1. MessageSentEvent 발행
+            val messageSentEvent = MessageSentEvent.create(message)
+            eventPublisher.publishEvent(messageSentEvent)
+
+            // 2. 멘션이 포함된 경우 MentionEvent 발행
+            if (message.mentions.isNotEmpty()) {
+                publishMentionEvent(message)
+            }
+
+            logger.debug { "Domain events published for message ${message.id?.value}" }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to publish domain events for message ${message.id?.value}" }
+        }
+    }
+
+    /**
+     * 멘션 이벤트를 발행합니다.
+     */
+    private fun publishMentionEvent(message: ChatMessage) {
+        // 자신을 멘션한 경우는 제외
+        val mentionedUsers = message.mentions.filter { it != message.senderId }.toSet()
+        if (mentionedUsers.isEmpty()) {
+            return
+        }
+
+        // 발신자 정보 조회 (실패 시 기본 값 사용)
+        val senderName = userQueryPort
+            .findUserById(message.senderId)
+            ?.nickname
+            ?.value
+            ?: "User_${message.senderId.value}"
+
+        val mentionEvent = MentionEvent(
+            roomId = message.roomId,
+            messageId = message.id ?: return,
+            senderId = message.senderId,
+            senderName = senderName,
+            mentionedUserIds = mentionedUsers,
+            messageContent = message.content.text
+        )
+
+        eventPublisher.publishEvent(mentionEvent)
+        logger.debug { "MentionEvent published for ${mentionedUsers.size} users" }
     }
 
 }

@@ -76,6 +76,10 @@ dependencies {
 
     // in-memory database for JPA tests
     testImplementation("com.h2database:h2")
+
+    // ShedLock for distributed scheduler locking
+    implementation("net.javacrumbs.shedlock:shedlock-spring:5.16.0")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:5.16.0")
 }
 
 kotlin {

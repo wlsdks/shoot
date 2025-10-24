@@ -5,6 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import java.time.Instant
 
 @Entity
@@ -16,6 +17,14 @@ class ChatRoomEntity(
     lastMessageId: Long?,
     lastActiveAt: Instant
 ) : BaseEntity() {
+
+    /**
+     * Optimistic Locking을 위한 버전 필드
+     * 동시 업데이트 발생 시 OptimisticLockException 발생
+     */
+    @Version
+    var version: Long = 0
+        protected set
 
     var title: String? = title
         protected set

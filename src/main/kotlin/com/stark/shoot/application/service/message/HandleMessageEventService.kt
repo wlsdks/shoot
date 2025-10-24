@@ -1,5 +1,6 @@
 package com.stark.shoot.application.service.message
 
+import com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxEventRepository
 import com.stark.shoot.application.port.`in`.message.HandleMessageEventUseCase
 import com.stark.shoot.application.port.out.message.MessageStatusNotificationPort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
@@ -32,7 +33,7 @@ class HandleMessageEventService(
     private val loadUrlContentPort: LoadUrlContentPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
     private val messageStatusNotificationPort: MessageStatusNotificationPort,
-    private val outboxEventRepository: com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxEventRepository
+    private val outboxEventRepository: OutboxEventRepository
 ) : HandleMessageEventUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -65,6 +66,7 @@ class HandleMessageEventService(
                     logger.info { "Message saga completed: sagaId=${sagaContext.sagaId}" }
                     true
                 }
+
                 SagaState.COMPENSATED, SagaState.FAILED -> {
                     // 실패: 보상 트랜잭션 완료 또는 실패
                     val error = Exception(sagaContext.error?.message ?: "Unknown saga error", sagaContext.error)
@@ -72,6 +74,7 @@ class HandleMessageEventService(
                     logger.error { "Message saga failed: sagaId=${sagaContext.sagaId}, state=${sagaContext.state}" }
                     false
                 }
+
                 else -> {
                     logger.warn { "Unexpected saga state: ${sagaContext.state}" }
                     notifyPersistenceFailure(message, tempId, Exception("Unexpected saga state"))

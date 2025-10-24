@@ -3,19 +3,23 @@ package com.stark.shoot.application.service.message
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.DeleteMessageUseCase
 import com.stark.shoot.application.port.`in`.message.command.DeleteMessageCommand
+import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
+import com.stark.shoot.domain.event.MessageDeletedEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 
 @Transactional
 @UseCase
 class DeleteMessageService(
     private val messageQueryPort: MessageQueryPort,
     private val messageCommandPort: MessageCommandPort,
-    private val webSocketMessageBroker: WebSocketMessageBroker
+    private val webSocketMessageBroker: WebSocketMessageBroker,
+    private val eventPublisher: EventPublishPort
 ) : DeleteMessageUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -36,6 +40,9 @@ class DeleteMessageService(
             // 도메인 객체의 메서드를 사용하여 메시지 삭제 상태로 변경
             existingMessage.markAsDeleted()
             val savedMessage = messageCommandPort.save(existingMessage)
+
+            // 도메인 이벤트 발행 (트랜잭션 커밋 후 리스너들이 처리)
+            publishMessageDeletedEvent(savedMessage, command.userId)
 
             // 채팅방의 모든 참여자에게 메시지 삭제 알림
             webSocketMessageBroker.sendMessage(
@@ -78,6 +85,28 @@ class DeleteMessageService(
                 "data" to null
             )
         )
+    }
+
+    /**
+     * 메시지 삭제 이벤트를 발행합니다.
+     * 트랜잭션 커밋 후 리스너들이 감사 로그, 분석 등의 처리를 수행할 수 있습니다.
+     */
+    private fun publishMessageDeletedEvent(
+        message: ChatMessage,
+        userId: com.stark.shoot.domain.user.vo.UserId
+    ) {
+        try {
+            val event = MessageDeletedEvent.create(
+                messageId = message.id ?: return,
+                roomId = message.roomId,
+                userId = userId,
+                deletedAt = Instant.now()
+            )
+            eventPublisher.publishEvent(event)
+            logger.debug { "MessageDeletedEvent published for message ${message.id?.value}" }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to publish MessageDeletedEvent for message ${message.id?.value}" }
+        }
     }
 
 }

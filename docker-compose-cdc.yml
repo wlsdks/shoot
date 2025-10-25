@@ -1,4 +1,5 @@
-version: '3.8'
+# Docker Compose for CDC infrastructure
+# Note: 'version' field is obsolete in newer Docker Compose versions
 
 # CDC (Change Data Capture) 구성
 # Debezium + Kafka Connect를 사용하여 PostgreSQL Outbox 테이블 변경을 실시간으로 Kafka에 발행
@@ -53,7 +54,7 @@ services:
 
   # Kafka Connect with Debezium
   kafka-connect:
-    image: debezium/connect:2.7
+    image: debezium/connect:2.5
     container_name: shoot-kafka-connect
     restart: unless-stopped
     ports:
@@ -101,17 +102,17 @@ services:
       retries: 5
       start_period: 60s
 
-  # Debezium UI (선택사항)
-  debezium-ui:
-    image: debezium/debezium-ui:2.7
-    container_name: shoot-debezium-ui
-    restart: unless-stopped
-    ports:
-      - "8084:8080"
-    environment:
-      KAFKA_CONNECT_URIS: http://kafka-connect:8083
-    depends_on:
-      kafka-connect:
-        condition: service_healthy
-    networks:
-      - cdc_network
+  # Debezium UI (선택사항) - 현재 비활성화
+  # debezium-ui:
+  #   image: debezium/debezium-ui:2.5
+  #   container_name: shoot-debezium-ui
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8084:8080"
+  #   environment:
+  #     KAFKA_CONNECT_URIS: http://kafka-connect:8083
+  #   depends_on:
+  #     kafka-connect:
+  #       condition: service_healthy
+  #   networks:
+  #     - cdc_network

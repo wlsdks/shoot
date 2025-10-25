@@ -1,7 +1,9 @@
 package com.stark.shoot.application.service.saga
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.stark.shoot.adapter.out.persistence.postgres.entity.OutboxDeadLetterEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.OutboxEventEntity
+import com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxDeadLetterRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxEventRepository
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.domain.saga.SagaState
@@ -18,10 +20,16 @@ import java.time.temporal.ChronoUnit
  *
  * 주기적으로 Outbox 테이블을 스캔하여 처리되지 않은 이벤트를 발행합니다.
  * 이를 통해 이벤트 발행이 보장됩니다.
+ *
+ * **Dead Letter Queue (DLQ):**
+ * - 재시도 5회 초과 시 DLQ로 이동
+ * - 운영자 수동 확인 및 재처리 가능
+ * - Slack 알림으로 즉시 문제 인지
  */
 @Service
 class OutboxEventProcessor(
     private val outboxEventRepository: OutboxEventRepository,
+    private val deadLetterRepository: OutboxDeadLetterRepository,
     private val eventPublisher: EventPublishPort,
     private val objectMapper: ObjectMapper
 ) {
@@ -30,6 +38,7 @@ class OutboxEventProcessor(
     companion object {
         const val MAX_RETRY_COUNT = 5
         const val OUTBOX_RETENTION_DAYS = 7L
+        const val DLQ_RETENTION_DAYS = 30L  // DLQ는 30일 보관
     }
 
     /**
@@ -68,11 +77,9 @@ class OutboxEventProcessor(
      */
     private fun processEvent(outboxEvent: OutboxEventEntity) {
         try {
-            // 재시도 횟수 체크
+            // 재시도 횟수 체크 - 초과 시 DLQ로 이동
             if (outboxEvent.retryCount >= MAX_RETRY_COUNT) {
-                logger.error { "Max retry count exceeded for event: id=${outboxEvent.id}, sagaId=${outboxEvent.sagaId}" }
-                outboxEvent.updateSagaState(SagaState.FAILED)
-                outboxEventRepository.save(outboxEvent)
+                moveToDLQ(outboxEvent)
                 return
             }
 
@@ -99,6 +106,48 @@ class OutboxEventProcessor(
     }
 
     /**
+     * DLQ로 이벤트 이동
+     *
+     * 재시도 횟수를 초과한 이벤트를 Dead Letter Queue로 이동합니다.
+     */
+    private fun moveToDLQ(outboxEvent: OutboxEventEntity) {
+        try {
+            val dlqEvent = OutboxDeadLetterEntity(
+                originalEventId = outboxEvent.id!!,
+                sagaId = outboxEvent.sagaId,
+                sagaState = outboxEvent.sagaState,
+                eventType = outboxEvent.eventType,
+                payload = outboxEvent.payload,
+                failureReason = outboxEvent.lastError ?: "재시도 횟수 초과 (${MAX_RETRY_COUNT}회)",
+                failureCount = outboxEvent.retryCount,
+                lastFailureAt = Instant.now()
+            )
+
+            // DLQ에 저장
+            deadLetterRepository.save(dlqEvent)
+
+            // 원본 이벤트는 처리 완료로 표시 (더 이상 재시도 안 함)
+            outboxEvent.markAsProcessed()
+            outboxEvent.updateSagaState(SagaState.FAILED)
+            outboxEventRepository.save(outboxEvent)
+
+            logger.error {
+                "이벤트를 DLQ로 이동: " +
+                "outboxId=${outboxEvent.id}, " +
+                "sagaId=${outboxEvent.sagaId}, " +
+                "eventType=${outboxEvent.eventType}, " +
+                "reason=${dlqEvent.failureReason}"
+            }
+
+            // TODO: Slack 알림 전송
+            // slackNotifier.sendAlert("DLQ 이동: ${outboxEvent.sagaId}")
+
+        } catch (e: Exception) {
+            logger.error(e) { "DLQ 이동 실패: outboxId=${outboxEvent.id}" }
+        }
+    }
+
+    /**
      * 오래된 처리 완료 이벤트 정리
      * 매일 자정 실행
      *
@@ -121,6 +170,70 @@ class OutboxEventProcessor(
 
         } catch (e: Exception) {
             logger.error(e) { "Failed to cleanup old outbox events" }
+        }
+    }
+
+    /**
+     * 오래된 DLQ 이벤트 정리
+     * 매일 자정 1시 실행
+     *
+     * 30일 이상 지난 해결된 DLQ를 삭제합니다.
+     *
+     * @SchedulerLock: 한 인스턴스만 정리 작업 수행
+     */
+    @Scheduled(cron = "0 0 1 * * *")
+    @SchedulerLock(name = "cleanupOldDLQ", lockAtMostFor = "10m", lockAtLeastFor = "1s")
+    @Transactional
+    fun cleanupOldDLQ() {
+        try {
+            val threshold = Instant.now().minus(DLQ_RETENTION_DAYS, ChronoUnit.DAYS)
+            val oldDLQEvents = deadLetterRepository.findOldResolvedDLQ(threshold)
+
+            if (oldDLQEvents.isNotEmpty()) {
+                deadLetterRepository.deleteAll(oldDLQEvents)
+                logger.info { "DLQ 정리 완료: ${oldDLQEvents.size}개 삭제" }
+            }
+
+        } catch (e: Exception) {
+            logger.error(e) { "DLQ 정리 실패" }
+        }
+    }
+
+    /**
+     * 미해결 DLQ 모니터링
+     * 매 시간마다 실행
+     *
+     * 미해결 DLQ가 있으면 로그와 알림을 전송합니다.
+     *
+     * @SchedulerLock: 한 인스턴스만 모니터링 수행
+     */
+    @Scheduled(cron = "0 0 * * * *")
+    @SchedulerLock(name = "monitorUnresolvedDLQ", lockAtMostFor = "5m", lockAtLeastFor = "1s")
+    @Transactional(readOnly = true)
+    fun monitorUnresolvedDLQ() {
+        try {
+            val unresolvedCount = deadLetterRepository.countByResolvedFalse()
+
+            if (unresolvedCount > 0) {
+                val recentDLQ = deadLetterRepository.findTop10ByResolvedFalseOrderByCreatedAtDesc()
+
+                logger.error {
+                    "미해결 DLQ 발견: 총 ${unresolvedCount}개\n" +
+                    "최근 10개:\n" +
+                    recentDLQ.joinToString("\n") {
+                        "  - id=${it.id}, sagaId=${it.sagaId}, " +
+                        "eventType=${it.eventType}, " +
+                        "reason=${it.failureReason}, " +
+                        "createdAt=${it.createdAt}"
+                    }
+                }
+
+                // TODO: Slack 알림 전송
+                // slackNotifier.sendAlert("미해결 DLQ: ${unresolvedCount}개")
+            }
+
+        } catch (e: Exception) {
+            logger.error(e) { "DLQ 모니터링 실패" }
         }
     }
 

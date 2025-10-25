@@ -98,6 +98,14 @@ notification:
   # 알림 전송 방식 (redis 또는 kafka)
   transport: redis
 
+# Slack 알림 설정
+slack:
+  notification:
+    enabled: false  # 기본값 비활성화 (true로 변경하여 활성화)
+    webhook-url: ""  # Slack Incoming Webhook URL (예: https://hooks.slack.com/services/YOUR/WEBHOOK/URL)
+    channel: "#alerts"  # 알림 전송 채널
+    username: "Shoot Alert Bot"  # 알림 발송자 이름
+
 # 파일 업로드 설정은 spring 섹션에 있음
 
 # 로깅 설정

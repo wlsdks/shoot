@@ -6,6 +6,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.OutboxEventEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxDeadLetterRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxEventRepository
 import com.stark.shoot.application.port.out.event.EventPublishPort
+import com.stark.shoot.application.port.out.notification.SlackNotificationPort
 import com.stark.shoot.domain.saga.SagaState
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
@@ -31,6 +32,7 @@ class OutboxEventProcessor(
     private val outboxEventRepository: OutboxEventRepository,
     private val deadLetterRepository: OutboxDeadLetterRepository,
     private val eventPublisher: EventPublishPort,
+    private val slackNotificationPort: SlackNotificationPort,
     private val objectMapper: ObjectMapper
 ) {
     private val logger = KotlinLogging.logger {}
@@ -139,8 +141,12 @@ class OutboxEventProcessor(
                 "reason=${dlqEvent.failureReason}"
             }
 
-            // TODO: Slack 알림 전송
-            // slackNotifier.sendAlert("DLQ 이동: ${outboxEvent.sagaId}")
+            // Slack 알림 전송
+            slackNotificationPort.notifyDLQEvent(
+                sagaId = outboxEvent.sagaId,
+                eventType = outboxEvent.eventType,
+                failureReason = dlqEvent.failureReason
+            )
 
         } catch (e: Exception) {
             logger.error(e) { "DLQ 이동 실패: outboxId=${outboxEvent.id}" }
@@ -217,6 +223,10 @@ class OutboxEventProcessor(
             if (unresolvedCount > 0) {
                 val recentDLQ = deadLetterRepository.findTop10ByResolvedFalseOrderByCreatedAtDesc()
 
+                val recentDLQInfo = recentDLQ.joinToString("\n") {
+                    "id=${it.id}, sagaId=${it.sagaId}, eventType=${it.eventType}, reason=${it.failureReason}"
+                }
+
                 logger.error {
                     "미해결 DLQ 발견: 총 ${unresolvedCount}개\n" +
                     "최근 10개:\n" +
@@ -228,8 +238,11 @@ class OutboxEventProcessor(
                     }
                 }
 
-                // TODO: Slack 알림 전송
-                // slackNotifier.sendAlert("미해결 DLQ: ${unresolvedCount}개")
+                // Slack 알림 전송
+                slackNotificationPort.notifyUnresolvedDLQ(
+                    unresolvedCount = unresolvedCount,
+                    recentDLQInfo = recentDLQInfo
+                )
             }
 
         } catch (e: Exception) {

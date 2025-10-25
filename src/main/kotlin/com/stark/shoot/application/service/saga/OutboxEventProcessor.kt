@@ -13,6 +13,8 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronizationManager
+import org.springframework.transaction.support.TransactionSynchronization
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -141,11 +143,18 @@ class OutboxEventProcessor(
                 "reason=${dlqEvent.failureReason}"
             }
 
-            // Slack 알림 전송
-            slackNotificationPort.notifyDLQEvent(
-                sagaId = outboxEvent.sagaId,
-                eventType = outboxEvent.eventType,
-                failureReason = dlqEvent.failureReason
+            // Slack 알림 전송 - 트랜잭션 커밋 후 실행
+            // 트랜잭션이 롤백되면 알림도 전송되지 않음
+            TransactionSynchronizationManager.registerSynchronization(
+                object : TransactionSynchronization {
+                    override fun afterCommit() {
+                        slackNotificationPort.notifyDLQEvent(
+                            sagaId = outboxEvent.sagaId,
+                            eventType = outboxEvent.eventType,
+                            failureReason = dlqEvent.failureReason
+                        )
+                    }
+                }
             )
 
         } catch (e: Exception) {
@@ -238,10 +247,16 @@ class OutboxEventProcessor(
                     }
                 }
 
-                // Slack 알림 전송
-                slackNotificationPort.notifyUnresolvedDLQ(
-                    unresolvedCount = unresolvedCount,
-                    recentDLQInfo = recentDLQInfo
+                // Slack 알림 전송 - 트랜잭션 커밋 후 실행
+                TransactionSynchronizationManager.registerSynchronization(
+                    object : TransactionSynchronization {
+                        override fun afterCommit() {
+                            slackNotificationPort.notifyUnresolvedDLQ(
+                                unresolvedCount = unresolvedCount,
+                                recentDLQInfo = recentDLQInfo
+                            )
+                        }
+                    }
                 )
             }
 

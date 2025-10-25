@@ -1,0 +1,117 @@
+version: '3.8'
+
+# CDC (Change Data Capture) 구성
+# Debezium + Kafka Connect를 사용하여 PostgreSQL Outbox 테이블 변경을 실시간으로 Kafka에 발행
+
+networks:
+  cdc_network:
+    driver: bridge
+  kafka_network:
+    external: true
+  spring-network:
+    external: true
+
+volumes:
+  postgres-cdc-data:
+    driver: local
+
+services:
+  # PostgreSQL with WAL enabled for CDC
+  postgres-cdc:
+    image: postgres:13
+    container_name: shoot-postgres-cdc
+    restart: unless-stopped
+    ports:
+      - "5433:5432"  # 기존 PostgreSQL과 구분
+    environment:
+      POSTGRES_DB: member
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+    # WAL 설정을 위한 커맨드 오버라이드
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"  # CDC를 위한 WAL 레벨
+      - "-c"
+      - "max_wal_senders=10"  # 최대 WAL sender 프로세스 수
+      - "-c"
+      - "max_replication_slots=10"  # 최대 replication slot 수
+      - "-c"
+      - "shared_preload_libraries=pgoutput"  # Logical decoding 플러그인
+    volumes:
+      - postgres-cdc-data:/var/lib/postgresql/data
+      # PostgreSQL 초기화 스크립트 (publication 생성)
+      - ./docker/postgres/init-cdc.sql:/docker-entrypoint-initdb.d/init-cdc.sql
+    networks:
+      - cdc_network
+      - spring-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d member"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kafka Connect with Debezium
+  kafka-connect:
+    image: debezium/connect:2.7
+    container_name: shoot-kafka-connect
+    restart: unless-stopped
+    ports:
+      - "8083:8083"  # Kafka Connect REST API
+    environment:
+      # Kafka 연결 설정
+      BOOTSTRAP_SERVERS: Kafka00Service:9092,Kafka01Service:9092,Kafka02Service:9092
+      GROUP_ID: shoot-connect-cluster
+      CONFIG_STORAGE_TOPIC: shoot-connect-configs
+      OFFSET_STORAGE_TOPIC: shoot-connect-offsets
+      STATUS_STORAGE_TOPIC: shoot-connect-status
+
+      # Replication factor (Kafka 브로커 수에 따라 조정)
+      CONFIG_STORAGE_REPLICATION_FACTOR: 2
+      OFFSET_STORAGE_REPLICATION_FACTOR: 2
+      STATUS_STORAGE_REPLICATION_FACTOR: 2
+
+      # Connector 설정
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+
+      # Internal converter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+
+      # REST API 설정
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_PLUGIN_PATH: /kafka/connect
+
+      # 로그 레벨
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
+    depends_on:
+      postgres-cdc:
+        condition: service_healthy
+    networks:
+      - cdc_network
+      - kafka_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Debezium UI (선택사항)
+  debezium-ui:
+    image: debezium/debezium-ui:2.7
+    container_name: shoot-debezium-ui
+    restart: unless-stopped
+    ports:
+      - "8084:8080"
+    environment:
+      KAFKA_CONNECT_URIS: http://kafka-connect:8083
+    depends_on:
+      kafka-connect:
+        condition: service_healthy
+    networks:
+      - cdc_network

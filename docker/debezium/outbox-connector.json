@@ -1,0 +1,52 @@
+{
+  "name": "shoot-outbox-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+
+    "database.hostname": "postgres-cdc",
+    "database.port": "5432",
+    "database.user": "root",
+    "database.password": "1234",
+    "database.dbname": "member",
+    "database.server.name": "shoot-postgres",
+
+    "publication.name": "outbox_publication",
+    "plugin.name": "pgoutput",
+    "slot.name": "shoot_outbox_slot",
+
+    "table.include.list": "public.outbox_events",
+
+    "tombstones.on.delete": "false",
+
+    "snapshot.mode": "never",
+
+    "topic.prefix": "shoot.outbox",
+
+    "transforms": "outbox",
+    "transforms.outbox.type": "io.debezium.transforms.outbox.EventRouter",
+    "transforms.outbox.table.fields.additional.placement": "saga_id:header:sagaId,event_type:header:eventType",
+    "transforms.outbox.table.field.event.id": "id",
+    "transforms.outbox.table.field.event.key": "saga_id",
+    "transforms.outbox.table.field.event.type": "event_type",
+    "transforms.outbox.table.field.event.payload": "payload",
+    "transforms.outbox.route.topic.replacement": "shoot.events.${routedByValue}",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false",
+
+    "heartbeat.interval.ms": "5000",
+    "heartbeat.topics.prefix": "shoot.heartbeat",
+
+    "decimal.handling.mode": "string",
+    "time.precision.mode": "adaptive",
+
+    "provide.transaction.metadata": "false",
+
+    "errors.tolerance": "all",
+    "errors.log.enable": "true",
+    "errors.log.include.messages": "true"
+  }
+}

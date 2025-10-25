@@ -45,6 +45,23 @@ class UpdateChatRoomMetadataStep(
         }
     }
 
+    /**
+     * ChatRoom 메타데이터 업데이트 실행
+     *
+     * **OptimisticLock 재시도 제한사항**:
+     * - 현재 구현은 동일 트랜잭션 내에서 재시도함
+     * - JPA 1차 캐시(Persistence Context)로 인해 재조회 시 캐시된 엔티티 반환 가능
+     * - 대부분의 경우 동작하지만, 높은 동시성 환경에서는 제한적
+     *
+     * **더 나은 해결책**:
+     * - Saga Orchestrator 레벨에서 재시도 (각 재시도마다 새 트랜잭션)
+     * - 또는 PESSIMISTIC 락 사용 (성능 trade-off)
+     *
+     * **현재 동작**:
+     * - 최대 3회 재시도
+     * - Exponential backoff (0ms, 10ms, 100ms)
+     * - 동일 트랜잭션 내 재시도이므로 완벽하지 않음
+     */
     @Transactional  // PostgreSQL 트랜잭션 시작
     override fun execute(context: MessageSagaContext): Boolean {
         val savedMessage = context.savedMessage
@@ -69,6 +86,11 @@ class UpdateChatRoomMetadataStep(
                     // Exponential backoff with minimal blocking
                     runCatching { Thread.sleep(backoffMs) }
                 }
+
+                // TODO P1: 재시도 개선 방안
+                // 1. EntityManager.clear()로 1차 캐시 초기화
+                // 2. 또는 Saga Orchestrator 레벨에서 재시도 (권장)
+                // 현재는 동일 트랜잭션 내 재시도로 인한 제한사항 있음
             } catch (e: Exception) {
                 logger.error(e) { "Failed to update chatroom metadata" }
                 context.markFailed(e)

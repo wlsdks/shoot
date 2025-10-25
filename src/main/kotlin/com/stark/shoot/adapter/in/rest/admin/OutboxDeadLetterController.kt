@@ -7,11 +7,20 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.time.Instant
 
+/**
+ * Outbox Dead Letter Queue 관리 API
+ *
+ * **보안**: ADMIN 권한 필요
+ * - 모든 엔드포인트는 ADMIN 역할을 가진 사용자만 접근 가능
+ * - 운영자가 실패한 이벤트를 모니터링하고 수동으로 해결할 수 있는 인터페이스 제공
+ */
 @RestController
 @RequestMapping("/api/admin/outbox-dlq")
+@PreAuthorize("hasRole('ADMIN')")
 class OutboxDeadLetterController(
     private val deadLetterRepository: OutboxDeadLetterRepository
 ) {

@@ -19,7 +19,7 @@
 
     "tombstones.on.delete": "false",
 
-    "snapshot.mode": "never",
+    "snapshot.mode": "no_data",
 
     "topic.prefix": "shoot.outbox",
 

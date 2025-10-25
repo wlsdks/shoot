@@ -7,9 +7,9 @@
 networks:
   cdc_network:
     driver: bridge
-  kafka_network:
+  shoot_kafka_network:
     external: true
-  spring-network:
+  shoot_spring-network:
     external: true
 
 volumes:
@@ -45,7 +45,7 @@ services:
       - ./docker/postgres/init-cdc.sql:/docker-entrypoint-initdb.d/init-cdc.sql
     networks:
       - cdc_network
-      - spring-network
+      - shoot_spring-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U root -d member"]
       interval: 10s
@@ -54,7 +54,7 @@ services:
 
   # Kafka Connect with Debezium
   kafka-connect:
-    image: debezium/connect:2.5
+    image: quay.io/debezium/connect:3.3
     container_name: shoot-kafka-connect
     restart: unless-stopped
     ports:
@@ -94,7 +94,7 @@ services:
         condition: service_healthy
     networks:
       - cdc_network
-      - kafka_network
+      - shoot_kafka_network
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8083/ || exit 1"]
       interval: 30s
@@ -102,9 +102,10 @@ services:
       retries: 5
       start_period: 60s
 
-  # Debezium UI (선택사항) - 현재 비활성화
+  # Debezium UI (선택사항) - UI는 별도 설치 필요
+  # Note: Debezium UI는 Connect REST API (port 8083)로 대체 가능
   # debezium-ui:
-  #   image: debezium/debezium-ui:2.5
+  #   image: quay.io/debezium/debezium-ui:3.3
   #   container_name: shoot-debezium-ui
   #   restart: unless-stopped
   #   ports:

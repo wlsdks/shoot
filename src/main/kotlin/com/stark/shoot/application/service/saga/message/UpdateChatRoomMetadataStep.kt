@@ -31,28 +31,66 @@ class UpdateChatRoomMetadataStep(
 
     companion object {
         private const val MAX_RETRIES = 3
-        private const val RETRY_DELAY_MS = 50L
+
+        /**
+         * Exponential Backoff 계산
+         * 재시도 횟수에 따라 대기 시간 증가: 0ms, 10ms, 100ms
+         */
+        private fun calculateBackoff(attempt: Int): Long {
+            return when (attempt) {
+                1 -> 0L      // 첫 재시도: 즉시
+                2 -> 10L     // 두 번째: 10ms
+                else -> 100L // 세 번째: 100ms
+            }
+        }
     }
 
+    /**
+     * ChatRoom 메타데이터 업데이트 실행
+     *
+     * **OptimisticLock 재시도 제한사항**:
+     * - 현재 구현은 동일 트랜잭션 내에서 재시도함
+     * - JPA 1차 캐시(Persistence Context)로 인해 재조회 시 캐시된 엔티티 반환 가능
+     * - 대부분의 경우 동작하지만, 높은 동시성 환경에서는 제한적
+     *
+     * **더 나은 해결책**:
+     * - Saga Orchestrator 레벨에서 재시도 (각 재시도마다 새 트랜잭션)
+     * - 또는 PESSIMISTIC 락 사용 (성능 trade-off)
+     *
+     * **현재 동작**:
+     * - 최대 3회 재시도
+     * - Exponential backoff (0ms, 10ms, 100ms)
+     * - 동일 트랜잭션 내 재시도이므로 완벽하지 않음
+     */
     @Transactional  // PostgreSQL 트랜잭션 시작
     override fun execute(context: MessageSagaContext): Boolean {
         val savedMessage = context.savedMessage
             ?: throw IllegalStateException("Message not saved yet")
 
-        var retries = MAX_RETRIES
-        while (retries > 0) {
+        var attempt = 0
+        while (attempt < MAX_RETRIES) {
             try {
                 return executeInternal(context, savedMessage)
             } catch (e: OptimisticLockException) {
-                retries--
-                if (retries == 0) {
-                    logger.error(e) { "OptimisticLockException after $MAX_RETRIES retries" }
+                attempt++
+                if (attempt >= MAX_RETRIES) {
+                    logger.error(e) { "OptimisticLockException after $MAX_RETRIES attempts" }
                     context.markFailed(e)
                     return false
                 }
 
-                logger.warn { "OptimisticLockException occurred, retrying... ($retries left)" }
-                Thread.sleep(RETRY_DELAY_MS)
+                val backoffMs = calculateBackoff(attempt)
+                logger.warn { "OptimisticLockException occurred, retrying after ${backoffMs}ms... (attempt $attempt/$MAX_RETRIES)" }
+
+                if (backoffMs > 0) {
+                    // Exponential backoff with minimal blocking
+                    runCatching { Thread.sleep(backoffMs) }
+                }
+
+                // TODO P1: 재시도 개선 방안
+                // 1. EntityManager.clear()로 1차 캐시 초기화
+                // 2. 또는 Saga Orchestrator 레벨에서 재시도 (권장)
+                // 현재는 동일 트랜잭션 내 재시도로 인한 제한사항 있음
             } catch (e: Exception) {
                 logger.error(e) { "Failed to update chatroom metadata" }
                 context.markFailed(e)
@@ -101,12 +139,21 @@ class UpdateChatRoomMetadataStep(
             val originalRoom = context.chatRoom
             if (originalRoom != null) {
                 // 원래 상태로 복원
+                // 주의: 보상 트랜잭션 시 OptimisticLockException 발생 가능
+                // - 이미 버전이 증가한 상태에서 원본을 복원하려고 하면 충돌
+                // - 하지만 보상 시점에는 다른 동시 트랜잭션이 없으므로 대부분 성공
+                // - 실패 시 Saga 상태가 COMPENSATED가 아닌 FAILED로 표시되어 수동 개입 필요
                 chatRoomCommandPort.save(originalRoom)
                 logger.info { "Compensated: Restored chatroom metadata: roomId=${originalRoom.id?.value}" }
             } else {
-                logger.warn { "No original chatroom to restore" }
+                logger.warn { "No original chatroom to restore - skipping compensation" }
             }
             true
+        } catch (e: OptimisticLockException) {
+            // OptimisticLockException은 보상 실패로 간주
+            // 데이터 불일치 상태이므로 수동 개입 필요
+            logger.error(e) { "Compensation failed due to OptimisticLockException - manual intervention required" }
+            false
         } catch (e: Exception) {
             logger.error(e) { "Failed to compensate chatroom metadata update" }
             false

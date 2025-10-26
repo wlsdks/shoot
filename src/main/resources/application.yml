@@ -11,9 +11,9 @@ spring:
   # JPA 설정
   jpa:
     database: POSTGRESQL
-    defer-datasource-initialization: true
+    defer-datasource-initialization: false  # Flyway가 스키마 관리하므로 false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate  # 프로덕션: validate (스키마 검증만), 개발: none
     open-in-view: false
     # show-sql: true
     properties:
@@ -21,6 +21,13 @@ spring:
         format_sql: true
         default_batch_fetch_size: 10
         highlight_sql: true
+
+  # Flyway 설정
+  flyway:
+    enabled: true
+    baseline-on-migrate: true  # 기존 DB가 있을 경우 baseline 생성
+    locations: classpath:db/migration  # 마이그레이션 스크립트 위치
+    validate-on-migrate: true
   data:
     # 몽고 DB 설정
     mongodb:
@@ -97,6 +104,14 @@ redis:
 notification:
   # 알림 전송 방식 (redis 또는 kafka)
   transport: redis
+
+# Slack 알림 설정
+slack:
+  notification:
+    enabled: false  # 기본값 비활성화 (true로 변경하여 활성화)
+    webhook-url: "${SLACK_WEBHOOK_URL:}"  # 환경변수로 설정 (보안)
+    channel: "#alerts"  # 알림 전송 채널
+    username: "Shoot Alert Bot"  # 알림 발송자 이름
 
 # 파일 업로드 설정은 spring 섹션에 있음
 

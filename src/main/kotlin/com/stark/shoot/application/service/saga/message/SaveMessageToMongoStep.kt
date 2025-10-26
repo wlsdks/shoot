@@ -42,15 +42,18 @@ class SaveMessageToMongoStep(
         return try {
             val messageId = context.savedMessage?.id
             if (messageId != null) {
-                // MongoDB에서 메시지 삭제 (물리 삭제 또는 소프트 삭제)
+                // MongoDB에서 메시지 삭제 (물리 삭제)
+                // 주의: MongoDB의 deleteById는 메시지가 없어도 예외를 던지지 않음
+                // 이미 삭제된 경우 = 보상 성공으로 간주 (멱등성 보장)
                 messageCommandPort.delete(messageId)
                 logger.info { "Compensated: Deleted message from MongoDB: messageId=${messageId.value}" }
             } else {
-                logger.warn { "No saved message to compensate" }
+                logger.warn { "No saved message to compensate - skipping deletion" }
             }
             true
         } catch (e: Exception) {
-            logger.error(e) { "Failed to compensate message save" }
+            // 예외 발생 시에만 보상 실패로 간주
+            logger.error(e) { "Failed to compensate message save - compensation failed" }
             false
         }
     }

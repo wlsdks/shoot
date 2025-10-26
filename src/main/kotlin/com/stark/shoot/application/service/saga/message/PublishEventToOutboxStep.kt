@@ -77,9 +77,10 @@ class PublishEventToOutboxStep(
      */
     private fun saveToOutbox(sagaId: String, event: Any) {
         val payload = objectMapper.writeValueAsString(event)
+        val eventTypeName = event::class.java.simpleName
         val outboxEvent = OutboxEventEntity(
             sagaId = sagaId,
-            idempotencyKey = sagaId,  // sagaId를 멱등성 키로 사용
+            idempotencyKey = "$sagaId-$eventTypeName",  // sagaId + 이벤트 타입으로 고유성 보장
             eventType = event::class.java.name,
             payload = payload
         )

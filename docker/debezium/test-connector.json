@@ -1,0 +1,28 @@
+{
+  "name": "shoot-outbox-test",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+
+    "database.hostname": "shoot-postgres",
+    "database.port": "5432",
+    "database.user": "root",
+    "database.password": "1234",
+    "database.dbname": "member",
+    "database.server.name": "testserver",
+
+    "publication.name": "outbox_publication",
+    "plugin.name": "pgoutput",
+    "slot.name": "test_slot",
+
+    "table.include.list": "public.outbox_events",
+
+    "snapshot.mode": "no_data",
+    "topic.prefix": "test.cdc",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false"
+  }
+}

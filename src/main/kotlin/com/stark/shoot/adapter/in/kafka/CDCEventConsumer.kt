@@ -15,14 +15,14 @@ import org.springframework.transaction.annotation.Transactional
  * CDC 이벤트 소비자
  *
  * Debezium이 Outbox 테이블에서 감지한 변경사항을 Kafka에서 소비합니다.
- * - Topic: shoot.events.* (Outbox Event Router가 이벤트 타입별로 라우팅)
- * - Debezium의 Outbox Pattern 구현
+ * - Topic: shoot.cdc.public.outbox_events (단일 토픽 방식)
+ * - Debezium의 Simple CDC 구현 (EventRouter 없음)
  *
  * **동작 방식**:
  * 1. Debezium이 PostgreSQL WAL에서 Outbox 테이블 변경 감지
- * 2. Outbox Event Router Transform이 이벤트 타입별로 토픽 분리
- * 3. 이 Consumer가 토픽에서 이벤트 소비
- * 4. 실제 비즈니스 이벤트를 내부 Kafka 토픽으로 재발행
+ * 2. 변경사항을 Debezium 표준 형식으로 Kafka 발행 (before/after/source 구조)
+ * 3. 이 Consumer가 메시지에서 after 필드 추출
+ * 4. event_type 기반으로 실제 비즈니스 이벤트를 내부 Kafka 토픽으로 재발행
  *
  * **OutboxEventProcessor와의 관계**:
  * - CDC가 정상: CDC가 실시간 발행 (<100ms)
@@ -37,85 +37,97 @@ class CDCEventConsumer(
     private val logger = KotlinLogging.logger {}
 
     /**
-     * CDC 이벤트 소비
+     * CDC 이벤트 소비 (Simple CDC - EventRouter 없음)
      *
-     * Debezium Outbox Pattern:
-     * - Topic: shoot.events.{EventType}
-     * - Key: saga_id
-     * - Value: payload (JSON)
-     * - Headers: sagaId, eventType
+     * Debezium 표준 형식:
+     * - Topic: shoot.cdc.public.outbox_events
+     * - Payload: { "before": null, "after": {...}, "source": {...}, "op": "c" }
+     * - after 필드에 outbox_events 테이블 레코드 포함
      *
-     * @param payload 이벤트 페이로드 (JSON)
-     * @param sagaId Saga ID (Header)
-     * @param eventType 이벤트 타입 (Header)
+     * @param debeziumMessage Debezium 전체 메시지 (JSON)
      * @param topic Kafka 토픽
      * @param partition 파티션 번호
      * @param offset 오프셋
      */
     @KafkaListener(
-        topicPattern = "shoot\\.events\\..*",  // shoot.events.로 시작하는 모든 토픽
+        topics = ["shoot.cdc.public.outbox_events"],
         groupId = "shoot-cdc-consumer",
         containerFactory = "kafkaListenerContainerFactory"
     )
     @Transactional
     fun consumeCDCEvent(
-        @Payload payload: String,
-        @Header(value = "sagaId", required = false) sagaId: String?,
-        @Header(value = "eventType", required = false) eventType: String?,
+        @Payload debeziumMessage: String,
         @Header(KafkaHeaders.RECEIVED_TOPIC) topic: String,
         @Header(KafkaHeaders.RECEIVED_PARTITION) partition: Int,
         @Header(KafkaHeaders.OFFSET) offset: Long
     ) {
         logger.info {
-            "CDC 이벤트 수신: topic=$topic, partition=$partition, offset=$offset, " +
-            "sagaId=$sagaId, eventType=$eventType"
+            "CDC 이벤트 수신: topic=$topic, partition=$partition, offset=$offset"
         }
 
         try {
-            // 1. 이벤트 타입 결정
-            val actualEventType = eventType ?: extractEventTypeFromTopic(topic)
+            // 1. Debezium 메시지 파싱
+            val debeziumPayload = objectMapper.readTree(debeziumMessage)
+            val operation = debeziumPayload.get("op")?.asText()
 
-            // 2. 이벤트 역직렬화
-            val eventClass = Class.forName(actualEventType)
-            val event = objectMapper.readValue(payload, eventClass) as com.stark.shoot.domain.event.DomainEvent
+            // INSERT, UPDATE만 처리 (DELETE는 무시)
+            if (operation != "c" && operation != "u") {
+                logger.debug { "CDC 이벤트 스킵 (op=$operation)" }
+                return
+            }
 
-            // 3. 실제 비즈니스 이벤트 발행
-            // Kafka의 chat-messages, chat-notifications 등의 토픽으로 재발행
+            val afterNode = debeziumPayload.get("after") ?: run {
+                logger.warn { "CDC 메시지에 'after' 필드 없음" }
+                return
+            }
+
+            // 2. Outbox 이벤트 정보 추출
+            val sagaId = afterNode.get("saga_id")?.asText()
+            val eventType = afterNode.get("event_type")?.asText()
+            val payloadJson = afterNode.get("payload")?.asText()
+            val processed = afterNode.get("processed")?.asBoolean() ?: false
+
+            // 이미 처리된 이벤트는 스킵
+            if (processed) {
+                logger.debug { "이미 처리된 CDC 이벤트 스킵: sagaId=$sagaId" }
+                return
+            }
+
+            if (eventType == null || payloadJson == null) {
+                logger.warn { "CDC 메시지에 필수 필드 없음: eventType=$eventType, payload=$payloadJson" }
+                return
+            }
+
+            // 3. 이벤트 역직렬화
+            val eventClass = Class.forName(eventType)
+            val event = objectMapper.readValue(payloadJson, eventClass) as com.stark.shoot.domain.event.DomainEvent
+
+            // 4. 실제 비즈니스 이벤트 발행
             eventPublisher.publishEvent(event)
 
             logger.info {
-                "CDC 이벤트 처리 완료: eventType=$actualEventType, sagaId=$sagaId"
+                "CDC 이벤트 처리 완료: eventType=$eventType, sagaId=$sagaId"
             }
 
-            // 4. Outbox 테이블 업데이트 (processed=true)
-            // CDC가 처리했음을 표시하여 OutboxEventProcessor가 스킵하도록 함
+            // 5. Outbox 테이블 업데이트 (processed=true)
             if (sagaId != null) {
-                markAsProcessedBySagaId(sagaId, actualEventType)
+                markAsProcessedBySagaId(sagaId, eventType)
             }
 
         } catch (e: ClassNotFoundException) {
             logger.error(e) {
-                "이벤트 클래스를 찾을 수 없음: eventType=$eventType"
+                "이벤트 클래스를 찾을 수 없음: message=${debeziumMessage.take(200)}"
             }
             // DLQ로 이동하거나 재시도 로직 필요
         } catch (e: Exception) {
             logger.error(e) {
-                "CDC 이벤트 처리 실패: topic=$topic, sagaId=$sagaId"
+                "CDC 이벤트 처리 실패: topic=$topic, message=${debeziumMessage.take(200)}"
             }
             // 예외 발생 시 Kafka가 자동으로 재시도
             throw e
         }
     }
 
-    /**
-     * 토픽 이름에서 이벤트 타입 추출
-     *
-     * 예: shoot.events.MessageSentEvent → com.stark.shoot.domain.event.MessageSentEvent
-     */
-    private fun extractEventTypeFromTopic(topic: String): String {
-        val eventName = topic.substringAfterLast(".")
-        return "com.stark.shoot.domain.event.$eventName"
-    }
 
     /**
      * Outbox 테이블에서 해당 이벤트를 처리 완료로 표시

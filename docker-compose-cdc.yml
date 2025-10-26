@@ -95,6 +95,7 @@ services:
     networks:
       - cdc_network
       - shoot_kafka_network
+      - shoot_spring-network
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8083/ || exit 1"]
       interval: 30s

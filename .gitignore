@@ -270,3 +270,4 @@ redis-server.log
 # Docker volumes data
 docker-volumes/
 data/
+.kotlin/

@@ -27,12 +27,24 @@
     "key.converter.schemas.enable": "false",
     "value.converter.schemas.enable": "false",
 
-    "heartbeat.interval.ms": "5000",
+    "heartbeat.interval.ms": "500",
     "heartbeat.topics.prefix": "shoot.heartbeat",
 
     "decimal.handling.mode": "string",
     "time.precision.mode": "adaptive",
 
-    "provide.transaction.metadata": "false"
+    "provide.transaction.metadata": "false",
+
+    "poll.interval.ms": "50",
+    "max.batch.size": "4096",
+    "max.queue.size": "16384",
+    "max.queue.size.in.bytes": "0",
+
+    "incremental.snapshot.chunk.size": "2048",
+    "snapshot.fetch.size": "10240",
+
+    "producer.override.compression.type": "snappy",
+    "producer.override.linger.ms": "10",
+    "producer.override.batch.size": "32768"
   }
 }

@@ -113,6 +113,16 @@ slack:
     channel: "#alerts"  # 알림 전송 채널
     username: "Shoot Alert Bot"  # 알림 발송자 이름
 
+# CDC (Change Data Capture) 설정
+cdc:
+  kafka-connect:
+    url: http://localhost:8083  # Kafka Connect REST API URL
+  connector:
+    name: shoot-outbox-connector  # Debezium 커넥터 이름
+  replication-slot:
+    name: shoot_outbox_slot  # PostgreSQL Replication Slot 이름
+    lag-threshold-mb: 10  # Replication Lag 임계값 (MB)
+
 # 파일 업로드 설정은 spring 섹션에 있음
 
 # 로깅 설정

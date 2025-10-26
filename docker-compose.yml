@@ -1,6 +1,40 @@
 version: '3.8'
+
+# Docker Compose Profiles 사용 가이드
+# --profile infra       : PostgreSQL, MongoDB, Redis (기본 인프라)
+# --profile messaging   : Kafka 클러스터 3대 + Kafka UI
+# --profile cdc         : Debezium Kafka Connect (CDC)
+# --profile all         : 모든 서비스
+#
+# 사용 예시:
+#   docker-compose --profile all up -d                    # 전체 실행
+#   docker-compose --profile infra up -d                  # DB만 실행
+#   docker-compose --profile infra --profile messaging up -d  # DB + Kafka
+#   docker-compose --profile all down                     # 전체 종료
+
+networks:
+  shoot-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+  mongodb-data:
+    driver: local
+  kafka00-data:
+    driver: local
+  kafka01-data:
+    driver: local
+  kafka02-data:
+    driver: local
+
 services:
+  # ========================================
+  # Infrastructure Services (Profile: infra)
+  # ========================================
+
   postgres:
+    profiles: ["infra", "all"]
     image: postgres:13
     container_name: shoot-postgres
     restart: unless-stopped
@@ -21,10 +55,17 @@ services:
       - "max_replication_slots=10"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init-cdc.sql:/docker-entrypoint-initdb.d/init-cdc.sql
     networks:
-      - spring-network
+      - shoot-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d member"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongodb:
+    profiles: ["infra", "all"]
     image: mongo:latest
     container_name: mongodb-shoot
     restart: always
@@ -37,9 +78,10 @@ services:
       - mongodb-data:/data/db
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
     networks:
-      - spring-network
+      - shoot-network
 
   mongo-express:
+    profiles: ["infra", "all"]
     image: mongo-express:latest
     container_name: mongo-express-shoot
     restart: always
@@ -55,9 +97,10 @@ services:
     ports:
       - "8081:8081"
     networks:
-      - spring-network
+      - shoot-network
 
   redis:
+    profiles: ["infra", "all"]
     image: redis:7.2.3-alpine
     container_name: redis-shoot
     ports:
@@ -67,13 +110,177 @@ services:
       - ${REDIS_DEFAULT_CONFIG_FILE:-./redis/config/redis.conf}:/usr/local/conf/redis.conf
     command: redis-server /usr/local/conf/redis.conf
     networks:
-      - spring-network
+      - shoot-network
 
-volumes:
-  mongodb-data:
-  postgres-data:
-    driver: local
+  # ========================================
+  # Messaging Services (Profile: messaging)
+  # ========================================
 
-networks:
-  spring-network:
-    driver: bridge
+  kafka00:
+    profiles: ["messaging", "cdc", "all"]
+    image: bitnami/kafka:3.7.0
+    restart: unless-stopped
+    container_name: shoot-kafka00
+    ports:
+      - '9092:9092'
+      - '10000:10000'
+    environment:
+      # KRaft 설정
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_BROKER_ID=0
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_KRAFT_CLUSTER_ID=HsDBs9l6UUmQq7Y5E6bNlw
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka00:9093,1@kafka01:9093,2@kafka02:9093
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      # 리스너 설정
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:10000
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka00:9092,EXTERNAL://localhost:10000
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      # 클러스터 설정
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
+    networks:
+      - shoot-network
+    volumes:
+      - kafka00-data:/bitnami/kafka
+
+  kafka01:
+    profiles: ["messaging", "cdc", "all"]
+    image: bitnami/kafka:3.7.0
+    restart: unless-stopped
+    container_name: shoot-kafka01
+    ports:
+      - '9093:9092'
+      - '10001:10000'
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_KRAFT_CLUSTER_ID=HsDBs9l6UUmQq7Y5E6bNlw
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka00:9093,1@kafka01:9093,2@kafka02:9093
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:10000
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka01:9092,EXTERNAL://localhost:10001
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
+    networks:
+      - shoot-network
+    volumes:
+      - kafka01-data:/bitnami/kafka
+
+  kafka02:
+    profiles: ["messaging", "cdc", "all"]
+    image: bitnami/kafka:3.7.0
+    restart: unless-stopped
+    container_name: shoot-kafka02
+    ports:
+      - '9094:9092'
+      - '10002:10000'
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_BROKER_ID=2
+      - KAFKA_CFG_NODE_ID=2
+      - KAFKA_KRAFT_CLUSTER_ID=HsDBs9l6UUmQq7Y5E6bNlw
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka00:9093,1@kafka01:9093,2@kafka02:9093
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:10000
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka02:9092,EXTERNAL://localhost:10002
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
+    networks:
+      - shoot-network
+    volumes:
+      - kafka02-data:/bitnami/kafka
+
+  kafka-ui:
+    profiles: ["messaging", "all"]
+    image: provectuslabs/kafka-ui:latest
+    restart: unless-stopped
+    container_name: shoot-kafka-ui
+    ports:
+      - '8085:8080'
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=Shoot-Kafka-Cluster
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka00:9092,kafka01:9092,kafka02:9092
+      - DYNAMIC_CONFIG_ENABLED=true
+      - KAFKA_CLUSTERS_0_AUDIT_TOPICAUDITENABLED=true
+      - KAFKA_CLUSTERS_0_AUDIT_CONSOLEAUDITENABLED=true
+    depends_on:
+      - kafka00
+      - kafka01
+      - kafka02
+    networks:
+      - shoot-network
+
+  # ========================================
+  # CDC Services (Profile: cdc)
+  # ========================================
+
+  kafka-connect:
+    profiles: ["cdc", "all"]
+    image: quay.io/debezium/connect:3.3
+    container_name: shoot-kafka-connect
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      # Kafka 연결 설정
+      BOOTSTRAP_SERVERS: kafka00:9092,kafka01:9092,kafka02:9092
+      GROUP_ID: shoot-connect-cluster
+      CONFIG_STORAGE_TOPIC: shoot-connect-configs
+      OFFSET_STORAGE_TOPIC: shoot-connect-offsets
+      STATUS_STORAGE_TOPIC: shoot-connect-status
+
+      # Replication factor
+      CONFIG_STORAGE_REPLICATION_FACTOR: 2
+      OFFSET_STORAGE_REPLICATION_FACTOR: 2
+      STATUS_STORAGE_REPLICATION_FACTOR: 2
+
+      # Converter 설정
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+
+      # Internal converter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+
+      # REST API 설정
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_PLUGIN_PATH: /kafka/connect
+
+      # 로그 레벨
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka00:
+        condition: service_started
+      kafka01:
+        condition: service_started
+      kafka02:
+        condition: service_started
+    networks:
+      - shoot-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s

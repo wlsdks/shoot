@@ -271,3 +271,4 @@ redis-server.log
 docker-volumes/
 data/
 .kotlin/
+docker/backup/

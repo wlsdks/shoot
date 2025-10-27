@@ -29,76 +29,29 @@ class UpdateChatRoomMetadataStep(
 
     private val logger = KotlinLogging.logger {}
 
-    companion object {
-        private const val MAX_RETRIES = 3
-
-        /**
-         * Exponential Backoff 계산
-         * 재시도 횟수에 따라 대기 시간 증가: 0ms, 10ms, 100ms
-         */
-        private fun calculateBackoff(attempt: Int): Long {
-            return when (attempt) {
-                1 -> 0L      // 첫 재시도: 즉시
-                2 -> 10L     // 두 번째: 10ms
-                else -> 100L // 세 번째: 100ms
-            }
-        }
-    }
-
     /**
      * ChatRoom 메타데이터 업데이트 실행
      *
-     * **OptimisticLock 재시도 제한사항**:
-     * - 현재 구현은 동일 트랜잭션 내에서 재시도함
-     * - JPA 1차 캐시(Persistence Context)로 인해 재조회 시 캐시된 엔티티 반환 가능
-     * - 대부분의 경우 동작하지만, 높은 동시성 환경에서는 제한적
-     *
-     * **더 나은 해결책**:
-     * - Saga Orchestrator 레벨에서 재시도 (각 재시도마다 새 트랜잭션)
-     * - 또는 PESSIMISTIC 락 사용 (성능 trade-off)
-     *
-     * **현재 동작**:
-     * - 최대 3회 재시도
-     * - Exponential backoff (0ms, 10ms, 100ms)
-     * - 동일 트랜잭션 내 재시도이므로 완벽하지 않음
+     * OptimisticLockException은 MessageSagaOrchestrator 레벨에서 처리됩니다.
+     * 각 재시도마다 새로운 트랜잭션이 시작되므로 JPA 1차 캐시 문제가 해결됩니다.
      */
     @Transactional  // PostgreSQL 트랜잭션 시작
     override fun execute(context: MessageSagaContext): Boolean {
         val savedMessage = context.savedMessage
             ?: throw IllegalStateException("Message not saved yet")
 
-        var attempt = 0
-        while (attempt < MAX_RETRIES) {
-            try {
-                return executeInternal(context, savedMessage)
-            } catch (e: OptimisticLockException) {
-                attempt++
-                if (attempt >= MAX_RETRIES) {
-                    logger.error(e) { "OptimisticLockException after $MAX_RETRIES attempts" }
-                    context.markFailed(e)
-                    return false
-                }
-
-                val backoffMs = calculateBackoff(attempt)
-                logger.warn { "OptimisticLockException occurred, retrying after ${backoffMs}ms... (attempt $attempt/$MAX_RETRIES)" }
-
-                if (backoffMs > 0) {
-                    // Exponential backoff with minimal blocking
-                    runCatching { Thread.sleep(backoffMs) }
-                }
-
-                // TODO P1: 재시도 개선 방안
-                // 1. EntityManager.clear()로 1차 캐시 초기화
-                // 2. 또는 Saga Orchestrator 레벨에서 재시도 (권장)
-                // 현재는 동일 트랜잭션 내 재시도로 인한 제한사항 있음
-            } catch (e: Exception) {
-                logger.error(e) { "Failed to update chatroom metadata" }
-                context.markFailed(e)
-                return false
-            }
+        return try {
+            executeInternal(context, savedMessage)
+        } catch (e: OptimisticLockException) {
+            // Orchestrator 레벨에서 재시도하도록 예외를 context에 저장하고 실패 반환
+            logger.warn { "OptimisticLockException occurred - will be retried by orchestrator" }
+            context.markFailed(e)
+            false
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to update chatroom metadata" }
+            context.markFailed(e)
+            false
         }
-
-        return false
     }
 
     private fun executeInternal(

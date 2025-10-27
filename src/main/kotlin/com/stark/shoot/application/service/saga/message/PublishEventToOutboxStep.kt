@@ -74,17 +74,33 @@ class PublishEventToOutboxStep(
 
     /**
      * Outbox에 이벤트 저장
+     * Idempotency 보장: 중복 이벤트 생성 방지
      */
     private fun saveToOutbox(sagaId: String, event: Any) {
-        val payload = objectMapper.writeValueAsString(event)
         val eventTypeName = event::class.java.simpleName
-        val outboxEvent = OutboxEventEntity(
-            sagaId = sagaId,
-            idempotencyKey = "$sagaId-$eventTypeName",  // sagaId + 이벤트 타입으로 고유성 보장
-            eventType = event::class.java.name,
-            payload = payload
-        )
-        outboxEventRepository.save(outboxEvent)
+        val idempotencyKey = "$sagaId-$eventTypeName"
+
+        // Idempotency check: 이미 존재하는 이벤트는 저장하지 않음
+        if (outboxEventRepository.existsByIdempotencyKey(idempotencyKey)) {
+            logger.info { "Outbox event already exists (skipping duplicate): $idempotencyKey" }
+            return
+        }
+
+        try {
+            val payload = objectMapper.writeValueAsString(event)
+            val outboxEvent = OutboxEventEntity(
+                sagaId = sagaId,
+                idempotencyKey = idempotencyKey,
+                eventType = event::class.java.name,
+                payload = payload
+            )
+            outboxEventRepository.save(outboxEvent)
+        } catch (e: org.springframework.dao.DataIntegrityViolationException) {
+            // Race condition: check와 save 사이에 다른 스레드가 같은 이벤트 생성
+            // DB 제약 조건이 중복을 방지했으므로 정상 처리
+            logger.warn { "Duplicate outbox event caught by DB constraint: $idempotencyKey" }
+            // 예외를 다시 던지지 않음 (이벤트는 이미 저장됨)
+        }
     }
 
     /**

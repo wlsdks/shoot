@@ -29,9 +29,15 @@ class ChatRoomQueryPersistenceAdapter(
         }
 
         val chatRoomIds = chatRoomUsers.map { it.chatRoom.id }
-        return chatRoomRepository.findAllById(chatRoomIds).map { entity ->
-            val allParticipants = chatRoomUserRepository.findByChatRoomId(entity.id)
-            chatRoomMapper.toDomain(entity, allParticipants)
+        val chatRoomEntities = chatRoomRepository.findAllById(chatRoomIds)
+
+        // N+1 방지: 모든 채팅방의 참여자를 한 번의 쿼리로 조회
+        val allParticipants = chatRoomUserRepository.findAllByChatRoomIds(chatRoomIds)
+        val participantsByChatRoomId = allParticipants.groupBy { it.chatRoom.id }
+
+        return chatRoomEntities.map { entity ->
+            val participants = participantsByChatRoomId[entity.id] ?: emptyList()
+            chatRoomMapper.toDomain(entity, participants)
         }
     }
 
@@ -44,8 +50,12 @@ class ChatRoomQueryPersistenceAdapter(
         val pinnedRoomIds = pinnedChatRoomUsers.map { it.chatRoom.id }
         val chatRoomEntities = chatRoomRepository.findAllById(pinnedRoomIds)
 
+        // N+1 방지: 모든 채팅방의 참여자를 한 번의 쿼리로 조회
+        val allParticipants = chatRoomUserRepository.findAllByChatRoomIds(pinnedRoomIds)
+        val participantsByChatRoomId = allParticipants.groupBy { it.chatRoom.id }
+
         return chatRoomEntities.map { entity ->
-            val participants = chatRoomUserRepository.findByChatRoomId(entity.id)
+            val participants = participantsByChatRoomId[entity.id] ?: emptyList()
             chatRoomMapper.toDomain(entity, participants)
         }
     }

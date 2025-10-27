@@ -43,4 +43,20 @@ interface ChatRoomUserRepository : JpaRepository<ChatRoomUserEntity, Long> {
     fun findByChatRoomId(chatRoomId: Long): List<ChatRoomUserEntity>
     fun findByUserId(userId: Long): List<ChatRoomUserEntity>
 
+    /**
+     * 여러 채팅방의 참여자들을 한 번의 쿼리로 조회 (N+1 문제 해결)
+     *
+     * @param chatRoomIds 채팅방 ID 목록
+     * @return 해당 채팅방들의 모든 참여자 목록
+     */
+    @Query(
+        """
+        SELECT cru
+        FROM ChatRoomUserEntity cru
+        JOIN FETCH cru.user
+        WHERE cru.chatRoom.id IN :chatRoomIds
+    """
+    )
+    fun findAllByChatRoomIds(@Param("chatRoomIds") chatRoomIds: List<Long>): List<ChatRoomUserEntity>
+
 }

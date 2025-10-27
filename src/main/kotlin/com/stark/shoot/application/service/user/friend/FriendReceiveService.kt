@@ -51,10 +51,8 @@ class FriendReceiveService(
 
         // 친구 요청 상태 업데이트
         friendRequestCommandPort.updateStatus(requesterId, currentUserId, FriendRequestStatus.ACCEPTED)
-        friendCommandPort.addFriendRelation(currentUserId, requesterId)
-        friendCommandPort.addFriendRelation(requesterId, currentUserId)
 
-        // 친구 관계 생성
+        // 친구 관계 생성 (도메인 서비스에서 생성된 Friendship 사용)
         result.friendships.forEach { friendship ->
             friendCommandPort.addFriendRelation(friendship.userId, friendship.friendId)
         }

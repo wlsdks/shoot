@@ -37,7 +37,9 @@ class MessageEditDomainService {
 
         // 시간 제한 검사: 생성 후 일정 시간(24시간)이 지난 메시지는 수정 불가
         val now = Instant.now()
-        val messageCreationTime = message.createdAt ?: now
+        val messageCreationTime = message.createdAt
+            ?: return EditabilityResult(false, "메시지 생성 시간을 확인할 수 없어 수정할 수 없습니다.")
+
         val timeSinceCreation = Duration.between(messageCreationTime, now)
 
         if (timeSinceCreation.compareTo(MAX_EDIT_DURATION) > 0) {

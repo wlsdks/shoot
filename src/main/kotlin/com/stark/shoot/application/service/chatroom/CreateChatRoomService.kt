@@ -12,6 +12,7 @@ import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.config.redis.RedisLockManager
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
 
@@ -24,10 +25,12 @@ class CreateChatRoomService(
     private val eventPublisher: EventPublishPort,
     private val chatRoomEventService: ChatRoomEventService,
     private val chatRoomDomainService: ChatRoomDomainService,
+    private val redisLockManager: RedisLockManager,
 ) : CreateChatRoomUseCase {
 
     /**
      * 1:1 채팅방 생성
+     * Race Condition 방지를 위해 분산 락 적용
      *
      * @param command 직접 채팅 생성 커맨드
      * @return ChatRoomResponse 생성된 채팅방 정보
@@ -36,27 +39,34 @@ class CreateChatRoomService(
         val userId = command.userId
         val friendId = command.friendId
 
-        // 1. 사용자와 친구가 존재하는지 확인
-        userQueryPort.findUserById(userId)
-            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${userId.value}")
+        // 분산 락 키 생성: 두 사용자 ID를 정렬하여 A→B, B→A 요청에 대해 동일한 락 사용
+        val sortedIds = listOf(userId.value, friendId.value).sorted()
+        val lockKey = "chatroom:direct:${sortedIds[0]}:${sortedIds[1]}"
 
-        val friend = userQueryPort.findUserById(friendId)
-            ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendId.value}")
+        // 분산 락을 획득하여 동시 채팅방 생성 방지
+        return redisLockManager.withLock(lockKey, userId.value.toString()) {
+            // 1. 사용자와 친구가 존재하는지 확인
+            userQueryPort.findUserById(userId)
+                ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${userId.value}")
 
-        // 2. 이미 존재하는 1:1 채팅방이 있는지 확인 (도메인 객체의 정적 메서드 사용)
-        val existingRooms = chatRoomQueryPort.findByParticipantId(userId)
-        val existingRoom = chatRoomDomainService.findDirectChatBetween(existingRooms, userId, friendId)
+            val friend = userQueryPort.findUserById(friendId)
+                ?: throw ResourceNotFoundException("사용자를 찾을 수 없습니다: ${friendId.value}")
 
-        // 이미 존재하는 채팅방이 있으면 반환
-        if (existingRoom != null) return ChatRoomResponse.from(existingRoom, userId.value)
+            // 2. 이미 존재하는 1:1 채팅방이 있는지 확인 (도메인 객체의 정적 메서드 사용)
+            val existingRooms = chatRoomQueryPort.findByParticipantId(userId)
+            val existingRoom = chatRoomDomainService.findDirectChatBetween(existingRooms, userId, friendId)
 
-        // 3. 새 1:1 채팅방 생성 및 저장
-        val savedRoom = registerNewDirectChatRoom(userId.value, friendId.value, friend)
+            // 이미 존재하는 채팅방이 있으면 반환
+            if (existingRoom != null) return@withLock ChatRoomResponse.from(existingRoom, userId.value)
 
-        // 4. 채팅방 생성 이벤트 발행
-        publishChatRoomCreatedEvent(savedRoom)
+            // 3. 새 1:1 채팅방 생성 및 저장
+            val savedRoom = registerNewDirectChatRoom(userId.value, friendId.value, friend)
 
-        return ChatRoomResponse.from(savedRoom, userId.value)
+            // 4. 채팅방 생성 이벤트 발행
+            publishChatRoomCreatedEvent(savedRoom)
+
+            ChatRoomResponse.from(savedRoom, userId.value)
+        }
     }
 
     private fun publishChatRoomCreatedEvent(savedRoom: ChatRoom) {

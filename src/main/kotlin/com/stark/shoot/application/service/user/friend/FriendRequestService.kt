@@ -14,6 +14,7 @@ import com.stark.shoot.domain.user.service.FriendDomainService
 import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.config.redis.RedisLockManager
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -27,49 +28,60 @@ class FriendRequestService(
     private val friendRequestCommandPort: FriendRequestCommandPort,
     private val friendDomainService: FriendDomainService,
     private val friendCacheManager: FriendCacheManager,
-    private val eventPublisher: EventPublishPort
+    private val eventPublisher: EventPublishPort,
+    private val redisLockManager: RedisLockManager
 ) : FriendRequestUseCase {
 
     private val logger = KotlinLogging.logger {}
 
     /**
      * 친구 요청 처리를 위한 공통 로직을 수행하는 내부 메서드
+     * Race Condition 방지를 위해 분산 락 적용
      *
      * @param currentUserId 요청을 보내는 사용자 ID
      * @param targetUserId 요청을 받는 사용자 ID
      */
     private fun processFriendRequest(currentUserId: UserId, targetUserId: UserId) {
-        // 사용자 존재 여부 확인
-        validateUserExistence(currentUserId, targetUserId)
+        // 분산 락 키 생성: 두 사용자 ID를 정렬하여 A→B, B→A 요청에 대해 동일한 락 사용
+        val sortedIds = listOf(currentUserId.value, targetUserId.value).sorted()
+        val lockKey = "friend-request:${sortedIds[0]}:${sortedIds[1]}"
 
-        // 도메인 서비스를 사용하여 친구 요청 유효성 검증
-        try {
-            friendDomainService.validateFriendRequest(
-                currentUserId = currentUserId,
-                targetUserId = targetUserId,
-                isFriend = userQueryPort.checkFriendship(currentUserId, targetUserId),
-                hasOutgoingRequest = userQueryPort.checkOutgoingFriendRequest(
-                    currentUserId,
-                    targetUserId
-                ),
-                hasIncomingRequest = userQueryPort.checkIncomingFriendRequest(
-                    currentUserId,
-                    targetUserId
+        // 분산 락을 획득하여 동시 친구 요청 방지
+        redisLockManager.withLock(lockKey, currentUserId.value.toString()) {
+            // 사용자 존재 여부 확인
+            validateUserExistence(currentUserId, targetUserId)
+
+            // 도메인 서비스를 사용하여 친구 요청 유효성 검증
+            try {
+                friendDomainService.validateFriendRequest(
+                    currentUserId = currentUserId,
+                    targetUserId = targetUserId,
+                    isFriend = userQueryPort.checkFriendship(currentUserId, targetUserId),
+                    hasOutgoingRequest = userQueryPort.checkOutgoingFriendRequest(
+                        currentUserId,
+                        targetUserId
+                    ),
+                    hasIncomingRequest = userQueryPort.checkIncomingFriendRequest(
+                        currentUserId,
+                        targetUserId
+                    )
                 )
-            )
-        } catch (e: IllegalArgumentException) {
-            throw InvalidInputException(e.message ?: "친구 요청 유효성 검증 실패")
+            } catch (e: IllegalArgumentException) {
+                throw InvalidInputException(e.message ?: "친구 요청 유효성 검증 실패")
+            }
+
+            // 친구 요청 애그리게이트 생성 및 저장
+            val request = FriendRequest(senderId = currentUserId, receiverId = targetUserId)
+            friendRequestCommandPort.saveFriendRequest(request)
+
+            // 캐시 무효화 (FriendCacheManager 사용)
+            friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)
+
+            // 친구 요청 전송 이벤트 발행 (트랜잭션 커밋 후 알림 전송 등 처리)
+            publishFriendRequestSentEvent(currentUserId, targetUserId)
+
+            logger.debug { "Friend request processed with distributed lock: $currentUserId -> $targetUserId" }
         }
-
-        // 친구 요청 애그리게이트 생성 및 저장
-        val request = FriendRequest(senderId = currentUserId, receiverId = targetUserId)
-        friendRequestCommandPort.saveFriendRequest(request)
-
-        // 캐시 무효화 (FriendCacheManager 사용)
-        friendCacheManager.invalidateFriendshipCaches(currentUserId, targetUserId)
-
-        // 친구 요청 전송 이벤트 발행 (트랜잭션 커밋 후 알림 전송 등 처리)
-        publishFriendRequestSentEvent(currentUserId, targetUserId)
     }
 
     override fun sendFriendRequest(command: SendFriendRequestCommand) {

@@ -3,8 +3,16 @@
 
 -- 1. Publication 생성 (Outbox 테이블만 포함)
 -- Publication은 Debezium이 구독할 수 있는 변경 스트림을 정의합니다
-CREATE PUBLICATION IF NOT EXISTS outbox_publication
-FOR TABLE outbox_events;
+-- PostgreSQL 13에서는 IF NOT EXISTS를 지원하지 않으므로 조건부로 생성
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'outbox_publication') THEN
+        CREATE PUBLICATION outbox_publication FOR TABLE outbox_events;
+        RAISE NOTICE 'Publication outbox_publication created';
+    ELSE
+        RAISE NOTICE 'Publication outbox_publication already exists';
+    END IF;
+END $$;
 
 -- 2. Replication Slot은 Debezium Connector가 자동으로 생성하므로 여기서는 생략
 

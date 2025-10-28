@@ -21,6 +21,7 @@ class FindFriendService(
 
     /**
      * 친구 목록 조회
+     * N+1 쿼리 문제를 해결하기 위해 배치 조회를 사용합니다.
      *
      * @param command 친구 목록 조회 커맨드
      * @return 친구 정보를 담은 FriendResponse 목록
@@ -37,12 +38,20 @@ class FindFriendService(
 
         // 친구 관계 조회
         val friendships = friendshipQueryPort.findAllFriendships(currentUserId)
+        if (friendships.isEmpty()) {
+            return emptyList()
+        }
 
-        // 친구 정보 조회 및 응답 생성
-        return friendships.map { friendship ->
-            val friendId = friendship.friendId
-            val friend = userQueryPort.findUserById(friendId)
-                ?: throw ResourceNotFoundException("Friend not found: $friendId")
+        // 친구 ID 목록 추출
+        val friendIds = friendships.map { it.friendId }
+
+        // 배치 조회로 친구 정보 조회 (N+1 문제 해결)
+        val friends = userQueryPort.findAllByIds(friendIds)
+        val friendsMap = friends.associateBy { it.id }
+
+        // 친구 정보 응답 생성
+        return friendships.mapNotNull { friendship ->
+            val friend = friendsMap[friendship.friendId] ?: return@mapNotNull null
 
             FriendResponse(
                 id = friend.id?.value ?: 0L,
@@ -55,6 +64,7 @@ class FindFriendService(
 
     /**
      * 받은 친구 요청 목록 조회
+     * N+1 쿼리 문제를 해결하기 위해 배치 조회를 사용합니다.
      *
      * @param command 받은 친구 요청 목록 조회 커맨드
      * @return 받은 친구 요청 정보를 담은 FriendResponse 목록
@@ -74,12 +84,20 @@ class FindFriendService(
             receiverId = currentUserId,
             status = FriendRequestStatus.PENDING
         )
+        if (incomingRequests.isEmpty()) {
+            return emptyList()
+        }
 
-        // 요청자 정보 조회 및 응답 생성
-        return incomingRequests.map { request ->
-            val requesterId = request.senderId
-            val requester = userQueryPort.findUserById(requesterId)
-                ?: throw ResourceNotFoundException("Requester not found: $requesterId")
+        // 요청자 ID 목록 추출
+        val requesterIds = incomingRequests.map { it.senderId }
+
+        // 배치 조회로 요청자 정보 조회 (N+1 문제 해결)
+        val requesters = userQueryPort.findAllByIds(requesterIds)
+        val requestersMap = requesters.associateBy { it.id }
+
+        // 요청자 정보 응답 생성
+        return incomingRequests.mapNotNull { request ->
+            val requester = requestersMap[request.senderId] ?: return@mapNotNull null
 
             FriendResponse(
                 id = requester.id?.value ?: 0L,
@@ -92,6 +110,7 @@ class FindFriendService(
 
     /**
      * 보낸 친구 요청 목록 조회
+     * N+1 쿼리 문제를 해결하기 위해 배치 조회를 사용합니다.
      *
      * @param command 보낸 친구 요청 목록 조회 커맨드
      * @return 보낸 친구 요청 정보를 담은 FriendResponse 목록
@@ -111,12 +130,20 @@ class FindFriendService(
             senderId = currentUserId,
             status = FriendRequestStatus.PENDING
         )
+        if (outgoingRequests.isEmpty()) {
+            return emptyList()
+        }
 
-        // 대상자 정보 조회 및 응답 생성
-        return outgoingRequests.map { request ->
-            val targetId = request.receiverId
-            val target = userQueryPort.findUserById(targetId)
-                ?: throw ResourceNotFoundException("Target not found: $targetId")
+        // 대상자 ID 목록 추출
+        val targetIds = outgoingRequests.map { it.receiverId }
+
+        // 배치 조회로 대상자 정보 조회 (N+1 문제 해결)
+        val targets = userQueryPort.findAllByIds(targetIds)
+        val targetsMap = targets.associateBy { it.id }
+
+        // 대상자 정보 응답 생성
+        return outgoingRequests.mapNotNull { request ->
+            val target = targetsMap[request.receiverId] ?: return@mapNotNull null
 
             FriendResponse(
                 id = target.id?.value ?: 0L,

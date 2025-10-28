@@ -14,6 +14,36 @@ interface FriendRequestRepository : JpaRepository<FriendRequestEntity, Long> {
     fun findAllBySenderIdAndReceiverId(senderId: Long, receiverId: Long): List<FriendRequestEntity>
     fun existsBySenderIdAndReceiverIdAndStatus(senderId: Long, receiverId: Long, status: FriendRequestStatus): Boolean
 
+    /**
+     * 특정 발신자가 여러 수신자에게 보낸 친구 요청을 배치 조회
+     * N+1 쿼리 문제를 방지하기 위한 배치 조회
+     *
+     * @param senderId 발신자 ID
+     * @param receiverIds 수신자 ID 목록
+     * @param status 요청 상태
+     * @return 친구 요청 목록
+     */
+    fun findAllBySenderIdAndReceiverIdInAndStatus(
+        senderId: Long,
+        receiverIds: List<Long>,
+        status: FriendRequestStatus
+    ): List<FriendRequestEntity>
+
+    /**
+     * 여러 발신자로부터 특정 수신자가 받은 친구 요청을 배치 조회
+     * N+1 쿼리 문제를 방지하기 위한 배치 조회
+     *
+     * @param senderIds 발신자 ID 목록
+     * @param receiverId 수신자 ID
+     * @param status 요청 상태
+     * @return 친구 요청 목록
+     */
+    fun findAllBySenderIdInAndReceiverIdAndStatus(
+        senderIds: List<Long>,
+        receiverId: Long,
+        status: FriendRequestStatus
+    ): List<FriendRequestEntity>
+
     @Modifying
     @Query("""
         DELETE

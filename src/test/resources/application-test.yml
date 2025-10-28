@@ -1,0 +1,142 @@
+server:
+  port: 0  # 랜덤 포트 사용 (테스트 간 충돌 방지)
+
+spring:
+  # H2 In-memory Database (PostgreSQL 호환 모드)
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # JPA 설정
+  jpa:
+    database: H2
+    defer-datasource-initialization: false
+    hibernate:
+      ddl-auto: create-drop  # 테스트마다 스키마 재생성
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+        highlight_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+  # Flyway 비활성화 (테스트에서는 ddl-auto 사용)
+  flyway:
+    enabled: false
+
+  # MongoDB Embedded 설정
+  data:
+    mongodb:
+      host: localhost
+      port: 0  # Embedded MongoDB가 자동으로 빈 포트 찾음
+      database: test_shoot
+      # Embedded MongoDB는 인증 불필요
+
+  # Redis Embedded 설정
+  data:
+    redis:
+      host: localhost
+      port: 6370  # 실제 Redis와 충돌 방지 (6379 대신 6370)
+      password:  # Embedded Redis는 비밀번호 불필요
+      timeout: 3000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: 1000
+
+  # Kafka는 테스트에서 비활성화 또는 Embedded 사용
+  kafka:
+    bootstrap-servers: localhost:19092  # Embedded Kafka 포트
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      group-id: test-shoot
+    producer:
+      acks: 1
+      compression-type: none
+    topics:
+      chat-messages:
+        partitions: 1
+        replicas: 1
+      chat-notifications:
+        partitions: 1
+        replicas: 1
+      chat-events:
+        partitions: 1
+        replicas: 1
+      dead-letter-topic:
+        partitions: 1
+        replicas: 1
+
+  # 파일 업로드 설정
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# Redis Lock 설정
+redis:
+  lock:
+    lock-timeout: 5000       # 테스트에서는 짧게 설정
+    lock-wait-timeout: 1000
+    max-retries: 2
+
+# 알림 설정
+notification:
+  transport: redis
+
+# Slack 알림 비활성화 (테스트)
+slack:
+  notification:
+    enabled: false
+    webhook-url: ""
+
+# CDC 비활성화 (테스트)
+cdc:
+  kafka-connect:
+    url: http://localhost:8083
+  connector:
+    name: test-outbox-connector
+  replication-slot:
+    name: test_outbox_slot
+    lag-threshold-mb: 10
+
+# 로깅 설정
+logging:
+  level:
+    root: INFO
+    com.stark.shoot: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    org.springframework.test: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# JWT 설정
+jwt:
+  secret: test-secret-key-for-testing-purposes-only-min-32-bytes
+  expiration: 60
+  issuer: "shoot-test"
+  audience: "shoot-test-clients"
+  refresh-token:
+    expiration: 43200
+
+# 도메인 규칙 설정
+app:
+  domain:
+    chat-room:
+      max-participants: 100
+      min-group-participants: 2
+      max-pinned-messages: 5
+    message:
+      max-content-length: 4000
+      max-attachment-size: 52428800
+      batch-size: 100
+    friend:
+      max-friend-count: 1000
+      recommendation-limit: 20

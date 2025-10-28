@@ -14,6 +14,16 @@ interface FriendshipMappingRepository : JpaRepository<FriendshipMappingEntity, L
 
     fun existsByUserIdAndFriendId(userId: Long, friendId: Long): Boolean
 
+    /**
+     * 특정 사용자와 여러 대상 사용자 간의 친구 관계를 배치 조회
+     * N+1 쿼리 문제를 방지하기 위한 배치 조회
+     *
+     * @param userId 기준 사용자 ID
+     * @param friendIds 확인할 친구 ID 목록
+     * @return 친구 관계 목록
+     */
+    fun findAllByUserIdAndFriendIdIn(userId: Long, friendIds: List<Long>): List<FriendshipMappingEntity>
+
     @Modifying
     @Query("""
         DELETE

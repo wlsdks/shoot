@@ -233,6 +233,7 @@ class RecommendFriendService(
 
     /**
      * 이미 친구인 사용자와 친구 요청을 보낸 사용자를 필터링합니다.
+     * N+1 쿼리 문제를 해결하기 위해 배치 조회를 사용합니다.
      *
      * @param userId 현재 사용자 ID
      * @param users 필터링할 사용자 목록
@@ -242,43 +243,28 @@ class RecommendFriendService(
         userId: UserId,
         users: List<User>
     ): List<User> {
-        // 이미 친구인 사용자 ID 목록
-        val friendIds = mutableSetOf<UserId>()
-
-        // 보낸 친구 요청 ID 목록
-        val outgoingRequestIds = mutableSetOf<UserId>()
-
-        // 받은 친구 요청 ID 목록
-        val incomingRequestIds = mutableSetOf<UserId>()
+        if (users.isEmpty()) return emptyList()
 
         try {
-            // 친구 관계 확인
-            users.forEach { user ->
-                user.id?.let { targetId ->
-                    if (userQueryPort.checkFriendship(userId, targetId)) {
-                        friendIds.add(targetId)
-                    }
+            // 모든 사용자 ID 추출
+            val userIds = users.mapNotNull { it.id }
 
-                    if (userQueryPort.checkOutgoingFriendRequest(userId, targetId)) {
-                        outgoingRequestIds.add(targetId)
-                    }
+            // 배치 조회로 친구 관계 확인 (N+1 문제 해결)
+            val friendIds = userQueryPort.checkFriendshipBatch(userId, userIds)
+            val outgoingRequestIds = userQueryPort.checkOutgoingFriendRequestBatch(userId, userIds)
+            val incomingRequestIds = userQueryPort.checkIncomingFriendRequestBatch(userId, userIds)
 
-                    if (userQueryPort.checkIncomingFriendRequest(userId, targetId)) {
-                        incomingRequestIds.add(targetId)
-                    }
-                }
+            // 제외할 사용자 ID 집합
+            val excludedIds = friendIds + outgoingRequestIds + incomingRequestIds
+
+            // 필터링된 목록 반환
+            return users.filter { user ->
+                user.id?.let { id -> !excludedIds.contains(id) } ?: true
             }
         } catch (e: Exception) {
             logger.warn(e) { "친구 관계 확인 중 오류 발생: userId=${userId.value}" }
             // 오류 발생 시 원본 목록 반환
             return users
-        }
-
-        // 필터링된 목록 반환
-        return users.filter { user ->
-            user.id?.let { id ->
-                !friendIds.contains(id) && !outgoingRequestIds.contains(id) && !incomingRequestIds.contains(id)
-            } ?: true
         }
     }
 

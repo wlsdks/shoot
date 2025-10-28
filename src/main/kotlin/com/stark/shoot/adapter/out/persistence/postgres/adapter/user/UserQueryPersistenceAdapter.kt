@@ -154,4 +154,76 @@ class UserQueryPersistenceAdapter(
         )
     }
 
+    /**
+     * 여러 사용자 ID로 사용자 목록을 배치 조회
+     * N+1 쿼리 문제를 방지하기 위한 배치 조회
+     */
+    override fun findAllByIds(userIds: List<UserId>): List<User> {
+        if (userIds.isEmpty()) return emptyList()
+
+        val userIdValues = userIds.map { it.value }
+        val userEntities = userRepository.findAllById(userIdValues)
+        return userEntities.map(userMapper::toDomain)
+    }
+
+    /**
+     * 친구 관계 배치 확인
+     * 여러 대상 사용자와의 친구 관계를 한 번의 쿼리로 확인
+     */
+    override fun checkFriendshipBatch(userId: UserId, targetIds: List<UserId>): Set<UserId> {
+        if (targetIds.isEmpty()) return emptySet()
+
+        val targetIdValues = targetIds.map { it.value }
+
+        // 정방향 친구 관계 조회 (내가 상대방을 친구로 추가한 경우)
+        val outgoingFriendships = friendshipMappingRepository
+            .findAllByUserIdAndFriendIdIn(userId.value, targetIdValues)
+            .map { UserId.from(it.friend.id!!) }
+            .toSet()
+
+        return outgoingFriendships
+    }
+
+    /**
+     * 발신한 친구 요청 배치 확인
+     * 여러 대상 사용자에게 보낸 친구 요청을 한 번의 쿼리로 확인
+     */
+    override fun checkOutgoingFriendRequestBatch(userId: UserId, targetIds: List<UserId>): Set<UserId> {
+        if (targetIds.isEmpty()) return emptySet()
+
+        val targetIdValues = targetIds.map { it.value }
+
+        val friendRequests = friendRequestRepository
+            .findAllBySenderIdAndReceiverIdInAndStatus(
+                userId.value,
+                targetIdValues,
+                FriendRequestStatus.PENDING
+            )
+            .map { UserId.from(it.receiver.id!!) }
+            .toSet()
+
+        return friendRequests
+    }
+
+    /**
+     * 수신한 친구 요청 배치 확인
+     * 여러 사용자로부터 받은 친구 요청을 한 번의 쿼리로 확인
+     */
+    override fun checkIncomingFriendRequestBatch(userId: UserId, requesterIds: List<UserId>): Set<UserId> {
+        if (requesterIds.isEmpty()) return emptySet()
+
+        val requesterIdValues = requesterIds.map { it.value }
+
+        val friendRequests = friendRequestRepository
+            .findAllBySenderIdInAndReceiverIdAndStatus(
+                requesterIdValues,
+                userId.value,
+                FriendRequestStatus.PENDING
+            )
+            .map { UserId.from(it.sender.id!!) }
+            .toSet()
+
+        return friendRequests
+    }
+
 }

@@ -19,11 +19,13 @@ import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.*
+import org.mockito.stubbing.Answer
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import java.time.Instant
 
@@ -35,14 +37,34 @@ class ToggleMessageReactionServiceTest {
     private val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
     private val eventPublisher = mock(EventPublishPort::class.java)
     private val messageReactionService = mock(MessageReactionService::class.java)
+    private val redisLockManager = mock(com.stark.shoot.infrastructure.config.redis.RedisLockManager::class.java)
 
     private val toggleMessageReactionService = ToggleMessageReactionService(
         messageQueryPort,
         messageCommandPort,
         webSocketMessageBroker,
         eventPublisher,
-        messageReactionService
+        messageReactionService,
+        redisLockManager
     )
+
+    @BeforeEach
+    fun setUp() {
+        // RedisLockManager의 withLock 메서드를 모킹하여 람다를 즉시 실행하도록 설정
+        `when`(
+            redisLockManager.withLock<Any>(
+                anyString(),
+                anyString(),
+                anyInt(),
+                anyBoolean(),
+                any()
+            )
+        ).thenAnswer(Answer { invocation ->
+            @Suppress("UNCHECKED_CAST")
+            val action = invocation.getArgument(4) as () -> Any
+            action.invoke()
+        })
+    }
 
     @Nested
     @DisplayName("메시지 리액션 토글 시")

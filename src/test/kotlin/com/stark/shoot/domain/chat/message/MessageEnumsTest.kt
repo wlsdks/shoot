@@ -32,7 +32,7 @@ class MessageEnumsTest {
     @DisplayName("[happy] ScheduledMessageStatus 값 확인")
     fun `ScheduledMessageStatus 값 확인`() {
         val values = ScheduledMessageStatus.values()
-        assertThat(values.map { it.name }).containsExactly("PENDING", "SENT", "CANCELED")
+        assertThat(values.map { it.name }).containsExactly("PENDING", "PROCESSING", "SENT", "FAILED", "CANCELED")
     }
 
     @Test

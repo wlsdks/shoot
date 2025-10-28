@@ -141,7 +141,7 @@ class ChatMessageTest {
             val userId = UserId.from(3L)
 
             // when
-            val result = message.pinMessageInRoom(userId, null)
+            val result = message.pinMessageInRoom(userId, 0, 5)
 
             // then
             assertThat(result.pinnedMessage.isPinned).isTrue()
@@ -170,16 +170,13 @@ class ChatMessageTest {
             existingMessage.updatePinStatus(true, userId)
 
             // when
-            val result = newMessage.pinMessageInRoom(userId, existingMessage)
+            val result = newMessage.pinMessageInRoom(userId, 1, 5)
 
             // then
             assertThat(result.pinnedMessage.isPinned).isTrue()
             assertThat(result.pinnedMessage.pinnedBy).isEqualTo(userId)
             assertThat(result.pinnedMessage.pinnedAt).isNotNull()
-            assertThat(result.unpinnedMessage).isNotNull()
-            assertThat(result.unpinnedMessage!!.isPinned).isFalse()
-            assertThat(result.unpinnedMessage!!.pinnedBy).isNull()
-            assertThat(result.unpinnedMessage!!.pinnedAt).isNull()
+            assertThat(result.unpinnedMessage).isNull()
         }
 
         @Test
@@ -196,7 +193,7 @@ class ChatMessageTest {
             message.updatePinStatus(true, userId)
 
             // when
-            val result = message.pinMessageInRoom(userId, null)
+            val result = message.pinMessageInRoom(userId, 0, 5)
 
             // then
             assertThat(result.pinnedMessage).isEqualTo(message)

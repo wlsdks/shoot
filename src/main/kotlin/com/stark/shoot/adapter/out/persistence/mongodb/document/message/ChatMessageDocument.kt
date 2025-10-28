@@ -11,8 +11,18 @@ import java.time.Instant
 
 @Document(collection = "messages")
 @CompoundIndexes(
+    // 기본 조회 인덱스
     CompoundIndex(name = "room_created_idx", def = "{'roomId': 1, 'createdAt': -1}"),
-    CompoundIndex(name = "sender_created_idx", def = "{'senderId': 1, 'createdAt': -1}")
+    CompoundIndex(name = "sender_created_idx", def = "{'senderId': 1, 'createdAt': -1}"),
+
+    // 스레드 메시지 조회 최적화
+    CompoundIndex(name = "thread_id_idx", def = "{'threadId': 1, 'createdAt': -1}"),
+
+    // 고정 메시지 조회 최적화
+    CompoundIndex(name = "room_pinned_idx", def = "{'roomId': 1, 'isPinned': 1, 'createdAt': -1}"),
+
+    // 삭제되지 않은 메시지 조회 최적화
+    CompoundIndex(name = "room_not_deleted_idx", def = "{'roomId': 1, 'isDeleted': 1, 'createdAt': -1}")
 )
 data class ChatMessageDocument(
     val roomId: Long,                                       // 메시지가 속한 채팅방 ID

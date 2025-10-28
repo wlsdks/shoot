@@ -97,28 +97,35 @@ data class ChatMessage(
 
     /**
      * 채팅방에서 메시지를 고정합니다.
-     * 이 메서드는 도메인 규칙 "한 채팅방에는 최대 하나의 고정 메시지만 존재할 수 있다"를 강제합니다.
+     * 이 메서드는 도메인 규칙 "한 채팅방에는 최대 N개의 고정 메시지만 존재할 수 있다"를 강제합니다.
      *
      * @param userId 고정한 사용자 ID
-     * @param currentPinnedMessage 채팅방에 현재 고정된 메시지 (있는 경우)
-     * @return 고정 작업 결과 (고정할 메시지와 해제할 메시지)
+     * @param currentPinnedCount 현재 고정된 메시지 개수
+     * @param maxPinnedMessages 최대 고정 메시지 개수
+     * @return 고정 작업 결과 (고정할 메시지)
+     * @throws IllegalStateException 최대 고정 개수를 초과하는 경우
      */
     fun pinMessageInRoom(
         userId: UserId,
-        currentPinnedMessage: ChatMessage?
+        currentPinnedCount: Int,
+        maxPinnedMessages: Int
     ): PinMessageResult {
         // 이미 고정된 메시지인지 확인
         if (this.isPinned) {
             return PinMessageResult(this, null)
         }
 
+        // 최대 고정 개수 확인
+        if (currentPinnedCount >= maxPinnedMessages) {
+            throw IllegalStateException(
+                "최대 고정 메시지 개수를 초과했습니다. (현재: $currentPinnedCount, 최대: $maxPinnedMessages)"
+            )
+        }
+
         // 새 메시지 고정
         this.updatePinStatus(true, userId)
 
-        // 기존 고정 메시지가 있으면 해제
-        currentPinnedMessage?.updatePinStatus(false)
-
-        return PinMessageResult(this, currentPinnedMessage)
+        return PinMessageResult(this, null)
     }
 
     /**

@@ -11,6 +11,7 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.config.domain.DomainConstants
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -22,33 +23,31 @@ class MessagePinService(
     private val messageCommandPort: MessageCommandPort,
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val eventPublisher: EventPublishPort,
-    private val messagePinDomainService: MessagePinDomainService
+    private val messagePinDomainService: MessagePinDomainService,
+    private val domainConstants: DomainConstants
 ) : MessagePinUseCase {
 
     /**
-     * 메시지를 고정합니다. (채팅방에는 최대 1개의 고정 메시지만 존재)
-     * 만약 이미 고정된 메시지가 있으면, 해당 메시지를 해제하고 새 메시지를 고정합니다.
+     * 메시지를 고정합니다. (채팅방에는 최대 N개의 고정 메시지 존재 가능)
+     * 최대 개수를 초과하면 예외를 발생시킵니다.
      *
      * @param command 메시지 고정 커맨드
      * @return 고정된 메시지
+     * @throws IllegalStateException 최대 고정 개수를 초과하는 경우
      */
     override fun pinMessage(command: PinMessageCommand): ChatMessage {
+        val maxPinnedMessages = domainConstants.chatRoom.maxPinnedMessages
+
         // 메시지 조회
         val message = (messageQueryPort.findById(command.messageId))
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=${command.messageId}")
 
-        // 채팅방에 이미 고정된 메시지가 있는지 확인
-        val currentPinnedMessage = messageQueryPort.findPinnedMessagesByRoomId(message.roomId, 1).firstOrNull()
+        // 채팅방에 이미 고정된 메시지 개수 확인
+        val currentPinnedMessages = messageQueryPort.findPinnedMessagesByRoomId(message.roomId, maxPinnedMessages)
+        val currentPinnedCount = currentPinnedMessages.size
 
         // 도메인 객체의 메서드를 사용하여 메시지 고정 (도메인 규칙 적용)
-        val result = message.pinMessageInRoom(command.userId, currentPinnedMessage)
-
-        // 기존 고정 메시지가 있으면 해제하고 알림 및 이벤트 처리
-        result.unpinnedMessage?.let { unpinnedMessage ->
-            val savedUnpinnedMessage = messageCommandPort.save(unpinnedMessage)
-            sendPinStatusToClients(savedUnpinnedMessage, command.userId, false)
-            publishPinEvent(savedUnpinnedMessage, command.userId, false)
-        }
+        val result = message.pinMessageInRoom(command.userId, currentPinnedCount, maxPinnedMessages)
 
         // 새로 고정된 메시지 저장
         val savedMessage = messageCommandPort.save(result.pinnedMessage)

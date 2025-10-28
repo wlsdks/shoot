@@ -151,19 +151,35 @@ class ScheduledMessageProcessor(
 
     /**
      * 개별 예약 메시지 처리 (재시도 로직 포함)
+     *
+     * 부분 실패 방지 메커니즘:
+     * 1. 처리 시작 전 상태를 PROCESSING으로 변경 (중복 발송 방지)
+     * 2. 메시지 발행 시도
+     * 3. 성공 시 SENT, 실패 시 FAILED로 변경
+     *
+     * 만약 발행은 성공했는데 상태 업데이트가 실패하더라도:
+     * - 메시지는 PROCESSING 상태로 남음
+     * - 다음 스케줄러 실행 시 PENDING만 조회하므로 재발송되지 않음
      */
     private fun processMessageWithRetry(message: ScheduledMessage, retryCount: Int = 0) {
         try {
-            // 메시지 요청 객체 생성
+            // Step 1: 상태를 PROCESSING으로 먼저 변경 (중복 발송 방지)
+            if (retryCount == 0) {
+                val processingMessage = message.copy(status = ScheduledMessageStatus.PROCESSING)
+                scheduledMessagePort.saveScheduledMessage(processingMessage)
+                logger.debug { "예약 메시지 상태를 PROCESSING으로 변경: ${message.id}" }
+            }
+
+            // Step 2: 메시지 요청 객체 생성
             val chatMessageRequest = createChatMessageRequest(message)
 
-            // 도메인 메시지 객체 생성
+            // Step 3: 도메인 메시지 객체 생성
             val chatMessage = createChatMessage(message)
 
-            // 메시지 발행 (Redis, Kafka)
+            // Step 4: 메시지 발행 (Redis, Kafka)
             messagePublisherPort.publish(chatMessageRequest, chatMessage)
 
-            // 상태 업데이트
+            // Step 5: 상태를 SENT로 업데이트
             val updatedMessage = message.copy(status = ScheduledMessageStatus.SENT)
             scheduledMessagePort.saveScheduledMessage(updatedMessage)
 
@@ -181,16 +197,27 @@ class ScheduledMessageProcessor(
                 } catch (ie: InterruptedException) {
                     Thread.currentThread().interrupt()
                     logger.error(ie) { "재시도 중 인터럽트 발생: ${message.id}" }
+                    // 인터럽트 발생 시에도 상태를 FAILED로 변경
+                    updateStatusSafely(message, ScheduledMessageStatus.FAILED)
                 }
             } else {
-                // 최대 재시도 횟수 초과 시 로그 기록
+                // 최대 재시도 횟수 초과 시 상태를 FAILED로 변경
                 logger.error { "최대 재시도 횟수 초과, 예약 메시지 처리 실패: ${message.id}" }
-
-                // 상태를 CANCELED로 변경하여 더 이상 처리되지 않도록 함
-                // 실패 상태가 없으므로 CANCELED를 사용
-                val canceledMessage = message.copy(status = ScheduledMessageStatus.CANCELED)
-                scheduledMessagePort.saveScheduledMessage(canceledMessage)
+                updateStatusSafely(message, ScheduledMessageStatus.FAILED)
             }
+        }
+    }
+
+    /**
+     * 예외가 발생해도 안전하게 상태를 업데이트합니다.
+     */
+    private fun updateStatusSafely(message: ScheduledMessage, status: ScheduledMessageStatus) {
+        try {
+            val updatedMessage = message.copy(status = status)
+            scheduledMessagePort.saveScheduledMessage(updatedMessage)
+            logger.info { "예약 메시지 상태를 ${status}로 변경: ${message.id}" }
+        } catch (e: Exception) {
+            logger.error(e) { "예약 메시지 상태 업데이트 실패: ${message.id}, status=$status" }
         }
     }
 

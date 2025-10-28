@@ -13,6 +13,8 @@ import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.orm.ObjectOptimisticLockingFailureException
 
 @Adapter
 class ChatRoomCommandPersistenceAdapter(
@@ -22,7 +24,41 @@ class ChatRoomCommandPersistenceAdapter(
     private val chatRoomMapper: ChatRoomMapper,
 ) : ChatRoomCommandPort {
 
+    private val logger = KotlinLogging.logger {}
+
+    companion object {
+        private const val MAX_RETRY_COUNT = 3
+        private const val RETRY_DELAY_MS = 100L
+    }
+
+    /**
+     * 채팅방 저장 (Optimistic Lock 재시도 로직 포함)
+     * 동시 업데이트 시 OptimisticLockingFailureException 발생 가능
+     * 최대 3회까지 재시도하며, 지수 백오프 적용
+     */
     override fun save(chatRoom: ChatRoom): ChatRoom {
+        var lastException: Exception? = null
+
+        repeat(MAX_RETRY_COUNT) { attempt ->
+            try {
+                return saveInternal(chatRoom)
+            } catch (e: ObjectOptimisticLockingFailureException) {
+                lastException = e
+                if (attempt < MAX_RETRY_COUNT - 1) {
+                    logger.warn { "Optimistic lock 충돌 발생, 재시도 ${attempt + 1}/$MAX_RETRY_COUNT: roomId=${chatRoom.id}" }
+                    Thread.sleep(RETRY_DELAY_MS * (attempt + 1))  // 지수 백오프
+                }
+            }
+        }
+
+        logger.error(lastException) { "Optimistic lock 재시도 횟수 초과: roomId=${chatRoom.id}" }
+        throw lastException!!
+    }
+
+    /**
+     * 실제 채팅방 저장 로직
+     */
+    private fun saveInternal(chatRoom: ChatRoom): ChatRoom {
         val savedChatRoomEntity = if (chatRoom.id != null) {
             val existingEntity = chatRoomRepository.findById(chatRoom.id.value).orElseThrow {
                 IllegalStateException("채팅방을 찾을 수 없습니다. id=${chatRoom.id}")

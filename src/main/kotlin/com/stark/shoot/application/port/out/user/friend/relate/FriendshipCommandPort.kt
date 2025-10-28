@@ -22,4 +22,22 @@ interface FriendshipCommandPort {
      * @param friendId 친구 ID
      */
     fun removeFriendship(userId: UserId, friendId: UserId)
+
+    /**
+     * 양방향 친구 관계를 원자적으로 생성
+     * A→B와 B→A 관계를 동시에 생성하여 데이터 정합성 보장
+     *
+     * @param userId1 첫 번째 사용자 ID
+     * @param userId2 두 번째 사용자 ID
+     */
+    fun createBidirectionalFriendship(userId1: UserId, userId2: UserId)
+
+    /**
+     * 양방향 친구 관계를 원자적으로 삭제
+     * A→B와 B→A 관계를 동시에 삭제하여 데이터 정합성 보장
+     *
+     * @param userId1 첫 번째 사용자 ID
+     * @param userId2 두 번째 사용자 ID
+     */
+    fun removeBidirectionalFriendship(userId1: UserId, userId2: UserId)
 }

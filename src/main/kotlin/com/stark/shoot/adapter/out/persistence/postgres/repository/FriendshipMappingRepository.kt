@@ -24,6 +24,43 @@ interface FriendshipMappingRepository : JpaRepository<FriendshipMappingEntity, L
      */
     fun findAllByUserIdAndFriendIdIn(userId: Long, friendIds: List<Long>): List<FriendshipMappingEntity>
 
+    /**
+     * 양방향 친구 관계를 원자적으로 생성
+     * A→B와 B→A 관계를 동시에 생성하여 데이터 정합성 보장
+     *
+     * @param userId1 첫 번째 사용자 ID
+     * @param userId2 두 번째 사용자 ID
+     */
+    @Modifying
+    @Query(nativeQuery = true, value = """
+        INSERT INTO friendship_map (user_id, friend_id, created_at, updated_at)
+        VALUES (:userId1, :userId2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+               (:userId2, :userId1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT (user_id, friend_id) DO NOTHING
+    """)
+    fun createBidirectional(
+        @Param("userId1") userId1: Long,
+        @Param("userId2") userId2: Long
+    )
+
+    /**
+     * 양방향 친구 관계를 원자적으로 삭제
+     * A→B와 B→A 관계를 동시에 삭제하여 데이터 정합성 보장
+     *
+     * @param userId1 첫 번째 사용자 ID
+     * @param userId2 두 번째 사용자 ID
+     */
+    @Modifying
+    @Query("""
+        DELETE FROM FriendshipMappingEntity f
+        WHERE (f.user.id = :userId1 AND f.friend.id = :userId2)
+           OR (f.user.id = :userId2 AND f.friend.id = :userId1)
+    """)
+    fun deleteBidirectional(
+        @Param("userId1") userId1: Long,
+        @Param("userId2") userId2: Long
+    )
+
     @Modifying
     @Query("""
         DELETE

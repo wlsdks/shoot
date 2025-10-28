@@ -47,6 +47,22 @@ class FriendshipCommandAdapter(
         friendshipMappingRepository.deleteByUserIdAndFriendId(userId.value, friendId.value)
     }
 
+    /**
+     * 양방향 친구 관계를 원자적으로 생성
+     * 단일 쿼리로 A→B와 B→A 관계를 동시에 생성하여 데이터 정합성 보장
+     */
+    override fun createBidirectionalFriendship(userId1: UserId, userId2: UserId) {
+        friendshipMappingRepository.createBidirectional(userId1.value, userId2.value)
+    }
+
+    /**
+     * 양방향 친구 관계를 원자적으로 삭제
+     * 단일 쿼리로 A→B와 B→A 관계를 동시에 삭제하여 데이터 정합성 보장
+     */
+    override fun removeBidirectionalFriendship(userId1: UserId, userId2: UserId) {
+        friendshipMappingRepository.deleteBidirectional(userId1.value, userId2.value)
+    }
+
     private fun mapToDomain(
         entity: FriendshipMappingEntity
     ): Friendship {

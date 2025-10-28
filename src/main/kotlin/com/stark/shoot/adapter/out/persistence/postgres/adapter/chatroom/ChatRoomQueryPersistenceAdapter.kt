@@ -22,38 +22,52 @@ class ChatRoomQueryPersistenceAdapter(
         return chatRoomMapper.toDomain(chatRoomEntity, participants)
     }
 
+    /**
+     * 사용자가 참여 중인 채팅방 목록 조회
+     * 최적화: 2번의 쿼리로 모든 데이터 조회 (기존 3번 → 2번)
+     */
     override fun findByParticipantId(participantId: UserId): List<ChatRoom> {
-        val chatRoomUsers = chatRoomUserRepository.findByUserId(participantId.value)
-        if (chatRoomUsers.isEmpty()) {
+        // 1. 채팅방 ID 목록 조회 (최근 활동 순 정렬 포함)
+        val chatRoomIds = chatRoomRepository.findChatRoomIdsByUserId(participantId.value)
+        if (chatRoomIds.isEmpty()) {
             return emptyList()
         }
 
-        val chatRoomIds = chatRoomUsers.map { it.chatRoom.id }
-        val chatRoomEntities = chatRoomRepository.findAllById(chatRoomIds)
+        // 2. 채팅방 엔티티를 정렬된 순서로 배치 조회
+        val chatRoomEntities = chatRoomRepository.findAllByIdOrderByLastActiveAtDesc(chatRoomIds)
 
-        // N+1 방지: 모든 채팅방의 참여자를 한 번의 쿼리로 조회
+        // 3. 모든 참여자를 한 번의 쿼리로 배치 조회
         val allParticipants = chatRoomUserRepository.findAllByChatRoomIds(chatRoomIds)
         val participantsByChatRoomId = allParticipants.groupBy { it.chatRoom.id }
 
+        // 4. 정렬된 순서대로 도메인 객체 생성
         return chatRoomEntities.map { entity ->
             val participants = participantsByChatRoomId[entity.id] ?: emptyList()
             chatRoomMapper.toDomain(entity, participants)
         }
     }
 
+    /**
+     * 사용자가 고정한 채팅방 목록 조회
+     * 최적화: 2번의 쿼리로 모든 데이터 조회
+     */
     override fun findByUserId(userId: UserId): List<ChatRoom> {
+        // 1. 고정된 채팅방 사용자 조회
         val pinnedChatRoomUsers = chatRoomUserRepository.findByUserIdAndIsPinnedTrue(userId.value)
         if (pinnedChatRoomUsers.isEmpty()) {
             return emptyList()
         }
 
         val pinnedRoomIds = pinnedChatRoomUsers.map { it.chatRoom.id }
-        val chatRoomEntities = chatRoomRepository.findAllById(pinnedRoomIds)
 
-        // N+1 방지: 모든 채팅방의 참여자를 한 번의 쿼리로 조회
+        // 2. 채팅방 엔티티를 정렬된 순서로 배치 조회
+        val chatRoomEntities = chatRoomRepository.findAllByIdOrderByLastActiveAtDesc(pinnedRoomIds)
+
+        // 3. 모든 참여자를 한 번의 쿼리로 배치 조회
         val allParticipants = chatRoomUserRepository.findAllByChatRoomIds(pinnedRoomIds)
         val participantsByChatRoomId = allParticipants.groupBy { it.chatRoom.id }
 
+        // 4. 정렬된 순서대로 도메인 객체 생성
         return chatRoomEntities.map { entity ->
             val participants = participantsByChatRoomId[entity.id] ?: emptyList()
             chatRoomMapper.toDomain(entity, participants)

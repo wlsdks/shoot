@@ -19,8 +19,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        default_batch_fetch_size: 10
+        # N+1 쿼리 방지를 위한 배치 페치 사이즈 (10 → 100)
+        default_batch_fetch_size: 100
         highlight_sql: true
+        # 배치 INSERT/UPDATE 최적화
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
 
   # Flyway 설정
   flyway:

@@ -10,7 +10,7 @@ import java.time.Instant
  * 메시지 수정 이벤트
  * 메시지가 수정되었을 때 발행되는 도메인 이벤트
  *
- * WebSocket 브로드캐스트는 트랜잭션 커밋 후에 수행되도록
+ * WebSocket 브로드캐스트는 MongoDB 저장 완료 후에 수행되도록
  * @TransactionalEventListener에서 처리됩니다.
  */
 data class MessageEditedEvent(

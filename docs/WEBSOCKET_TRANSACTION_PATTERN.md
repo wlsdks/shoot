@@ -20,42 +20,44 @@
 
 ## 문제점: 기존 패턴
 
-### ❌ 잘못된 패턴: 트랜잭션 내에서 WebSocket 전송
+### ❌ 잘못된 패턴: 저장 작업과 WebSocket 전송 결합
 
 ```kotlin
-@Transactional  // 트랜잭션 시작
 fun editMessage(command: EditMessageCommand): ChatMessage {
-    val message = messageRepository.save(updatedMessage)  // 1. DB 저장
+    val message = messageRepository.save(updatedMessage)  // 1. MongoDB 저장
 
     webSocketBroker.sendMessage("/topic/chat", message)   // 2. WebSocket 전송
-    // ⚠️ WebSocket 실패 시 예외 발생 → 트랜잭션 롤백 → 메시지 유실!
+    // ⚠️ WebSocket 실패 시 예외 발생 → 메서드 실패 → 메시지 유실!
 
     return message
-}  // 트랜잭션 커밋
+}
 ```
+
+**MongoDB 컨텍스트**: MongoDB 단일 document 저장은 atomic하지만, WebSocket 전송이 같은 메서드에 있으면 WebSocket 실패 시 예외가 전파되어 전체 작업이 실패한 것처럼 보일 수 있습니다.
 
 ### 🚨 문제점
 
 | 문제 | 설명 | 영향 |
 |------|------|------|
-| **메시지 유실 위험** | WebSocket 전송 실패 시 트랜잭션 롤백 | 사용자가 보낸 메시지가 DB에서 사라짐 |
-| **트랜잭션 결합** | 외부 시스템(WebSocket)과 트랜잭션 결합 | 시스템 안정성 저하 |
-| **복구 불가능** | 메시지가 DB에 없으면 재전송 불가 | 데이터 손실 |
+| **메시지 유실 위험** | WebSocket 전송 실패 시 예외 전파로 작업 실패 | 사용자가 보낸 메시지가 저장되지 않음 |
+| **작업 결합** | 외부 시스템(WebSocket)과 저장 작업 결합 | 시스템 안정성 저하 |
+| **복구 불가능** | 메시지가 MongoDB에 없으면 재전송 불가 | 데이터 손실 |
 
 ### 실제 시나리오
 
 ```
 사용자: "중요한 메시지" 전송
 ↓
-서버: DB에 저장 시작
+서버: MongoDB에 저장 시작
 ↓
 서버: WebSocket 전송 시도
 ↓
 WebSocket 서버: 연결 끊김 (네트워크 문제)
 ↓
-서버: 예외 발생 → 트랜잭션 롤백
+서버: 예외 발생 → 메서드 실패
 ↓
-결과: 메시지가 DB에서 삭제됨 ❌
+결과: MongoDB 저장도 실패 (save() 전에 실패) ❌
+     또는 저장 성공했지만 예외로 인해 실패로 처리됨
 사용자: 메시지가 전송되지 않았음을 알 수 없음 😢
 ```
 
@@ -63,32 +65,35 @@ WebSocket 서버: 연결 끊김 (네트워크 문제)
 
 ## 해결책: 업계 표준 패턴
 
-### ✅ 올바른 패턴: DB 저장 → 커밋 → WebSocket 전송
+### ✅ 올바른 패턴: MongoDB 저장 → 완료 확인 → WebSocket 전송
 
 ```kotlin
-@Transactional  // 트랜잭션 시작
+// @Transactional 불필요 (MongoDB 단일 document는 atomic)
 fun editMessage(command: EditMessageCommand): ChatMessage {
-    val message = messageRepository.save(updatedMessage)  // 1. DB 저장
+    val message = messageRepository.save(updatedMessage)  // 1. MongoDB 저장 (atomic)
 
     eventPublisher.publish(MessageEditedEvent(message))    // 2. 이벤트 발행
 
     return message
-}  // 3. 트랜잭션 커밋 ✅
+}  // 3. 저장 완료 ✅
 
-// 별도 리스너 (트랜잭션 외부)
+// 별도 리스너 (저장 완료 후)
 @TransactionalEventListener(phase = AFTER_COMMIT)
 fun handleMessageEdited(event: MessageEditedEvent) {
     webSocketBroker.sendMessage("/topic/chat", event.message)  // 4. WebSocket 전송
-    // ⚠️ 실패해도 메시지는 이미 DB에 저장됨 ✅
+    // ⚠️ 실패해도 메시지는 이미 MongoDB에 저장됨 ✅
 }
 ```
 
 ### 🎯 핵심 원칙
 
 ```
-1️⃣ DB에 영속화 (트랜잭션 내)
-2️⃣ 트랜잭션 커밋
-3️⃣ WebSocket 브로드캐스트 (트랜잭션 밖)
+1️⃣ MongoDB에 영속화 (단일 document는 atomic 보장)
+2️⃣ 저장 완료 확인
+3️⃣ WebSocket 브로드캐스트 (저장 완료 후)
+
+💡 MongoDB 특성: 단일 document 작업은 트랜잭션 없이도 atomic
+   @TransactionalEventListener는 여전히 "메서드 완료 후" 의미로 작동
 ```
 
 ---
@@ -126,7 +131,7 @@ class MessageEventWebSocketListener(
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMessageEdited(event: MessageEditedEvent) {
         try {
-            // 트랜잭션 커밋 후 실행 → 메시지는 이미 DB에 안전하게 저장됨
+            // MongoDB 저장 완료 후 실행 → 메시지는 이미 안전하게 저장됨
             webSocketMessageBroker.sendMessage(
                 "/topic/message/edit/${event.roomId.value}",
                 event.message
@@ -148,8 +153,7 @@ class MessageEventWebSocketListener(
 WebSocket 코드 제거, 이벤트 발행만:
 
 ```kotlin
-@Transactional
-@UseCase
+@UseCase  // @Transactional 불필요 (MongoDB 단일 document는 atomic)
 class EditMessageService(
     private val messageCommandPort: MessageCommandPort,
     private val eventPublisher: EventPublishPort
@@ -159,10 +163,10 @@ class EditMessageService(
         // 1. 메시지 수정
         val message = messageEditDomainService.editMessage(existing, command.newContent)
 
-        // 2. DB에 영속화 (트랜잭션 내)
+        // 2. MongoDB에 영속화 (atomic 작업)
         val savedMessage = messageCommandPort.save(message)
 
-        // 3. 이벤트 발행 (리스너가 트랜잭션 커밋 후 WebSocket 전송)
+        // 3. 이벤트 발행 (리스너가 저장 완료 후 WebSocket 전송)
         eventPublisher.publish(
             MessageEditedEvent.create(
                 messageId = savedMessage.id!!,
@@ -174,7 +178,7 @@ class EditMessageService(
             )
         )
 
-        return savedMessage  // 4. 트랜잭션 커밋
+        return savedMessage  // 4. 저장 완료
     }
 }
 ```
@@ -188,11 +192,13 @@ class EditMessageService(
 ```
 WebSocket 실패 시나리오:
 
-기존 패턴 (트랜잭션 내):
-DB 저장 → WebSocket 실패 → 롤백 → 메시지 유실 ❌
+기존 패턴 (저장과 전송 결합):
+MongoDB 저장 → WebSocket 실패 → 예외 발생 → 메시지 유실 ❌
 
-새 패턴 (트랜잭션 밖):
-DB 저장 → 커밋 ✅ → WebSocket 실패 → 메시지는 DB에 존재 ✅
+새 패턴 (저장 완료 후 전송):
+MongoDB 저장 → 완료 ✅ → WebSocket 실패 → 메시지는 MongoDB에 존재 ✅
+
+💡 MongoDB 단일 document 작업은 atomic하므로 save() 성공 시 즉시 영속화됨
 ```
 
 ### ✅ 복구 가능성
@@ -206,11 +212,12 @@ fun reconnect() {
 }
 ```
 
-### ✅ 트랜잭션 독립성
+### ✅ 작업 독립성
 
-- 외부 시스템(WebSocket, Redis, Kafka) 실패가 트랜잭션에 영향 없음
+- 외부 시스템(WebSocket, Redis, Kafka) 실패가 저장 작업에 영향 없음
 - 시스템 안정성 향상
 - 각 컴포넌트가 독립적으로 실패/복구 가능
+- MongoDB 저장 성공 여부와 WebSocket 전송 성공 여부가 분리됨
 
 ### ✅ 확장성
 
@@ -273,15 +280,15 @@ Client → HTTP API → Chat Service
 ### Before (잘못된 패턴)
 
 ```kotlin
-@Transactional
+@UseCase
 class EditMessageService(
     private val messageCommandPort: MessageCommandPort,
     private val webSocketBroker: WebSocketMessageBroker  // ❌
 ) {
     override fun editMessage(command: EditMessageCommand): ChatMessage {
-        val saved = messageCommandPort.save(message)
+        val saved = messageCommandPort.save(message)  // MongoDB 저장
 
-        // ❌ 트랜잭션 내에서 WebSocket 전송
+        // ❌ 저장 작업과 WebSocket 전송이 결합됨
         webSocketBroker.sendMessage("/topic/chat", saved)
 
         return saved
@@ -290,28 +297,29 @@ class EditMessageService(
 ```
 
 **문제점**:
-- WebSocket 실패 시 메시지 유실
-- 트랜잭션과 외부 시스템 결합
+- WebSocket 실패 시 예외 발생으로 메시지 유실 가능
+- 저장 작업과 외부 시스템(WebSocket) 결합
+- WebSocket 장애가 메시지 저장에 영향
 
 ### After (올바른 패턴)
 
 ```kotlin
-@Transactional
+@UseCase  // @Transactional 불필요 (MongoDB 단일 document는 atomic)
 class EditMessageService(
     private val messageCommandPort: MessageCommandPort,
     private val eventPublisher: EventPublishPort  // ✅
 ) {
     override fun editMessage(command: EditMessageCommand): ChatMessage {
-        val saved = messageCommandPort.save(message)
+        val saved = messageCommandPort.save(message)  // MongoDB 저장 (atomic)
 
         // ✅ 이벤트 발행만 (WebSocket은 리스너가 처리)
         eventPublisher.publish(MessageEditedEvent(saved))
 
-        return saved
-    }  // 트랜잭션 커밋
+        return saved  // 저장 완료
+    }
 }
 
-// ✅ 별도 리스너에서 WebSocket 처리
+// ✅ 별도 리스너에서 WebSocket 처리 (저장 완료 후)
 @Component
 class MessageEventWebSocketListener(
     private val webSocketBroker: WebSocketMessageBroker
@@ -324,8 +332,9 @@ class MessageEventWebSocketListener(
 ```
 
 **장점**:
-- 메시지는 항상 DB에 저장됨
-- WebSocket 실패해도 안전
+- 메시지는 항상 MongoDB에 저장됨 (atomic 보장)
+- WebSocket 실패해도 메시지 안전
+- 저장 작업과 WebSocket 전송이 독립적
 - 시스템 확장 가능
 
 ---
@@ -363,3 +372,5 @@ class MessageEventWebSocketListener(
 ---
 
 **✅ 결론**: 이 패턴은 Slack, Discord 등 프로덕션 시스템에서 검증된 표준이며, 메시지 유실을 방지하고 시스템 안정성을 크게 향상시킵니다.
+
+**💡 MongoDB 컨텍스트**: 우리 프로젝트는 MongoDB를 사용하므로 @Transactional이 불필요합니다. 단일 document 작업은 자체적으로 atomic하며, @TransactionalEventListener는 여전히 "저장 완료 후" 의미로 작동하여 패턴이 유효하게 동작합니다.

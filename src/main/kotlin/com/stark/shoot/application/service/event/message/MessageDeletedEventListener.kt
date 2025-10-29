@@ -5,8 +5,8 @@ import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.event.MessageDeletedEvent
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.transaction.event.TransactionPhase
-import org.springframework.transaction.event.TransactionalEventListener
+import org.springframework.context.event.EventListener
+import org.springframework.scheduling.annotation.Async
 
 /**
  * 메시지 삭제 이벤트 리스너
@@ -24,15 +24,18 @@ class MessageDeletedEventListener(
 
     /**
      * 메시지 삭제 이벤트 처리
-     * 트랜잭션 커밋 후 실행되어 데이터 일관성을 보장합니다.
+     * MongoDB 저장 완료 후 비동기로 실행되어 스레드 메시지 삭제를 처리합니다.
      *
      * 처리 내용:
      * 1. 삭제 로그 기록
      * 2. 스레드 메시지 삭제 (삭제된 메시지가 스레드 루트인 경우)
      *
+     * @Async: DB 쓰기 작업이 포함되어 있어 비동기 처리
+     *
      * @param event MessageDeletedEvent
      */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Async
+    @EventListener
     fun handleMessageDeleted(event: MessageDeletedEvent) {
         logger.info {
             "Message deleted: " +

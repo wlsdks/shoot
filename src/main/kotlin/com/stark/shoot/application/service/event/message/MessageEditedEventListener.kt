@@ -3,8 +3,7 @@ package com.stark.shoot.application.service.event.message
 import com.stark.shoot.domain.event.MessageEditedEvent
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.transaction.event.TransactionPhase
-import org.springframework.transaction.event.TransactionalEventListener
+import org.springframework.context.event.EventListener
 
 /**
  * 메시지 수정 이벤트 리스너
@@ -18,11 +17,11 @@ class MessageEditedEventListener {
 
     /**
      * 메시지 수정 이벤트 처리
-     * 트랜잭션 커밋 후 실행되어 데이터 일관성을 보장합니다.
+     * MongoDB 저장 완료 후 실행되어 데이터 일관성을 보장합니다.
      *
      * @param event MessageEditedEvent
      */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     fun handleMessageEdited(event: MessageEditedEvent) {
         logger.info {
             "Message edited: " +

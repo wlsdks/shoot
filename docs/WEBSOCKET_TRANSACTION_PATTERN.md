@@ -65,7 +65,7 @@ WebSocket 서버: 연결 끊김 (네트워크 문제)
 
 ## 해결책: 업계 표준 패턴
 
-### ✅ 올바른 패턴: MongoDB 저장 → 완료 확인 → WebSocket 전송
+### ✅ 올바른 패턴: MongoDB 저장 → 이벤트 발행 → 비동기 WebSocket 전송
 
 ```kotlin
 // @Transactional 불필요 (MongoDB 단일 document는 atomic)
@@ -74,13 +74,15 @@ fun editMessage(command: EditMessageCommand): ChatMessage {
 
     eventPublisher.publish(MessageEditedEvent(message))    // 2. 이벤트 발행
 
-    return message
-}  // 3. 저장 완료 ✅
+    return message  // 3. 저장 완료, 즉시 반환 ✅
+}
 
-// 별도 리스너 (저장 완료 후)
-@TransactionalEventListener(phase = AFTER_COMMIT)
+// 별도 리스너 (비동기 실행)
+@Async
+@EventListener
 fun handleMessageEdited(event: MessageEditedEvent) {
-    webSocketBroker.sendMessage("/topic/chat", event.message)  // 4. WebSocket 전송
+    // 4. 별도 스레드에서 WebSocket 전송
+    webSocketBroker.sendMessage("/topic/chat", event.message)
     // ⚠️ 실패해도 메시지는 이미 MongoDB에 저장됨 ✅
 }
 ```
@@ -89,18 +91,47 @@ fun handleMessageEdited(event: MessageEditedEvent) {
 
 ```
 1️⃣ MongoDB에 영속화 (단일 document는 atomic 보장)
-2️⃣ 저장 완료 확인
-3️⃣ WebSocket 브로드캐스트 (저장 완료 후)
+2️⃣ 이벤트 발행 (Spring ApplicationEvent)
+3️⃣ 비동기 WebSocket 브로드캐스트 (@Async + @EventListener)
 
 💡 MongoDB 특성: 단일 document 작업은 트랜잭션 없이도 atomic
-   @TransactionalEventListener는 여전히 "메서드 완료 후" 의미로 작동
+💡 @Async 사용: @TransactionalEventListener는 트랜잭션 없으면 동작 안함
+                @Async + @EventListener로 비동기 처리
 ```
 
 ---
 
 ## 구현 방법
 
-### 1. 도메인 이벤트 수정
+### 1. Async 설정 추가
+
+비동기 처리를 위한 설정 추가:
+
+```kotlin
+@Configuration
+@EnableAsync
+class AsyncConfig : AsyncConfigurer {
+
+    @Bean(name = ["taskExecutor"])
+    override fun getAsyncExecutor(): Executor {
+        val executor = ThreadPoolTaskExecutor()
+        executor.corePoolSize = 5
+        executor.maxPoolSize = 20
+        executor.queueCapacity = 100
+        executor.setThreadNamePrefix("async-")
+        executor.initialize()
+        return executor
+    }
+
+    override fun getAsyncUncaughtExceptionHandler(): AsyncUncaughtExceptionHandler {
+        return AsyncUncaughtExceptionHandler { ex, method, params ->
+            logger.error(ex) { "Async method failed: ${method.name}" }
+        }
+    }
+}
+```
+
+### 2. 도메인 이벤트 수정
 
 이벤트에 WebSocket 전송에 필요한 메시지 객체 포함:
 
@@ -117,9 +148,9 @@ data class MessageEditedEvent(
 ) : DomainEvent
 ```
 
-### 2. 이벤트 리스너 생성
+### 3. 이벤트 리스너 생성
 
-`@TransactionalEventListener`로 커밋 후 WebSocket 전송:
+`@Async + @EventListener`로 비동기 WebSocket 전송:
 
 ```kotlin
 @Component
@@ -128,10 +159,11 @@ class MessageEventWebSocketListener(
 ) {
     private val logger = KotlinLogging.logger {}
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Async
+    @EventListener
     fun handleMessageEdited(event: MessageEditedEvent) {
         try {
-            // MongoDB 저장 완료 후 실행 → 메시지는 이미 안전하게 저장됨
+            // 별도 스레드에서 실행 → 메시지는 이미 MongoDB에 저장됨
             webSocketMessageBroker.sendMessage(
                 "/topic/message/edit/${event.roomId.value}",
                 event.message
@@ -139,16 +171,16 @@ class MessageEventWebSocketListener(
 
             logger.debug { "WebSocket 전송 완료: messageId=${event.messageId.value}" }
         } catch (e: Exception) {
-            // WebSocket 실패는 로깅만 (메시지는 이미 DB에 있음)
+            // WebSocket 실패는 로깅만 (메시지는 이미 MongoDB에 있음)
             logger.error(e) {
-                "WebSocket 전송 실패 (메시지는 DB에 저장됨): messageId=${event.messageId.value}"
+                "WebSocket 전송 실패 (메시지는 MongoDB에 저장됨): messageId=${event.messageId.value}"
             }
         }
     }
 }
 ```
 
-### 3. 서비스 리팩토링
+### 4. 서비스 리팩토링
 
 WebSocket 코드 제거, 이벤트 발행만:
 
@@ -319,13 +351,15 @@ class EditMessageService(
     }
 }
 
-// ✅ 별도 리스너에서 WebSocket 처리 (저장 완료 후)
+// ✅ 별도 리스너에서 WebSocket 처리 (비동기)
 @Component
 class MessageEventWebSocketListener(
     private val webSocketBroker: WebSocketMessageBroker
 ) {
-    @TransactionalEventListener(phase = AFTER_COMMIT)
+    @Async
+    @EventListener
     fun handleMessageEdited(event: MessageEditedEvent) {
+        // 별도 스레드에서 실행
         webSocketBroker.sendMessage("/topic/chat", event.message)
     }
 }
@@ -373,4 +407,15 @@ class MessageEventWebSocketListener(
 
 **✅ 결론**: 이 패턴은 Slack, Discord 등 프로덕션 시스템에서 검증된 표준이며, 메시지 유실을 방지하고 시스템 안정성을 크게 향상시킵니다.
 
-**💡 MongoDB 컨텍스트**: 우리 프로젝트는 MongoDB를 사용하므로 @Transactional이 불필요합니다. 단일 document 작업은 자체적으로 atomic하며, @TransactionalEventListener는 여전히 "저장 완료 후" 의미로 작동하여 패턴이 유효하게 동작합니다.
+**💡 MongoDB + Spring Events 컨텍스트**:
+- MongoDB 단일 document 작업은 atomic하므로 @Transactional 불필요
+- @TransactionalEventListener는 트랜잭션 없으면 이벤트가 무시됨 (discarded)
+- **해결책**: @Async + @EventListener 패턴 사용
+  - MongoDB 저장 완료 후 이벤트 발행
+  - 별도 스레드에서 비동기 WebSocket 전송
+  - Slack/Discord 패턴과 정확히 일치 (저장 → 브로드캐스트 분리)
+  - API 응답 속도 향상 (WebSocket 전송 대기 불필요)
+
+**관련 파일**:
+- `infrastructure/config/AsyncConfig.kt` - 비동기 설정
+- `application/service/message/listener/MessageEventWebSocketListener.kt` - WebSocket 리스너

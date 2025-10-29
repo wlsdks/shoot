@@ -5,15 +5,15 @@ import com.stark.shoot.domain.event.MessageDeletedEvent
 import com.stark.shoot.domain.event.MessageEditedEvent
 import com.stark.shoot.infrastructure.util.WebSocketResponseBuilder
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.context.event.EventListener
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
-import org.springframework.transaction.event.TransactionPhase
-import org.springframework.transaction.event.TransactionalEventListener
 
 /**
  * 메시지 이벤트에 대한 WebSocket 브로드캐스트 리스너
  *
  * Slack, Discord 등 업계 표준 패턴:
- * 1. 메시지를 DB에 영속화 (MongoDB atomic 작업)
+ * 1. 메시지를 MongoDB에 영속화 (atomic 작업)
  * 2. 저장 완료 확인
  * 3. WebSocket으로 브로드캐스트 (비동기 처리)
  *
@@ -22,11 +22,10 @@ import org.springframework.transaction.event.TransactionalEventListener
  * - 작업 독립성: 외부 시스템(WebSocket) 실패가 저장 작업에 영향 없음
  * - 복구 가능성: 클라이언트가 재연결 시 MongoDB에서 메시지를 가져올 수 있음
  *
- * @TransactionalEventListener(phase = AFTER_COMMIT)을 사용하여
- * MongoDB 저장 작업이 완료된 후에 WebSocket 전송을 수행합니다.
- *
- * 참고: MongoDB 단일 document 작업은 atomic하므로 트랜잭션이 없어도
- * AFTER_COMMIT은 여전히 "이벤트 발행 메서드 완료 후"를 의미합니다.
+ * @Async를 사용하여 비동기 처리:
+ * - MongoDB 저장 완료 후 별도 스레드에서 WebSocket 전송
+ * - 저장 작업이 빠르게 완료됨
+ * - WebSocket 전송 지연이 API 응답에 영향 없음
  */
 @Component
 class MessageEventWebSocketListener(
@@ -37,10 +36,13 @@ class MessageEventWebSocketListener(
     /**
      * 메시지 수정 이벤트 처리
      *
-     * MongoDB 저장 완료 후에 실행되므로 메시지가 이미 DB에 안전하게 저장된 상태입니다.
+     * MongoDB 저장 완료 후 비동기로 실행되므로 메시지가 이미 안전하게 저장된 상태입니다.
      * WebSocket 전송이 실패하더라도 메시지는 유실되지 않습니다.
+     *
+     * @Async: 별도 스레드에서 실행되어 API 응답 속도에 영향 없음
      */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Async
+    @EventListener
     fun handleMessageEdited(event: MessageEditedEvent) {
         try {
             // 채팅방의 모든 참여자에게 메시지 편집 알림
@@ -72,10 +74,13 @@ class MessageEventWebSocketListener(
     /**
      * 메시지 삭제 이벤트 처리
      *
-     * MongoDB 저장 완료 후에 실행되므로 메시지가 이미 DB에서 삭제 처리된 상태입니다.
+     * MongoDB 저장 완료 후 비동기로 실행되므로 메시지가 이미 삭제 처리된 상태입니다.
      * WebSocket 전송이 실패하더라도 메시지 삭제 상태는 유지됩니다.
+     *
+     * @Async: 별도 스레드에서 실행되어 API 응답 속도에 영향 없음
      */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Async
+    @EventListener
     fun handleMessageDeleted(event: MessageDeletedEvent) {
         try {
             // 채팅방의 모든 참여자에게 메시지 삭제 알림

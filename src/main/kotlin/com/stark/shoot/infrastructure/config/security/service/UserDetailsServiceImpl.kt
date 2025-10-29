@@ -14,10 +14,13 @@ class UserDetailsServiceImpl(
     override fun loadUserByUsername(
         username: String?
     ): UserDetails {
-        val username = Username.from(username!!)
+        val usernameValue = username
+            ?: throw IllegalArgumentException("Username cannot be null")
+
+        val usernameVo = Username.from(usernameValue)
 
         // 사용자 조회
-        val user = username.let { userQueryPort.findByUsername(it) }
+        val user = userQueryPort.findByUsername(usernameVo)
             ?: throw IllegalArgumentException("User not found")
 
         // UserDetails로 변환

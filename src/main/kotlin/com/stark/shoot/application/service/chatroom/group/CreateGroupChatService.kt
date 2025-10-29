@@ -60,8 +60,11 @@ class CreateGroupChatService(
         val savedChatRoom = chatRoomCommandPort.save(chatRoom)
 
         // 채팅방 생성 이벤트 발행
+        val roomId = savedChatRoom.id
+            ?: throw IllegalStateException("ChatRoom ID should not be null after save operation")
+
         val createdEvent = ChatRoomCreatedEvent(
-            roomId = savedChatRoom.id!!,
+            roomId = roomId,
             userId = createdBy
         )
         eventPublishPort.publishEvent(createdEvent)

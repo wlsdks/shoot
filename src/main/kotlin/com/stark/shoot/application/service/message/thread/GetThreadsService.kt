@@ -35,7 +35,7 @@ class GetThreadsService(
         }
 
         return rootMessages.map { message ->
-            val count = replyCounts[message.id!!] ?: 0L
+            val count = message.id?.let { replyCounts[it] } ?: 0L
             ThreadSummaryDto(
                 rootMessage = chatMessageMapper.toDto(message),
                 replyCount = count

@@ -80,8 +80,8 @@ class PaginationMessageSyncService(
 
         // lastMessageId가 null이 아닌 경우에만 ObjectId로 변환
         val hasLastId = !request.lastMessageId.isNullOrBlank()
-        val lastMessageObjectId = if (hasLastId) {
-            MessageId.from(request.lastMessageId!!)
+        val lastMessageObjectId = if (hasLastId && request.lastMessageId != null) {
+            MessageId.from(request.lastMessageId)
         } else {
             MessageId.from("default-message-id")
         }

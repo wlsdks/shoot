@@ -92,7 +92,10 @@ class UserCodeController(
         val targetUser = findUserUseCase.findByUserCode(findCommand)
             ?: throw ResourceNotFoundException("해당 코드(${request.targetCode}targetCode)를 가진 유저가 없습니다.")
 
-        val requestCommand = SendFriendRequestFromCodeCommand.of(request, targetUser.id!!)
+        val targetUserId = targetUser.id
+            ?: throw IllegalStateException("User ID should not be null for existing user")
+
+        val requestCommand = SendFriendRequestFromCodeCommand.of(request, targetUserId)
         friendRequestUseCase.sendFriendRequestFromUserCode(requestCommand)
         return ResponseDto.success(Unit, "친구 요청을 보냈습니다.")
     }

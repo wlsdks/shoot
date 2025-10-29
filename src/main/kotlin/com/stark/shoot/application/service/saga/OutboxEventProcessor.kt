@@ -129,8 +129,11 @@ class OutboxEventProcessor(
      */
     private fun moveToDLQ(outboxEvent: OutboxEventEntity) {
         try {
+            val eventId = outboxEvent.id
+                ?: throw IllegalStateException("Cannot move event to DLQ: event ID is null")
+
             val dlqEvent = OutboxDeadLetterEntity(
-                originalEventId = outboxEvent.id!!,
+                originalEventId = eventId,
                 sagaId = outboxEvent.sagaId,
                 sagaState = outboxEvent.sagaState,
                 eventType = outboxEvent.eventType,

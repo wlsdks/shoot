@@ -100,7 +100,7 @@ class UserQueryPersistenceAdapter(
 
         // IN 쿼리로 한 번에 존재하는 사용자 조회
         val existingUserIds = userRepository.findAllById(userIdValues)
-            .map { it.id!! }
+            .mapNotNull { it.id }
             .toSet()
 
         // 존재하지 않는 사용자 ID 필터링
@@ -178,7 +178,7 @@ class UserQueryPersistenceAdapter(
         // 정방향 친구 관계 조회 (내가 상대방을 친구로 추가한 경우)
         val outgoingFriendships = friendshipMappingRepository
             .findAllByUserIdAndFriendIdIn(userId.value, targetIdValues)
-            .map { UserId.from(it.friend.id!!) }
+            .mapNotNull { it.friend.id?.let { id -> UserId.from(id) } }
             .toSet()
 
         return outgoingFriendships
@@ -199,7 +199,7 @@ class UserQueryPersistenceAdapter(
                 targetIdValues,
                 FriendRequestStatus.PENDING
             )
-            .map { UserId.from(it.receiver.id!!) }
+            .mapNotNull { it.receiver.id?.let { id -> UserId.from(id) } }
             .toSet()
 
         return friendRequests
@@ -220,7 +220,7 @@ class UserQueryPersistenceAdapter(
                 userId.value,
                 FriendRequestStatus.PENDING
             )
-            .map { UserId.from(it.sender.id!!) }
+            .mapNotNull { it.sender.id?.let { id -> UserId.from(id) } }
             .toSet()
 
         return friendRequests

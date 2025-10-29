@@ -51,8 +51,10 @@ class ChatRoomCommandPersistenceAdapter(
             }
         }
 
-        logger.error(lastException) { "Optimistic lock 재시도 횟수 초과: roomId=${chatRoom.id}" }
-        throw lastException!!
+        val exception = lastException
+            ?: IllegalStateException("Optimistic lock retry failed but no exception was captured")
+        logger.error(exception) { "Optimistic lock 재시도 횟수 초과: roomId=${chatRoom.id}" }
+        throw exception
     }
 
     /**

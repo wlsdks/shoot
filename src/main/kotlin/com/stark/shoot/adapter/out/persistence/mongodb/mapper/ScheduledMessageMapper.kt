@@ -79,8 +79,11 @@ class ScheduledMessageMapper() {
      * ScheduledMessage를 ScheduledMessageResponseDto로 변환
      */
     fun toScheduledMessageResponseDto(domain: ScheduledMessage): ScheduledMessageResponseDto {
+        val messageId = domain.id?.toString()
+            ?: throw IllegalStateException("Scheduled message ID should not be null when converting to response")
+
         return ScheduledMessageResponseDto(
-            id = domain.id!!.toString(),
+            id = messageId,
             roomId = domain.roomId,
             senderId = domain.senderId,
             content = MessageContentResponseDto(

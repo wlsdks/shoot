@@ -80,8 +80,11 @@ class ToggleMessageReactionService(
                 )
 
                 // 요청자에게 성공 응답 전송
+                val messageId = updatedMessage.id?.value
+                    ?: throw IllegalStateException("Message ID should not be null after save operation")
+
                 val reactionResponse = ReactionResponse.from(
-                    messageId = updatedMessage.id!!.value,
+                    messageId = messageId,
                     reactions = updatedMessage.reactions,
                     updatedAt = updatedMessage.updatedAt?.toString() ?: ""
                 )

@@ -134,7 +134,7 @@ class RecommendFriendAdapter(
 
         // 시작 사용자의 친구들을 큐에 추가 (거리 1)
         val directFriends = friendshipMappingRepository.findAllByUserId(userId.value)
-            .map { it.friend.id!! }
+            .mapNotNull { it.friend.id }
 
         // 친구가 없으면 빈 리스트 반환하지 않고 랜덤 유저 추천
         if (directFriends.isEmpty()) {

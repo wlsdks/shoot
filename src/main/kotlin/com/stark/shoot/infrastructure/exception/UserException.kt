@@ -60,4 +60,11 @@ sealed class UserException(
         userId: Long,
         message: String = "참여하지 않은 사용자입니다: $userId"
     ) : UserException(message, "NOT_PARTICIPANT")
+
+    /**
+     * 인증 정보가 올바르지 않을 때 발생하는 예외 (비밀번호 불일치 등)
+     */
+    class InvalidCredentials(
+        message: String = "인증 정보가 올바르지 않습니다."
+    ) : UserException(message, "INVALID_CREDENTIALS")
 }

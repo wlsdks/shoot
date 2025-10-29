@@ -7,6 +7,7 @@ import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.token.RefreshTokenCommandPort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
+import com.stark.shoot.infrastructure.exception.UserException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.transaction.annotation.Transactional
 
@@ -28,11 +29,11 @@ class UserLoginService(
     override fun login(command: LoginCommand): LoginResponse {
         // 사용자 조회
         val user = userQueryPort.findByUsername(command.username)
-            ?: throw IllegalArgumentException("해당 username의 사용자를 찾을 수 없습니다.")
+            ?: throw UserException.InvalidCredentials("해당 username의 사용자를 찾을 수 없습니다.")
 
         // 비밀번호 검증
         if (!passwordEncoder.matches(command.password, user.passwordHash)) {
-            throw IllegalArgumentException("Invalid password")
+            throw UserException.InvalidCredentials("비밀번호가 일치하지 않습니다.")
         }
 
         // JWT 토큰 생성

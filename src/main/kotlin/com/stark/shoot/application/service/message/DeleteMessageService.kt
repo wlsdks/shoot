@@ -9,6 +9,7 @@ import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.event.MessageDeletedEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.WebSocketResponseBuilder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
@@ -35,7 +36,7 @@ class DeleteMessageService(
             val existingMessage = messageQueryPort.findById(command.messageId)
                 ?: run {
                     sendErrorResponse(command.userId, "메시지를 찾을 수 없습니다.")
-                    throw IllegalArgumentException("메시지를 찾을 수 없습니다. messageId=${command.messageId}")
+                    throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=${command.messageId}")
                 }
 
             // 도메인 객체의 메서드를 사용하여 메시지 삭제 상태로 변경

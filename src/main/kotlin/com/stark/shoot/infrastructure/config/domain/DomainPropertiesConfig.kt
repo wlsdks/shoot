@@ -1,5 +1,6 @@
 package com.stark.shoot.infrastructure.config.domain
 
+import com.stark.shoot.domain.constants.DomainConstants
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 

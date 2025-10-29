@@ -10,7 +10,7 @@ import com.stark.shoot.application.port.out.user.group.FriendGroupCommandPort
 import com.stark.shoot.domain.user.FriendGroup
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 
 @Adapter
 class FriendGroupCommandPersistenceAdapter(

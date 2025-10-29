@@ -7,7 +7,7 @@ import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.token.RefreshTokenCommandPort
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
-import com.stark.shoot.infrastructure.exception.UserException
+import com.stark.shoot.domain.exception.UserException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.transaction.annotation.Transactional
 

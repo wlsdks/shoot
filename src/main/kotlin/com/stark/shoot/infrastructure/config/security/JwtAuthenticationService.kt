@@ -2,7 +2,7 @@ package com.stark.shoot.infrastructure.config.security
 
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import com.stark.shoot.infrastructure.config.security.service.CustomUserDetails
-import com.stark.shoot.infrastructure.exception.web.JwtAuthenticationException
+import com.stark.shoot.domain.exception.web.JwtAuthenticationException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetailsService

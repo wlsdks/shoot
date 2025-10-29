@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.exception
+package com.stark.shoot.domain.exception
 
 /**
  * 검증 관련 도메인 예외

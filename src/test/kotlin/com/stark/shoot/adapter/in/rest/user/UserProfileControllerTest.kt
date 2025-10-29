@@ -12,7 +12,7 @@ import com.stark.shoot.application.port.`in`.user.profile.command.UpdateProfileC
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.*
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

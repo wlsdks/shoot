@@ -8,7 +8,7 @@ import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.domain.notification.vo.NotificationMessage
 import com.stark.shoot.domain.notification.vo.NotificationTitle
 import com.stark.shoot.domain.user.vo.UserId
-import com.stark.shoot.infrastructure.exception.web.RedisOperationException
+import com.stark.shoot.domain.exception.web.RedisOperationException
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

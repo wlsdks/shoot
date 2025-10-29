@@ -4,7 +4,7 @@ import com.stark.shoot.domain.event.FriendAddedEvent
 import com.stark.shoot.domain.user.FriendRequest
 import com.stark.shoot.domain.user.Friendship
 import com.stark.shoot.domain.user.vo.UserId
-import com.stark.shoot.infrastructure.exception.UserException
+import com.stark.shoot.domain.exception.UserException
 
 /**
  * 친구 관련 도메인 서비스

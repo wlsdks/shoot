@@ -1,6 +1,6 @@
 package com.stark.shoot.infrastructure.config.security
 
-import com.stark.shoot.infrastructure.exception.web.JwtAuthenticationException
+import com.stark.shoot.domain.exception.web.JwtAuthenticationException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest

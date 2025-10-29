@@ -7,8 +7,8 @@ import com.stark.shoot.application.port.`in`.user.auth.command.RetrieveUserDetai
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
-import com.stark.shoot.infrastructure.exception.web.UnauthorizedException
+import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.exception.web.UnauthorizedException
 
 @UseCase
 class UserAuthService(

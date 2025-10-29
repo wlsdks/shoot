@@ -2,7 +2,7 @@ package com.stark.shoot.domain.user
 
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.*
-import com.stark.shoot.infrastructure.exception.InvalidUserDataException
+import com.stark.shoot.domain.exception.InvalidUserDataException
 import java.time.Instant
 
 data class User(

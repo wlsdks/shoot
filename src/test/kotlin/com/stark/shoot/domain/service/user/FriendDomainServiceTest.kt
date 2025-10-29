@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import com.stark.shoot.infrastructure.exception.UserException
+import com.stark.shoot.domain.exception.UserException
 
 @DisplayName("친구 도메인 서비스 테스트")
 class FriendDomainServiceTest {

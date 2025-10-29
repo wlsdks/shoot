@@ -17,8 +17,8 @@ import com.stark.shoot.domain.event.ChatRoomParticipantChangedEvent
 import com.stark.shoot.domain.event.ChatRoomTitleChangedEvent
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.exception.ChatRoomException
-import com.stark.shoot.infrastructure.exception.UserException
+import com.stark.shoot.domain.exception.ChatRoomException
+import com.stark.shoot.domain.exception.UserException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 

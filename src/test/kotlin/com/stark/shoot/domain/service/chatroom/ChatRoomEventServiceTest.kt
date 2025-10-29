@@ -11,7 +11,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.hamcrest.Matchers.hasSize
-import com.stark.shoot.infrastructure.exception.ChatRoomException
+import com.stark.shoot.domain.exception.ChatRoomException
 
 @DisplayName("채팅방 이벤트 도메인 서비스 테스트")
 class ChatRoomEventServiceTest {

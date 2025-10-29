@@ -6,7 +6,7 @@ import com.stark.shoot.application.port.`in`.message.SendSyncMessagesToUserUseCa
 import com.stark.shoot.application.port.`in`.message.command.GetPaginationMessageCommand
 import com.stark.shoot.application.port.`in`.message.command.SendSyncMessagesToUserCommand
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
-import com.stark.shoot.infrastructure.exception.web.ErrorResponse
+import com.stark.shoot.domain.exception.web.ErrorResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.toList
 import org.springframework.http.HttpStatus

@@ -1,8 +1,8 @@
 package com.stark.shoot.domain.chatroom.service
 
 import com.stark.shoot.infrastructure.config.domain.DomainConstants
-import com.stark.shoot.infrastructure.exception.FavoriteLimitExceededException
-import com.stark.shoot.infrastructure.exception.ValidationException
+import com.stark.shoot.domain.exception.FavoriteLimitExceededException
+import com.stark.shoot.domain.exception.ValidationException
 
 /**
  * 채팅방 검증 로직을 처리하는 도메인 서비스

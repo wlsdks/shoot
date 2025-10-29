@@ -8,7 +8,7 @@ import com.stark.shoot.application.port.out.user.token.RefreshTokenQueryPort
 import com.stark.shoot.domain.user.vo.RefreshTokenValue
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
-import com.stark.shoot.infrastructure.exception.web.InvalidRefreshTokenException
+import com.stark.shoot.domain.exception.web.InvalidRefreshTokenException
 import java.time.Instant
 
 @UseCase

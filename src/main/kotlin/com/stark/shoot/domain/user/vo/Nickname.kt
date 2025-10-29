@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.user.vo
 
-import com.stark.shoot.infrastructure.exception.InvalidUserDataException
+import com.stark.shoot.domain.exception.InvalidUserDataException
 
 @JvmInline
 value class Nickname private constructor(val value: String) {

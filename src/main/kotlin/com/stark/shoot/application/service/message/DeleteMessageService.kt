@@ -9,7 +9,7 @@ import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.event.MessageDeletedEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.WebSocketResponseBuilder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional

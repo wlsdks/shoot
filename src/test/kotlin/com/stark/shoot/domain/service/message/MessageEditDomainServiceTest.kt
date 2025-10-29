@@ -14,7 +14,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import com.stark.shoot.infrastructure.exception.MessageException
+import com.stark.shoot.domain.exception.MessageException
 import java.time.Instant
 
 @DisplayName("메시지 편집 도메인 서비스 테스트")

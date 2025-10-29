@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.exception.web
+package com.stark.shoot.domain.exception.web
 
 import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
 import io.github.oshai.kotlinlogging.KotlinLogging

@@ -7,7 +7,7 @@ import com.stark.shoot.application.port.out.user.UserCommandPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.code.UpdateUserCodePort
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import org.apache.kafka.common.errors.DuplicateResourceException
 import org.springframework.transaction.annotation.Transactional
 

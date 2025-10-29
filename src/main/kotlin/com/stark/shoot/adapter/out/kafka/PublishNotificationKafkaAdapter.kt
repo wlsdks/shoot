@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.infrastructure.annotation.Adapter
-import com.stark.shoot.infrastructure.exception.web.KafkaPublishException
-import com.stark.shoot.infrastructure.exception.web.RedisOperationException
+import com.stark.shoot.domain.exception.web.KafkaPublishException
+import com.stark.shoot.domain.exception.web.RedisOperationException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.kafka.core.KafkaTemplate
 

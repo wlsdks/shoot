@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.exception
+package com.stark.shoot.domain.exception
 
 /**
  * 채팅방 관련 도메인 예외

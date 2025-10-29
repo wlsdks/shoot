@@ -15,7 +15,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import com.stark.shoot.infrastructure.exception.MessageException
+import com.stark.shoot.domain.exception.MessageException
 import java.time.Instant
 
 @DisplayName("채팅방 메타데이터 도메인 서비스 테스트")

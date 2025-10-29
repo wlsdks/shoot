@@ -1,4 +1,4 @@
-package com.stark.shoot.infrastructure.exception
+package com.stark.shoot.domain.exception
 
 /**
  * 즐겨찾기(핀) 개수 제한을 초과했을 때 발생하는 예외

@@ -8,7 +8,7 @@ import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.service.ChatRoomValidationDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
 
 @Transactional

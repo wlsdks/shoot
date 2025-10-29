@@ -15,8 +15,8 @@ import com.stark.shoot.domain.user.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.redis.RedisLockManager
-import com.stark.shoot.infrastructure.exception.web.InvalidInputException
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.exception.web.InvalidInputException
+import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant

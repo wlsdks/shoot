@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.user.vo
 
-import com.stark.shoot.infrastructure.exception.InvalidUserDataException
+import com.stark.shoot.domain.exception.InvalidUserDataException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.DisplayName

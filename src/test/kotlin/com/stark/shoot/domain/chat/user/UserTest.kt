@@ -6,7 +6,7 @@ import com.stark.shoot.domain.user.vo.Nickname
 import com.stark.shoot.domain.user.vo.UserCode
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.domain.user.vo.Username
-import com.stark.shoot.infrastructure.exception.InvalidUserDataException
+import com.stark.shoot.domain.exception.InvalidUserDataException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

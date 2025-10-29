@@ -17,7 +17,7 @@ import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import org.junit.jupiter.api.BeforeEach

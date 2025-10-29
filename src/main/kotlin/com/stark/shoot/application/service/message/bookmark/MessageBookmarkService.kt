@@ -9,7 +9,7 @@ import com.stark.shoot.application.port.out.message.bookmark.BookmarkMessageComm
 import com.stark.shoot.application.port.out.message.bookmark.BookmarkMessageQueryPort
 import com.stark.shoot.domain.chat.bookmark.MessageBookmark
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.util.orThrowNotFound
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
 
@@ -32,7 +32,7 @@ class MessageBookmarkService(
         }
 
         loadMessagePort.findById(messageId)
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=$messageId")
+            .orThrowNotFound("메시지", messageId)
 
         val bookmark = MessageBookmark(
             messageId = messageId,

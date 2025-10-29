@@ -12,7 +12,7 @@ import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.domain.DomainConstants
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.util.orThrowNotFound
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
@@ -39,8 +39,8 @@ class MessagePinService(
         val maxPinnedMessages = domainConstants.chatRoom.maxPinnedMessages
 
         // 메시지 조회
-        val message = (messageQueryPort.findById(command.messageId))
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=${command.messageId}")
+        val message = messageQueryPort.findById(command.messageId)
+            .orThrowNotFound("메시지", command.messageId)
 
         // 채팅방에 이미 고정된 메시지 개수 확인
         val currentPinnedMessages = messageQueryPort.findPinnedMessagesByRoomId(message.roomId, maxPinnedMessages)
@@ -69,7 +69,7 @@ class MessagePinService(
      */
     override fun unpinMessage(command: UnpinMessageCommand): ChatMessage {
         val message = messageQueryPort.findById(command.messageId)
-            ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=${command.messageId}")
+            .orThrowNotFound("메시지", command.messageId)
 
         // 고정되지 않은 메시지인지 확인
         if (!message.isPinned) {

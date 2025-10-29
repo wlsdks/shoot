@@ -7,7 +7,7 @@ import com.stark.shoot.application.port.`in`.message.thread.command.GetThreadDet
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.message.thread.ThreadQueryPort
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.util.orThrowNotFound
 
 @UseCase
 class GetThreadDetailService(
@@ -18,7 +18,7 @@ class GetThreadDetailService(
 
     override fun getThreadDetail(command: GetThreadDetailCommand): ThreadDetailDto {
         val rootMessage = messageQueryPort.findById(command.threadId)
-            ?: throw ResourceNotFoundException("스레드 루트 메시지를 찾을 수 없습니다: threadId=${command.threadId}")
+            .orThrowNotFound("스레드 루트 메시지", command.threadId)
 
         val messages = if (command.lastMessageId != null) {
             threadQueryPort.findByThreadIdAndBeforeId(command.threadId, command.lastMessageId, command.limit)

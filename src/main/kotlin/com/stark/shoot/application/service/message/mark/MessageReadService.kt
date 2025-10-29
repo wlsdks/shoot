@@ -1,6 +1,5 @@
 package com.stark.shoot.application.service.message.mark
 
-import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.mark.MessageReadUseCase
 import com.stark.shoot.application.port.`in`.message.mark.command.MarkAllMessagesAsReadCommand
 import com.stark.shoot.application.port.`in`.message.mark.command.MarkMessageAsReadCommand
@@ -27,7 +26,7 @@ class MessageReadService(
     private val messageCommandPort: MessageCommandPort,
     private val chatRoomQueryPort: ChatRoomQueryPort,
     private val chatRoomCommandPort: ChatRoomCommandPort,
-    private val webSocketMessageBroker: WebSocketMessageBroker
+    private val notificationService: MessageReadNotificationService
 ) : MessageReadUseCase {
     private val logger = KotlinLogging.logger {}
 
@@ -147,42 +146,14 @@ class MessageReadService(
             chatRoomCommandPort.updateLastReadMessageId(roomId, userId, messageId)
 
             // 2. 읽음 상태 알림 전송
-            sendSingleReadNotification(roomId, updatedMessage, userId)
+            notificationService.sendSingleReadNotification(roomId, updatedMessage, userId)
 
             // 3. 업데이트된 메시지 WebSocket 전송
-            sendUpdatedMessage(roomId, updatedMessage)
+            notificationService.sendUpdatedMessage(roomId, updatedMessage)
         } catch (e: Exception) {
             logger.error(e) { "메시지 읽음 처리 후속 작업 실패: messageId=$messageId, userId=$userId" }
             // 비동기 작업 실패 시 로깅만 하고 예외는 전파하지 않음 (메인 트랜잭션은 이미 완료됨)
         }
-    }
-
-    /**
-     * 단일 메시지 읽음 상태 알림을 전송합니다.
-     */
-    private fun sendSingleReadNotification(
-        roomId: ChatRoomId,
-        message: ChatMessage,
-        userId: UserId
-    ) {
-        webSocketMessageBroker.sendMessage(
-            "/topic/read/${roomId.value}",
-            mapOf(
-                "messageId" to message.id?.value,
-                "userId" to userId.value,
-                "readBy" to message.readBy
-            )
-        )
-    }
-
-    /**
-     * 업데이트된 메시지를 WebSocket으로 전송합니다.
-     */
-    private fun sendUpdatedMessage(roomId: ChatRoomId, message: ChatMessage) {
-        webSocketMessageBroker.sendMessage(
-            destination = "/topic/messages/${roomId.value}",
-            payload = message
-        )
     }
 
     // ===== 모든 메시지 읽음 처리 관련 메서드 =====
@@ -365,34 +336,8 @@ class MessageReadService(
 
         // 1. WebSocket을 통해 읽음 완료처리된 메시지 id를 실시간 알림
         val messageIdVos = updatedMessageIds.map { MessageId.from(it) }
-        sendBulkReadNotification(roomId, messageIdVos, userId)
+        notificationService.sendBulkReadNotification(roomId, messageIdVos, userId)
     }
-
-    /**
-     * 채팅방의 모든 참여자에게 읽음 상태 업데이트를 WebSocket을 통해 알립니다.
-     */
-    private fun sendBulkReadNotification(
-        roomId: ChatRoomId,
-        messageIds: List<MessageId>,
-        userId: UserId
-    ) {
-        if (messageIds.isEmpty()) {
-            logger.debug { "알림 대상 메시지가 없습니다: roomId=${roomId.value}, userId=${userId.value}" }
-            return
-        }
-
-        try {
-            webSocketMessageBroker.sendMessage(
-                "/topic/read-bulk/${roomId.value}",
-                MessageBulkReadEvent.create(roomId, messageIds, userId)
-            )
-            logger.debug { "일괄 읽음 알림 전송 완료: roomId=${roomId.value}, userId=${userId.value}, 메시지 수=${messageIds.size}" }
-        } catch (e: Exception) {
-            logger.error(e) { "일괄 읽음 알림 전송 실패: roomId=$roomId, userId=$userId" }
-            // WebSocket 알림 실패는 중요하지만 전체 프로세스를 중단시킬 만큼 치명적이지 않음
-        }
-    }
-
 
     /**
      * markAllMessagesAsRead 메서드에서 발생한 예외를 처리합니다.

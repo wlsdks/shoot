@@ -9,6 +9,7 @@ import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.event.MessageDeletedEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.util.WebSocketResponseBuilder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -68,22 +69,14 @@ class DeleteMessageService(
     private fun sendSuccessResponse(userId: com.stark.shoot.domain.user.vo.UserId, message: String, data: ChatMessage) {
         webSocketMessageBroker.sendMessage(
             "/queue/message/delete/response/${userId.value}",
-            mapOf(
-                "success" to true,
-                "message" to message,
-                "data" to data
-            )
+            WebSocketResponseBuilder.success(data, message)
         )
     }
 
     private fun sendErrorResponse(userId: com.stark.shoot.domain.user.vo.UserId, message: String) {
         webSocketMessageBroker.sendMessage(
             "/queue/message/delete/response/${userId.value}",
-            mapOf(
-                "success" to false,
-                "message" to message,
-                "data" to null
-            )
+            WebSocketResponseBuilder.error(message)
         )
     }
 

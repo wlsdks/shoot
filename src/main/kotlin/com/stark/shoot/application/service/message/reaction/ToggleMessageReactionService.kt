@@ -15,6 +15,7 @@ import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.redis.RedisLockManager
 import com.stark.shoot.infrastructure.exception.web.InvalidInputException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.util.WebSocketResponseBuilder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 
@@ -103,22 +104,14 @@ class ToggleMessageReactionService(
     private fun sendSuccessResponse(userId: UserId, message: String, data: ReactionResponse) {
         webSocketMessageBroker.sendMessage(
             "/queue/message/reaction/response/${userId.value}",
-            mapOf(
-                "success" to true,
-                "message" to message,
-                "data" to data
-            )
+            WebSocketResponseBuilder.success(data, message)
         )
     }
 
     private fun sendErrorResponse(userId: UserId, message: String) {
         webSocketMessageBroker.sendMessage(
             "/queue/message/reaction/response/${userId.value}",
-            mapOf(
-                "success" to false,
-                "message" to message,
-                "data" to null
-            )
+            WebSocketResponseBuilder.error(message)
         )
     }
 

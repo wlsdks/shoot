@@ -18,7 +18,10 @@ import com.stark.shoot.infrastructure.config.redis.RedisLockManager
 import com.stark.shoot.domain.exception.web.InvalidInputException
 import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.transaction.annotation.Transactional
+import jakarta.persistence.OptimisticLockException
 import java.time.Instant
 
 @Transactional
@@ -91,8 +94,15 @@ class FriendRequestService(
     /**
      * 친구 요청을 취소합니다.
      *
+     * OptimisticLockException 발생 시 자동으로 최대 3번까지 재시도합니다.
+     *
      * @param command 친구 요청 취소 커맨드
      */
+    @Retryable(
+        retryFor = [OptimisticLockException::class],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 100, multiplier = 2.0, maxDelay = 1000)
+    )
     override fun cancelFriendRequest(command: CancelFriendRequestCommand) {
         // 사용자 존재 여부 확인
         validateUserExistence(command.currentUserId, command.targetUserId)

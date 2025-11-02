@@ -17,7 +17,10 @@ import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.web.InvalidInputException
 import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.transaction.annotation.Transactional
+import jakarta.persistence.OptimisticLockException
 import java.time.Instant
 
 @Transactional
@@ -37,8 +40,17 @@ class FriendReceiveService(
     /**
      * 친구 요청을 수락합니다.
      *
+     * OptimisticLockException 발생 시 자동으로 최대 3번까지 재시도합니다.
+     * - 동시에 두 사용자가 친구 요청을 수락/거절하는 경우
+     * - 지수 백오프: 100ms → 200ms → 400ms
+     *
      * @param command 친구 요청 수락 커맨드
      */
+    @Retryable(
+        retryFor = [OptimisticLockException::class],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 100, multiplier = 2.0, maxDelay = 1000)
+    )
     override fun acceptFriendRequest(command: AcceptFriendRequestCommand) {
         val currentUserId = command.currentUserId
         val requesterId = command.requesterId
@@ -67,8 +79,15 @@ class FriendReceiveService(
     /**
      * 친구 요청을 거절합니다.
      *
+     * OptimisticLockException 발생 시 자동으로 최대 3번까지 재시도합니다.
+     *
      * @param command 친구 요청 거절 커맨드
      */
+    @Retryable(
+        retryFor = [OptimisticLockException::class],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 100, multiplier = 2.0, maxDelay = 1000)
+    )
     override fun rejectFriendRequest(command: RejectFriendRequestCommand) {
         val currentUserId = command.currentUserId
         val requesterId = command.requesterId

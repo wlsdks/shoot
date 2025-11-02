@@ -13,7 +13,10 @@ import com.stark.shoot.domain.chatroom.service.ChatRoomParticipantDomainService
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.transaction.annotation.Transactional
+import jakarta.persistence.OptimisticLockException
 
 @Transactional
 @UseCase
@@ -53,9 +56,17 @@ class ManageChatRoomService(
     /**
      * 채팅방에 참여자를 추가합니다.
      *
+     * OptimisticLockException 발생 시 자동으로 최대 3번까지 재시도합니다.
+     * - 동시에 여러 참여자가 추가되는 경우
+     *
      * @param command 참여자 추가 커맨드
      * @return 참여자 추가 성공 여부
      */
+    @Retryable(
+        retryFor = [OptimisticLockException::class],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 100, multiplier = 2.0, maxDelay = 1000)
+    )
     override fun addParticipant(command: AddParticipantCommand): Boolean {
         val roomId = command.roomId
         val userId = command.userId
@@ -77,9 +88,16 @@ class ManageChatRoomService(
     /**
      * 채팅방에서 참여자를 제거합니다.
      *
+     * OptimisticLockException 발생 시 자동으로 최대 3번까지 재시도합니다.
+     *
      * @param command 참여자 제거 커맨드
      * @return 참여자 제거 성공 여부
      */
+    @Retryable(
+        retryFor = [OptimisticLockException::class],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 100, multiplier = 2.0, maxDelay = 1000)
+    )
     override fun removeParticipant(command: RemoveParticipantCommand): Boolean {
         val roomId = command.roomId
         val userId = command.userId
@@ -106,8 +124,15 @@ class ManageChatRoomService(
     /**
      * 채팅방 공지사항을 업데이트합니다.
      *
+     * OptimisticLockException 발생 시 자동으로 최대 3번까지 재시도합니다.
+     *
      * @param command 공지사항 업데이트 커맨드
      */
+    @Retryable(
+        retryFor = [OptimisticLockException::class],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 100, multiplier = 2.0, maxDelay = 1000)
+    )
     override fun updateAnnouncement(command: UpdateAnnouncementCommand) {
         val roomId = command.roomId
         val announcement = command.announcement
@@ -124,9 +149,16 @@ class ManageChatRoomService(
     /**
      * 채팅방 제목을 업데이트합니다.
      *
+     * OptimisticLockException 발생 시 자동으로 최대 3번까지 재시도합니다.
+     *
      * @param command 제목 업데이트 커맨드
      * @return 업데이트 성공 여부
      */
+    @Retryable(
+        retryFor = [OptimisticLockException::class],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 100, multiplier = 2.0, maxDelay = 1000)
+    )
     override fun updateTitle(command: UpdateTitleCommand): Boolean {
         val roomId = command.roomId
         val title = command.title

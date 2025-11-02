@@ -23,6 +23,16 @@ interface LoadMessagePort {
      */
     fun findByThreadId(threadId: MessageId): List<ChatMessage>
 
+    /**
+     * 특정 사용자가 보낸 모든 메시지 조회
+     *
+     * 사용처: User 삭제 시 MongoDB 클린업
+     *
+     * @param senderId 발신자 사용자 ID
+     * @return 해당 사용자가 보낸 모든 메시지 목록
+     */
+    fun findBySenderId(senderId: UserId): List<ChatMessage>
+
     fun findByRoomIdFlow(roomId: ChatRoomId, limit: Int): Flow<ChatMessage>
     fun findByRoomIdAndBeforeIdFlow(roomId: ChatRoomId, beforeMessageId: MessageId, limit: Int): Flow<ChatMessage>
     fun findByRoomIdAndAfterIdFlow(roomId: ChatRoomId, afterMessageId: MessageId, limit: Int): Flow<ChatMessage>

@@ -84,6 +84,9 @@ dependencies {
     // ShedLock for distributed scheduler locking
     implementation("net.javacrumbs.shedlock:shedlock-spring:5.16.0")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:5.16.0")
+
+    // Spring Retry for OptimisticLockException handling
+    implementation("org.springframework.retry:spring-retry")
 }
 
 kotlin {

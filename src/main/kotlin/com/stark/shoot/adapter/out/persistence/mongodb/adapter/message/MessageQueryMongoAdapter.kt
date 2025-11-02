@@ -272,4 +272,23 @@ class MessageQueryMongoAdapter(
         }
     }
 
+    /**
+     * 특정 사용자가 보낸 모든 메시지 조회
+     *
+     * User 삭제 시 MongoDB 클린업용
+     * 삭제되지 않은 메시지만 조회 (isDeleted = false)
+     *
+     * @param senderId 발신자 사용자 ID
+     * @return 해당 사용자가 보낸 모든 메시지 목록
+     */
+    override fun findBySenderId(senderId: UserId): List<ChatMessage> {
+        val query = Query().addCriteria(
+            Criteria.where("senderId").`is`(senderId.value)
+                .and("isDeleted").ne(true) // 이미 삭제된 메시지는 제외
+        )
+
+        return mongoTemplate.find(query, com.stark.shoot.adapter.out.persistence.mongodb.document.message.ChatMessageDocument::class.java)
+            .map(chatMessageMapper::toDomain)
+    }
+
 }

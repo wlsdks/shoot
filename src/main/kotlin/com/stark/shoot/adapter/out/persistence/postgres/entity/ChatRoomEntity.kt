@@ -18,13 +18,7 @@ class ChatRoomEntity(
     lastActiveAt: Instant
 ) : BaseEntity() {
 
-    /**
-     * Optimistic Locking을 위한 버전 필드
-     * 동시 업데이트 발생 시 OptimisticLockException 발생
-     */
-    @Version
-    var version: Long = 0
-        protected set
+    // BaseEntity에서 version 필드를 상속받으므로 별도 선언 불필요
 
     var title: String? = title
         protected set

@@ -9,9 +9,9 @@ import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCom
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestQueryPort
 import com.stark.shoot.application.port.out.user.friend.FriendCommandPort
 import com.stark.shoot.domain.event.FriendRequestRejectedEvent
-import com.stark.shoot.domain.user.FriendRequest
-import com.stark.shoot.domain.user.service.FriendDomainService
-import com.stark.shoot.domain.user.type.FriendRequestStatus
+import com.stark.shoot.domain.social.FriendRequest
+import com.stark.shoot.domain.social.service.FriendDomainService
+import com.stark.shoot.domain.social.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.web.InvalidInputException

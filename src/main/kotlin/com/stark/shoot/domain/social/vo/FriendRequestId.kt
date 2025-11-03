@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.user.vo
+package com.stark.shoot.domain.social.vo
 
 @JvmInline
 value class FriendRequestId private constructor(val value: Long) {

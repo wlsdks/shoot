@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.user
+package com.stark.shoot.domain.social
 
 import com.stark.shoot.domain.user.vo.UserId
 import java.time.Instant

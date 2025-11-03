@@ -1,6 +1,6 @@
-package com.stark.shoot.domain.user
+package com.stark.shoot.domain.social
 
-import com.stark.shoot.domain.user.vo.FriendGroupName
+import com.stark.shoot.domain.social.vo.FriendGroupName
 import com.stark.shoot.domain.user.vo.UserId
 import java.time.Instant
 

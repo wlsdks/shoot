@@ -6,7 +6,7 @@ import com.stark.shoot.application.port.`in`.user.block.command.UnblockUserComma
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.block.BlockedUserCommandPort
 import com.stark.shoot.application.port.out.user.block.BlockedUserQueryPort
-import com.stark.shoot.domain.user.service.block.UserBlockDomainService
+import com.stark.shoot.domain.social.service.block.UserBlockDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional

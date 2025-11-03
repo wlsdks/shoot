@@ -9,9 +9,9 @@ import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
 import com.stark.shoot.domain.event.FriendRequestCancelledEvent
 import com.stark.shoot.domain.event.FriendRequestSentEvent
-import com.stark.shoot.domain.user.FriendRequest
-import com.stark.shoot.domain.user.service.FriendDomainService
-import com.stark.shoot.domain.user.type.FriendRequestStatus
+import com.stark.shoot.domain.social.FriendRequest
+import com.stark.shoot.domain.social.service.FriendDomainService
+import com.stark.shoot.domain.social.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.redis.RedisLockManager

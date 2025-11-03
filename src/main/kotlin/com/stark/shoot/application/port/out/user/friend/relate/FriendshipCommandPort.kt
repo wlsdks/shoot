@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.out.user.friend.relate
 
-import com.stark.shoot.domain.user.Friendship
+import com.stark.shoot.domain.social.Friendship
 import com.stark.shoot.domain.user.vo.UserId
 
 /**

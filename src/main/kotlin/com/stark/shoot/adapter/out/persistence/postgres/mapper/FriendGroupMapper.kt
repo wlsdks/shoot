@@ -2,8 +2,8 @@ package com.stark.shoot.adapter.out.persistence.postgres.mapper
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendGroupEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
-import com.stark.shoot.domain.user.FriendGroup
-import com.stark.shoot.domain.user.vo.FriendGroupName
+import com.stark.shoot.domain.social.FriendGroup
+import com.stark.shoot.domain.social.vo.FriendGroupName
 import com.stark.shoot.domain.user.vo.UserId
 import org.springframework.stereotype.Component
 

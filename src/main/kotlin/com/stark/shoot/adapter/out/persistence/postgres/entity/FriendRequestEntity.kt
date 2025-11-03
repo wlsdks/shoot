@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.out.persistence.postgres.entity
 
-import com.stark.shoot.domain.user.type.FriendRequestStatus
+import com.stark.shoot.domain.social.type.FriendRequestStatus
 import jakarta.persistence.*
 import java.time.Instant
 

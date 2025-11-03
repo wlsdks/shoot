@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.out.user.friend.request
 
-import com.stark.shoot.domain.user.FriendRequest
-import com.stark.shoot.domain.user.type.FriendRequestStatus
+import com.stark.shoot.domain.social.FriendRequest
+import com.stark.shoot.domain.social.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 
 /**

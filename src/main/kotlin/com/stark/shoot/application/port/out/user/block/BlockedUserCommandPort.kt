@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.out.user.block
 
-import com.stark.shoot.domain.user.BlockedUser
+import com.stark.shoot.domain.social.BlockedUser
 import com.stark.shoot.domain.user.vo.UserId
 
 /**

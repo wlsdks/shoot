@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.mapper.FriendGroupMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendGroupMemberRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendGroupRepository
 import com.stark.shoot.application.port.out.user.group.FriendGroupQueryPort
-import com.stark.shoot.domain.user.FriendGroup
+import com.stark.shoot.domain.social.FriendGroup
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 

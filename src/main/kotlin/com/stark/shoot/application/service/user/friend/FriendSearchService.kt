@@ -6,7 +6,7 @@ import com.stark.shoot.application.port.`in`.user.friend.command.SearchFriendsCo
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.relate.FriendshipQueryPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestQueryPort
-import com.stark.shoot.domain.user.type.FriendRequestStatus
+import com.stark.shoot.domain.social.type.FriendRequestStatus
 import com.stark.shoot.domain.user.vo.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.web.ResourceNotFoundException

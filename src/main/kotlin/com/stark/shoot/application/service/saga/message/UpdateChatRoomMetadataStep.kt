@@ -87,26 +87,55 @@ class UpdateChatRoomMetadataStep(
         return true
     }
 
+    @Transactional  // 보상 트랜잭션
     override fun compensate(context: MessageSagaContext): Boolean {
         return try {
             val originalRoom = context.chatRoom
-            if (originalRoom != null) {
-                // 원래 상태로 복원
-                // 주의: 보상 트랜잭션 시 OptimisticLockException 발생 가능
-                // - 이미 버전이 증가한 상태에서 원본을 복원하려고 하면 충돌
-                // - 하지만 보상 시점에는 다른 동시 트랜잭션이 없으므로 대부분 성공
-                // - 실패 시 Saga 상태가 COMPENSATED가 아닌 FAILED로 표시되어 수동 개입 필요
-                chatRoomCommandPort.save(originalRoom)
-                logger.info { "Compensated: Restored chatroom metadata: roomId=${originalRoom.id?.value}" }
-            } else {
-                logger.warn { "No original chatroom to restore - skipping compensation" }
+            val updatedRoom = context.updatedChatRoom
+
+            if (originalRoom == null || updatedRoom == null) {
+                logger.warn { "No chatroom state to restore - skipping compensation" }
+                return true
             }
+
+            // DB에서 최신 상태의 채팅방을 다시 조회 (version=N+1)
+            val currentRoom = chatRoomQueryPort.findById(originalRoom.id!!)
+            if (currentRoom == null) {
+                logger.warn { "ChatRoom not found for compensation: roomId=${originalRoom.id?.value}" }
+                return true  // 채팅방이 이미 삭제됨 - 보상 불필요
+            }
+
+            // 원래 상태로 복원 (최신 version 기반)
+            // lastMessageId, lastMessageTimestamp, unreadCount 등을 원래 값으로 되돌림
+            val restoredRoom = chatRoomMetadataDomainService.restoreChatRoomMetadata(
+                currentRoom = currentRoom,
+                previousState = originalRoom
+            )
+
+            chatRoomCommandPort.save(restoredRoom)
+            logger.info { "Compensated: Restored chatroom metadata: roomId=${originalRoom.id?.value}" }
             true
         } catch (e: OptimisticLockException) {
-            // OptimisticLockException은 보상 실패로 간주
-            // 데이터 불일치 상태이므로 수동 개입 필요
-            logger.error(e) { "Compensation failed due to OptimisticLockException - manual intervention required" }
-            false
+            // OptimisticLockException 발생 시 재시도
+            logger.warn(e) { "OptimisticLockException during compensation - retrying once" }
+
+            try {
+                // 한 번 더 재시도
+                val originalRoom = context.chatRoom ?: return false
+                val currentRoom = chatRoomQueryPort.findById(originalRoom.id!!) ?: return true
+
+                val restoredRoom = chatRoomMetadataDomainService.restoreChatRoomMetadata(
+                    currentRoom = currentRoom,
+                    previousState = originalRoom
+                )
+
+                chatRoomCommandPort.save(restoredRoom)
+                logger.info { "Compensated after retry: roomId=${originalRoom.id?.value}" }
+                true
+            } catch (retryException: Exception) {
+                logger.error(retryException) { "Compensation failed after retry - manual intervention required" }
+                false
+            }
         } catch (e: Exception) {
             logger.error(e) { "Failed to compensate chatroom metadata update" }
             false

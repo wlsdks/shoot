@@ -20,12 +20,16 @@ class SaveMessageToMongoStep(
 
     override fun execute(context: MessageSagaContext): Boolean {
         return try {
+            // 원본 메시지를 복사하여 수정 (멱등성 보장)
+            // 재시도 시 원본 메시지가 변경되지 않도록 복사본 사용
+            val messageToSave = context.message.copy()
+
             // 메시지 저장 (발신자 읽음 처리 포함)
-            if (context.message.readBy[context.message.senderId] != true) {
-                context.message.markAsRead(context.message.senderId)
+            if (messageToSave.readBy[messageToSave.senderId] != true) {
+                messageToSave.markAsRead(messageToSave.senderId)
             }
 
-            val savedMessage = saveMessagePort.save(context.message)
+            val savedMessage = saveMessagePort.save(messageToSave)
             context.savedMessage = savedMessage
             context.recordStep(stepName())
 

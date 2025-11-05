@@ -30,8 +30,8 @@ class MessageSentEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMessageSent(event: MessageSentEvent) {
-        val message = event.message
-        val roomId = message.roomId
+        // DDD 개선: 이벤트에서 직접 필드 사용
+        val roomId = event.roomId
 
         // 채팅방 정보 조회 (없으면 로그 경고 후 종료)
         val chatRoom = chatRoomQueryPort.findById(roomId) ?: run {
@@ -52,17 +52,17 @@ class MessageSentEventListener(
         chatRoom.participants.forEach { participantId ->
             try {
                 // 발신자는 항상 0, 나머지는 배치 쿼리 결과 사용
-                val unreadCount = if (participantId == message.senderId) 0
+                val unreadCount = if (participantId == event.senderId) 0
                                   else unreadCounts[participantId] ?: 0
 
                 // 채팅방 목록 업데이트 데이터 생성
                 val chatRoomUpdate = mapOf(
                     "roomId" to roomId.value,
                     "lastMessage" to mapOf(
-                        "id" to message.id?.value,
-                        "content" to message.content.text,
-                        "senderId" to message.senderId.value,
-                        "createdAt" to message.createdAt?.toString()
+                        "id" to event.messageId.value,
+                        "content" to event.content,
+                        "senderId" to event.senderId.value,
+                        "createdAt" to event.createdAt.toString()
                     ),
                     "unreadCount" to unreadCount,
                     "lastActiveAt" to chatRoom.lastActiveAt.toString()

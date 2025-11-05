@@ -119,9 +119,13 @@ class ForwardMessageToUserService(
         val chatRoom = chatRoomQueryPort.findById(targetRoomId)
             ?: throw ResourceNotFoundException("대상 채팅방을 찾을 수 없습니다. id=$targetRoomId")
 
+        // DDD 개선: messageId와 createdAt만 전달
+        val messageId = savedForwardMessage.id?.value
+            ?: throw IllegalStateException("Saved message has no ID")
         val updatedRoom = chatRoomMetadataDomainService.updateChatRoomWithNewMessage(
             chatRoom = chatRoom,
-            message = savedForwardMessage
+            messageId = messageId,
+            createdAt = savedForwardMessage.createdAt ?: java.time.Instant.now()
         )
 
         chatRoomCommandPort.save(updatedRoom)

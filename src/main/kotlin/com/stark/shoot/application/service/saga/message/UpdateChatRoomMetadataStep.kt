@@ -67,8 +67,14 @@ class UpdateChatRoomMetadataStep(
 
         context.chatRoom = chatRoom
 
-        // 메타데이터 업데이트
-        val updatedRoom = chatRoomMetadataDomainService.updateChatRoomWithNewMessage(chatRoom, savedMessage)
+        // 메타데이터 업데이트 (DDD 개선: messageId와 createdAt만 전달)
+        val messageId = savedMessage.id?.value
+            ?: throw IllegalStateException("Saved message has no ID")
+        val updatedRoom = chatRoomMetadataDomainService.updateChatRoomWithNewMessage(
+            chatRoom = chatRoom,
+            messageId = messageId,
+            createdAt = savedMessage.createdAt ?: java.time.Instant.now()
+        )
         val savedRoom = chatRoomCommandPort.save(updatedRoom)
 
         // 마지막 읽은 메시지 ID 업데이트

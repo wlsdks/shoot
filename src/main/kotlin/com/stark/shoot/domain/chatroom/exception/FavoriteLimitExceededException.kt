@@ -1,4 +1,6 @@
-package com.stark.shoot.domain.shared.exception
+package com.stark.shoot.domain.chatroom.exception
+
+import com.stark.shoot.domain.shared.exception.DomainException
 
 /**
  * 즐겨찾기(핀) 개수 제한을 초과했을 때 발생하는 예외

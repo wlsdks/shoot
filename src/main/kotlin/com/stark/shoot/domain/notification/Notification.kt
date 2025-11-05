@@ -7,7 +7,7 @@ import com.stark.shoot.domain.notification.vo.NotificationId
 import com.stark.shoot.domain.notification.vo.NotificationMessage
 import com.stark.shoot.domain.notification.vo.NotificationTitle
 import com.stark.shoot.domain.shared.UserId
-import com.stark.shoot.domain.shared.exception.NotificationException
+import com.stark.shoot.domain.notification.exception.NotificationException
 import java.time.Instant
 
 /**

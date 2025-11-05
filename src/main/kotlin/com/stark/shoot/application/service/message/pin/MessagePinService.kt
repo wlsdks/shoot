@@ -11,7 +11,7 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.domain.shared.constants.DomainConstants
+import com.stark.shoot.domain.chatroom.constants.ChatRoomConstants
 import com.stark.shoot.infrastructure.util.orThrowNotFound
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -24,7 +24,7 @@ class MessagePinService(
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val eventPublisher: EventPublishPort,
     private val messagePinDomainService: MessagePinDomainService,
-    private val domainConstants: DomainConstants
+    private val chatRoomConstants: ChatRoomConstants
 ) : MessagePinUseCase {
 
     /**
@@ -36,7 +36,7 @@ class MessagePinService(
      * @throws IllegalStateException 최대 고정 개수를 초과하는 경우
      */
     override fun pinMessage(command: PinMessageCommand): ChatMessage {
-        val maxPinnedMessages = domainConstants.chatRoom.maxPinnedMessages
+        val maxPinnedMessages = chatRoomConstants.maxPinnedMessages
 
         // 메시지 조회
         val message = messageQueryPort.findById(command.messageId)

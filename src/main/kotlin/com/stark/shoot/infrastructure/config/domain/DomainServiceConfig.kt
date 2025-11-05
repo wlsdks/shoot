@@ -9,7 +9,7 @@ import com.stark.shoot.domain.notification.service.NotificationDomainService
 import com.stark.shoot.domain.social.service.FriendDomainService
 import com.stark.shoot.domain.social.service.block.UserBlockDomainService
 import com.stark.shoot.domain.social.service.group.FriendGroupDomainService
-import com.stark.shoot.domain.shared.constants.DomainConstants
+import com.stark.shoot.domain.chatroom.constants.ChatRoomConstants
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 class DomainServiceConfig(
-    private val domainConstants: DomainConstants
+    private val chatRoomConstants: ChatRoomConstants
 ) {
 
     @Bean fun friendDomainService() = FriendDomainService()
@@ -35,7 +35,7 @@ class DomainServiceConfig(
 
     @Bean fun chatRoomMetadataDomainService() = ChatRoomMetadataDomainService()
 
-    @Bean fun chatRoomValidationDomainService() = ChatRoomValidationDomainService(domainConstants)
+    @Bean fun chatRoomValidationDomainService() = ChatRoomValidationDomainService(chatRoomConstants)
 
     @Bean fun messageDomainService() = MessageDomainService()
 

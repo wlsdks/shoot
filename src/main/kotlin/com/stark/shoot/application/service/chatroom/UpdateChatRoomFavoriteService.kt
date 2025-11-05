@@ -42,7 +42,7 @@ class UpdateChatRoomFavoriteService(
             userId = userId,
             isFavorite = isFavorite,
             userPinnedRoomsCount = pinnedRooms.size,
-            maxPinnedLimit = chatRoomValidationDomainService.domainConstants.chatRoom.maxPinnedMessages
+            maxPinnedLimit = chatRoomValidationDomainService.chatRoomConstants.maxPinnedMessages
         )
 
         val saved = chatRoomCommandPort.save(chatRoom)

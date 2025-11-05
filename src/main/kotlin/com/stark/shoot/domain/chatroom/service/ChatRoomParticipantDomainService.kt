@@ -2,7 +2,7 @@ package com.stark.shoot.domain.chatroom.service
 
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.shared.UserId
-import com.stark.shoot.domain.shared.constants.DomainConstants
+import com.stark.shoot.domain.chatroom.constants.ChatRoomConstants
 import org.springframework.stereotype.Service
 
 /**
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ChatRoomParticipantDomainService(
-    private val domainConstants: DomainConstants
+    private val chatRoomConstants: ChatRoomConstants
 ) {
 
     data class RemovalResult(
@@ -68,7 +68,7 @@ class ChatRoomParticipantDomainService(
                 userId = userId,
                 isFavorite = isPinned,
                 userPinnedRoomsCount = pinnedCountProvider(userId.value),
-                maxPinnedLimit = domainConstants.chatRoom.maxPinnedMessages
+                maxPinnedLimit = chatRoomConstants.maxPinnedMessages
             )
         }
 

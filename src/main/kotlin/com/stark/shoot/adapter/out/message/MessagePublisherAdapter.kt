@@ -67,19 +67,21 @@ class MessagePublisherAdapter(
     /**
      * Kafka에 비동기로 메시지를 발행합니다.
      * 영속화 실패가 발생해도 사용자 경험에는 영향을 주지 않습니다.
+     *
+     * DDD 개선: 이벤트 필드 직접 사용
      */
     private suspend fun publishToKafkaAsync(event: MessageEvent) {
         try {
             publishToKafka(
                 topic = KAFKA_CHAT_MESSAGES_TOPIC,
-                key = event.data.roomId.value.toString(),
+                key = event.roomId.value.toString(),
                 event = event
             )
-            logger.debug { "Kafka 영속화 완료: messageId=${event.data.id?.value}" }
+            logger.debug { "Kafka 영속화 완료: messageId=${event.messageId?.value}" }
         } catch (e: Exception) {
             // 영속화 실패는 로그만 남기고 사용자에게는 알리지 않음
             // 별도 모니터링 시스템에서 이를 감지하여 재처리 가능
-            logger.error(e) { "Kafka 영속화 실패 (사용자에게 영향 없음): messageId=${event.data.id?.value}" }
+            logger.error(e) { "Kafka 영속화 실패 (사용자에게 영향 없음): messageId=${event.messageId?.value}" }
         }
     }
 

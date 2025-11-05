@@ -42,6 +42,8 @@ class HandleMessageEventService(
     /**
      * 메시지를 Saga 패턴으로 저장하고 상태 업데이트를 전송합니다.
      *
+     * DDD 개선: MessageEvent에서 ChatMessage 재구성
+     *
      * 트랜잭션은 각 Step에서 관리:
      * - UpdateChatRoomMetadataStep: @Transactional 시작
      * - PublishEventToOutboxStep: @Transactional(MANDATORY)로 참여
@@ -49,8 +51,25 @@ class HandleMessageEventService(
     override fun handle(event: MessageEvent): Boolean {
         if (event.type != EventType.MESSAGE_CREATED) return false
 
-        val message = event.data
-        val tempId = message.metadata.tempId
+        // DDD 개선: 이벤트 필드에서 ChatMessage 재구성
+        val message = ChatMessage(
+            id = event.messageId,
+            roomId = event.roomId,
+            senderId = event.senderId,
+            content = com.stark.shoot.domain.chat.message.vo.MessageContent(
+                text = event.content,
+                type = event.messageType
+            ),
+            status = com.stark.shoot.domain.chat.message.type.MessageStatus.SENT,
+            mentions = event.mentions,
+            createdAt = event.createdAt,
+            metadata = com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata(
+                tempId = event.tempId,
+                needsUrlPreview = event.needsUrlPreview,
+                previewUrl = event.previewUrl
+            )
+        )
+        val tempId = event.tempId
 
         return try {
             // Saga 실행: MongoDB 저장 → PostgreSQL 업데이트 → Outbox 저장

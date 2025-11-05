@@ -44,7 +44,16 @@ class PublishEventToOutboxStep(
                 ?: throw IllegalStateException("Saved message not found: $messageIdStr")
 
             // 1. MessageSentEvent 발행
-            val messageSentEvent = MessageSentEvent.create(savedMessage)
+            // DDD 개선: Event factory 제거, 직접 생성 (Shared Kernel 독립성)
+            val messageSentEvent = MessageSentEvent(
+                messageId = savedMessage.id ?: throw IllegalStateException("Message ID must not be null"),
+                roomId = savedMessage.roomId,
+                senderId = savedMessage.senderId,
+                content = savedMessage.content.text,
+                type = savedMessage.content.type,
+                mentions = savedMessage.mentions,
+                createdAt = savedMessage.createdAt ?: java.time.Instant.now()
+            )
             saveToOutbox(context.sagaId, messageSentEvent)
 
             // 2. 멘션이 있으면 MentionEvent 발행

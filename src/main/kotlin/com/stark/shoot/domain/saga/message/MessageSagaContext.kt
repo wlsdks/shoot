@@ -1,14 +1,17 @@
 package com.stark.shoot.domain.saga.message
 
-import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.chatroom.ChatRoom
+import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.saga.SagaState
+import com.stark.shoot.domain.shared.UserId
+import java.time.Instant
 import java.util.*
 
 /**
  * 메시지 저장 Saga의 컨텍스트
  *
- * Saga 실행 과정에서 필요한 모든 데이터를 담고 있습니다.
+ * DDD 개선: 도메인 객체 제거, ID와 primitive 타입만 포함
+ * Saga는 Application Layer이므로 필요 시 도메인 객체를 조회하여 사용
  */
 data class MessageSagaContext(
     /**
@@ -17,24 +20,29 @@ data class MessageSagaContext(
     val sagaId: String = UUID.randomUUID().toString(),
 
     /**
-     * 저장할 메시지
+     * 저장할 메시지 ID (저장 전에는 null)
      */
-    val message: ChatMessage,
+    val messageId: MessageId?,
 
     /**
-     * 채팅방 정보 (메타데이터 업데이트용)
+     * 채팅방 ID
      */
-    var chatRoom: ChatRoom? = null,
+    val roomId: ChatRoomId,
 
     /**
-     * MongoDB에 저장된 메시지 (rollback용)
+     * 발신자 ID
      */
-    var savedMessage: ChatMessage? = null,
+    val senderId: UserId,
 
     /**
-     * PostgreSQL에서 업데이트된 채팅방 (rollback용)
+     * MongoDB에 저장된 메시지 ID (rollback용)
      */
-    var updatedChatRoom: ChatRoom? = null,
+    var savedMessageId: String? = null,
+
+    /**
+     * 보상 트랜잭션용 채팅방 스냅샷
+     */
+    var chatRoomSnapshot: ChatRoomSnapshot? = null,
 
     /**
      * Saga 상태
@@ -51,6 +59,14 @@ data class MessageSagaContext(
      */
     var error: Throwable? = null
 ) {
+    /**
+     * 채팅방 스냅샷 (보상용)
+     */
+    data class ChatRoomSnapshot(
+        val roomId: Long,
+        val previousLastMessageId: String?,
+        val previousLastActiveAt: Instant
+    )
     /**
      * 단계 실행 기록
      */

@@ -30,6 +30,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 @UseCase
 class HandleMessageEventService(
     private val messageSagaOrchestrator: MessageSagaOrchestrator,
+    private val messageQueryPort: com.stark.shoot.application.port.out.message.MessageQueryPort,
     private val loadUrlContentPort: LoadUrlContentPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
     private val messageStatusNotificationPort: MessageStatusNotificationPort,
@@ -61,8 +62,13 @@ class HandleMessageEventService(
             // Saga 결과에 따라 처리
             when (sagaContext.state) {
                 SagaState.COMPLETED -> {
+                    // DDD 개선: savedMessageId로 메시지 조회
+                    val savedMessage = sagaContext.savedMessageId?.let { messageIdStr ->
+                        val messageId = com.stark.shoot.domain.chat.message.vo.MessageId.from(messageIdStr)
+                        messageQueryPort.findById(messageId)
+                    }
                     // 성공: 사용자에게 성공 알림
-                    notifyPersistenceSuccess(sagaContext.savedMessage ?: message, tempId)
+                    notifyPersistenceSuccess(savedMessage ?: message, tempId)
                     logger.info { "Message saga completed: sagaId=${sagaContext.sagaId}" }
                     true
                 }

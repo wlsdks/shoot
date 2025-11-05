@@ -47,6 +47,8 @@ class MessageSagaOrchestrator(
      * OptimisticLockException 발생 시 최대 3회 재시도합니다.
      * 각 재시도마다 새로운 트랜잭션이 시작되므로 JPA 1차 캐시 문제가 없습니다.
      *
+     * DDD 개선: Context에는 ID만 전달, Step에서 메시지 객체 직접 주입
+     *
      * @param message 저장할 메시지
      * @return Saga 컨텍스트 (성공/실패 정보 포함)
      */
@@ -54,7 +56,15 @@ class MessageSagaOrchestrator(
         var attempt = 0
 
         while (attempt < MAX_RETRIES) {
-            val context = MessageSagaContext(message = message)
+            // DDD 개선: Context에는 ID와 primitive만 전달
+            val context = MessageSagaContext(
+                messageId = message.id,
+                roomId = message.roomId,
+                senderId = message.senderId
+            )
+
+            // Step들이 접근할 수 있도록 메시지 전달 (임시 저장소)
+            saveMessageStep.setMessage(message)
 
             try {
                 val success = executeInternal(context)
@@ -92,7 +102,11 @@ class MessageSagaOrchestrator(
         }
 
         // 모든 재시도 실패 (여기에 도달하지 않아야 함)
-        val context = MessageSagaContext(message = message)
+        val context = MessageSagaContext(
+            messageId = message.id,
+            roomId = message.roomId,
+            senderId = message.senderId
+        )
         context.markFailed(Exception("All retries failed"))
         return context
     }

@@ -11,7 +11,7 @@ import com.stark.shoot.domain.chat.message.service.MessageForwardDomainService
 import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.domain.shared.exception.ChatRoomException
+import com.stark.shoot.domain.chatroom.exception.ChatRoomException
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 @UseCase

@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.notification
 
-import com.stark.shoot.domain.event.NotificationEvent
+import com.stark.shoot.domain.shared.event.NotificationEvent
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.notification.vo.NotificationId

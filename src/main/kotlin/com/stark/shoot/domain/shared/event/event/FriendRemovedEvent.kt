@@ -1,25 +1,24 @@
-package com.stark.shoot.domain.event
+package com.stark.shoot.domain.shared.event
 
 import com.stark.shoot.domain.shared.UserId
 
-data class FriendAddedEvent(
+/**
+ * 친구 삭제 도메인 이벤트
+ */
+data class FriendRemovedEvent(
     val userId: UserId,
     val friendId: UserId,
     override val occurredOn: Long = System.currentTimeMillis()
 ) : DomainEvent {
     companion object {
         /**
-         * 친구 추가 이벤트 생성
-         *
-         * @param userId 사용자 ID
-         * @param friendId 친구 ID
-         * @return 생성된 FriendAddedEvent 객체
+         * FriendRemovedEvent 생성 팩토리 메서드
          */
         fun create(
             userId: UserId,
             friendId: UserId
-        ): FriendAddedEvent {
-            return FriendAddedEvent(
+        ): FriendRemovedEvent {
+            return FriendRemovedEvent(
                 userId = userId,
                 friendId = friendId
             )

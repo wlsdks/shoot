@@ -3,6 +3,7 @@ package com.stark.shoot.adapter.`in`.kafka
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxEventRepository
 import com.stark.shoot.application.port.out.event.EventPublishPort
+import com.stark.shoot.domain.shared.event.DomainEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.KafkaHeaders
@@ -100,7 +101,7 @@ class CDCEventConsumer(
 
             // 3. 이벤트 역직렬화
             val eventClass = Class.forName(eventType)
-            val event = objectMapper.readValue(payloadJson, eventClass) as com.stark.shoot.domain.event.DomainEvent
+            val event = objectMapper.readValue(payloadJson, eventClass) as DomainEvent
 
             // 4. 실제 비즈니스 이벤트 발행
             eventPublisher.publishEvent(event)

@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.chatroom.service
 
 import com.stark.shoot.domain.chatroom.ChatRoom
-import com.stark.shoot.domain.event.ChatRoomCreatedEvent
+import com.stark.shoot.domain.shared.event.ChatRoomCreatedEvent
 import com.stark.shoot.domain.exception.ChatRoomException
 
 /**

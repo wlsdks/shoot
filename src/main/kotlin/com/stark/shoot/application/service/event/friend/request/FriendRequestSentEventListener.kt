@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.event.friend.request
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
-import com.stark.shoot.domain.event.FriendRequestSentEvent
+import com.stark.shoot.domain.shared.event.FriendRequestSentEvent
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType

@@ -2,8 +2,8 @@ package com.stark.shoot.adapter.`in`.kafka
 
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.HandleMessageEventUseCase
-import com.stark.shoot.domain.event.MessageEvent
-import com.stark.shoot.domain.event.type.EventType
+import com.stark.shoot.domain.shared.event.MessageEvent
+import com.stark.shoot.domain.shared.event.type.EventType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment

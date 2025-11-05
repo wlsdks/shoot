@@ -7,8 +7,8 @@ import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendReque
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
-import com.stark.shoot.domain.event.FriendRequestCancelledEvent
-import com.stark.shoot.domain.event.FriendRequestSentEvent
+import com.stark.shoot.domain.shared.event.FriendRequestCancelledEvent
+import com.stark.shoot.domain.shared.event.FriendRequestSentEvent
 import com.stark.shoot.domain.social.FriendRequest
 import com.stark.shoot.domain.social.service.FriendDomainService
 import com.stark.shoot.domain.social.type.FriendRequestStatus

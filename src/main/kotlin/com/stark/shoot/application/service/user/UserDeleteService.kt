@@ -11,7 +11,7 @@ import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.FriendCommandPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
-import com.stark.shoot.domain.event.UserDeletedEvent
+import com.stark.shoot.domain.shared.event.UserDeletedEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging

@@ -1,8 +1,8 @@
 package com.stark.shoot.application.service.message.listener
 
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
-import com.stark.shoot.domain.event.MessageDeletedEvent
-import com.stark.shoot.domain.event.MessageEditedEvent
+import com.stark.shoot.domain.shared.event.MessageDeletedEvent
+import com.stark.shoot.domain.shared.event.MessageEditedEvent
 import com.stark.shoot.infrastructure.util.WebSocketResponseBuilder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener

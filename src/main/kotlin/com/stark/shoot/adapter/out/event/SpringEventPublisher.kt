@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.out.event
 
 import com.stark.shoot.application.port.out.event.EventPublishPort
-import com.stark.shoot.domain.event.DomainEvent
+import com.stark.shoot.domain.shared.event.DomainEvent
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 

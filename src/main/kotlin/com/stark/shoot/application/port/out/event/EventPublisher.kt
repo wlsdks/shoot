@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.out.event
 
-import com.stark.shoot.domain.event.DomainEvent
+import com.stark.shoot.domain.shared.event.DomainEvent
 
 /**
  * 도메인 이벤트 발행을 위한 아웃바운드 포트

@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.event.type
+package com.stark.shoot.domain.shared.event.type
 
 enum class EventType(
     private val code: String,

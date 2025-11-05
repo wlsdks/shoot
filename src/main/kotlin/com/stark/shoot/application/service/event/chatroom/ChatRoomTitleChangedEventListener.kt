@@ -3,7 +3,7 @@ package com.stark.shoot.application.service.event.chatroom
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
-import com.stark.shoot.domain.event.ChatRoomTitleChangedEvent
+import com.stark.shoot.domain.shared.event.ChatRoomTitleChangedEvent
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase

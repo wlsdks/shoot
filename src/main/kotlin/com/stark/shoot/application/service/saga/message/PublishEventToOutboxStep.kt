@@ -3,8 +3,8 @@ package com.stark.shoot.application.service.saga.message
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.out.persistence.postgres.entity.OutboxEventEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxEventRepository
-import com.stark.shoot.domain.event.MentionEvent
-import com.stark.shoot.domain.event.MessageSentEvent
+import com.stark.shoot.domain.shared.event.MentionEvent
+import com.stark.shoot.domain.shared.event.MessageSentEvent
 import com.stark.shoot.domain.saga.SagaStep
 import com.stark.shoot.domain.saga.message.MessageSagaContext
 import io.github.oshai.kotlinlogging.KotlinLogging

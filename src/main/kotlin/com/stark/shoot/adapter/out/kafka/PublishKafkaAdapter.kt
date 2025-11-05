@@ -1,7 +1,7 @@
 package com.stark.shoot.adapter.out.kafka
 
 import com.stark.shoot.application.port.out.kafka.PublishKafkaPort
-import com.stark.shoot.domain.event.MessageEvent
+import com.stark.shoot.domain.shared.event.MessageEvent
 import com.stark.shoot.domain.exception.web.KafkaPublishException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.future.await

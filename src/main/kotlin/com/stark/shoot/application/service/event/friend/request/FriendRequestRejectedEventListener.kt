@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.event.friend.request
 
-import com.stark.shoot.domain.event.FriendRequestRejectedEvent
+import com.stark.shoot.domain.shared.event.FriendRequestRejectedEvent
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase

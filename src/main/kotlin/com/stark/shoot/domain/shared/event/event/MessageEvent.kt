@@ -1,7 +1,7 @@
-package com.stark.shoot.domain.event
+package com.stark.shoot.domain.shared.event
 
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.event.type.EventType
+import com.stark.shoot.domain.shared.event.type.EventType
 import java.time.Instant
 
 data class MessageEvent(

@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.event
+package com.stark.shoot.domain.shared.event
 
 interface DomainEvent {
     /**

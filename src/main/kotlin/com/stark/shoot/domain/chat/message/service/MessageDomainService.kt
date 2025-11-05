@@ -5,8 +5,8 @@ import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.event.MessageEvent
-import com.stark.shoot.domain.event.type.EventType
+import com.stark.shoot.domain.shared.event.MessageEvent
+import com.stark.shoot.domain.shared.event.type.EventType
 import com.stark.shoot.domain.shared.UserId
 import java.util.*
 

@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.event.MessageBulkReadEvent
+import com.stark.shoot.domain.shared.event.MessageBulkReadEvent
 import com.stark.shoot.domain.shared.UserId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component

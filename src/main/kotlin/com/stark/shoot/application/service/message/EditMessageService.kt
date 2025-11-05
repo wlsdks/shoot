@@ -8,7 +8,7 @@ import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageEditDomainService
-import com.stark.shoot.domain.event.MessageEditedEvent
+import com.stark.shoot.domain.shared.event.MessageEditedEvent
 import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging

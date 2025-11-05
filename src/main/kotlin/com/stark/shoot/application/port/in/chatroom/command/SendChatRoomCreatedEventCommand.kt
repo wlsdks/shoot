@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.chatroom.command
 
-import com.stark.shoot.domain.event.ChatRoomCreatedEvent
+import com.stark.shoot.domain.shared.event.ChatRoomCreatedEvent
 
 /**
  * Command for sending a chat room created event

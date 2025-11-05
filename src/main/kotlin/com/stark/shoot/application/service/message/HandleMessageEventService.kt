@@ -8,8 +8,8 @@ import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
 import com.stark.shoot.application.service.saga.message.MessageSagaOrchestrator
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
-import com.stark.shoot.domain.event.MessageEvent
-import com.stark.shoot.domain.event.type.EventType
+import com.stark.shoot.domain.shared.event.MessageEvent
+import com.stark.shoot.domain.shared.event.type.EventType
 import com.stark.shoot.domain.saga.SagaState
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging

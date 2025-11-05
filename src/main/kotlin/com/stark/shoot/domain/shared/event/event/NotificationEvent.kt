@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.event
+package com.stark.shoot.domain.shared.event
 
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType

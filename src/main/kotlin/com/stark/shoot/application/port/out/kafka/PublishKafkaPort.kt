@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.out.kafka
 
-import com.stark.shoot.domain.event.MessageEvent
+import com.stark.shoot.domain.shared.event.MessageEvent
 import java.util.concurrent.CompletableFuture
 
 interface PublishKafkaPort {

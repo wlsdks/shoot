@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.event.message
 
-import com.stark.shoot.domain.event.MessageBulkReadEvent
+import com.stark.shoot.domain.shared.event.MessageBulkReadEvent
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase

@@ -13,8 +13,8 @@ import com.stark.shoot.domain.chatroom.service.ChatRoomValidationDomainService
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
-import com.stark.shoot.domain.event.ChatRoomParticipantChangedEvent
-import com.stark.shoot.domain.event.ChatRoomTitleChangedEvent
+import com.stark.shoot.domain.shared.event.ChatRoomParticipantChangedEvent
+import com.stark.shoot.domain.shared.event.ChatRoomTitleChangedEvent
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.ChatRoomException

@@ -1,6 +1,6 @@
 package com.stark.shoot.application.service.event.friend
 
-import com.stark.shoot.domain.event.FriendRemovedEvent
+import com.stark.shoot.domain.shared.event.FriendRemovedEvent
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase

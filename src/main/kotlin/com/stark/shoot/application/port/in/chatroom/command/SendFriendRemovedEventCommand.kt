@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.chatroom.command
 
-import com.stark.shoot.domain.event.FriendRemovedEvent
+import com.stark.shoot.domain.shared.event.FriendRemovedEvent
 
 /**
  * Command for sending a friend removed event

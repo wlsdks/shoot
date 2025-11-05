@@ -8,7 +8,7 @@ import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestQueryPort
 import com.stark.shoot.application.port.out.user.friend.FriendCommandPort
-import com.stark.shoot.domain.event.FriendRequestRejectedEvent
+import com.stark.shoot.domain.shared.event.FriendRequestRejectedEvent
 import com.stark.shoot.domain.social.FriendRequest
 import com.stark.shoot.domain.social.service.FriendDomainService
 import com.stark.shoot.domain.social.type.FriendRequestStatus

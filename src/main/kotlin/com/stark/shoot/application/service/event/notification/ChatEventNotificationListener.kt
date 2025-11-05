@@ -4,7 +4,7 @@ import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.event.MessageSentEvent
+import com.stark.shoot.domain.shared.event.MessageSentEvent
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging

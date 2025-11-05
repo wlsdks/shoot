@@ -8,7 +8,7 @@ import com.stark.shoot.application.port.out.message.MessageStatusNotificationPor
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageDomainService
 import com.stark.shoot.domain.chat.message.type.MessageStatus
-import com.stark.shoot.domain.event.MessageEvent
+import com.stark.shoot.domain.shared.event.MessageEvent
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.config.async.ApplicationCoroutineScope
 import com.stark.shoot.domain.exception.web.ErrorResponse

@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.chat.message.service
 
 import com.stark.shoot.domain.chat.message.vo.ReactionToggleResult
-import com.stark.shoot.domain.event.MessageReactionEvent
+import com.stark.shoot.domain.shared.event.MessageReactionEvent
 import com.stark.shoot.domain.exception.MessageException
 
 /**

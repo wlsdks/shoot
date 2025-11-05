@@ -8,6 +8,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxEventRe
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.notification.SlackNotificationPort
 import com.stark.shoot.domain.saga.SagaState
+import com.stark.shoot.domain.shared.event.DomainEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled
@@ -102,7 +103,7 @@ class OutboxEventProcessor(
 
             // 이벤트 역직렬화
             val eventClass = Class.forName(outboxEvent.eventType)
-            val event = objectMapper.readValue(outboxEvent.payload, eventClass) as com.stark.shoot.domain.event.DomainEvent
+            val event = objectMapper.readValue(outboxEvent.payload, eventClass) as DomainEvent
 
             // 이벤트 발행
             eventPublisher.publishEvent(event)

@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.constants
+package com.stark.shoot.domain.shared.constants
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

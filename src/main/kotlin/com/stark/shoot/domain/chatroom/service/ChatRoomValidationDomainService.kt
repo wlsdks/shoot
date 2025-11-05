@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.chatroom.service
 
-import com.stark.shoot.domain.constants.DomainConstants
+import com.stark.shoot.domain.shared.constants.DomainConstants
 import com.stark.shoot.domain.shared.exception.FavoriteLimitExceededException
 import com.stark.shoot.domain.shared.exception.ValidationException
 

@@ -2,7 +2,7 @@ package com.stark.shoot.domain.chatroom.service
 
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.shared.UserId
-import com.stark.shoot.domain.constants.DomainConstants
+import com.stark.shoot.domain.shared.constants.DomainConstants
 import org.springframework.stereotype.Service
 
 /**

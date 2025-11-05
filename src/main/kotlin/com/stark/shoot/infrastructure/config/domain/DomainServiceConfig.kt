@@ -9,7 +9,7 @@ import com.stark.shoot.domain.notification.service.NotificationDomainService
 import com.stark.shoot.domain.social.service.FriendDomainService
 import com.stark.shoot.domain.social.service.block.UserBlockDomainService
 import com.stark.shoot.domain.social.service.group.FriendGroupDomainService
-import com.stark.shoot.domain.constants.DomainConstants
+import com.stark.shoot.domain.shared.constants.DomainConstants
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 

@@ -1,4 +1,6 @@
-package com.stark.shoot.domain.shared.exception
+package com.stark.shoot.domain.chat.exception
+
+import com.stark.shoot.domain.shared.exception.DomainException
 
 /**
  * 메시지 관련 도메인 예외

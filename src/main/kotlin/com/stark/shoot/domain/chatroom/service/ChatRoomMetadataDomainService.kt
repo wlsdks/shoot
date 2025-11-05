@@ -2,7 +2,7 @@ package com.stark.shoot.domain.chatroom.service
 
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chatroom.ChatRoom
-import com.stark.shoot.domain.shared.exception.MessageException
+import com.stark.shoot.domain.chat.exception.MessageException
 import java.time.Instant
 
 /**

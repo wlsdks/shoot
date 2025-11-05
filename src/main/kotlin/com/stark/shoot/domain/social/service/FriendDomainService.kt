@@ -4,11 +4,13 @@ import com.stark.shoot.domain.shared.event.FriendAddedEvent
 import com.stark.shoot.domain.social.FriendRequest
 import com.stark.shoot.domain.social.Friendship
 import com.stark.shoot.domain.shared.UserId
-import com.stark.shoot.domain.shared.exception.UserException
+import com.stark.shoot.domain.social.exception.FriendException
 
 /**
  * 친구 관련 도메인 서비스
  * 친구 요청, 수락, 거절, 제거 등의 도메인 로직을 담당합니다.
+ *
+ * DDD 개선: UserException → FriendException 사용
  */
 class FriendDomainService {
 
@@ -20,7 +22,7 @@ class FriendDomainService {
      * @param isFriend 이미 친구인지 여부
      * @param hasOutgoingRequest 이미 친구 요청을 보냈는지 여부
      * @param hasIncomingRequest 상대방으로부터 이미 친구 요청을 받았는지 여부
-     * @throws IllegalArgumentException 유효하지 않은 요청인 경우
+     * @throws FriendException 유효하지 않은 요청인 경우
      */
     fun validateFriendRequest(
         currentUserId: UserId,
@@ -31,22 +33,22 @@ class FriendDomainService {
     ) {
         // 자기 자신에게 요청하는 경우 방지
         if (currentUserId == targetUserId) {
-            throw UserException.SelfFriendRequestNotAllowed()
+            throw FriendException.SelfFriendRequestNotAllowed()
         }
 
         // 이미 친구인지 확인
         if (isFriend) {
-            throw UserException.AlreadyFriends()
+            throw FriendException.AlreadyFriends()
         }
 
         // 이미 친구 요청을 보냈는지 확인
         if (hasOutgoingRequest) {
-            throw UserException.FriendRequestAlreadySent()
+            throw FriendException.FriendRequestAlreadySent()
         }
 
         // 상대방으로부터 이미 친구 요청을 받은 상태인지 확인
         if (hasIncomingRequest) {
-            throw UserException.FriendRequestAlreadyReceived()
+            throw FriendException.FriendRequestAlreadyReceived()
         }
     }
 

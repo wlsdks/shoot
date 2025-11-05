@@ -81,7 +81,6 @@ class DeleteMessageService(
                 messageId = message.id ?: return,
                 roomId = message.roomId,
                 userId = userId,
-                message = message,  // WebSocket 전송용
                 deletedAt = Instant.now()
             )
             eventPublisher.publishEvent(event)

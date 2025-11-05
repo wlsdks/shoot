@@ -1,6 +1,5 @@
 package com.stark.shoot.domain.shared.event
 
-import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.shared.UserId
@@ -12,13 +11,14 @@ import java.time.Instant
  *
  * WebSocket 브로드캐스트는 MongoDB 저장 완료 후에 수행되도록
  * @TransactionalEventListener에서 처리됩니다.
+ *
+ * DDD 개선: ChatMessage 도메인 객체 제거, primitive 타입과 VO만 사용
  */
 data class MessageDeletedEvent(
     val messageId: MessageId,
     val roomId: ChatRoomId,
     val userId: UserId,
     val deletedAt: Instant,
-    val message: ChatMessage,  // WebSocket 전송용 메시지 객체
     override val occurredOn: Long = System.currentTimeMillis()
 ) : DomainEvent {
     companion object {
@@ -28,7 +28,6 @@ data class MessageDeletedEvent(
          * @param messageId 삭제된 메시지 ID
          * @param roomId 채팅방 ID
          * @param userId 삭제한 사용자 ID
-         * @param message 삭제된 메시지 객체
          * @param deletedAt 삭제 시간
          * @return 생성된 MessageDeletedEvent 객체
          */
@@ -36,14 +35,12 @@ data class MessageDeletedEvent(
             messageId: MessageId,
             roomId: ChatRoomId,
             userId: UserId,
-            message: ChatMessage,
             deletedAt: Instant = Instant.now()
         ): MessageDeletedEvent {
             return MessageDeletedEvent(
                 messageId = messageId,
                 roomId = roomId,
                 userId = userId,
-                message = message,
                 deletedAt = deletedAt
             )
         }

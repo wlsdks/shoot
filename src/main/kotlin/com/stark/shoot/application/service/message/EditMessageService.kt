@@ -89,7 +89,6 @@ class EditMessageService(
                 userId = userId,
                 oldContent = oldContent,
                 newContent = newContent,
-                message = message,  // WebSocket 전송용
                 editedAt = Instant.now()
             )
             eventPublisher.publishEvent(event)

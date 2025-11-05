@@ -5,7 +5,11 @@ import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.shared.UserId
 import java.time.Instant
 
+/**
+ * @property version Event schema version for MSA compatibility
+ */
 data class MentionEvent(
+    val version: String = "1.0",
     val id: String? = null,
     val roomId: ChatRoomId,
     val messageId: MessageId,

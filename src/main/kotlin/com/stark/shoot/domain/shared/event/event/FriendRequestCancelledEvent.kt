@@ -5,8 +5,11 @@ import java.time.Instant
 
 /**
  * 친구 요청 취소 도메인 이벤트
+ *
+ * @property version Event schema version for MSA compatibility
  */
 data class FriendRequestCancelledEvent(
+    val version: String = "1.0",
     val senderId: UserId,
     val receiverId: UserId,
     val cancelledAt: Instant,

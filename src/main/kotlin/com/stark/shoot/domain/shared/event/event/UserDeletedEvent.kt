@@ -6,8 +6,11 @@ import java.time.Instant
 /**
  * 사용자 삭제 도메인 이벤트
  * 사용자 탈퇴/삭제 시 발행되는 이벤트
+ *
+ * @property version Event schema version for MSA compatibility
  */
 data class UserDeletedEvent(
+    val version: String = "1.0",
     val userId: UserId,
     val username: String,
     val deletedAt: Instant,

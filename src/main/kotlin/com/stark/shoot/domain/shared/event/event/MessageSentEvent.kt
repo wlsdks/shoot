@@ -13,8 +13,11 @@ import java.time.Instant
  * - ChatMessage 도메인 객체 제거, primitive 타입과 VO만 사용
  * - Factory method 제거: Shared Kernel이 특정 Context에 의존하지 않도록 함
  * - MSA 준비: Event는 모든 서비스에서 독립적으로 사용 가능해야 함
+ *
+ * @property version Event schema version for MSA compatibility
  */
 data class MessageSentEvent(
+    val version: String = "1.0",
     val messageId: MessageId,
     val roomId: ChatRoomId,
     val senderId: UserId,

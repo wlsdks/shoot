@@ -4,7 +4,11 @@ import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.shared.UserId
 
+/**
+ * @property version Event schema version for MSA compatibility
+ */
 data class MessagePinEvent(
+    val version: String = "1.0",
     val messageId: MessageId,
     val roomId: ChatRoomId,
     val isPinned: Boolean,

@@ -13,8 +13,11 @@ import java.time.Instant
  * @TransactionalEventListener에서 처리됩니다.
  *
  * DDD 개선: ChatMessage 도메인 객체 제거, primitive 타입과 VO만 사용
+ *
+ * @property version Event schema version for MSA compatibility
  */
 data class MessageEditedEvent(
+    val version: String = "1.0",
     val messageId: MessageId,
     val roomId: ChatRoomId,
     val userId: UserId,

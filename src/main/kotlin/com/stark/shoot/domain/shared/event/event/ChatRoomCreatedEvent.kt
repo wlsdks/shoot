@@ -3,8 +3,13 @@ package com.stark.shoot.domain.shared.event
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.shared.UserId
 
-// 새 이벤트 정의
+/**
+ * 새 이벤트 정의
+ *
+ * @property version Event schema version for MSA compatibility
+ */
 data class ChatRoomCreatedEvent(
+    val version: String = "1.0",
     val roomId: ChatRoomId,
     val userId: UserId,
     override val occurredOn: Long = System.currentTimeMillis()

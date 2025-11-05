@@ -2,7 +2,11 @@ package com.stark.shoot.domain.shared.event
 
 import com.stark.shoot.domain.shared.UserId
 
+/**
+ * @property version Event schema version for MSA compatibility
+ */
 data class FriendAddedEvent(
+    val version: String = "1.0",
     val userId: UserId,
     val friendId: UserId,
     override val occurredOn: Long = System.currentTimeMillis()

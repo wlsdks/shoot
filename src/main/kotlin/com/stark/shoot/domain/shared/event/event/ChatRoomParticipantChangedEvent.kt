@@ -5,8 +5,11 @@ import com.stark.shoot.domain.shared.UserId
 
 /**
  * 채팅방 참여자 변경 이벤트
+ *
+ * @property version Event schema version for MSA compatibility
  */
 data class ChatRoomParticipantChangedEvent(
+    val version: String = "1.0",
     val roomId: ChatRoomId,
     val participantsAdded: Set<UserId>,
     val participantsRemoved: Set<UserId>,

@@ -6,8 +6,11 @@ import java.time.Instant
 /**
  * 사용자 생성 도메인 이벤트
  * 신규 사용자 가입 시 발행되는 이벤트
+ *
+ * @property version Event schema version for MSA compatibility
  */
 data class UserCreatedEvent(
+    val version: String = "1.0",
     val userId: UserId,
     val username: String,
     val nickname: String,

@@ -4,8 +4,11 @@ import com.stark.shoot.domain.shared.UserId
 
 /**
  * 친구 삭제 도메인 이벤트
+ *
+ * @property version Event schema version for MSA compatibility
  */
 data class FriendRemovedEvent(
+    val version: String = "1.0",
     val userId: UserId,
     val friendId: UserId,
     override val occurredOn: Long = System.currentTimeMillis()

@@ -1,11 +1,13 @@
 package com.stark.shoot.domain.chatroom.service
 
 import com.stark.shoot.domain.chatroom.constants.ChatRoomConstants
+import com.stark.shoot.domain.chatroom.exception.ChatRoomValidationException
 import com.stark.shoot.domain.shared.exception.FavoriteLimitExceededException
-import com.stark.shoot.domain.shared.exception.ValidationException
 
 /**
  * 채팅방 검증 로직을 처리하는 도메인 서비스
+ *
+ * DDD 개선: ValidationException → ChatRoomValidationException 사용
  */
 class ChatRoomValidationDomainService(
     val chatRoomConstants: ChatRoomConstants
@@ -17,12 +19,12 @@ class ChatRoomValidationDomainService(
     fun validateGroupChatParticipants(participantCount: Int) {
         val maxParticipants = chatRoomConstants.maxParticipants
         val minParticipants = chatRoomConstants.minGroupParticipants
-        
+
         if (participantCount < minParticipants) {
-            throw ValidationException.GroupChatMinParticipants(minParticipants)
+            throw ChatRoomValidationException.GroupChatMinParticipants(minParticipants)
         }
         if (participantCount > maxParticipants) {
-            throw ValidationException.GroupChatMaxParticipants(maxParticipants)
+            throw ChatRoomValidationException.GroupChatMaxParticipants(maxParticipants)
         }
     }
     

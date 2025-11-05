@@ -1,7 +1,7 @@
 package com.stark.shoot.application.service.message.mark
 
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
-import com.stark.shoot.application.service.util.*
+import com.stark.shoot.application.acl.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.vo.ChatRoomId

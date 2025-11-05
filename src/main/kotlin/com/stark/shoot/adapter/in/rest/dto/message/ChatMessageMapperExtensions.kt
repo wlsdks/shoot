@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.rest.dto.message
 
-import com.stark.shoot.application.service.util.*
+import com.stark.shoot.application.acl.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata

@@ -1,16 +1,22 @@
-package com.stark.shoot.application.service.util
+package com.stark.shoot.application.acl
 
 /**
- * ChatRoomId 컨버터
+ * ChatRoomId Anti-Corruption Layer (ACL)
  *
- * DDD 개선: Context 간 경계에서 ChatRoomId 변환
+ * DDD 패턴: Context 간 경계에서 ChatRoomId 변환
  * - Chat Context와 ChatRoom Context는 각각 독립적인 ChatRoomId VO를 가짐
- * - Application Layer에서 Context 간 이동 시 변환 필요
- * - Phase 2-3에서 Anti-Corruption Layer로 발전 예정
+ * - Application Layer ACL에서 Context 간 이동 시 변환 수행
+ * - 각 Context의 도메인 모델이 다른 Context의 영향을 받지 않도록 보호
  *
- * 향후 개선:
- * - MSA 환경에서는 ACL(Anti-Corruption Layer)로 확장
- * - 현재는 단순 타입 변환이지만, 향후 검증/변환 로직 추가 가능
+ * ACL 역할:
+ * 1. 타입 변환: 구조적으로 동일하지만 타입이 다른 VO 간 변환
+ * 2. 도메인 보호: 외부 Context의 변경이 내부 도메인에 영향을 주지 않도록 방어
+ * 3. MSA 준비: 향후 서비스 분리 시 API 경계에서 DTO 변환 역할
+ *
+ * 향후 확장:
+ * - 검증 로직 추가 (예: ChatRoomId 유효성 검증)
+ * - 변환 실패 시 예외 처리 전략
+ * - MSA 환경에서 서비스 간 API 호출 시 DTO 변환
  */
 object ChatRoomIdConverter {
 

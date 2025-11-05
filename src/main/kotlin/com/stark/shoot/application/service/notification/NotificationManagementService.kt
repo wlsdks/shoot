@@ -6,9 +6,9 @@ import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.NotificationQueryPort
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.service.NotificationDomainService
-import com.stark.shoot.domain.exception.NotificationException
-import com.stark.shoot.domain.exception.web.MongoOperationException
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.shared.exception.NotificationException
+import com.stark.shoot.infrastructure.exception.web.MongoOperationException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

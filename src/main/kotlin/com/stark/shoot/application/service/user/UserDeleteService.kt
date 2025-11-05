@@ -13,7 +13,7 @@ import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCom
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.shared.event.UserDeletedEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant

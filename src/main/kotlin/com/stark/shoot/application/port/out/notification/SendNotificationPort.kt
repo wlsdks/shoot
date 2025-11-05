@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.out.notification
 
 import com.stark.shoot.domain.notification.Notification
-import com.stark.shoot.domain.exception.web.RedisOperationException
+import com.stark.shoot.infrastructure.exception.web.RedisOperationException
 
 interface SendNotificationPort {
 

@@ -1,8 +1,8 @@
 package com.stark.shoot.application.port.out.chatroom
 
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.exception.web.MongoOperationException
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.MongoOperationException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 /**
  * 채팅방 삭제를 위한 포트

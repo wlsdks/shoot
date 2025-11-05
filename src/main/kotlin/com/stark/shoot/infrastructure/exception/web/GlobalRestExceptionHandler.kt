@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.exception.web
+package com.stark.shoot.infrastructure.exception.web
 
 import com.stark.shoot.adapter.`in`.rest.dto.ApiException
 import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto

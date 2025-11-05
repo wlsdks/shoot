@@ -9,7 +9,7 @@ import com.stark.shoot.application.port.out.user.friend.request.FriendRequestQue
 import com.stark.shoot.domain.social.type.FriendRequestStatus
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 @UseCase
 class FriendSearchService(

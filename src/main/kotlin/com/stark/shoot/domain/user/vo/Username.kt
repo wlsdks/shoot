@@ -2,7 +2,7 @@
 
 package com.stark.shoot.domain.user.vo
 
-import com.stark.shoot.domain.exception.InvalidUserDataException
+import com.stark.shoot.domain.shared.exception.InvalidUserDataException
 
 @JvmInline
 value class Username private constructor(val value: String) {

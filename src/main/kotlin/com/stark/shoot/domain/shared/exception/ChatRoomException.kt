@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.exception
+package com.stark.shoot.domain.shared.exception
 
 /**
  * 채팅방 관련 도메인 예외

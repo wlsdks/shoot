@@ -14,8 +14,8 @@ import com.stark.shoot.domain.social.service.FriendDomainService
 import com.stark.shoot.domain.social.type.FriendRequestStatus
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.domain.exception.web.InvalidInputException
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.InvalidInputException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable

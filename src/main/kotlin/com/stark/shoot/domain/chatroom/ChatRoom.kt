@@ -6,8 +6,8 @@ import com.stark.shoot.domain.chatroom.vo.ChatRoomAnnouncement
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
 import com.stark.shoot.domain.shared.UserId
-import com.stark.shoot.domain.exception.FavoriteLimitExceededException
-import com.stark.shoot.domain.exception.ChatRoomException
+import com.stark.shoot.domain.shared.exception.FavoriteLimitExceededException
+import com.stark.shoot.domain.shared.exception.ChatRoomException
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

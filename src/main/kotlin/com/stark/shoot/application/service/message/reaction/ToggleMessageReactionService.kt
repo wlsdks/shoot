@@ -13,8 +13,8 @@ import com.stark.shoot.domain.chat.reaction.type.ReactionType
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.redis.RedisLockManager
-import com.stark.shoot.domain.exception.web.InvalidInputException
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.InvalidInputException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.WebSocketResponseBuilder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional

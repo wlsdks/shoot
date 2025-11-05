@@ -3,7 +3,7 @@ package com.stark.shoot.domain.chat.message.service
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chatroom.service.EditabilityResult
-import com.stark.shoot.domain.exception.MessageException
+import com.stark.shoot.domain.shared.exception.MessageException
 import java.time.Duration
 import java.time.Instant
 

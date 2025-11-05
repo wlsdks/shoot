@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.exception
+package com.stark.shoot.domain.shared.exception
 
 /**
  * 유효하지 않은 사용자 데이터로 인해 발생하는 예외

@@ -9,7 +9,7 @@ import com.stark.shoot.application.port.out.user.friend.relate.FriendshipQueryPo
 import com.stark.shoot.domain.shared.event.FriendRemovedEvent
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 

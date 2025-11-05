@@ -8,7 +8,7 @@ import com.stark.shoot.application.port.`in`.user.profile.UserUpdateProfileUseCa
 import com.stark.shoot.application.port.`in`.user.profile.command.SetBackgroundImageCommand
 import com.stark.shoot.application.port.`in`.user.profile.command.SetProfileImageCommand
 import com.stark.shoot.application.port.`in`.user.profile.command.UpdateProfileCommand
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.Authentication

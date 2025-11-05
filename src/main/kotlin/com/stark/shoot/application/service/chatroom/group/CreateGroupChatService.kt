@@ -11,7 +11,7 @@ import com.stark.shoot.domain.chatroom.service.ChatRoomValidationDomainService
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
 import com.stark.shoot.domain.event.ChatRoomCreatedEvent
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.ChatRoomException
 import com.stark.shoot.domain.exception.UserException

@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.event
 
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 data class FriendAddedEvent(
     val userId: UserId,

@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.message.mark.command
 
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * Command for marking all messages in a chat room as read

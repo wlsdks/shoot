@@ -10,7 +10,7 @@ import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
 import com.stark.shoot.domain.chat.message.service.MessageDomainService
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging

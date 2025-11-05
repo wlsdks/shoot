@@ -1,5 +1,6 @@
 package com.stark.shoot.application.port.`in`.user.profile.command
 
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.vo.*
 
 /**

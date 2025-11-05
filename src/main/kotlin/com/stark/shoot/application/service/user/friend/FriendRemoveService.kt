@@ -60,7 +60,7 @@ class FriendRemoveService(
      * 친구 삭제 이벤트를 발행합니다.
      * 트랜잭션 커밋 후 리스너들이 1:1 채팅방 처리, 알림 전송 등을 수행할 수 있습니다.
      */
-    private fun publishFriendRemovedEvent(userId: com.stark.shoot.domain.user.vo.UserId, friendId: com.stark.shoot.domain.user.vo.UserId) {
+    private fun publishFriendRemovedEvent(userId: com.stark.shoot.domain.shared.UserId, friendId: com.stark.shoot.domain.shared.UserId) {
         try {
             val event = FriendRemovedEvent.create(
                 userId = userId,

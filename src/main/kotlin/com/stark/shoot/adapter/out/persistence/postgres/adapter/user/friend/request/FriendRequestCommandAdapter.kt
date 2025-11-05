@@ -7,7 +7,7 @@ import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCom
 import com.stark.shoot.domain.social.FriendRequest
 import com.stark.shoot.domain.social.type.FriendRequestStatus
 import com.stark.shoot.domain.social.vo.FriendRequestId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import java.time.Instant
 

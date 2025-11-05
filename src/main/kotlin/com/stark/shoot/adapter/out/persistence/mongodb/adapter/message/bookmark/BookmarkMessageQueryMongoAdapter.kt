@@ -6,7 +6,7 @@ import com.stark.shoot.application.port.out.message.bookmark.BookmarkMessageQuer
 import com.stark.shoot.domain.chat.bookmark.MessageBookmark
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import org.bson.types.ObjectId
 

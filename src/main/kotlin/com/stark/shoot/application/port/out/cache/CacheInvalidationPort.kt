@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.out.cache
 
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 캐시 무효화를 위한 포트

@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.user.friend.command
 
 import com.stark.shoot.adapter.`in`.rest.dto.social.friend.CancelFriendRequest
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 data class CancelFriendRequestCommand(
     val currentUserId: UserId,

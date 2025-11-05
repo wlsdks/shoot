@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.chatroom.service
 
 import com.stark.shoot.domain.chatroom.ChatRoom
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 채팅방 도메인 서비스

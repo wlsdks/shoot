@@ -6,7 +6,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMap
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.friend.FriendCommandPort
 import com.stark.shoot.domain.social.type.FriendRequestStatus
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import java.time.Instant
 

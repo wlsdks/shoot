@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.`in`.rest.dto.message.read.ReadStatus
 import com.stark.shoot.application.port.out.message.readstatus.ReadStatusQueryPort
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import org.springframework.data.redis.core.StringRedisTemplate
 

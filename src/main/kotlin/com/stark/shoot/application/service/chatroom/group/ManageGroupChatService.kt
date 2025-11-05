@@ -15,7 +15,7 @@ import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
 import com.stark.shoot.domain.event.ChatRoomParticipantChangedEvent
 import com.stark.shoot.domain.event.ChatRoomTitleChangedEvent
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.ChatRoomException
 import com.stark.shoot.domain.exception.UserException

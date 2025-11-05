@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.social
 
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import java.time.Instant
 
 /**

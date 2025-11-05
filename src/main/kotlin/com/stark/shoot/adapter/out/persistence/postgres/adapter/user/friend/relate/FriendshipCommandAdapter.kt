@@ -6,7 +6,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepositor
 import com.stark.shoot.application.port.out.user.friend.relate.FriendshipCommandPort
 import com.stark.shoot.domain.social.Friendship
 import com.stark.shoot.domain.social.vo.FriendshipId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter

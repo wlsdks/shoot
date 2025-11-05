@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.chatroom.service
 
 import com.stark.shoot.domain.chatroom.ChatRoom
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.constants.DomainConstants
 import org.springframework.stereotype.Service
 

@@ -8,6 +8,7 @@ import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.event.FriendAddedEvent
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.notification.vo.NotificationMessage
 import com.stark.shoot.domain.notification.vo.NotificationTitle
@@ -123,7 +124,7 @@ class FriendAddedEventListener(
      * 친구 수락 알림 생성
      */
     private fun createFriendAcceptedNotification(
-        recipientId: com.stark.shoot.domain.user.vo.UserId,
+        recipientId: com.stark.shoot.domain.shared.UserId,
         friendName: String,
         sourceId: String
     ): Notification {

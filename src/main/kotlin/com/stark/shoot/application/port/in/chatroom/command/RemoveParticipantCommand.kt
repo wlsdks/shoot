@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.chatroom.command
 
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * Command for removing a participant from a chat room

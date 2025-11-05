@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.social.service.block
 
 import com.stark.shoot.domain.social.BlockedUser
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 class UserBlockDomainService {
 

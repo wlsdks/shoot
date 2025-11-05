@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.notification.command
 
 import com.stark.shoot.domain.notification.vo.NotificationId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 알림을 읽음 상태로 표시하는 커맨드

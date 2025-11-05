@@ -2,7 +2,7 @@ package com.stark.shoot.application.port.out.user.friend.request
 
 import com.stark.shoot.domain.social.FriendRequest
 import com.stark.shoot.domain.social.type.FriendRequestStatus
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 친구 요청 생성 및 수정 관련 포트

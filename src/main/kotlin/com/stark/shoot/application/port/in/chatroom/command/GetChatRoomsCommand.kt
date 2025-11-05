@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.chatroom.command
 
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * Command for getting chat rooms for a user

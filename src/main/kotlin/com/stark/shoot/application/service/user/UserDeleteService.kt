@@ -91,7 +91,7 @@ class UserDeleteService(
      * - 1:1 채팅방: 삭제
      * - 그룹 채팅방: 참여자에서 제거, 빈 방이 되면 삭제
      */
-    private fun cleanupChatRooms(userId: com.stark.shoot.domain.user.vo.UserId) {
+    private fun cleanupChatRooms(userId: com.stark.shoot.domain.shared.UserId) {
         try {
             val chatRooms = chatRoomQueryPort.findByParticipantId(userId)
 
@@ -135,7 +135,7 @@ class UserDeleteService(
      * 사용자의 모든 친구 관계를 삭제합니다.
      * 양방향 친구 관계를 모두 제거합니다.
      */
-    private fun cleanupFriendships(userId: com.stark.shoot.domain.user.vo.UserId) {
+    private fun cleanupFriendships(userId: com.stark.shoot.domain.shared.UserId) {
         try {
             friendCommandPort.deleteAllFriendships(userId)
             logger.info { "Cleaned up all friendships for userId=${userId.value}" }
@@ -150,7 +150,7 @@ class UserDeleteService(
      * 사용자의 모든 친구 요청을 정리합니다.
      * 보낸 요청과 받은 요청 모두 삭제합니다.
      */
-    private fun cleanupFriendRequests(userId: com.stark.shoot.domain.user.vo.UserId) {
+    private fun cleanupFriendRequests(userId: com.stark.shoot.domain.shared.UserId) {
         try {
             friendRequestCommandPort.deleteAllByUserId(userId)
             logger.info { "Cleaned up all friend requests for userId=${userId.value}" }
@@ -164,7 +164,7 @@ class UserDeleteService(
     /**
      * 사용자의 모든 알림을 삭제합니다.
      */
-    private fun cleanupNotifications(userId: com.stark.shoot.domain.user.vo.UserId) {
+    private fun cleanupNotifications(userId: com.stark.shoot.domain.shared.UserId) {
         try {
             val deletedCount = notificationCommandPort.deleteAllNotificationsForUser(userId)
             logger.info { "Cleaned up $deletedCount notifications for userId=${userId.value}" }
@@ -179,7 +179,7 @@ class UserDeleteService(
      * 사용자 삭제 이벤트를 발행합니다.
      * 트랜잭션 커밋 후 리스너들이 외부 시스템 연동, 분석 등의 처리를 수행할 수 있습니다.
      */
-    private fun publishUserDeletedEvent(username: String, userId: com.stark.shoot.domain.user.vo.UserId) {
+    private fun publishUserDeletedEvent(username: String, userId: com.stark.shoot.domain.shared.UserId) {
         try {
             val event = UserDeletedEvent.create(
                 userId = userId,

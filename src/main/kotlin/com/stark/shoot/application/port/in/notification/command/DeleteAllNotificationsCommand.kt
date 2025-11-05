@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.notification.command
 
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 모든 알림 삭제 커맨드

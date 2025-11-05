@@ -2,7 +2,7 @@ package com.stark.shoot.infrastructure.mapper
 
 import com.stark.shoot.adapter.`in`.rest.dto.chatroom.ChatRoomResponse
 import com.stark.shoot.domain.chatroom.ChatRoom
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import org.springframework.stereotype.Component
 import kotlin.collections.get
 

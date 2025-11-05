@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.chatroom.command
 
 import com.stark.shoot.adapter.`in`.rest.dto.chatroom.CreateDirectChatRequest
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * Command for creating a direct chat between two users

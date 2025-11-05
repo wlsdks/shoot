@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.mapper.UserMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.UserCommandPort
 import com.stark.shoot.domain.user.User
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter

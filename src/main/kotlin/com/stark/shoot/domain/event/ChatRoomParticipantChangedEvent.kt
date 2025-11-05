@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.event
 
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 채팅방 참여자 변경 이벤트

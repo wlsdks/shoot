@@ -7,7 +7,7 @@ import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.vo.ChatRoomAnnouncement
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import org.springframework.stereotype.Component
 
 @Component

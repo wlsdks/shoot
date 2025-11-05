@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.notification
 
 import com.stark.shoot.domain.notification.type.NotificationType
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import java.time.Instant
 
 /**

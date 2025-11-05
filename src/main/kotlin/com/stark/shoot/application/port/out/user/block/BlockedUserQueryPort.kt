@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.out.user.block
 
 import com.stark.shoot.domain.social.BlockedUser
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 차단된 사용자 조회 관련 포트

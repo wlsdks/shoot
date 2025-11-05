@@ -5,7 +5,7 @@ import com.stark.shoot.adapter.`in`.rest.dto.user.toResponse
 import com.stark.shoot.application.port.`in`.user.auth.UserAuthUseCase
 import com.stark.shoot.application.port.`in`.user.auth.command.RetrieveUserDetailsCommand
 import com.stark.shoot.application.port.out.user.UserQueryPort
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import com.stark.shoot.domain.exception.web.UnauthorizedException

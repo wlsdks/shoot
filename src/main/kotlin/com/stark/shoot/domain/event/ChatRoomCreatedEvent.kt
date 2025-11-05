@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.event
 
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 // 새 이벤트 정의
 data class ChatRoomCreatedEvent(

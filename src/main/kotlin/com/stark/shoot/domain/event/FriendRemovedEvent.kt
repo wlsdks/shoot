@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.event
 
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 친구 삭제 도메인 이벤트

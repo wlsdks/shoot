@@ -16,7 +16,7 @@ import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
 import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 

@@ -4,7 +4,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.BlockedUserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.BlockedUserRepository
 import com.stark.shoot.application.port.out.user.block.BlockedUserQueryPort
 import com.stark.shoot.domain.social.BlockedUser
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter

@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.out.user.friend.relate
 
 import com.stark.shoot.domain.social.Friendship
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 친구 관계 조회 관련 포트

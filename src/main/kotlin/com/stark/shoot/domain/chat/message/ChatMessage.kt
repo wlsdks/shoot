@@ -6,7 +6,7 @@ import com.stark.shoot.domain.chat.message.vo.*
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
 import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import java.time.Instant
 
 data class ChatMessage(

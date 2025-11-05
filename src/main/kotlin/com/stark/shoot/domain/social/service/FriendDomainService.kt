@@ -3,7 +3,7 @@ package com.stark.shoot.domain.social.service
 import com.stark.shoot.domain.event.FriendAddedEvent
 import com.stark.shoot.domain.social.FriendRequest
 import com.stark.shoot.domain.social.Friendship
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.exception.UserException
 
 /**

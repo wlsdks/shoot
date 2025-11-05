@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.notification.command
 
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 사용자의 읽지 않은 알림 목록을 조회하는 커맨드

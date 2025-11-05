@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.out.persistence.postgres.mapper
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.vo.*
 import org.springframework.stereotype.Component

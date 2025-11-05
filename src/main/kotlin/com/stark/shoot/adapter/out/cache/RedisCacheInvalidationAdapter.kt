@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.out.cache
 
 import com.stark.shoot.application.port.out.cache.CacheInvalidationPort
 import com.stark.shoot.application.port.out.user.friend.FriendCachePort
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component

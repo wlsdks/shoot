@@ -6,7 +6,7 @@ import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 fun ChatMessageMetadataRequest.toDomain(): ChatMessageMetadata {
     return ChatMessageMetadata(

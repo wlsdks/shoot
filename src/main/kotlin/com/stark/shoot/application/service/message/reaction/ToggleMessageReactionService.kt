@@ -10,7 +10,7 @@ import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.service.MessageReactionService
 import com.stark.shoot.domain.chat.message.vo.ReactionToggleResult
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.redis.RedisLockManager
 import com.stark.shoot.domain.exception.web.InvalidInputException

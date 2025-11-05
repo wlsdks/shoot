@@ -1,4 +1,4 @@
-package com.stark.shoot.domain.user.vo
+package com.stark.shoot.domain.shared
 
 @JvmInline
 value class UserId private constructor(val value: Long) {

@@ -1,6 +1,7 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.port.`in`.message.DeleteMessageUseCase
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.application.port.`in`.message.command.DeleteMessageCommand
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
@@ -73,7 +74,7 @@ class DeleteMessageService(
      */
     private fun publishMessageDeletedEvent(
         message: ChatMessage,
-        userId: com.stark.shoot.domain.user.vo.UserId
+        userId: com.stark.shoot.domain.shared.UserId
     ) {
         try {
             val event = MessageDeletedEvent.create(

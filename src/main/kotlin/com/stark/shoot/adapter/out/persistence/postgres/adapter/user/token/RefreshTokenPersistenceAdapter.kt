@@ -8,7 +8,7 @@ import com.stark.shoot.application.port.out.user.token.RefreshTokenCommandPort
 import com.stark.shoot.application.port.out.user.token.RefreshTokenQueryPort
 import com.stark.shoot.domain.user.RefreshToken
 import com.stark.shoot.domain.user.vo.RefreshTokenValue
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.domain.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional

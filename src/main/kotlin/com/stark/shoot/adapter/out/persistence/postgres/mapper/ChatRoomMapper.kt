@@ -2,7 +2,6 @@ package com.stark.shoot.adapter.out.persistence.postgres.mapper
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.ChatRoomUserEntity
-import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.vo.ChatRoomAnnouncement
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
@@ -37,7 +36,7 @@ class ChatRoomMapper {
             announcement = entity.announcement?.let { ChatRoomAnnouncement.from(it) },
             participants = participantIds,
             pinnedParticipants = pinnedParticipantIds,
-            lastMessageId = entity.lastMessageId?.let { MessageId.from(it.toString()) },
+            lastMessageId = entity.lastMessageId?.toString(),
             lastActiveAt = entity.lastActiveAt,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
@@ -46,7 +45,7 @@ class ChatRoomMapper {
 
     // 도메인 -> 엔티티 변환 (ChatRoomUserEntity는 별도로 생성)
     fun toEntity(domain: ChatRoom): ChatRoomEntity {
-        val lastMessageIdLong: Long? = domain.lastMessageId?.value?.toLongOrNull()
+        val lastMessageIdLong: Long? = domain.lastMessageId?.toLongOrNull()
 
         return ChatRoomEntity(
             title = domain.title?.value,

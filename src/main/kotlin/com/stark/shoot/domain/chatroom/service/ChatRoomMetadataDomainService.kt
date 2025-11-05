@@ -28,7 +28,7 @@ class ChatRoomMetadataDomainService {
 
         // 채팅방 메타데이터 업데이트 (마지막 메시지 ID, 마지막 활동 시간)
         chatRoom.update(
-            lastMessageId = messageId,
+            lastMessageId = messageId.value,  // MessageId를 String으로 변환
             lastActiveAt = Instant.now()
         )
         return chatRoom

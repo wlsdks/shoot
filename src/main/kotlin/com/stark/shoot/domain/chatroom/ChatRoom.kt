@@ -1,6 +1,5 @@
 package com.stark.shoot.domain.chatroom
 
-import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomAnnouncement
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
@@ -17,7 +16,7 @@ data class ChatRoom(
     var title: ChatRoomTitle? = null,
     val type: ChatRoomType,
     var participants: Set<UserId>,
-    var lastMessageId: MessageId? = null,
+    var lastMessageId: String? = null,  // MessageId 대신 String 사용 (컨텍스트 간 결합 제거)
     var lastActiveAt: Instant = Instant.now(),
     var createdAt: Instant = Instant.now(),
 
@@ -136,7 +135,7 @@ data class ChatRoom(
     fun update(
         title: ChatRoomTitle? = null,
         announcement: ChatRoomAnnouncement? = null,
-        lastMessageId: MessageId? = null,
+        lastMessageId: String? = null,  // String으로 변경
         lastActiveAt: Instant? = null
     ) {
         title?.let { this.title = it }

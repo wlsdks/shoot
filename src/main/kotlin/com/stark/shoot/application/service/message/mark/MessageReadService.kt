@@ -289,13 +289,15 @@ class MessageReadService(
      * 채팅방의 마지막 메시지 내용을 조회합니다.
      */
     private fun getLastMessageText(chatRoom: ChatRoom): String {
-        return chatRoom.lastMessageId?.let { lastMessageId ->
+        return chatRoom.lastMessageId?.let { lastMessageIdStr ->
             try {
+                // String을 MessageId로 변환
+                val lastMessageId = MessageId.from(lastMessageIdStr)
                 // 실제 메시지 내용 조회
                 val lastMessage = messageQueryPort.findById(lastMessageId)
                 formatMessageContent(lastMessage)
             } catch (e: Exception) {
-                logger.warn(e) { "마지막 메시지 조회 실패: $lastMessageId" }
+                logger.warn(e) { "마지막 메시지 조회 실패: $lastMessageIdStr" }
                 "최근 메시지"
             }
         } ?: "메시지가 없습니다"

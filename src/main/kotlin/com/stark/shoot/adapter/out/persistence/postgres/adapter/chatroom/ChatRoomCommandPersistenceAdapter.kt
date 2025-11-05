@@ -70,7 +70,7 @@ class ChatRoomCommandPersistenceAdapter(
                 title = chatRoom.title?.value,
                 type = chatRoom.type,
                 announcement = chatRoom.announcement?.value,
-                lastMessageId = chatRoom.lastMessageId?.value?.toLongOrNull(),
+                lastMessageId = chatRoom.lastMessageId?.toLongOrNull(),
                 lastActiveAt = chatRoom.lastActiveAt
             )
 

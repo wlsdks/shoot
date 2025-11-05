@@ -7,6 +7,7 @@ import com.stark.shoot.application.port.`in`.message.pin.command.UnpinMessageCom
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
 import com.stark.shoot.domain.shared.UserId
@@ -43,7 +44,7 @@ class MessagePinService(
             .orThrowNotFound("메시지", command.messageId)
 
         // 채팅방에 이미 고정된 메시지 개수 확인
-        val currentPinnedMessages = messageQueryPort.findPinnedMessagesByRoomId(message.roomId, maxPinnedMessages)
+        val currentPinnedMessages = messageQueryPort.findPinnedMessagesByRoomId(message.roomId.toChatRoom(), maxPinnedMessages)
         val currentPinnedCount = currentPinnedMessages.size
 
         // 도메인 객체의 메서드를 사용하여 메시지 고정 (도메인 규칙 적용)

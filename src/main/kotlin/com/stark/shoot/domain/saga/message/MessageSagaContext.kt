@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.saga.message
 
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.saga.SagaState
 import com.stark.shoot.domain.shared.UserId
 import java.time.Instant

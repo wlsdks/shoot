@@ -2,6 +2,7 @@ package com.stark.shoot.application.service.saga.message
 
 import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.saga.SagaStep
 import com.stark.shoot.domain.saga.message.MessageSagaContext
@@ -61,7 +62,7 @@ class UpdateChatRoomMetadataStep(
         messageIdStr: String
     ): Boolean {
         // 채팅방 조회
-        val chatRoom = chatRoomQueryPort.findById(context.roomId)
+        val chatRoom = chatRoomQueryPort.findById(context.roomId.toChatRoom())
         if (chatRoom == null) {
             logger.error { "ChatRoom not found: roomId=${context.roomId.value}" }
             return false
@@ -85,7 +86,7 @@ class UpdateChatRoomMetadataStep(
         // 마지막 읽은 메시지 ID 업데이트
         val messageId = com.stark.shoot.domain.chat.message.vo.MessageId.from(messageIdStr)
         chatRoomCommandPort.updateLastReadMessageId(
-            context.roomId,
+            context.roomId.toChatRoom(),
             context.senderId,
             messageId
         )

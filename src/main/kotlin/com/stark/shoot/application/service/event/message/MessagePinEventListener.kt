@@ -4,6 +4,7 @@ import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.shared.event.MessagePinEvent
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
@@ -65,7 +66,7 @@ class MessagePinEventListener(
     private fun sendPinNotifications(event: MessagePinEvent) {
         try {
             // 채팅방 정보 조회
-            val chatRoom = chatRoomQueryPort.findById(event.roomId)
+            val chatRoom = chatRoomQueryPort.findById(event.roomId.toChatRoom())
             if (chatRoom == null) {
                 logger.warn { "ChatRoom not found: roomId=${event.roomId.value}" }
                 return

@@ -8,6 +8,7 @@ import com.stark.shoot.adapter.out.persistence.mongodb.document.message.ChatMess
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.AttachmentDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageContentDocument
 import com.stark.shoot.adapter.out.persistence.mongodb.document.message.embedded.MessageMetadataDocument
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.vo.MessageContent
@@ -47,7 +48,7 @@ class ChatMessageMapper {
     fun toDomain(document: ChatMessageDocument): ChatMessage {
         return ChatMessage(
             id = document.id?.toString()?.let { MessageId.from(it) },
-            roomId = ChatRoomId.from(document.roomId),
+            roomId = ChatRoomId.from(document.roomId).toChat(),
             senderId = UserId.from(document.senderId),
             content = toMessageContent(document.content),
             status = document.status,

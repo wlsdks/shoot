@@ -7,6 +7,7 @@ import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.ChatRoom
@@ -58,7 +59,7 @@ class MessageReadService(
         val roomId = chatMessage.roomId
 
         // 4. 후속 작업 처리 (비동기적으로 처리되며 실패해도 메인 트랜잭션에 영향 없음)
-        processSingleMessageReadSideEffects(roomId, messageId, userId, updatedMessage)
+        processSingleMessageReadSideEffects(roomId.toChatRoom(), messageId, userId, updatedMessage)
     }
 
     /**
@@ -146,10 +147,10 @@ class MessageReadService(
             chatRoomCommandPort.updateLastReadMessageId(roomId, userId, messageId)
 
             // 2. 읽음 상태 알림 전송
-            notificationService.sendSingleReadNotification(roomId, updatedMessage, userId)
+            notificationService.sendSingleReadNotification(roomId.toChat(), updatedMessage, userId)
 
             // 3. 업데이트된 메시지 WebSocket 전송
-            notificationService.sendUpdatedMessage(roomId, updatedMessage)
+            notificationService.sendUpdatedMessage(roomId.toChat(), updatedMessage)
         } catch (e: Exception) {
             logger.error(e) { "메시지 읽음 처리 후속 작업 실패: messageId=$messageId, userId=$userId" }
             // 비동기 작업 실패 시 로깅만 하고 예외는 전파하지 않음 (메인 트랜잭션은 이미 완료됨)
@@ -338,7 +339,7 @@ class MessageReadService(
 
         // 1. WebSocket을 통해 읽음 완료처리된 메시지 id를 실시간 알림
         val messageIdVos = updatedMessageIds.map { MessageId.from(it) }
-        notificationService.sendBulkReadNotification(roomId, messageIdVos, userId)
+        notificationService.sendBulkReadNotification(roomId.toChat(), messageIdVos, userId)
     }
 
     /**

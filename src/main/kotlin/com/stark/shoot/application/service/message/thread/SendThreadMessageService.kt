@@ -7,6 +7,7 @@ import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.chat.message.service.MessageDomainService
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
@@ -38,7 +39,7 @@ class SendThreadMessageService(
         try {
             // 1. 도메인 객체 생성 및 비즈니스 로직 처리
             val domainMessage = messageDomainService.createAndProcessMessage(
-                roomId = ChatRoomId.from(request.roomId),
+                roomId = ChatRoomId.from(request.roomId).toChat(),
                 senderId = UserId.from(request.senderId),
                 contentText = request.content.text,
                 contentType = request.content.type,

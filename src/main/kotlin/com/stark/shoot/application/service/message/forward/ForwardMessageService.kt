@@ -6,6 +6,7 @@ import com.stark.shoot.application.port.out.chatroom.ChatRoomCommandPort
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageForwardDomainService
 import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
@@ -46,7 +47,7 @@ class ForwardMessageService(
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다. messageId=${command.originalMessageId}")
 
         // 2. 원본 채팅방 조회 및 권한 검증
-        val sourceChatRoom = chatRoomQueryPort.findById(originalMessage.roomId)
+        val sourceChatRoom = chatRoomQueryPort.findById(originalMessage.roomId.toChatRoom())
             ?: throw ResourceNotFoundException("원본 채팅방을 찾을 수 없습니다. id=${originalMessage.roomId}")
 
         if (command.forwardingUserId !in sourceChatRoom.participants) {
@@ -67,7 +68,7 @@ class ForwardMessageService(
 
         // 5. 도메인 서비스를 사용하여 전달할 메시지 객체 생성
         val forwardedMessage = messageForwardDomainService.createForwardedMessage(
-            targetRoomId = command.targetRoomId,
+            targetRoomId = command.targetRoomId.toChat(),
             forwardingUserId = command.forwardingUserId,
             forwardedContent = forwardedContent
         )

@@ -8,6 +8,7 @@ import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageForwardDomainService
 import com.stark.shoot.domain.chat.message.vo.MessageId
@@ -100,7 +101,7 @@ class ForwardMessageToUserService(
         val forwardedContent = messageForwardDomainService.createForwardedContent(originalMessage)
 
         val forwardedMessage = messageForwardDomainService.createForwardedMessage(
-            targetRoomId = targetRoomId,
+            targetRoomId = targetRoomId.toChat(),
             forwardingUserId = forwardingUserId,
             forwardedContent = forwardedContent
         )

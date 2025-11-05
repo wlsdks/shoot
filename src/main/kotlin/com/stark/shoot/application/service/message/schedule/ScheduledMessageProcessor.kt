@@ -5,6 +5,7 @@ import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentRequest
 import com.stark.shoot.adapter.`in`.rest.dto.message.toRequestDto
 import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.ScheduledMessagePort
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
@@ -243,7 +244,7 @@ class ScheduledMessageProcessor(
     private fun createChatMessage(scheduledMessage: ScheduledMessage): ChatMessage {
         return ChatMessage(
             id = MessageId.from(UUID.randomUUID().toString()),
-            roomId = ChatRoomId.from(scheduledMessage.roomId),
+            roomId = ChatRoomId.from(scheduledMessage.roomId).toChat(),
             senderId = UserId.from(scheduledMessage.senderId),
             content = scheduledMessage.content,
             status = MessageStatus.SENT, // 예약 메시지는 실행 시점에 이미 처리 완료된 상태

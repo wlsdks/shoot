@@ -1,9 +1,10 @@
 package com.stark.shoot.application.service.message.mark
 
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.shared.event.MessageBulkReadEvent
 import com.stark.shoot.domain.shared.UserId
 import io.github.oshai.kotlinlogging.KotlinLogging

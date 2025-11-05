@@ -3,6 +3,7 @@ package com.stark.shoot.application.service.event.notification
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.shared.event.MessageSentEvent
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
@@ -80,7 +81,7 @@ class ChatEventNotificationListener(
      * @return 알림을 받을 사용자 ID 집합
      */
     private fun identifyRecipients(event: MessageSentEvent): Set<Long> {
-        val chatRoom = chatRoomQueryPort.findById(event.roomId) ?: return emptySet()
+        val chatRoom = chatRoomQueryPort.findById(event.roomId.toChatRoom()) ?: return emptySet()
         return chatRoom.participants.filter { it != event.senderId }.map { it.value }.toSet()
     }
 
@@ -138,7 +139,7 @@ class ChatEventNotificationListener(
             chatNotificationFactory.createMentionNotification(
                 userId = userId.value,
                 messageId = event.messageId,
-                roomId = event.roomId,
+                roomId = event.roomId.toChatRoom(),
                 senderId = event.senderId,
                 content = event.content
             )
@@ -162,7 +163,7 @@ class ChatEventNotificationListener(
             chatNotificationFactory.createMessageNotification(
                 userId = userId,
                 messageId = event.messageId,
-                roomId = event.roomId,
+                roomId = event.roomId.toChatRoom(),
                 senderId = event.senderId,
                 content = event.content
             )

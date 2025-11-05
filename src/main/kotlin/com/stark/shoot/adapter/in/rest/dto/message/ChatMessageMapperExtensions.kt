@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.`in`.rest.dto.message
 
+import com.stark.shoot.application.service.util.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
@@ -50,7 +51,7 @@ fun ChatMessageRequest.toDomain(): ChatMessage {
 
     return ChatMessage(
         id = this.id?.let { MessageId.from(it) },
-        roomId = ChatRoomId.from(this.roomId),
+        roomId = ChatRoomId.from(this.roomId).toChat(),
         senderId = UserId.from(this.senderId),
         content = content,
         threadId = this.threadId?.let { MessageId.from(it) },

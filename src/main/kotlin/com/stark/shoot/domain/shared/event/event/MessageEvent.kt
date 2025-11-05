@@ -10,8 +10,11 @@ import java.time.Instant
 /**
  * 메시지 이벤트
  *
- * DDD 개선: ChatMessage 도메인 객체 제거, primitive 타입과 VO만 사용
- * Kafka를 통해 전송되는 이벤트로, 직렬화 효율성과 Context 독립성이 중요
+ * DDD 개선:
+ * - ChatMessage 도메인 객체 제거, primitive 타입과 VO만 사용
+ * - Factory method 제거: Shared Kernel이 특정 Context에 의존하지 않도록 함
+ * - Kafka를 통해 전송되는 이벤트로, 직렬화 효율성과 Context 독립성이 중요
+ * - MSA 준비: Event는 모든 서비스에서 독립적으로 사용 가능해야 함
  */
 data class MessageEvent(
     val version: String = "1.0",
@@ -27,32 +30,4 @@ data class MessageEvent(
     val previewUrl: String?,
     val createdAt: Instant,
     val timestamp: Instant = Instant.now()
-) {
-    companion object {
-        /**
-         * ChatMessage로부터 MessageEvent 객체를 생성합니다.
-         *
-         * @param message ChatMessage
-         * @param eventType 이벤트 타입 (기본값: MESSAGE_CREATED)
-         * @return MessageEvent
-         */
-        fun fromMessage(
-            message: com.stark.shoot.domain.chat.message.ChatMessage,
-            eventType: EventType = EventType.MESSAGE_CREATED
-        ): MessageEvent {
-            return MessageEvent(
-                type = eventType,
-                messageId = message.id,
-                roomId = message.roomId,
-                senderId = message.senderId,
-                content = message.content.text,
-                messageType = message.content.type,
-                mentions = message.mentions,
-                tempId = message.metadata.tempId,
-                needsUrlPreview = message.metadata.needsUrlPreview,
-                previewUrl = message.metadata.previewUrl,
-                createdAt = message.createdAt ?: Instant.now()
-            )
-        }
-    }
-}
+)

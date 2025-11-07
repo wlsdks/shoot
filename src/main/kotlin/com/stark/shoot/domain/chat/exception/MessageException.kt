@@ -32,4 +32,11 @@ sealed class MessageException(
     class EmptyContent(
         message: String = "메시지 내용은 비어있을 수 없습니다."
     ) : MessageException(message, "MESSAGE_EMPTY_CONTENT")
+
+    /**
+     * 메시지 수정 시간 제한을 초과했을 때 발생하는 예외
+     */
+    class EditTimeExpired(
+        message: String = "메시지는 생성 후 24시간 이내에만 수정할 수 있습니다."
+    ) : MessageException(message, "MESSAGE_EDIT_TIME_EXPIRED")
 }

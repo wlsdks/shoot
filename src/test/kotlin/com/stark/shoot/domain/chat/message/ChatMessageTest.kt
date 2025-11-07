@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.chat.message
 
+import com.stark.shoot.domain.chat.exception.MessageException
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @DisplayName("채팅 메시지 도메인 테스트")
 class ChatMessageTest {
@@ -227,6 +229,68 @@ class ChatMessageTest {
         }
 
         @Test
+        @DisplayName("[happy] 생성 후 23시간 59분 경과한 메시지를 수정할 수 있다")
+        fun `생성 후 23시간 59분 경과한 메시지를 수정할 수 있다`() {
+            // given
+            val oldCreatedAt = Instant.now().minus(23, ChronoUnit.HOURS).minus(59, ChronoUnit.MINUTES)
+            val message = ChatMessage.create(
+                roomId = ChatRoomId.from(1L),
+                senderId = UserId.from(2L),
+                text = "안녕하세요",
+                type = MessageType.TEXT
+            )
+            message.createdAt = oldCreatedAt
+            val newContent = "수정된 내용입니다"
+
+            // when
+            message.editMessage(newContent)
+
+            // then
+            assertThat(message.content.text).isEqualTo(newContent)
+            assertThat(message.content.isEdited).isTrue()
+        }
+
+        @Test
+        @DisplayName("[bad] 생성 후 24시간이 경과한 메시지는 수정할 수 없다")
+        fun `생성 후 24시간이 경과한 메시지는 수정할 수 없다`() {
+            // given
+            val oldCreatedAt = Instant.now().minus(24, ChronoUnit.HOURS)
+            val message = ChatMessage.create(
+                roomId = ChatRoomId.from(1L),
+                senderId = UserId.from(2L),
+                text = "안녕하세요",
+                type = MessageType.TEXT
+            )
+            message.createdAt = oldCreatedAt
+            val newContent = "수정된 내용입니다"
+
+            // when & then
+            assertThatThrownBy { message.editMessage(newContent) }
+                .isInstanceOf(MessageException.EditTimeExpired::class.java)
+                .hasMessageContaining("메시지는 생성 후 24시간 이내에만 수정할 수 있습니다")
+        }
+
+        @Test
+        @DisplayName("[bad] 생성 후 25시간이 경과한 메시지는 수정할 수 없다")
+        fun `생성 후 25시간이 경과한 메시지는 수정할 수 없다`() {
+            // given
+            val oldCreatedAt = Instant.now().minus(25, ChronoUnit.HOURS)
+            val message = ChatMessage.create(
+                roomId = ChatRoomId.from(1L),
+                senderId = UserId.from(2L),
+                text = "안녕하세요",
+                type = MessageType.TEXT
+            )
+            message.createdAt = oldCreatedAt
+            val newContent = "수정된 내용입니다"
+
+            // when & then
+            assertThatThrownBy { message.editMessage(newContent) }
+                .isInstanceOf(MessageException.EditTimeExpired::class.java)
+                .hasMessageContaining("메시지는 생성 후 24시간 이내에만 수정할 수 있습니다")
+        }
+
+        @Test
         @DisplayName("[bad] 빈 내용으로 수정하려고 하면 예외가 발생한다")
         fun `빈 내용으로 수정하려고 하면 예외가 발생한다`() {
             // given
@@ -240,7 +304,7 @@ class ChatMessageTest {
 
             // when & then
             assertThatThrownBy { message.editMessage(emptyContent) }
-                .isInstanceOf(IllegalArgumentException::class.java)
+                .isInstanceOf(MessageException.EmptyContent::class.java)
                 .hasMessageContaining("메시지 내용은 비어있을 수 없습니다")
         }
 
@@ -259,7 +323,7 @@ class ChatMessageTest {
 
             // when & then
             assertThatThrownBy { message.editMessage(newContent) }
-                .isInstanceOf(IllegalArgumentException::class.java)
+                .isInstanceOf(MessageException.NotEditable::class.java)
                 .hasMessageContaining("삭제된 메시지는 수정할 수 없습니다")
         }
 
@@ -277,7 +341,7 @@ class ChatMessageTest {
 
             // when & then
             assertThatThrownBy { message.editMessage(newContent) }
-                .isInstanceOf(IllegalArgumentException::class.java)
+                .isInstanceOf(MessageException.NotEditable::class.java)
                 .hasMessageContaining("텍스트 타입의 메시지만 수정할 수 있습니다")
         }
     }

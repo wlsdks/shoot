@@ -68,12 +68,12 @@ class FriendRequestConcurrencyTest {
         val results = executor.executeAll(
             {
                 friendRequestUseCase.sendFriendRequest(
-                    SendFriendRequestCommand(userA.id, userB.id)
+                    SendFriendRequestCommand(userA.id!!, userB.id!!)
                 )
             },
             {
                 friendRequestUseCase.sendFriendRequest(
-                    SendFriendRequestCommand(userB.id, userA.id)
+                    SendFriendRequestCommand(userB.id!!, userA.id!!)
                 )
             }
         )
@@ -92,7 +92,7 @@ class FriendRequestConcurrencyTest {
     fun `concurrent accept and reject of same friend request`() {
         // Given: A가 B에게 친구 요청을 보냄
         friendRequestUseCase.sendFriendRequest(
-            SendFriendRequestCommand(userA.id, userB.id)
+            SendFriendRequestCommand(userA.id!!, userB.id!!)
         )
 
         val executor = ConcurrentTestExecutor(threadCount = 2)
@@ -101,13 +101,13 @@ class FriendRequestConcurrencyTest {
         val results = executor.executeAll(
             {
                 friendReceiveUseCase.acceptFriendRequest(
-                    AcceptFriendRequestCommand(userB.id, userA.id)
+                    AcceptFriendRequestCommand(userB.id!!, userA.id!!)
                 )
             },
             {
                 friendReceiveUseCase.rejectFriendRequest(
                     com.stark.shoot.application.port.`in`.user.friend.command.RejectFriendRequestCommand(
-                        userB.id, userA.id
+                        userB.id!!, userA.id!!
                     )
                 )
             }
@@ -127,7 +127,7 @@ class FriendRequestConcurrencyTest {
         // When: A→B 요청을 3번 동시에 시도
         val results = executor.executeParallel(3) {
             friendRequestUseCase.sendFriendRequest(
-                SendFriendRequestCommand(userA.id, userB.id)
+                SendFriendRequestCommand(userA.id!!, userB.id!!)
             )
         }
 
@@ -145,10 +145,10 @@ class FriendRequestConcurrencyTest {
     fun `optimistic lock retry mechanism on friend request acceptance`() {
         // Given: A가 B, C에게 친구 요청
         friendRequestUseCase.sendFriendRequest(
-            SendFriendRequestCommand(userA.id, userB.id)
+            SendFriendRequestCommand(userA.id!!, userB.id!!)
         )
         friendRequestUseCase.sendFriendRequest(
-            SendFriendRequestCommand(userA.id, userC.id)
+            SendFriendRequestCommand(userA.id!!, userC.id!!)
         )
 
         val executor = ConcurrentTestExecutor(threadCount = 2)
@@ -157,12 +157,12 @@ class FriendRequestConcurrencyTest {
         val results = executor.executeAll(
             {
                 friendReceiveUseCase.acceptFriendRequest(
-                    AcceptFriendRequestCommand(userB.id, userA.id)
+                    AcceptFriendRequestCommand(userB.id!!, userA.id!!)
                 )
             },
             {
                 friendReceiveUseCase.acceptFriendRequest(
-                    AcceptFriendRequestCommand(userC.id, userA.id)
+                    AcceptFriendRequestCommand(userC.id!!, userA.id!!)
                 )
             }
         )

@@ -53,8 +53,8 @@ class ChatRoomConcurrencyTest {
         val results = executor.executeParallel(3) {
             createChatRoomUseCase.createDirectChat(
                 CreateDirectChatCommand(
-                    currentUserId = userA.id,
-                    targetUserId = userB.id
+                    currentUserId = userA.id!!,
+                    targetUserId = userB.id!!
                 )
             )
         }
@@ -80,16 +80,16 @@ class ChatRoomConcurrencyTest {
             {
                 createChatRoomUseCase.createDirectChat(
                     CreateDirectChatCommand(
-                        currentUserId = userA.id,
-                        targetUserId = userB.id
+                        currentUserId = userA.id!!,
+                        targetUserId = userB.id!!
                     )
                 )
             },
             {
                 createChatRoomUseCase.createDirectChat(
                     CreateDirectChatCommand(
-                        currentUserId = userB.id,
-                        targetUserId = userA.id
+                        currentUserId = userB.id!!,
+                        targetUserId = userA.id!!
                     )
                 )
             }

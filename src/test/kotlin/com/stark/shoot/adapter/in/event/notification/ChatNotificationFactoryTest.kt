@@ -6,7 +6,7 @@ import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
@@ -34,7 +34,13 @@ class ChatNotificationFactoryTest {
     @DisplayName("[happy] 멘션 알림을 생성한다")
     fun `멘션 알림을 생성한다`() {
         val msg = sampleMessage("hello world")
-        val notification = factory.createMentionNotification(1L, msg)
+        val notification = factory.createMentionNotification(
+            userId = 1L,
+            messageId = msg.id,
+            roomId = msg.roomId,
+            senderId = msg.senderId,
+            content = msg.content.text
+        )
         assertThat(notification.userId).isEqualTo(UserId.from(1L))
         assertThat(notification.type).isEqualTo(NotificationType.MENTION)
         assertThat(notification.metadata["senderId"]).isEqualTo("2")
@@ -45,7 +51,13 @@ class ChatNotificationFactoryTest {
     @DisplayName("[happy] 메시지 알림을 생성한다")
     fun `메시지 알림을 생성한다`() {
         val msg = sampleMessage("a".repeat(60))
-        val notification = factory.createMessageNotification(3L, msg)
+        val notification = factory.createMessageNotification(
+            userId = 3L,
+            messageId = msg.id,
+            roomId = msg.roomId,
+            senderId = msg.senderId,
+            content = msg.content.text
+        )
         assertThat(notification.type).isEqualTo(NotificationType.NEW_MESSAGE)
         assertThat(notification.message.value.length).isLessThanOrEqualTo(53)
     }

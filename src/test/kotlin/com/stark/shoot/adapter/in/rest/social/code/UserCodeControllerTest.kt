@@ -48,22 +48,32 @@ class UserCodeControllerTest {
         assertThat(response.message).isEqualTo("유저 코드를 성공적으로 조회했습니다.")
         verify(findUserUseCase).findById(command)
     }
+
+    @Test
     @DisplayName("[fail] 존재하지 않는 사용자 ID로 유저 코드를 조회하면 예외가 발생한다")
     fun `존재하지 않는 사용자 ID로 유저 코드를 조회하면 예외가 발생한다`() {
         val userId = 999L
+        val command = FindUserByIdCommand.of(userId)
         `when`(findUserUseCase.findById(command)).thenReturn(null)
         // when & then
         assertThrows<ResourceNotFoundException> {
             controller.getUserCode(userId)
         }
+    }
+
+    @Test
     @DisplayName("[happy] 유저 코드를 업데이트한다")
     fun `유저 코드를 업데이트한다`() {
+        val userId = 1L
         val newCode = "NEWCODE123"
         val request = UpdateUserCodeRequest(userId, newCode)
         val command = UpdateUserCodeCommand.of(request)
         val response = controller.updateUserCode(request)
         assertThat(response.message).isEqualTo("유저 코드가 성공적으로 설정되었습니다.")
         verify(manageUserCodeUseCase).updateUserCode(command)
+    }
+
+    @Test
     @DisplayName("[happy] 유저 코드로 사용자를 조회한다")
     fun `유저 코드로 사용자를 조회한다`() {
         val code = "FINDME123"
@@ -77,20 +87,33 @@ class UserCodeControllerTest {
         assertThat(response.data?.userCode).isEqualTo(code)
         assertThat(response.message).isEqualTo("사용자를 찾았습니다.")
         verify(findUserUseCase).findByUserCode(command)
+    }
+
+    @Test
     @DisplayName("[happy] 존재하지 않는 유저 코드로 조회하면 null을 반환한다")
     fun `존재하지 않는 유저 코드로 조회하면 null을 반환한다`() {
         val code = "NOTEXIST"
+        val command = FindUserByCodeCommand.of(code)
         `when`(findUserUseCase.findByUserCode(command)).thenReturn(null)
+        val response = controller.findUserByCode(code)
         assertThat(response.data).isNull()
         assertThat(response.message).isEqualTo("해당 코드의 사용자가 없습니다.")
+    }
+
+    @Test
     @DisplayName("[happy] 유저 코드를 삭제(초기화)한다")
     fun `유저 코드를 삭제(초기화)한다`() {
+        val userId = 1L
         val command = RemoveUserCodeCommand.of(userId)
         val response = controller.removeUserCode(userId)
         assertThat(response.message).isEqualTo("유저 코드가 삭제되었습니다.")
         verify(manageUserCodeUseCase).removeUserCode(command)
+    }
+
+    @Test
     @DisplayName("[happy] 유저 코드로 친구 요청을 보낸다")
     fun `유저 코드로 친구 요청을 보낸다`() {
+        val userId = 1L
         val targetCode = "FRIEND123"
         val targetUser = createUser(3L, "friend", "친구", targetCode)
         val request = SendFriendRequestByCodeRequest(userId, targetCode)
@@ -101,12 +124,22 @@ class UserCodeControllerTest {
         assertThat(response.message).isEqualTo("친구 요청을 보냈습니다.")
         verify(findUserUseCase).findByUserCode(findCommand)
         verify(friendRequestUseCase).sendFriendRequestFromUserCode(requestCommand)
+    }
+
+    @Test
     @DisplayName("[fail] 존재하지 않는 유저 코드로 친구 요청을 보내면 예외가 발생한다")
     fun `존재하지 않는 유저 코드로 친구 요청을 보내면 예외가 발생한다`() {
+        val userId = 1L
         val targetCode = "NOTEXIST"
+        val request = SendFriendRequestByCodeRequest(userId, targetCode)
+        val findCommand = FindUserByCodeCommand.of(targetCode)
         `when`(findUserUseCase.findByUserCode(findCommand)).thenReturn(null)
+        assertThrows<ResourceNotFoundException> {
             controller.sendFriendRequestByCode(request)
+        }
         // No need to verify that sendFriendRequest is not called since an exception is thrown
+    }
+
     // 테스트용 User 객체 생성 헬퍼 메서드
     private fun createUser(
         id: Long,

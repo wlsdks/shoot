@@ -3,25 +3,15 @@ package com.stark.shoot.adapter.`in`.rest.social.friend
 import com.stark.shoot.application.port.`in`.user.friend.FriendRemoveUseCase
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.application.port.`in`.user.friend.command.RemoveFriendCommand
-import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.User
-import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.type.UserStatus
-import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.vo.*
-import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
-import com.stark.shoot.domain.shared.UserId
 import org.junit.jupiter.api.DisplayName
-import com.stark.shoot.domain.shared.UserId
 import org.junit.jupiter.api.Test
-import com.stark.shoot.domain.shared.UserId
 import org.mockito.Mockito.*
-import com.stark.shoot.domain.shared.UserId
 import org.springframework.security.core.Authentication
-import com.stark.shoot.domain.shared.UserId
 import java.time.Instant
-import com.stark.shoot.domain.shared.UserId
 
 @DisplayName("FriendRemoveController 단위 테스트")
 class FriendRemoveControllerTest {

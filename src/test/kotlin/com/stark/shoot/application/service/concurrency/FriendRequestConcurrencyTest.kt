@@ -4,13 +4,13 @@ import com.stark.shoot.application.port.`in`.user.friend.FriendReceiveUseCase
 import com.stark.shoot.application.port.`in`.user.friend.FriendRequestUseCase
 import com.stark.shoot.application.port.`in`.user.friend.command.AcceptFriendRequestCommand
 import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestCommand
+import com.stark.shoot.application.port.out.user.UserCommandPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
-import com.stark.shoot.application.port.out.user.friend.FriendQueryPort
+import com.stark.shoot.application.port.out.user.friend.relate.FriendshipQueryPort
 import com.stark.shoot.domain.social.exception.FriendException
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.vo.Nickname
-import com.stark.shoot.domain.user.vo.Password
 import com.stark.shoot.domain.user.vo.Username
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -41,7 +41,10 @@ class FriendRequestConcurrencyTest {
     private lateinit var userQueryPort: UserQueryPort
 
     @Autowired
-    private lateinit var friendQueryPort: FriendQueryPort
+    private lateinit var userCommandPort: UserCommandPort
+
+    @Autowired
+    private lateinit var friendshipQueryPort: FriendshipQueryPort
 
     private lateinit var userA: User
     private lateinit var userB: User
@@ -49,10 +52,10 @@ class FriendRequestConcurrencyTest {
 
     @BeforeEach
     fun setUp() {
-        // 테스트 사용자 생성
-        userA = createUser("userA", "UserA")
-        userB = createUser("userB", "UserB")
-        userC = createUser("userC", "UserC")
+        // 테스트 사용자 생성 및 저장
+        userA = userCommandPort.createUser(createUser("userA", "UserA"))
+        userB = userCommandPort.createUser(createUser("userB", "UserB"))
+        userC = userCommandPort.createUser(createUser("userC", "UserC"))
     }
 
     @Test
@@ -169,8 +172,8 @@ class FriendRequestConcurrencyTest {
         assertThat(results.failures()).hasSize(0)
 
         // A는 B, C와 친구가 되어야 함
-        val friendsOfA = friendQueryPort.findAllFriends(userA.id)
-        assertThat(friendsOfA.map { it.id }).containsExactlyInAnyOrder(userB.id, userC.id)
+        val friendsOfA = friendshipQueryPort.findAllFriendships(userA.id!!)
+        assertThat(friendsOfA.map { it.friendId }).containsExactlyInAnyOrder(userB.id!!, userC.id!!)
     }
 
     /**
@@ -178,9 +181,10 @@ class FriendRequestConcurrencyTest {
      */
     private fun createUser(username: String, nickname: String): User {
         return User.create(
-            username = Username(username),
-            password = Password("password123!"),
-            nickname = Nickname(nickname)
+            username = username,
+            nickname = nickname,
+            rawPassword = "password123!",
+            passwordEncoder = { "hashed_$it" }
         )
     }
 }

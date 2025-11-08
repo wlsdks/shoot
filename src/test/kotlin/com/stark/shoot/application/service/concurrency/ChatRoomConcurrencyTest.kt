@@ -2,10 +2,10 @@ package com.stark.shoot.application.service.concurrency
 
 import com.stark.shoot.application.port.`in`.chatroom.CreateChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.command.CreateDirectChatCommand
+import com.stark.shoot.application.port.out.user.UserCommandPort
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.vo.Nickname
-import com.stark.shoot.domain.user.vo.Password
 import com.stark.shoot.domain.user.vo.Username
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -30,14 +30,17 @@ class ChatRoomConcurrencyTest {
     @Autowired
     private lateinit var createChatRoomUseCase: CreateChatRoomUseCase
 
+    @Autowired
+    private lateinit var userCommandPort: UserCommandPort
+
     private lateinit var userA: User
     private lateinit var userB: User
 
     @BeforeEach
     fun setUp() {
-        // 테스트 사용자 생성
-        userA = createUser("userA", "UserA")
-        userB = createUser("userB", "UserB")
+        // 테스트 사용자 생성 및 저장
+        userA = userCommandPort.createUser(createUser("userA", "UserA"))
+        userB = userCommandPort.createUser(createUser("userB", "UserB"))
     }
 
     @Test
@@ -105,9 +108,10 @@ class ChatRoomConcurrencyTest {
      */
     private fun createUser(username: String, nickname: String): User {
         return User.create(
-            username = Username(username),
-            password = Password("password123!"),
-            nickname = Nickname(nickname)
+            username = username,
+            nickname = nickname,
+            rawPassword = "password123!",
+            passwordEncoder = { "hashed_$it" }
         )
     }
 }

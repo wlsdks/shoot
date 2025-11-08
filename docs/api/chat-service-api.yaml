@@ -1352,6 +1352,717 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  # ==================== Message Endpoints ====================
+  /api/v1/messages/edit:
+    put:
+      tags:
+        - Message
+      summary: 메시지 편집 (deprecated)
+      description: |
+        메시지 내용을 수정합니다.
+
+        **⚠️ DEPRECATED**: 이 엔드포인트는 deprecated 상태입니다. WebSocket을 통한 메시지 수정을 권장합니다.
+
+        **비즈니스 규칙**:
+        - TEXT 타입 메시지만 수정 가능
+        - 삭제된 메시지는 수정 불가
+        - 수정 시간 제한: 생성 후 24시간 이내
+        - 빈 내용으로 수정 불가
+        - 최대 길이: 4,000자
+
+        **워크플로우**:
+        1. 메시지 존재 및 권한 확인 (senderId == userId)
+        2. 수정 가능 여부 검증 (삭제 여부, 24시간 제한, 타입)
+        3. 메시지 내용 업데이트 (isEdited = true, updatedAt 갱신)
+        4. MongoDB에 저장
+        5. MESSAGE_EDITED 이벤트 발행
+        6. 채팅방 참여자들에게 WebSocket으로 알림
+
+        **이벤트**:
+        - `MESSAGE_EDITED`: 메시지 수정 시 발행
+      operationId: editMessage
+      deprecated: true
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditMessageRequest'
+            examples:
+              normal:
+                summary: 일반적인 메시지 수정
+                value:
+                  messageId: "msg_1234567890"
+                  newContent: "수정된 메시지 내용입니다."
+                  userId: 1
+      responses:
+        '200':
+          description: 메시지 수정 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                  - timestamp
+                  - code
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/MessageResponseDto'
+                  message:
+                    type: string
+                    example: "메시지가 수정되었습니다."
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-01-08T15:00:00"
+                  code:
+                    type: integer
+                    example: 200
+              examples:
+                success:
+                  summary: 수정 성공
+                  value:
+                    success: true
+                    data:
+                      id: "msg_1234567890"
+                      roomId: 101
+                      senderId: 1
+                      content:
+                        text: "수정된 메시지 내용입니다."
+                        type: "TEXT"
+                        attachments: []
+                        isEdited: true
+                        isDeleted: false
+                        urlPreview: null
+                      status: "SAVED"
+                      threadId: null
+                      replyToMessageId: null
+                      reactions: {}
+                      mentions: []
+                      createdAt: "2025-01-08T14:00:00Z"
+                      updatedAt: "2025-01-08T15:00:00Z"
+                      readBy: {}
+                      isPinned: false
+                      pinnedBy: null
+                      pinnedAt: null
+                    message: "메시지가 수정되었습니다."
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 200
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                emptyContent:
+                  summary: 빈 내용
+                  value:
+                    success: false
+                    data: null
+                    message: "메시지 내용이 비어있습니다."
+                    errorCode: "EMPTY_CONTENT"
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 400
+                tooLong:
+                  summary: 내용 길이 초과
+                  value:
+                    success: false
+                    data: null
+                    message: "메시지 길이는 4000자를 초과할 수 없습니다."
+                    errorCode: "CONTENT_TOO_LONG"
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 400
+                deletedMessage:
+                  summary: 삭제된 메시지
+                  value:
+                    success: false
+                    data: null
+                    message: "삭제된 메시지는 수정할 수 없습니다."
+                    errorCode: "DELETED_MESSAGE"
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 400
+                timeExpired:
+                  summary: 수정 시간 초과 (24시간)
+                  value:
+                    success: false
+                    data: null
+                    message: "메시지는 생성 후 24시간 이내에만 수정 가능합니다."
+                    errorCode: "EDIT_TIME_EXPIRED"
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 400
+                notTextType:
+                  summary: TEXT 타입이 아님
+                  value:
+                    success: false
+                    data: null
+                    message: "TEXT 타입 메시지만 수정 가능합니다."
+                    errorCode: "NOT_TEXT_TYPE"
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 400
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 권한 없음 (작성자가 아님)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notAuthor:
+                  summary: 작성자가 아님
+                  value:
+                    success: false
+                    data: null
+                    message: "메시지 작성자만 수정할 수 있습니다."
+                    errorCode: "NOT_AUTHOR"
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 403
+        '404':
+          description: 메시지를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/messages/delete:
+    delete:
+      tags:
+        - Message
+      summary: 메시지 삭제 (deprecated)
+      description: |
+        메시지를 삭제 처리합니다 (소프트 삭제).
+
+        **⚠️ DEPRECATED**: 이 엔드포인트는 deprecated 상태입니다. WebSocket을 통한 메시지 삭제를 권장합니다.
+
+        **비즈니스 규칙**:
+        - 소프트 삭제 (isDeleted 플래그 설정)
+        - 작성자만 삭제 가능
+        - 이미 삭제된 메시지 재삭제 불가
+        - 삭제 시 내용은 "삭제된 메시지입니다"로 변경
+        - 첨부파일은 유지 (복구 가능성)
+
+        **워크플로우**:
+        1. 메시지 존재 및 권한 확인 (senderId == userId)
+        2. 이미 삭제된 메시지인지 확인
+        3. isDeleted = true, content.isDeleted = true 설정
+        4. content.text = "삭제된 메시지입니다"로 변경
+        5. MongoDB에 저장
+        6. MESSAGE_DELETED 이벤트 발행
+        7. 채팅방 참여자들에게 WebSocket으로 알림
+
+        **이벤트**:
+        - `MESSAGE_DELETED`: 메시지 삭제 시 발행
+      operationId: deleteMessage
+      deprecated: true
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteMessageRequest'
+            examples:
+              normal:
+                summary: 일반적인 메시지 삭제
+                value:
+                  messageId: "msg_1234567890"
+                  userId: 1
+      responses:
+        '200':
+          description: 메시지 삭제 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                  - timestamp
+                  - code
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/MessageResponseDto'
+                  message:
+                    type: string
+                    example: "메시지가 삭제되었습니다."
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-01-08T15:00:00"
+                  code:
+                    type: integer
+                    example: 200
+              examples:
+                success:
+                  summary: 삭제 성공
+                  value:
+                    success: true
+                    data:
+                      id: "msg_1234567890"
+                      roomId: 101
+                      senderId: 1
+                      content:
+                        text: "삭제된 메시지입니다."
+                        type: "TEXT"
+                        attachments: []
+                        isEdited: false
+                        isDeleted: true
+                        urlPreview: null
+                      status: "SAVED"
+                      threadId: null
+                      replyToMessageId: null
+                      reactions: {}
+                      mentions: []
+                      createdAt: "2025-01-08T14:00:00Z"
+                      updatedAt: "2025-01-08T15:00:00Z"
+                      readBy: {}
+                      isPinned: false
+                      pinnedBy: null
+                      pinnedAt: null
+                    message: "메시지가 삭제되었습니다."
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 200
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                alreadyDeleted:
+                  summary: 이미 삭제된 메시지
+                  value:
+                    success: false
+                    data: null
+                    message: "이미 삭제된 메시지입니다."
+                    errorCode: "ALREADY_DELETED"
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 400
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 권한 없음 (작성자가 아님)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notAuthor:
+                  summary: 작성자가 아님
+                  value:
+                    success: false
+                    data: null
+                    message: "메시지 작성자만 삭제할 수 있습니다."
+                    errorCode: "NOT_AUTHOR"
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 403
+        '404':
+          description: 메시지를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ==================== Message Reaction Endpoints ====================
+  /api/v1/messages/{messageId}/reactions:
+    put:
+      tags:
+        - Message Reaction
+      summary: 메시지 리액션 토글 (deprecated)
+      description: |
+        메시지에 리액션을 토글합니다.
+
+        **⚠️ DEPRECATED**: 이 엔드포인트는 deprecated 상태입니다. WebSocket을 통한 리액션 처리를 권장합니다.
+
+        **3가지 동작 상태**:
+        1. **최초 반응 선택**: 해당 리액션을 메시지에 추가
+        2. **추가된 반응을 다시 선택**: 리액션 제거 (토글 오프)
+        3. **다른 반응 선택**: 기존 리액션을 제거하고 새 리액션을 추가 (사용자당 1개 리액션)
+
+        **비즈니스 규칙**:
+        - 사용자당 메시지별 1개 리액션만 가능
+        - 다른 리액션 선택 시 기존 리액션 자동 교체
+        - 같은 리액션 재선택 시 제거 (토글)
+        - 지원 리액션: LIKE(👍), SAD(😢), DISLIKE(👎), ANGRY(😡), CURIOUS(🤔), SURPRISED(😮)
+
+        **워크플로우**:
+        1. 메시지 존재 확인
+        2. 사용자의 기존 리액션 확인
+        3. 토글 로직:
+           - 기존 리액션 == 새 리액션 → 리액션 제거
+           - 기존 리액션 != 새 리액션 → 기존 제거 후 새 리액션 추가
+           - 기존 리액션 없음 → 새 리액션 추가
+        4. MongoDB에 저장
+        5. REACTION_TOGGLED 이벤트 발행
+        6. 채팅방 참여자들에게 WebSocket으로 알림
+
+        **이벤트**:
+        - `REACTION_TOGGLED`: 리액션 토글 시 발행
+      operationId: toggleReaction
+      deprecated: true
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          description: 리액션을 토글할 메시지 ID
+          schema:
+            type: string
+            example: "msg_1234567890"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReactionRequest'
+            examples:
+              addLike:
+                summary: 좋아요 추가
+                value:
+                  messageId: "msg_1234567890"
+                  reactionType: "like"
+                  userId: 1
+              changeLikeToSad:
+                summary: 좋아요 → 슬퍼요로 변경
+                value:
+                  messageId: "msg_1234567890"
+                  reactionType: "sad"
+                  userId: 1
+              removeLike:
+                summary: 좋아요 제거 (토글 오프)
+                value:
+                  messageId: "msg_1234567890"
+                  reactionType: "like"
+                  userId: 1
+      responses:
+        '200':
+          description: 리액션 토글 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                  - timestamp
+                  - code
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ReactionResponse'
+                  message:
+                    type: string
+                    example: "반응이 토글되었습니다."
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-01-08T15:00:00"
+                  code:
+                    type: integer
+                    example: 200
+              examples:
+                addedReaction:
+                  summary: 리액션 추가 성공
+                  value:
+                    success: true
+                    data:
+                      messageId: "msg_1234567890"
+                      reactions:
+                        - reactionType: "like"
+                          emoji: "👍"
+                          description: "좋아요"
+                          userIds: [1, 2, 3]
+                          count: 3
+                        - reactionType: "sad"
+                          emoji: "😢"
+                          description: "슬퍼요"
+                          userIds: [4]
+                          count: 1
+                      updatedAt: "2025-01-08T15:00:00Z"
+                    message: "반응이 토글되었습니다."
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 200
+                removedReaction:
+                  summary: 리액션 제거 성공
+                  value:
+                    success: true
+                    data:
+                      messageId: "msg_1234567890"
+                      reactions:
+                        - reactionType: "sad"
+                          emoji: "😢"
+                          description: "슬퍼요"
+                          userIds: [4]
+                          count: 1
+                      updatedAt: "2025-01-08T15:00:00Z"
+                    message: "반응이 토글되었습니다."
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 200
+                changedReaction:
+                  summary: 리액션 변경 성공 (LIKE → SAD)
+                  value:
+                    success: true
+                    data:
+                      messageId: "msg_1234567890"
+                      reactions:
+                        - reactionType: "like"
+                          emoji: "👍"
+                          description: "좋아요"
+                          userIds: [2, 3]
+                          count: 2
+                        - reactionType: "sad"
+                          emoji: "😢"
+                          description: "슬퍼요"
+                          userIds: [1, 4]
+                          count: 2
+                      updatedAt: "2025-01-08T15:00:00Z"
+                    message: "반응이 토글되었습니다."
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 200
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidReactionType:
+                  summary: 유효하지 않은 리액션 타입
+                  value:
+                    success: false
+                    data: null
+                    message: "유효하지 않은 리액션 타입입니다."
+                    errorCode: "INVALID_REACTION_TYPE"
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 400
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 메시지를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - Message Reaction
+      summary: 메시지 리액션 조회
+      description: |
+        메시지에 추가된 모든 리액션을 조회합니다.
+
+        **비즈니스 규칙**:
+        - 리액션 타입별로 사용자 ID 목록 제공
+        - 리액션이 없는 경우 빈 배열 반환
+        - 삭제된 메시지도 리액션 조회 가능
+
+        **워크플로우**:
+        1. 메시지 존재 확인
+        2. 메시지의 reactions 맵 조회
+        3. 리액션 타입별로 정보 구성 (emoji, description, userIds, count)
+        4. 리액션 목록 반환
+
+        **응답 예시**:
+        - 리액션이 있는 경우: 각 리액션 타입별 정보와 사용자 목록
+        - 리액션이 없는 경우: 빈 배열
+      operationId: getReactions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          description: 리액션을 조회할 메시지 ID
+          schema:
+            type: string
+            example: "msg_1234567890"
+      responses:
+        '200':
+          description: 리액션 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - timestamp
+                  - code
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ReactionListResponse'
+                  message:
+                    type: string
+                    nullable: true
+                    example: null
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-01-08T15:00:00"
+                  code:
+                    type: integer
+                    example: 200
+              examples:
+                withReactions:
+                  summary: 리액션이 있는 경우
+                  value:
+                    success: true
+                    data:
+                      messageId: "msg_1234567890"
+                      reactions:
+                        - reactionType: "like"
+                          emoji: "👍"
+                          description: "좋아요"
+                          userIds: [1, 2, 3]
+                          count: 3
+                        - reactionType: "sad"
+                          emoji: "😢"
+                          description: "슬퍼요"
+                          userIds: [4, 5]
+                          count: 2
+                    message: null
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 200
+                noReactions:
+                  summary: 리액션이 없는 경우
+                  value:
+                    success: true
+                    data:
+                      messageId: "msg_1234567890"
+                      reactions: []
+                    message: null
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 200
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 메시지를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/messages/reactions/types:
+    get:
+      tags:
+        - Message Reaction
+      summary: 지원하는 리액션 타입 조회
+      description: |
+        시스템에서 지원하는 모든 리액션 타입을 조회합니다.
+
+        **리액션 타입**:
+        - LIKE (👍, 좋아요)
+        - SAD (😢, 슬퍼요)
+        - DISLIKE (👎, 싫어요)
+        - ANGRY (😡, 화나요)
+        - CURIOUS (🤔, 궁금해요)
+        - SURPRISED (😮, 놀라워요)
+
+        **사용 목적**:
+        - 클라이언트에서 리액션 UI 구성 시 사용
+        - 리액션 타입별 이모지와 설명 제공
+        - 새 리액션 타입 추가 시 클라이언트 코드 변경 불필요
+      operationId: getReactionTypes
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 리액션 타입 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - timestamp
+                  - code
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - code
+                        - emoji
+                        - description
+                      properties:
+                        code:
+                          type: string
+                          description: 리액션 타입 코드
+                          example: "like"
+                        emoji:
+                          type: string
+                          description: 이모지
+                          example: "👍"
+                        description:
+                          type: string
+                          description: 설명
+                          example: "좋아요"
+                  message:
+                    type: string
+                    nullable: true
+                    example: null
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-01-08T15:00:00"
+                  code:
+                    type: integer
+                    example: 200
+              examples:
+                success:
+                  summary: 조회 성공
+                  value:
+                    success: true
+                    data:
+                      - code: "like"
+                        emoji: "👍"
+                        description: "좋아요"
+                      - code: "sad"
+                        emoji: "😢"
+                        description: "슬퍼요"
+                      - code: "dislike"
+                        emoji: "👎"
+                        description: "싫어요"
+                      - code: "angry"
+                        emoji: "😡"
+                        description: "화나요"
+                      - code: "curious"
+                        emoji: "🤔"
+                        description: "궁금해요"
+                      - code: "surprised"
+                        emoji: "😮"
+                        description: "놀라워요"
+                    message: null
+                    timestamp: "2025-01-08T15:00:00"
+                    code: 200
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1550,6 +2261,356 @@ components:
           format: int64
           description: 초대할 사용자 ID
           example: 5
+
+    # ==================== Message Schemas ====================
+    EditMessageRequest:
+      type: object
+      description: 메시지 수정 요청
+      required:
+        - messageId
+        - newContent
+        - userId
+      properties:
+        messageId:
+          type: string
+          description: 수정할 메시지 ID
+          example: "msg_1234567890"
+        newContent:
+          type: string
+          description: 새로운 메시지 내용 (최대 4,000자)
+          minLength: 1
+          maxLength: 4000
+          example: "수정된 메시지 내용입니다."
+        userId:
+          type: integer
+          format: int64
+          description: 사용자 ID (작성자 확인용)
+          example: 1
+
+    DeleteMessageRequest:
+      type: object
+      description: 메시지 삭제 요청
+      required:
+        - messageId
+        - userId
+      properties:
+        messageId:
+          type: string
+          description: 삭제할 메시지 ID
+          example: "msg_1234567890"
+        userId:
+          type: integer
+          format: int64
+          description: 사용자 ID (작성자 확인용)
+          example: 1
+
+    MessageResponseDto:
+      type: object
+      description: 메시지 응답 DTO
+      required:
+        - id
+        - roomId
+        - senderId
+        - content
+        - status
+        - reactions
+        - mentions
+        - readBy
+        - isPinned
+      properties:
+        id:
+          type: string
+          description: 메시지 ID (MongoDB ObjectId)
+          example: "msg_1234567890"
+        roomId:
+          type: integer
+          format: int64
+          description: 채팅방 ID
+          example: 101
+        senderId:
+          type: integer
+          format: int64
+          description: 발신자 ID
+          example: 1
+        content:
+          $ref: '#/components/schemas/MessageContentResponseDto'
+        status:
+          type: string
+          enum: [SENDING, SENT_TO_KAFKA, PROCESSING, SAVED, FAILED]
+          description: 메시지 상태
+          example: "SAVED"
+        threadId:
+          type: string
+          nullable: true
+          description: 스레드 ID (스레드 메시지인 경우)
+          example: null
+        replyToMessageId:
+          type: string
+          nullable: true
+          description: 답장 대상 메시지 ID
+          example: null
+        reactions:
+          type: object
+          description: 리액션 맵 (리액션 타입 → 사용자 ID 집합)
+          additionalProperties:
+            type: array
+            items:
+              type: integer
+              format: int64
+          example:
+            LIKE: [2, 3]
+            LOVE: [4]
+        mentions:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: 멘션된 사용자 ID 목록
+          example: [5, 6]
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: 생성 시각
+          example: "2025-01-08T14:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: 수정 시각
+          example: "2025-01-08T15:00:00Z"
+        readBy:
+          type: object
+          description: 읽음 상태 맵 (사용자 ID → 읽음 여부)
+          additionalProperties:
+            type: boolean
+          example:
+            "1": true
+            "2": false
+        isPinned:
+          type: boolean
+          description: 고정 여부
+          example: false
+        pinnedBy:
+          type: integer
+          format: int64
+          nullable: true
+          description: 고정한 사용자 ID
+          example: null
+        pinnedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: 고정 시각
+          example: null
+
+    MessageContentResponseDto:
+      type: object
+      description: 메시지 내용 DTO
+      required:
+        - text
+        - type
+        - attachments
+        - isEdited
+        - isDeleted
+      properties:
+        text:
+          type: string
+          description: 메시지 텍스트
+          example: "안녕하세요!"
+        type:
+          type: string
+          enum: [TEXT, IMAGE, VIDEO, AUDIO, FILE, SYSTEM]
+          description: 메시지 타입
+          example: "TEXT"
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttachmentDto'
+          description: 첨부파일 목록
+          default: []
+        isEdited:
+          type: boolean
+          description: 수정 여부
+          example: false
+        isDeleted:
+          type: boolean
+          description: 삭제 여부
+          example: false
+        urlPreview:
+          $ref: '#/components/schemas/UrlPreviewDto'
+          nullable: true
+
+    AttachmentDto:
+      type: object
+      description: 첨부파일 DTO
+      required:
+        - id
+        - filename
+        - contentType
+        - size
+        - url
+      properties:
+        id:
+          type: string
+          description: 첨부파일 ID
+          example: "att_123456"
+        filename:
+          type: string
+          description: 파일명
+          example: "document.pdf"
+        contentType:
+          type: string
+          description: MIME 타입
+          example: "application/pdf"
+        size:
+          type: integer
+          format: int64
+          description: 파일 크기 (bytes)
+          example: 1048576
+        url:
+          type: string
+          format: uri
+          description: 파일 다운로드 URL
+          example: "https://storage.shoot.com/files/att_123456"
+        thumbnailUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: 썸네일 URL (이미지/비디오의 경우)
+          example: "https://storage.shoot.com/thumbnails/att_123456"
+
+    UrlPreviewDto:
+      type: object
+      description: URL 프리뷰 DTO
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: 원본 URL
+          example: "https://example.com/article"
+        title:
+          type: string
+          nullable: true
+          description: 페이지 제목
+          example: "Example Article Title"
+        description:
+          type: string
+          nullable: true
+          description: 페이지 설명
+          example: "This is an example article description."
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: 프리뷰 이미지 URL
+          example: "https://example.com/og-image.jpg"
+        siteName:
+          type: string
+          nullable: true
+          description: 사이트 이름
+          example: "Example Site"
+
+    # ==================== Reaction Schemas ====================
+    ReactionRequest:
+      type: object
+      description: 메시지 리액션 요청
+      required:
+        - messageId
+        - reactionType
+        - userId
+      properties:
+        messageId:
+          type: string
+          description: 메시지 ID
+          example: "msg_1234567890"
+        reactionType:
+          type: string
+          description: 리액션 타입 코드
+          enum: [like, sad, dislike, angry, curious, surprised]
+          example: "like"
+        userId:
+          type: integer
+          format: int64
+          description: 사용자 ID
+          example: 1
+
+    ReactionResponse:
+      type: object
+      description: 메시지 리액션 응답
+      required:
+        - messageId
+        - reactions
+        - updatedAt
+      properties:
+        messageId:
+          type: string
+          description: 메시지 ID
+          example: "msg_1234567890"
+        reactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReactionInfoDto'
+          description: 리액션 목록
+        updatedAt:
+          type: string
+          format: date-time
+          description: 업데이트 시각
+          example: "2025-01-08T15:00:00Z"
+
+    ReactionInfoDto:
+      type: object
+      description: 리액션 정보 DTO
+      required:
+        - reactionType
+        - emoji
+        - description
+        - userIds
+        - count
+      properties:
+        reactionType:
+          type: string
+          description: 리액션 타입 코드
+          enum: [like, sad, dislike, angry, curious, surprised]
+          example: "like"
+        emoji:
+          type: string
+          description: 이모지
+          example: "👍"
+        description:
+          type: string
+          description: 리액션 설명
+          example: "좋아요"
+        userIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: 리액션한 사용자 ID 목록
+          example: [1, 2, 3]
+        count:
+          type: integer
+          description: 리액션 수
+          example: 3
+
+    ReactionListResponse:
+      type: object
+      description: 메시지 리액션 목록 응답
+      required:
+        - messageId
+        - reactions
+      properties:
+        messageId:
+          type: string
+          description: 메시지 ID
+          example: "msg_1234567890"
+        reactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReactionInfoDto'
+          description: 리액션 목록 (빈 배열 가능)
 
   responses:
     Unauthorized:

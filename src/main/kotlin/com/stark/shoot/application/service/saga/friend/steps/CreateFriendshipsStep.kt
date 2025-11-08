@@ -45,18 +45,17 @@ class CreateFriendshipsStep(
     }
 
     private fun executeInternal(context: FriendRequestSagaContext): Boolean {
-        // 양방향 친구 관계 생성
-        // 1. receiverId → requesterId
-        friendCommandPort.addFriendRelation(
-            userId = context.receiverId,
-            friendId = context.requesterId
-        )
+        // DDD Rich Model: FriendshipPair에서 Friendship 가져오기
+        val friendshipPair = context.friendshipPair
+            ?: throw IllegalStateException("FriendshipPair not found in context")
 
-        // 2. requesterId → receiverId
-        friendCommandPort.addFriendRelation(
-            userId = context.requesterId,
-            friendId = context.receiverId
-        )
+        // 양방향 친구 관계 생성 (FriendshipPair에서 가져온 Friendship 사용)
+        friendshipPair.getAllFriendships().forEach { friendship ->
+            friendCommandPort.addFriendRelation(
+                userId = friendship.userId,
+                friendId = friendship.friendId
+            )
+        }
 
         context.recordStep(stepName())
         logger.info {

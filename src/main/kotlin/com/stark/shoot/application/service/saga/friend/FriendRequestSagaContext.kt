@@ -2,6 +2,7 @@ package com.stark.shoot.application.service.saga.friend
 
 import com.stark.shoot.domain.saga.SagaState
 import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.domain.social.FriendshipPair
 import com.stark.shoot.domain.social.type.FriendRequestStatus
 import java.time.Instant
 import java.util.*
@@ -11,6 +12,8 @@ import java.util.*
  *
  * DDD 개선: 도메인 객체 제거, ID와 primitive 타입만 포함
  * Saga는 Application Layer이므로 필요 시 도메인 객체를 조회하여 사용
+ *
+ * DDD Rich Model 개선: FriendshipPair 저장
  */
 data class FriendRequestSagaContext(
     /**
@@ -34,9 +37,10 @@ data class FriendRequestSagaContext(
     var friendRequestSnapshot: FriendRequestSnapshot? = null,
 
     /**
-     * 생성된 Friendship ID 목록 (보상 시 삭제용)
+     * FriendRequest.accept() 결과 (Friendship + Event)
+     * Step 2, 3에서 사용
      */
-    val createdFriendshipIds: MutableList<Long> = mutableListOf(),
+    var friendshipPair: FriendshipPair? = null,
 
     /**
      * Saga 상태

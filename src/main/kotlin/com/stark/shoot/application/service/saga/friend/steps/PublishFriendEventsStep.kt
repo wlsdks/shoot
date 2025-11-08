@@ -30,20 +30,15 @@ class PublishFriendEventsStep(
     @Transactional(propagation = Propagation.MANDATORY)  // 기존 트랜잭션 필수
     override fun execute(context: FriendRequestSagaContext): Boolean {
         return try {
-            // 양방향 친구 추가 이벤트 발행
-            // 1. receiverId → requesterId 친구 추가 이벤트
-            val event1 = FriendAddedEvent.create(
-                userId = context.receiverId,
-                friendId = context.requesterId
-            )
-            saveToOutbox(context.sagaId, event1, suffix = "receiver")
+            // DDD Rich Model: FriendshipPair에서 이벤트 가져오기
+            val friendshipPair = context.friendshipPair
+                ?: throw IllegalStateException("FriendshipPair not found in context")
 
-            // 2. requesterId → receiverId 친구 추가 이벤트
-            val event2 = FriendAddedEvent.create(
-                userId = context.requesterId,
-                friendId = context.receiverId
-            )
-            saveToOutbox(context.sagaId, event2, suffix = "requester")
+            // FriendshipPair의 이벤트를 Outbox에 저장
+            friendshipPair.events.forEachIndexed { index, event ->
+                val suffix = if (index == 0) "receiver" else "requester"
+                saveToOutbox(context.sagaId, event, suffix = suffix)
+            }
 
             context.recordStep(stepName())
             logger.info { "Friend events saved to outbox for saga: ${context.sagaId}" }

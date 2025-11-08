@@ -69,29 +69,24 @@ class FriendDomainService {
     /**
      * 친구 요청 수락 처리를 수행합니다.
      *
+     * @Deprecated DDD Rich Model 개선: FriendRequest.accept()가 직접 처리하도록 변경됨
      * @param friendRequest 수락할 친구 요청
      * @return 처리 결과 (업데이트된 친구 요청, 생성된 친구 관계, 이벤트 목록)
      */
+    @Deprecated(
+        message = "Use FriendRequest.accept() instead. This method will be removed in future versions.",
+        replaceWith = ReplaceWith("friendRequest.accept()")
+    )
     fun processFriendAccept(
         friendRequest: FriendRequest
     ): FriendAcceptResult {
-        // 친구 요청 상태 변경
-        friendRequest.accept()
-
-        // 양방향 친구 관계 생성
-        val friendship1 = Friendship.create(friendRequest.receiverId, friendRequest.senderId)
-        val friendship2 = Friendship.create(friendRequest.senderId, friendRequest.receiverId)
-
-        // 이벤트 생성 (양쪽 사용자에게 친구 추가 알림)
-        val events = listOf(
-            FriendAddedEvent.create(userId = friendRequest.receiverId, friendId = friendRequest.senderId),
-            FriendAddedEvent.create(userId = friendRequest.senderId, friendId = friendRequest.receiverId)
-        )
+        // DDD Rich Model: FriendRequest.accept()가 직접 처리
+        val friendshipPair = friendRequest.accept()
 
         return FriendAcceptResult(
             updatedRequest = friendRequest,
-            friendships = listOf(friendship1, friendship2),
-            events = events
+            friendships = friendshipPair.getAllFriendships(),
+            events = friendshipPair.events
         )
     }
 
@@ -99,7 +94,13 @@ class FriendDomainService {
 
 /**
  * 친구 요청 수락 결과
+ *
+ * @Deprecated FriendshipPair로 대체됨
  */
+@Deprecated(
+    message = "Use FriendshipPair instead",
+    replaceWith = ReplaceWith("FriendshipPair", "com.stark.shoot.domain.social.FriendshipPair")
+)
 data class FriendAcceptResult(
     val updatedRequest: FriendRequest,
     val friendships: List<Friendship>,

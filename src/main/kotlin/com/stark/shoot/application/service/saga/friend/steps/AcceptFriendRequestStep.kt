@@ -67,8 +67,11 @@ class AcceptFriendRequestStep(
             previousRespondedAt = friendRequest.respondedAt
         )
 
-        // 친구 요청 수락 (도메인 로직)
-        friendRequest.accept()
+        // DDD Rich Model: FriendRequest.accept()가 Friendship + Event 생성
+        val friendshipPair = friendRequest.accept()
+
+        // Context에 FriendshipPair 저장 (Step 2, 3에서 사용)
+        context.friendshipPair = friendshipPair
 
         // DB에 저장
         friendRequestCommandPort.saveFriendRequest(friendRequest)

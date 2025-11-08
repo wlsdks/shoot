@@ -160,7 +160,7 @@ class FriendRequestSagaOrchestrator(
                         "receiverId" to context.receiverId.value,
                         "state" to context.state.name,
                         "friendRequestSnapshot" to context.friendRequestSnapshot,
-                        "createdFriendshipIds" to context.createdFriendshipIds
+                        "friendshipPair" to context.friendshipPair
                     )
                 )
             }.getOrElse { "{\"error\": \"Failed to serialize context\"}" }

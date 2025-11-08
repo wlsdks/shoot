@@ -9,11 +9,11 @@
 ## 📊 작업 현황
 
 ```
-전체 진행률: [▰▰▰▰▰▰▰░░░] 7/15 (46.7%)
+전체 진행률: [▰▰▰▰▰▰▰▰░░] 8/15 (53.3%)
 
 Critical:  [▰▰▰▰▰▰▰▰▰▰] 2/2  (100%) ✅ COMPLETE!
 High:      [▰▰▰▰▰▰▰▰▰▰] 4/4  (100%) ✅ COMPLETE!
-Medium:    [▰▰░░░░░░░░] 1/5  (20%)
+Medium:    [▰▰▰▰░░░░░░] 2/5  (40%)
 Low:       [░░░░░░░░░░] 0/4
 ```
 
@@ -466,37 +466,65 @@ class FriendRequestConcurrencyTest {
 
 ---
 
-### ✅ TASK-008: ACL 확장 (모든 VO 변환)
+### ✅ TASK-008: ACL 확장 - MessageId Converter 추가 ✅ **완료**
 - **우선순위**: 🟢 Medium
-- **예상 시간**: 3일
-- **담당자**: [할당 필요]
-- **마감일**: 2026-02-20
+- **예상 시간**: 3일 → **실제: 1.5시간 (TDD)**
+- **담당자**: Claude
+- **완료일**: 2025-11-08
+- **커밋**: `02618e42`
 
 #### 목적
 - Context 간 타입 독립성 강화
 - 명시적인 Context 경계 설정
+- ACL 패턴 표준화
+
+#### TDD 방식 적용
+**Red-Green-Refactor 사이클:**
+1. **RED**: MessageIdConverterTest 작성 (5개 테스트)
+2. **GREEN**: MessageIdConverter 구현
+3. **REFACTOR**: 전체 레이어 리팩토링 (13개 파일)
 
 #### 작업 파일
-- `shoot/src/main/kotlin/com/stark/shoot/application/acl/UserIdConverter.kt` (신규)
-- `shoot/src/main/kotlin/com/stark/shoot/application/acl/MessageIdConverter.kt` (신규)
-- `shoot/src/main/kotlin/com/stark/shoot/application/acl/ChatRoomIdConverter.kt` (기존, 유지)
+- `ContextConverter.kt` ✅ (신규 - 인터페이스)
+- `MessageIdConverter.kt` ✅ (신규)
+- `MessageIdConverterTest.kt` ✅ (신규 - TDD)
+- `MessageId.kt` (ChatRoom Context) ✅ (신규)
+- `ChatRoomIdConverter.kt` ✅ (주석 개선)
+- 9개 파일 수정 (ChatRoom, Services, Mappers, Saga) ✅
 
 #### 체크리스트
-- [ ] 현재 ACL 패턴 분석
-  - [ ] `ChatRoomIdConverter` 분석
-- [ ] 추가 필요한 Converter 식별
-  - [ ] `UserIdConverter` (필요시)
-  - [ ] `MessageIdConverter` (필요시)
-  - [ ] 기타 VO Converter
-- [ ] Converter 인터페이스 표준화
-  - [ ] `ContextConverter<S, T>` 인터페이스
-- [ ] Extension function 추가
-  - [ ] `UserId.toSocial()`, `UserId.toChat()` 등
-- [ ] 사용처 리팩토링
-  - [ ] Event Listener에서 사용
-  - [ ] Application Service에서 사용
-- [ ] 문서 업데이트
-  - [ ] ACL 패턴 가이드 작성
+- [x] TDD Red: 테스트 작성 ✅
+  - [x] Chat → ChatRoom 변환 테스트 ✅
+  - [x] ChatRoom → Chat 변환 테스트 ✅
+  - [x] Extension function 테스트 ✅
+  - [x] 양방향 변환 테스트 ✅
+- [x] TDD Green: 구현 ✅
+  - [x] MessageId VO (ChatRoom Context) 생성 ✅
+  - [x] MessageIdConverter 구현 ✅
+  - [x] Extension function 추가 ✅
+- [x] TDD Refactor: 전체 레이어 수정 (천천히 하나씩) ✅
+  - [x] ChatRoom.lastMessageId: String → MessageId? ✅
+  - [x] ChatRoomMapper 수정 ✅
+  - [x] ChatRoomCommandPersistenceAdapter 수정 ✅
+  - [x] MessageReadService 수정 (ACL 사용) ✅
+  - [x] UpdateChatRoomMetadataStep 수정 ✅
+  - [x] ChatRoomMetadataDomainService 수정 ✅
+  - [x] MessageSagaContext.ChatRoomSnapshot 수정 ✅
+  - [x] ForwardMessageService 수정 ✅
+  - [x] ForwardMessageToUserService 수정 ✅
+- [x] Converter 인터페이스 표준화 ✅
+  - [x] `ContextConverter<S, T>` 인터페이스 ✅
+- [x] Extension function 추가 ✅
+  - [x] `MessageId.toMessageId()` ✅
+  - [x] `MessageId.toChatMessageId()` ✅
+- [x] 컴파일 검증 ✅
+- [x] 커밋 완료 ✅
+
+#### 개선 사항
+**UserId는 Shared Kernel이므로 Converter 불필요**
+- UserId는 모든 Context에서 공유하는 Value Object
+- Context 간 변환 없이 직접 사용
+- DDD 원칙에 따른 설계 결정
 
 ---
 

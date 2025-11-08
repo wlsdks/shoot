@@ -9,7 +9,7 @@ import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.shared.UserId
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking

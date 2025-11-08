@@ -8,14 +8,14 @@ import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import com.stark.shoot.domain.exception.MessageException
+import com.stark.shoot.infrastructure.exception.MessageException
 import java.time.Instant
 
 @DisplayName("채팅방 메타데이터 도메인 서비스 테스트")

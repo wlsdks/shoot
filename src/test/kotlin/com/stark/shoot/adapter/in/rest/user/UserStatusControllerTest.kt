@@ -1,17 +1,29 @@
 package com.stark.shoot.adapter.`in`.rest.user
 
 import com.stark.shoot.adapter.`in`.rest.dto.user.UpdateStatusRequest
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.application.port.`in`.user.profile.UserStatusUseCase
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.application.port.`in`.user.profile.command.UpdateUserStatusCommand
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.User
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.type.UserStatus
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.vo.*
+import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
+import com.stark.shoot.domain.shared.UserId
 import org.junit.jupiter.api.DisplayName
+import com.stark.shoot.domain.shared.UserId
 import org.junit.jupiter.api.Test
+import com.stark.shoot.domain.shared.UserId
 import org.mockito.Mockito.*
+import com.stark.shoot.domain.shared.UserId
 import org.springframework.security.core.Authentication
+import com.stark.shoot.domain.shared.UserId
 import java.time.Instant
+import com.stark.shoot.domain.shared.UserId
 
 @DisplayName("UserStatusController 단위 테스트")
 class UserStatusControllerTest {

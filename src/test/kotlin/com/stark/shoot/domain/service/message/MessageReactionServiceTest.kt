@@ -8,7 +8,7 @@ import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.message.vo.ReactionToggleResult
 import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

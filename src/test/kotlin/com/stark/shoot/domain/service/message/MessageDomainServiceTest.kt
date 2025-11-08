@@ -3,7 +3,7 @@ package com.stark.shoot.domain.service.message
 import com.stark.shoot.domain.chat.message.service.MessageDomainService
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.event.type.EventType
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat

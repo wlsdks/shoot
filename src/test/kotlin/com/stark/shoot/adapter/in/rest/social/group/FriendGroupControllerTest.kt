@@ -3,8 +3,8 @@ package com.stark.shoot.adapter.`in`.rest.social.group
 import com.stark.shoot.application.port.`in`.user.group.FindFriendGroupUseCase
 import com.stark.shoot.application.port.`in`.user.group.ManageFriendGroupUseCase
 import com.stark.shoot.application.port.`in`.user.group.command.*
-import com.stark.shoot.domain.user.FriendGroup
-import com.stark.shoot.domain.user.vo.FriendGroupName
+import com.stark.shoot.domain.social.FriendGroup
+import com.stark.shoot.domain.social.vo.FriendGroupName
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

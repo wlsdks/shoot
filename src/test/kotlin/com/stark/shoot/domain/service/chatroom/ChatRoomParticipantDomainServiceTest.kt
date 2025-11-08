@@ -3,7 +3,7 @@ package com.stark.shoot.domain.service.chatroom
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.service.ChatRoomParticipantDomainService
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.constants.DomainConstants

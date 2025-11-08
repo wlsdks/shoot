@@ -2,7 +2,7 @@ package com.stark.shoot.domain.chat.event
 
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.event.*
 import com.stark.shoot.domain.event.type.EventType
 import com.stark.shoot.domain.shared.UserId

@@ -4,7 +4,7 @@ import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat

@@ -6,7 +6,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepos
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.util.TestEntityFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

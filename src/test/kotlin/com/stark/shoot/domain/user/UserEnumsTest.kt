@@ -1,8 +1,9 @@
 package com.stark.shoot.domain.user
 
-import com.stark.shoot.domain.user.type.FriendRequestStatus
+import com.stark.shoot.domain.social.type.FriendRequestStatus
 import com.stark.shoot.domain.user.type.UserStatus
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.tuple
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 

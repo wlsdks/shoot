@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.user.vo
 
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.exception.InvalidUserDataException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy

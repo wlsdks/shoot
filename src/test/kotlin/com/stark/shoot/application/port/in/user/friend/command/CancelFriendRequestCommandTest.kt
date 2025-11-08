@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.user.friend.command
 
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.adapter.`in`.rest.dto.social.friend.CancelFriendRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

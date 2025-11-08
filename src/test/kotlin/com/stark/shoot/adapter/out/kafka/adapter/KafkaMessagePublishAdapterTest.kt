@@ -9,7 +9,7 @@ import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.event.MessageEvent
 import com.stark.shoot.domain.event.type.EventType
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.exception.web.KafkaPublishException
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.DisplayName

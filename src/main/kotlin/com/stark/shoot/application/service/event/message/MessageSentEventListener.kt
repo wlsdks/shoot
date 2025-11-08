@@ -7,6 +7,8 @@ import com.stark.shoot.application.acl.*
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.shared.event.MessageSentEvent
 import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase
@@ -31,6 +33,9 @@ class MessageSentEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMessageSent(event: MessageSentEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.MESSAGE_SENT_V1, "MessageSentEventListener")
+
         // DDD 개선: 이벤트에서 직접 필드 사용
         val roomId = event.roomId
 

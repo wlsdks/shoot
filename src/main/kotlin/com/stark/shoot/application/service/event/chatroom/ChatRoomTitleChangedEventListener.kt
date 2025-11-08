@@ -4,6 +4,8 @@ import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.domain.shared.event.ChatRoomTitleChangedEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase
@@ -25,6 +27,9 @@ class ChatRoomTitleChangedEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleTitleChanged(event: ChatRoomTitleChangedEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.CHATROOM_TITLE_CHANGED_V1, "ChatRoomTitleChangedEventListener")
+
         logger.info { 
             "Processing title changed event: roomId=${event.roomId.value}, " +
             "oldTitle=${event.oldTitle}, newTitle=${event.newTitle}" 

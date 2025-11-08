@@ -1,6 +1,8 @@
 package com.stark.shoot.application.service.event.user
 
 import com.stark.shoot.domain.shared.event.UserCreatedEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase
@@ -28,6 +30,9 @@ class UserCreatedEventListener {
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleUserCreated(event: UserCreatedEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.USER_CREATED_V1, "UserCreatedEventListener")
+
         try {
             logger.info {
                 "New user created: userId=${event.userId.value}, " +

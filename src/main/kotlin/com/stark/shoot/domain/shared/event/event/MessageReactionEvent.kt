@@ -8,7 +8,7 @@ import com.stark.shoot.domain.shared.UserId
  * @property version Event schema version for MSA compatibility
  */
 data class MessageReactionEvent(
-    val version: String = "1.0",
+    override val version: EventVersion = EventVersion.MESSAGE_REACTION_V1,
     val messageId: MessageId,
     val roomId: ChatRoomId,
     val userId: UserId,

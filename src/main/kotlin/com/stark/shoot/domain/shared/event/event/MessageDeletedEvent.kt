@@ -17,7 +17,7 @@ import java.time.Instant
  * @property version Event schema version for MSA compatibility
  */
 data class MessageDeletedEvent(
-    val version: String = "1.0",
+    override val version: EventVersion = EventVersion.MESSAGE_DELETED_V1,
     val messageId: MessageId,
     val roomId: ChatRoomId,
     val userId: UserId,

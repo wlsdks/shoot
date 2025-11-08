@@ -1,5 +1,7 @@
 package com.stark.shoot.application.service.event.friend.request
 
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.domain.shared.event.FriendRequestRejectedEvent
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -27,6 +29,9 @@ class FriendRequestRejectedEventListener {
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleFriendRequestRejected(event: FriendRequestRejectedEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.FRIEND_REQUEST_REJECTED_V1, "FriendRequestRejectedEventListener")
+
         logger.info {
             "Friend request rejected: " +
             "sender=${event.senderId.value} (rejected), " +

@@ -9,7 +9,7 @@ import java.time.Instant
  * @property version Event schema version for MSA compatibility
  */
 data class FriendRequestSentEvent(
-    val version: String = "1.0",
+    override val version: EventVersion = EventVersion.FRIEND_REQUEST_SENT_V1,
     val senderId: UserId,
     val receiverId: UserId,
     val sentAt: Instant,

@@ -9,7 +9,7 @@ import java.time.Instant
  * @property version Event schema version for MSA compatibility
  */
 data class MentionEvent(
-    val version: String = "1.0",
+    override val version: EventVersion = EventVersion.MENTION_V1,
     val id: String? = null,
     val roomId: ChatRoomId,
     val messageId: MessageId,

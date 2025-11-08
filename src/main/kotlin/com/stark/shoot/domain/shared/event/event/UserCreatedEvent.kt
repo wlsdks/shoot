@@ -10,7 +10,7 @@ import java.time.Instant
  * @property version Event schema version for MSA compatibility
  */
 data class UserCreatedEvent(
-    val version: String = "1.0",
+    override val version: EventVersion = EventVersion.USER_CREATED_V1,
     val userId: UserId,
     val username: String,
     val nickname: String,

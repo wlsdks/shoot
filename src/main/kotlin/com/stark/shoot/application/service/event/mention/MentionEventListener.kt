@@ -2,6 +2,8 @@ package com.stark.shoot.application.service.event.mention
 
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.domain.shared.event.MentionEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase
@@ -21,6 +23,9 @@ class MentionEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMention(event: MentionEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.MENTION_V1, "MentionEventListener")
+
         val mentionNotification = mapOf(
             "type" to "MENTION",
             "roomId" to event.roomId.value,

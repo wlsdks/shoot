@@ -1,6 +1,8 @@
 package com.stark.shoot.application.service.event.message
 
 import com.stark.shoot.domain.shared.event.MessageBulkReadEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase
@@ -24,6 +26,9 @@ class MessageBulkReadEventListener {
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMessageBulkRead(event: MessageBulkReadEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.MESSAGE_BULK_READ_V1, "MessageBulkReadEventListener")
+
         logger.info {
             "Messages bulk read: " +
             "roomId=${event.roomId.value}, " +

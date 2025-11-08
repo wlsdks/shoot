@@ -8,7 +8,7 @@ import com.stark.shoot.domain.shared.UserId
  * @property version Event schema version for MSA compatibility
  */
 data class FriendRemovedEvent(
-    val version: String = "1.0",
+    override val version: EventVersion = EventVersion.FRIEND_REMOVED_V1,
     val userId: UserId,
     val friendId: UserId,
     override val occurredOn: Long = System.currentTimeMillis()

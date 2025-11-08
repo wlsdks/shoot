@@ -1,5 +1,7 @@
 package com.stark.shoot.application.service.event.friend.request
 
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.domain.shared.event.FriendRequestCancelledEvent
 import com.stark.shoot.domain.notification.type.SourceType
@@ -27,6 +29,9 @@ class FriendRequestCancelledEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleFriendRequestCancelled(event: FriendRequestCancelledEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.FRIEND_REQUEST_CANCELLED_V1, "FriendRequestCancelledEventListener")
+
         logger.info {
             "Processing friend request cancelled event: " +
             "senderId=${event.senderId.value}, receiverId=${event.receiverId.value}"

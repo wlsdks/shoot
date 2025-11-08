@@ -2,6 +2,8 @@ package com.stark.shoot.application.service.event.reaction
 
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.domain.shared.event.MessageReactionEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase
@@ -20,6 +22,9 @@ class ReactionEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMessageReaction(event: MessageReactionEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.MESSAGE_REACTION_V1, "ReactionEventListener")
+
         val reactionUpdate = mapOf(
             "messageId" to event.messageId.value,
             "userId" to event.userId.value,

@@ -9,7 +9,7 @@ import java.time.Instant
  * @property version Event schema version for MSA compatibility
  */
 data class NotificationEvent(
-    val version: String = "1.0",
+    override val version: EventVersion = EventVersion.NOTIFICATION_V1,
     val id: String? = null,
     val timestamp: Instant = Instant.now(),
     val type: NotificationType,

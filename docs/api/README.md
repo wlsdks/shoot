@@ -2,6 +2,30 @@
 
 MSA (Microservice Architecture) 마이그레이션을 위한 API 계약 정의 문서입니다.
 
+## 빠른 시작
+
+### Swagger UI로 API 탐색 (추천)
+
+```bash
+# 1. 애플리케이션 실행
+./gradlew bootRun
+
+# 2. 브라우저에서 Swagger UI 접속
+open http://localhost:8080/swagger-ui.html
+```
+
+자세한 사용법은 [Swagger UI 가이드](../SWAGGER_UI_GUIDE.md)를 참조하세요.
+
+### OpenAPI 스펙 파일로 확인
+
+각 서비스별 OpenAPI 3.0 YAML 파일:
+- [user-service-api.yaml](./user-service-api.yaml)
+- [friend-service-api.yaml](./friend-service-api.yaml)
+- [chat-service-api.yaml](./chat-service-api.yaml)
+- [notification-service-api.yaml](./notification-service-api.yaml)
+
+---
+
 ## 개요
 
 Shoot은 실시간 채팅 애플리케이션으로, 다음과 같은 마이크로서비스로 분리될 예정입니다:
@@ -383,10 +407,10 @@ User (실시간 알림 수신)
 
 ## 관련 문서
 
+- [SWAGGER_UI_GUIDE.md](../SWAGGER_UI_GUIDE.md) - Swagger UI 사용 가이드 ⭐
+- [EVENT_SCHEMA.md](../events/EVENT_SCHEMA.md) - 이벤트 스키마
 - [CLAUDE.md](../../CLAUDE.md) - 프로젝트 개요 및 아키텍처
 - [DOMAIN.md](../../DOMAIN.md) - 도메인 모델 상세
-- [TASK-010.md](../../TASK-010.md) - MSA API 계약 정의 태스크
-- [EVENT_SCHEMA.md](../events/EVENT_SCHEMA.md) - 이벤트 스키마
 
 ---
 

@@ -36,7 +36,7 @@ class ChatRoomMapper {
             announcement = entity.announcement?.let { ChatRoomAnnouncement.from(it) },
             participants = participantIds,
             pinnedParticipants = pinnedParticipantIds,
-            lastMessageId = entity.lastMessageId?.toString(),
+            lastMessageId = entity.lastMessageId?.let { com.stark.shoot.domain.chatroom.vo.MessageId.from(it.toString()) },
             lastActiveAt = entity.lastActiveAt,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
@@ -45,7 +45,7 @@ class ChatRoomMapper {
 
     // 도메인 -> 엔티티 변환 (ChatRoomUserEntity는 별도로 생성)
     fun toEntity(domain: ChatRoom): ChatRoomEntity {
-        val lastMessageIdLong: Long? = domain.lastMessageId?.toLongOrNull()
+        val lastMessageIdLong: Long? = domain.lastMessageId?.value?.toLongOrNull()
 
         return ChatRoomEntity(
             title = domain.title?.value,

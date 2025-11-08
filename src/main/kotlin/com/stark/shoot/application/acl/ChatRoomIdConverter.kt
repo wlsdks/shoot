@@ -13,10 +13,9 @@ package com.stark.shoot.application.acl
  * 2. 도메인 보호: 외부 Context의 변경이 내부 도메인에 영향을 주지 않도록 방어
  * 3. MSA 준비: 향후 서비스 분리 시 API 경계에서 DTO 변환 역할
  *
- * 향후 확장:
- * - 검증 로직 추가 (예: ChatRoomId 유효성 검증)
- * - 변환 실패 시 예외 처리 전략
- * - MSA 환경에서 서비스 간 API 호출 시 DTO 변환
+ * 참고:
+ * - ContextConverter<S, T> 인터페이스와 동일한 패턴을 따름
+ * - @JvmInline value class는 제네릭으로 사용 불가하여 직접 구현
  */
 object ChatRoomIdConverter {
 

@@ -76,9 +76,11 @@ class UpdateChatRoomMetadataStep(
         )
 
         // 메타데이터 업데이트 (DDD 개선: messageId와 createdAt만 전달)
+        // String messageId를 ChatRoom Context의 MessageId로 변환
+        val chatRoomMessageId = com.stark.shoot.domain.chatroom.vo.MessageId.from(messageIdStr)
         val updatedRoom = chatRoomMetadataDomainService.updateChatRoomWithNewMessage(
             chatRoom = chatRoom,
-            messageId = messageIdStr,
+            messageId = chatRoomMessageId,
             createdAt = java.time.Instant.now()
         )
         val savedRoom = chatRoomCommandPort.save(updatedRoom)

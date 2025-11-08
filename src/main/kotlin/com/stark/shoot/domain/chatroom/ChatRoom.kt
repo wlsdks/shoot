@@ -4,6 +4,7 @@ import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomAnnouncement
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
+import com.stark.shoot.domain.chatroom.vo.MessageId
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.chatroom.exception.FavoriteLimitExceededException
 import com.stark.shoot.domain.chatroom.exception.ChatRoomException
@@ -16,7 +17,7 @@ data class ChatRoom(
     var title: ChatRoomTitle? = null,
     val type: ChatRoomType,
     var participants: Set<UserId>,
-    var lastMessageId: String? = null,  // MessageId 대신 String 사용 (컨텍스트 간 결합 제거)
+    var lastMessageId: MessageId? = null,  // MessageId VO 사용 (ACL을 통한 변환)
     var lastActiveAt: Instant = Instant.now(),
     var createdAt: Instant = Instant.now(),
 
@@ -135,7 +136,7 @@ data class ChatRoom(
     fun update(
         title: ChatRoomTitle? = null,
         announcement: ChatRoomAnnouncement? = null,
-        lastMessageId: String? = null,  // String으로 변경
+        lastMessageId: MessageId? = null,
         lastActiveAt: Instant? = null
     ) {
         title?.let { this.title = it }

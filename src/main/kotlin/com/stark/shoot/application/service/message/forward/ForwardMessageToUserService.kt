@@ -121,11 +121,12 @@ class ForwardMessageToUserService(
             ?: throw ResourceNotFoundException("대상 채팅방을 찾을 수 없습니다. id=$targetRoomId")
 
         // DDD 개선: messageId와 createdAt만 전달
-        val messageId = savedForwardMessage.id?.value
+        val messageIdStr = savedForwardMessage.id?.value
             ?: throw IllegalStateException("Saved message has no ID")
+        val chatRoomMessageId = com.stark.shoot.domain.chatroom.vo.MessageId.from(messageIdStr)
         val updatedRoom = chatRoomMetadataDomainService.updateChatRoomWithNewMessage(
             chatRoom = chatRoom,
-            messageId = messageId,
+            messageId = chatRoomMessageId,
             createdAt = savedForwardMessage.createdAt ?: java.time.Instant.now()
         )
 

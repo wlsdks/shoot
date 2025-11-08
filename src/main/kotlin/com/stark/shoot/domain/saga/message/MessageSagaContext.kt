@@ -64,7 +64,7 @@ data class MessageSagaContext(
      */
     data class ChatRoomSnapshot(
         val roomId: Long,
-        val previousLastMessageId: String?,
+        val previousLastMessageId: com.stark.shoot.domain.chatroom.vo.MessageId?,
         val previousLastActiveAt: Instant
     )
     /**

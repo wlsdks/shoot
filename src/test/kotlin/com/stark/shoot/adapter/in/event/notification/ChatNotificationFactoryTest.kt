@@ -6,7 +6,8 @@ import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId as ChatRoomIdService
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
@@ -36,8 +37,8 @@ class ChatNotificationFactoryTest {
         val msg = sampleMessage("hello world")
         val notification = factory.createMentionNotification(
             userId = 1L,
-            messageId = msg.id,
-            roomId = msg.roomId,
+            messageId = msg.id!!,
+            roomId = ChatRoomIdService.from(msg.roomId.value),
             senderId = msg.senderId,
             content = msg.content.text
         )
@@ -53,8 +54,8 @@ class ChatNotificationFactoryTest {
         val msg = sampleMessage("a".repeat(60))
         val notification = factory.createMessageNotification(
             userId = 3L,
-            messageId = msg.id,
-            roomId = msg.roomId,
+            messageId = msg.id!!,
+            roomId = ChatRoomIdService.from(msg.roomId.value),
             senderId = msg.senderId,
             content = msg.content.text
         )

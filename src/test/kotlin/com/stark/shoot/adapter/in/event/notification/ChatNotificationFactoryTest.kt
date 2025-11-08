@@ -70,7 +70,7 @@ class ChatNotificationFactoryTest {
             userId = UserId.from(1L),
             reactingUserId = UserId.from(2L),
             messageId = MessageId.from("m2"),
-            roomId = ChatRoomId.from(1L),
+            roomId = ChatRoomIdService.from(1L),
             reactionType = "like"
         )
         assertThat(notification.type).isEqualTo(NotificationType.REACTION)

@@ -15,7 +15,8 @@ import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.type.SyncDirection
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId as ChatRoomIdService
 import com.stark.shoot.domain.shared.UserId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -86,7 +87,7 @@ class PaginationMessageSyncServiceTest {
             }
 
             // For initial load without lastMessageId, the service fetches latest messages
-            `when`(messageQueryPort.findByRoomIdFlow(ChatRoomId.from(roomId), 50)).thenReturn(messageFlow)
+            `when`(messageQueryPort.findByRoomIdFlow(ChatRoomIdService.from(roomId), 50)).thenReturn(messageFlow)
 
             // Mock the threadQueryPort for each message
             for (message in messages) {
@@ -108,7 +109,7 @@ class PaginationMessageSyncServiceTest {
             assertThat(result).hasSize(3)
             assertThat(result).containsExactlyElementsOf(syncInfoDtos)
 
-            verify(messageQueryPort).findByRoomIdFlow(ChatRoomId.from(roomId), 50)
+            verify(messageQueryPort).findByRoomIdFlow(ChatRoomIdService.from(roomId), 50)
             for (message in messages) {
                 message.id?.let { messageId ->
                     verify(threadQueryPort).countByThreadId(messageId)
@@ -153,7 +154,7 @@ class PaginationMessageSyncServiceTest {
                 )
             }
 
-            `when`(messageQueryPort.findByRoomIdAndBeforeIdFlow(ChatRoomId.from(roomId), messageId, 30)).thenReturn(messageFlow)
+            `when`(messageQueryPort.findByRoomIdAndBeforeIdFlow(ChatRoomIdService.from(roomId), messageId, 30)).thenReturn(messageFlow)
 
             // Mock the threadQueryPort for each message
             for (message in messages) {
@@ -175,7 +176,7 @@ class PaginationMessageSyncServiceTest {
             assertThat(result).hasSize(2)
             assertThat(result).containsExactlyElementsOf(syncInfoDtos)
 
-            verify(messageQueryPort).findByRoomIdAndBeforeIdFlow(ChatRoomId.from(roomId), messageId, 30)
+            verify(messageQueryPort).findByRoomIdAndBeforeIdFlow(ChatRoomIdService.from(roomId), messageId, 30)
             for (message in messages) {
                 message.id?.let { messageId ->
                     verify(threadQueryPort).countByThreadId(messageId)

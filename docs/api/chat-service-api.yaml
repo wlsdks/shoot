@@ -2063,6 +2063,273 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  # ==================== Scheduled Message Endpoints ====================
+  /api/v1/messages/scheduled:
+    post:
+      tags:
+        - Scheduled Message
+      summary: 메시지 전송 예약
+      description: |
+        지정된 시간에 전송될 메시지를 예약합니다.
+
+        **비즈니스 규칙**:
+        - 예약 시간은 현재 시간보다 미래여야 함
+        - 예약 시간은 최대 30일 후까지 설정 가능
+        - 메시지 내용은 4,000자 이하
+        - 예약된 메시지는 PENDING 상태로 시작
+
+        **워크플로우**:
+        1. 예약 시간 유효성 검증 (현재 < scheduledAt < 현재+30일)
+        2. 메시지 내용 검증 (길이, 형식)
+        3. ScheduledMessage 엔티티 생성 (status: PENDING)
+        4. MongoDB에 저장
+        5. 스케줄러에 작업 등록
+        6. SCHEDULED_MESSAGE_CREATED 이벤트 발행
+
+        **이벤트**:
+        - `SCHEDULED_MESSAGE_CREATED`: 예약 메시지 생성 시 발행
+      operationId: scheduleMessage
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleMessageRequest'
+      responses:
+        '200':
+          description: 메시지 예약 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/ScheduledMessageResponseDto'
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      tags:
+        - Scheduled Message
+      summary: 예약된 메시지 목록 조회
+      description: |
+        사용자가 예약한 메시지 목록을 조회합니다.
+
+        **필터링**:
+        - roomId 파라미터로 특정 채팅방의 예약 메시지만 조회 가능
+        - roomId 없으면 모든 채팅방의 예약 메시지 조회
+
+        **조회 범위**:
+        - PENDING, PROCESSING 상태의 메시지만 조회
+        - 이미 전송된(SENT) 또는 취소된(CANCELED) 메시지는 제외
+
+        **정렬**:
+        - 예약 시간(scheduledAt) 오름차순
+      operationId: getScheduledMessages
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: roomId
+          in: query
+          required: false
+          description: 채팅방 ID (선택적)
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScheduledMessageResponseDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/messages/scheduled/{scheduledMessageId}:
+    put:
+      tags:
+        - Scheduled Message
+      summary: 메시지 전송 예약 수정
+      description: |
+        예약된 메시지의 내용 또는 예약 시간을 수정합니다.
+
+        **수정 가능 항목**:
+        - 메시지 내용 (content)
+        - 예약 시간 (scheduledAt) - 선택적
+
+        **비즈니스 규칙**:
+        - PENDING 상태의 메시지만 수정 가능
+        - 이미 전송된(SENT) 또는 처리 중(PROCESSING)인 메시지는 수정 불가
+        - 예약 시간 변경 시 동일한 검증 규칙 적용
+        - 작성자만 수정 가능
+
+        **워크플로우**:
+        1. 예약 메시지 존재 및 권한 확인
+        2. 상태 확인 (PENDING만 허용)
+        3. 내용 및 예약 시간 업데이트
+        4. 스케줄러 작업 재등록
+        5. SCHEDULED_MESSAGE_UPDATED 이벤트 발행
+      operationId: updateScheduledMessage
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: scheduledMessageId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: newContent
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: newScheduledAt
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: 수정 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/ScheduledMessageResponseDto'
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      tags:
+        - Scheduled Message
+      summary: 메시지 전송 예약 취소
+      description: |
+        예약된 메시지를 취소합니다.
+
+        **비즈니스 규칙**:
+        - PENDING 상태의 메시지만 취소 가능
+        - 이미 전송된(SENT) 메시지는 취소 불가
+        - 작성자만 취소 가능
+        - 취소 시 status가 CANCELED로 변경
+
+        **워크플로우**:
+        1. 예약 메시지 존재 및 권한 확인
+        2. 상태 확인 (PENDING만 허용)
+        3. status를 CANCELED로 변경
+        4. 스케줄러 작업 제거
+        5. SCHEDULED_MESSAGE_CANCELED 이벤트 발행
+      operationId: cancelScheduledMessage
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: scheduledMessageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 취소 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/ScheduledMessageResponseDto'
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/messages/scheduled/{scheduledMessageId}/send-now:
+    post:
+      tags:
+        - Scheduled Message
+      summary: 예약된 메시지 즉시 전송
+      description: |
+        예약된 메시지를 예약 시간을 기다리지 않고 즉시 전송합니다.
+
+        **비즈니스 규칙**:
+        - PENDING 상태의 메시지만 즉시 전송 가능
+        - 작성자만 즉시 전송 가능
+        - 전송 후 status가 SENT로 변경
+
+        **워크플로우**:
+        1. 예약 메시지 존재 및 권한 확인
+        2. 상태 확인 (PENDING만 허용)
+        3. 메시지를 즉시 ChatMessage로 변환하여 전송
+        4. status를 SENT로 변경
+        5. 스케줄러 작업 제거
+        6. MESSAGE_CREATED 이벤트 발행
+        7. 채팅방 참여자들에게 WebSocket으로 알림
+      operationId: sendScheduledMessageNow
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: scheduledMessageId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleMessageSendNowRequest'
+      responses:
+        '200':
+          description: 즉시 전송 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/ScheduledMessageResponseDto'
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -2612,6 +2879,124 @@ components:
             $ref: '#/components/schemas/ReactionInfoDto'
           description: 리액션 목록 (빈 배열 가능)
 
+    # ==================== Scheduled Message Schemas ====================
+    ScheduleMessageRequest:
+      type: object
+      description: 메시지 예약 요청
+      required:
+        - roomId
+        - content
+        - scheduledAt
+      properties:
+        roomId:
+          type: integer
+          format: int64
+          description: 채팅방 ID
+          example: 101
+        content:
+          type: string
+          description: 메시지 내용 (최대 4,000자)
+          maxLength: 4000
+          example: "안녕하세요, 예약 메시지입니다."
+        scheduledAt:
+          type: string
+          format: date-time
+          description: 전송 예약 시간 (ISO 8601 형식)
+          example: "2025-01-10T14:00:00Z"
+
+    ScheduleMessageSendNowRequest:
+      type: object
+      description: 예약 메시지 즉시 전송 요청
+      required:
+        - scheduledMessageId
+      properties:
+        scheduledMessageId:
+          type: string
+          description: 예약 메시지 ID
+          example: "scheduled_msg_123456"
+
+    ScheduledMessageResponseDto:
+      type: object
+      description: 예약 메시지 응답 DTO
+      required:
+        - id
+        - roomId
+        - senderId
+        - content
+        - scheduledAt
+        - createdAt
+        - status
+        - metadata
+      properties:
+        id:
+          type: string
+          description: 예약 메시지 ID
+          example: "scheduled_msg_123456"
+        roomId:
+          type: integer
+          format: int64
+          description: 채팅방 ID
+          example: 101
+        senderId:
+          type: integer
+          format: int64
+          description: 발신자 ID
+          example: 1
+        content:
+          $ref: '#/components/schemas/MessageContentResponseDto'
+        scheduledAt:
+          type: string
+          format: date-time
+          description: 예약 전송 시간
+          example: "2025-01-10T14:00:00Z"
+        createdAt:
+          type: string
+          format: date-time
+          description: 예약 생성 시간
+          example: "2025-01-08T15:00:00Z"
+        status:
+          type: string
+          enum: [PENDING, PROCESSING, SENT, FAILED, CANCELED]
+          description: |
+            예약 메시지 상태:
+            - PENDING: 전송 대기 중
+            - PROCESSING: 처리 중 (발송 시작됨)
+            - SENT: 전송 완료
+            - FAILED: 전송 실패
+            - CANCELED: 취소됨
+          example: "PENDING"
+        metadata:
+          $ref: '#/components/schemas/MessageMetadataResponseDto'
+
+    MessageMetadataResponseDto:
+      type: object
+      description: 메시지 메타데이터 응답 DTO
+      properties:
+        tempId:
+          type: string
+          nullable: true
+          description: 임시 ID (클라이언트에서 생성)
+          example: "temp_123456"
+        needsUrlPreview:
+          type: boolean
+          description: URL 프리뷰 필요 여부
+          example: false
+        previewUrl:
+          type: string
+          nullable: true
+          description: 프리뷰 URL
+          example: null
+        urlPreview:
+          type: object
+          nullable: true
+          description: URL 프리뷰 정보
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: 읽음 시각
+          example: null
+
   responses:
     Unauthorized:
       description: 인증 실패 - 유효하지 않거나 만료된 토큰
@@ -2638,3 +3023,54 @@ components:
                 errorCode: "EXPIRED_TOKEN"
                 timestamp: "2025-01-08T15:15:00"
                 code: 401
+
+    BadRequest:
+      description: 잘못된 요청 - 유효성 검증 실패
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            validationFailed:
+              summary: 유효성 검증 실패
+              value:
+                success: false
+                data: null
+                message: "입력값이 유효하지 않습니다."
+                errorCode: "VALIDATION_FAILED"
+                timestamp: "2025-01-08T15:15:00"
+                code: 400
+
+    Forbidden:
+      description: 권한 없음 - 접근이 거부됨
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            forbidden:
+              summary: 권한 없음
+              value:
+                success: false
+                data: null
+                message: "해당 작업을 수행할 권한이 없습니다."
+                errorCode: "FORBIDDEN"
+                timestamp: "2025-01-08T15:15:00"
+                code: 403
+
+    NotFound:
+      description: 리소스를 찾을 수 없음
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            notFound:
+              summary: 리소스 없음
+              value:
+                success: false
+                data: null
+                message: "요청한 리소스를 찾을 수 없습니다."
+                errorCode: "NOT_FOUND"
+                timestamp: "2025-01-08T15:15:00"
+                code: 404

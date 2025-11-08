@@ -1,0 +1,822 @@
+openapi: 3.0.3
+
+info:
+  title: Shoot Notification Service API
+  version: 1.0.0
+  description: |
+    Shoot 애플리케이션의 Notification Service REST API 명세서
+
+    **주요 기능**:
+    - 알림 조회 (전체, 읽지 않은, 타입별, 소스별)
+    - 알림 읽음 처리
+    - 알림 삭제
+
+    **알림 타입**:
+    - Chat: NEW_MESSAGE, MENTION, REACTION, PIN
+    - Friend: FRIEND_REQUEST, FRIEND_ACCEPTED, FRIEND_REJECTED, FRIEND_REMOVED
+    - System: SYSTEM_ANNOUNCEMENT, SYSTEM_MAINTENANCE
+    - Other: OTHER
+
+    **소스 타입**:
+    - CHAT, CHAT_ROOM, USER, FRIEND, SYSTEM, OTHER
+
+    **MSA 전환 대비**: 이 API는 향후 독립된 Notification Service로 분리될 예정입니다.
+  contact:
+    name: Shoot Development Team
+    email: dev@shoot.com
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://api.shoot.com
+    description: Production server
+
+tags:
+  - name: Notification Query
+    description: 알림 조회 API
+  - name: Notification Read
+    description: 알림 읽음 처리 API
+  - name: Notification Delete
+    description: 알림 삭제 API
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ==================== Notification Query Endpoints ====================
+  /api/v1/notifications:
+    get:
+      tags:
+        - Notification Query
+      summary: 알림 조회
+      description: |
+        사용자의 알림을 조회합니다.
+
+        **페이지네이션**:
+        - offset/limit 기반 페이지네이션 지원
+        - 기본 limit: 20개
+        - 최신 알림부터 내림차순 정렬 (createdAt)
+
+        **워크플로우**:
+        1. 사용자 인증 확인
+        2. 사용자 ID로 알림 조회 (PostgreSQL)
+        3. offset/limit 적용하여 페이지네이션
+        4. NotificationResponse 변환 후 반환
+
+        **응답**:
+        - 알림 목록 (최신순)
+        - 각 알림은 NotificationResponse 형식
+      operationId: getNotifications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: 조회할 알림 개수 (기본 20개)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+            example: 20
+        - name: offset
+          in: query
+          required: false
+          description: 건너뛸 알림 개수 (페이지네이션)
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+            example: 0
+      responses:
+        '200':
+          description: 알림 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NotificationResponse'
+                  message:
+                    type: string
+                    example: "알림이 성공적으로 조회되었습니다."
+                  timestamp:
+                    type: string
+                    format: date-time
+                  code:
+                    type: integer
+                    example: 200
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/notifications/unread:
+    get:
+      tags:
+        - Notification Query
+      summary: 읽지 않은 알림 조회
+      description: |
+        사용자의 읽지 않은 알림을 조회합니다.
+
+        **필터링**:
+        - isRead = false인 알림만 조회
+        - 최신 알림부터 내림차순 정렬
+
+        **페이지네이션**:
+        - offset/limit 기반
+        - 기본 limit: 20개
+
+        **워크플로우**:
+        1. 사용자 인증 확인
+        2. isRead = false 조건으로 알림 조회
+        3. offset/limit 적용
+        4. NotificationResponse 변환 후 반환
+      operationId: getUnreadNotifications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: 조회할 알림 개수 (기본 20개)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          description: 건너뛸 알림 개수
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: 읽지 않은 알림 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NotificationResponse'
+                  message:
+                    type: string
+                    example: "읽지 않은 알림이 성공적으로 조회되었습니다."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/notifications/unread/count:
+    get:
+      tags:
+        - Notification Query
+      summary: 읽지 않은 알림 개수 조회
+      description: |
+        사용자의 읽지 않은 알림 개수를 조회합니다.
+
+        **사용 목적**:
+        - UI에서 알림 뱃지 표시
+        - 읽지 않은 알림 개수 실시간 업데이트
+
+        **워크플로우**:
+        1. 사용자 인증 확인
+        2. isRead = false 조건으로 COUNT 쿼리
+        3. 개수 반환
+      operationId: getUnreadNotificationCount
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 읽지 않은 알림 개수 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: integer
+                    description: 읽지 않은 알림 개수
+                    example: 5
+                  message:
+                    type: string
+                    example: "읽지 않은 알림 개수가 성공적으로 조회되었습니다."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/notifications/type/{type}:
+    get:
+      tags:
+        - Notification Query
+      summary: 알림 타입별 조회
+      description: |
+        사용자의 알림을 타입별로 조회합니다.
+
+        **알림 타입**:
+        - Chat: NEW_MESSAGE, MENTION, REACTION, PIN
+        - Friend: FRIEND_REQUEST, FRIEND_ACCEPTED, FRIEND_REJECTED, FRIEND_REMOVED
+        - System: SYSTEM_ANNOUNCEMENT, SYSTEM_MAINTENANCE
+        - Other: OTHER
+
+        **워크플로우**:
+        1. 사용자 인증 확인
+        2. type 파라미터로 필터링하여 알림 조회
+        3. offset/limit 적용
+        4. NotificationResponse 변환 후 반환
+      operationId: getNotificationsByType
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          description: 알림 타입
+          schema:
+            type: string
+            enum: [NEW_MESSAGE, MENTION, REACTION, PIN, FRIEND_REQUEST, FRIEND_ACCEPTED, FRIEND_REJECTED, FRIEND_REMOVED, SYSTEM_ANNOUNCEMENT, SYSTEM_MAINTENANCE, OTHER]
+            example: "NEW_MESSAGE"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 타입별 알림 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NotificationResponse'
+                  message:
+                    type: string
+                    example: "타입별 알림이 성공적으로 조회되었습니다."
+        '400':
+          description: 잘못된 알림 타입
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/notifications/source/{sourceType}:
+    get:
+      tags:
+        - Notification Query
+      summary: 알림 소스별 조회
+      description: |
+        사용자의 알림을 소스별로 조회합니다.
+
+        **소스 타입**:
+        - CHAT: 채팅 관련
+        - CHAT_ROOM: 채팅방 관련
+        - USER: 사용자 관련
+        - FRIEND: 친구 관련
+        - SYSTEM: 시스템 관련
+        - OTHER: 기타
+
+        **워크플로우**:
+        1. 사용자 인증 확인
+        2. sourceType (및 선택적 sourceId)로 필터링
+        3. offset/limit 적용
+        4. NotificationResponse 변환 후 반환
+      operationId: getNotificationsBySource
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: sourceType
+          in: path
+          required: true
+          description: 소스 타입
+          schema:
+            type: string
+            enum: [CHAT, CHAT_ROOM, USER, FRIEND, SYSTEM, OTHER]
+            example: "CHAT_ROOM"
+        - name: sourceId
+          in: query
+          required: false
+          description: 소스 ID (특정 소스 지정 시)
+          schema:
+            type: string
+            example: "101"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 소스별 알림 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NotificationResponse'
+                  message:
+                    type: string
+                    example: "소스별 알림이 성공적으로 조회되었습니다."
+        '400':
+          description: 잘못된 소스 타입
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==================== Notification Read Endpoints ====================
+  /api/v1/notifications/{notificationId}/read:
+    put:
+      tags:
+        - Notification Read
+      summary: 알림 읽음 처리
+      description: |
+        특정 알림을 읽음 처리합니다.
+
+        **워크플로우**:
+        1. 사용자 인증 및 알림 소유 확인
+        2. isRead = true, readAt = 현재 시간 설정
+        3. PostgreSQL에 업데이트
+        4. NOTIFICATION_READ 이벤트 발행
+        5. 업데이트된 알림 반환
+
+        **이벤트**:
+        - `NOTIFICATION_READ`: 알림 읽음 처리 시 발행
+      operationId: markAsRead
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: 알림 ID
+          schema:
+            type: string
+            example: "notif_1234567890"
+      responses:
+        '200':
+          description: 알림 읽음 처리 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/NotificationResponse'
+                  message:
+                    type: string
+                    example: "알림이 읽음 처리되었습니다."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 권한 없음 (본인 알림이 아님)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 알림을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/notifications/read/all:
+    put:
+      tags:
+        - Notification Read
+      summary: 모든 알림 읽음 처리
+      description: |
+        사용자의 모든 알림을 읽음 처리합니다.
+
+        **워크플로우**:
+        1. 사용자 인증 확인
+        2. 사용자의 모든 읽지 않은 알림 조회
+        3. 일괄 업데이트 (isRead = true, readAt = 현재 시간)
+        4. 업데이트된 알림 개수 반환
+
+        **성능 최적화**:
+        - 배치 업데이트로 처리
+      operationId: markAllAsRead
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 모든 알림 읽음 처리 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: integer
+                    description: 읽음 처리된 알림 개수
+                    example: 10
+                  message:
+                    type: string
+                    example: "모든 알림이 읽음 처리되었습니다."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/notifications/read/type/{type}:
+    put:
+      tags:
+        - Notification Read
+      summary: 모든 알림 타입별 읽음 처리
+      description: |
+        사용자의 모든 알림을 타입별로 읽음 처리합니다.
+
+        **워크플로우**:
+        1. 사용자 인증 확인
+        2. type 필터링으로 읽지 않은 알림 조회
+        3. 일괄 업데이트
+        4. 업데이트된 알림 개수 반환
+      operationId: markAllAsReadByType
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          description: 알림 타입
+          schema:
+            type: string
+            enum: [NEW_MESSAGE, MENTION, REACTION, PIN, FRIEND_REQUEST, FRIEND_ACCEPTED, FRIEND_REJECTED, FRIEND_REMOVED, SYSTEM_ANNOUNCEMENT, SYSTEM_MAINTENANCE, OTHER]
+      responses:
+        '200':
+          description: 타입별 알림 읽음 처리 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: integer
+                    description: 읽음 처리된 알림 개수
+                  message:
+                    type: string
+                    example: "타입별 알림이 읽음 처리되었습니다."
+        '400':
+          description: 잘못된 알림 타입
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/notifications/read/source/{sourceType}:
+    put:
+      tags:
+        - Notification Read
+      summary: 모든 알림 소스별 읽음 처리
+      description: |
+        사용자의 모든 알림을 소스별로 읽음 처리합니다.
+
+        **워크플로우**:
+        1. 사용자 인증 확인
+        2. sourceType (및 선택적 sourceId)로 필터링
+        3. 일괄 업데이트
+        4. 업데이트된 알림 개수 반환
+      operationId: markAllAsReadBySource
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: sourceType
+          in: path
+          required: true
+          description: 소스 타입
+          schema:
+            type: string
+            enum: [CHAT, CHAT_ROOM, USER, FRIEND, SYSTEM, OTHER]
+        - name: sourceId
+          in: query
+          required: false
+          description: 소스 ID (특정 소스 지정 시)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 소스별 알림 읽음 처리 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: integer
+                    description: 읽음 처리된 알림 개수
+                  message:
+                    type: string
+                    example: "소스별 알림이 읽음 처리되었습니다."
+        '400':
+          description: 잘못된 소스 타입
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==================== Notification Delete Endpoints ====================
+  /api/v1/notifications/{notificationId}:
+    delete:
+      tags:
+        - Notification Delete
+      summary: 알림 삭제
+      description: |
+        특정 알림을 삭제합니다.
+
+        **워크플로우**:
+        1. 사용자 인증 및 알림 소유 확인
+        2. PostgreSQL에서 알림 삭제
+        3. NOTIFICATION_DELETED 이벤트 발행
+        4. 삭제 성공 여부 반환
+
+        **이벤트**:
+        - `NOTIFICATION_DELETED`: 알림 삭제 시 발행
+      operationId: deleteNotification
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: 알림 ID
+          schema:
+            type: string
+            example: "notif_1234567890"
+      responses:
+        '200':
+          description: 알림 삭제 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: boolean
+                    description: 삭제 성공 여부
+                    example: true
+                  message:
+                    type: string
+                    example: "알림이 성공적으로 삭제되었습니다."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 권한 없음 (본인 알림이 아님)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 알림을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/notifications:
+    delete:
+      tags:
+        - Notification Delete
+      summary: 모든 알림 삭제
+      description: |
+        사용자의 모든 알림을 삭제합니다.
+
+        **워크플로우**:
+        1. 사용자 인증 확인
+        2. 사용자의 모든 알림 삭제 (PostgreSQL)
+        3. 삭제된 알림 개수 반환
+
+        **주의사항**:
+        - 되돌릴 수 없는 작업
+        - 확인 절차 권장
+      operationId: deleteAllNotifications
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 모든 알림 삭제 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: integer
+                    description: 삭제된 알림 개수
+                    example: 25
+                  message:
+                    type: string
+                    example: "모든 알림이 성공적으로 삭제되었습니다."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT 기반 인증
+
+        **사용 방법**:
+        ```
+        Authorization: Bearer <access_token>
+        ```
+
+        **토큰 획득**:
+        - POST /api/v1/auth/login으로 로그인하여 토큰 획득
+
+        **토큰 갱신**:
+        - POST /api/v1/auth/refresh-token으로 refresh token을 사용하여 새 access token 획득
+
+  schemas:
+    # ==================== Notification Schemas ====================
+    NotificationResponse:
+      type: object
+      description: 알림 응답 DTO
+      required:
+        - userId
+        - title
+        - message
+        - type
+        - sourceId
+        - sourceType
+        - isRead
+        - createdAt
+        - metadata
+      properties:
+        id:
+          type: string
+          nullable: true
+          description: 알림 ID
+          example: "notif_1234567890"
+        userId:
+          type: integer
+          format: int64
+          description: 사용자 ID
+          example: 1
+        title:
+          type: string
+          description: 알림 제목
+          example: "새로운 메시지"
+        message:
+          type: string
+          description: 알림 내용
+          example: "김철수님이 메시지를 보냈습니다."
+        type:
+          type: string
+          enum: [NEW_MESSAGE, MENTION, REACTION, PIN, FRIEND_REQUEST, FRIEND_ACCEPTED, FRIEND_REJECTED, FRIEND_REMOVED, SYSTEM_ANNOUNCEMENT, SYSTEM_MAINTENANCE, OTHER]
+          description: 알림 타입
+          example: "NEW_MESSAGE"
+        sourceId:
+          type: string
+          description: 소스 ID (채팅방 ID, 사용자 ID 등)
+          example: "101"
+        sourceType:
+          type: string
+          enum: [CHAT, CHAT_ROOM, USER, FRIEND, SYSTEM, OTHER]
+          description: 소스 타입
+          example: "CHAT_ROOM"
+        isRead:
+          type: boolean
+          description: 읽음 여부
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: 생성 시각
+          example: "2025-01-08T15:00:00Z"
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: 읽음 시각
+          example: null
+        metadata:
+          type: object
+          description: 추가 메타데이터 (JSON)
+          additionalProperties: true
+          example:
+            roomId: 101
+            senderId: 2
+            messagePreview: "안녕하세요!"
+
+    # ==================== Common Schemas ====================
+    ErrorResponse:
+      type: object
+      description: 에러 응답
+      required:
+        - success
+        - message
+        - errorCode
+        - timestamp
+        - code
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          nullable: true
+          example: null
+        message:
+          type: string
+          description: 에러 메시지
+          example: "알림을 찾을 수 없습니다."
+        errorCode:
+          type: string
+          description: 에러 코드
+          example: "NOTIFICATION_NOT_FOUND"
+        timestamp:
+          type: string
+          format: date-time
+          description: 에러 발생 시각
+          example: "2025-01-08T15:00:00"
+        code:
+          type: integer
+          description: HTTP 상태 코드
+          example: 404
+
+  responses:
+    Unauthorized:
+      description: 인증 실패 - 유효하지 않거나 만료된 토큰
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidToken:
+              summary: 유효하지 않은 토큰
+              value:
+                success: false
+                data: null
+                message: "유효하지 않은 토큰입니다."
+                errorCode: "INVALID_TOKEN"
+                timestamp: "2025-01-08T15:15:00"
+                code: 401
+            expiredToken:
+              summary: 만료된 토큰
+              value:
+                success: false
+                data: null
+                message: "토큰이 만료되었습니다."
+                errorCode: "EXPIRED_TOKEN"
+                timestamp: "2025-01-08T15:15:00"
+                code: 401

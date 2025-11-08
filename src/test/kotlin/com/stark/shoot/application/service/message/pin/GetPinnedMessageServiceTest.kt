@@ -8,6 +8,7 @@ import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId as ChatRoomIdService
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -48,10 +49,10 @@ class GetPinnedMessageServiceTest {
                 pinnedAt = Instant.now()
             )
 
-            `when`(messageQueryPort.findPinnedMessagesByRoomId(roomId, 1)).thenReturn(listOf(pinnedMessage))
+            `when`(messageQueryPort.findPinnedMessagesByRoomId(ChatRoomIdService.from(roomId.value), 1)).thenReturn(listOf(pinnedMessage))
 
             // when
-            val command = GetPinnedMessagesCommand(roomId)
+            val command = GetPinnedMessagesCommand(ChatRoomIdService.from(roomId.value))
             val result = getPinnedMessageService.getPinnedMessages(command)
 
             // then
@@ -59,7 +60,7 @@ class GetPinnedMessageServiceTest {
             assertThat(result[0]).isEqualTo(pinnedMessage)
             assertThat(result[0].isPinned).isTrue()
 
-            verify(messageQueryPort).findPinnedMessagesByRoomId(roomId, 1)
+            verify(messageQueryPort).findPinnedMessagesByRoomId(ChatRoomIdService.from(roomId.value), 1)
         }
 
         @Test
@@ -68,16 +69,16 @@ class GetPinnedMessageServiceTest {
             // given
             val roomId = ChatRoomId.from(1L)
 
-            `when`(messageQueryPort.findPinnedMessagesByRoomId(roomId, 1)).thenReturn(emptyList())
+            `when`(messageQueryPort.findPinnedMessagesByRoomId(ChatRoomIdService.from(roomId.value), 1)).thenReturn(emptyList())
 
             // when
-            val command = GetPinnedMessagesCommand(roomId)
+            val command = GetPinnedMessagesCommand(ChatRoomIdService.from(roomId.value))
             val result = getPinnedMessageService.getPinnedMessages(command)
 
             // then
             assertThat(result).isEmpty()
 
-            verify(messageQueryPort).findPinnedMessagesByRoomId(roomId, 1)
+            verify(messageQueryPort).findPinnedMessagesByRoomId(ChatRoomIdService.from(roomId.value), 1)
         }
     }
 }

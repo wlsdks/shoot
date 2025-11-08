@@ -172,3 +172,54 @@ app:
     friend:
       max-friend-count: 1000       # 최대 친구 수
       recommendation-limit: 20     # 친구 추천 기본 제한
+
+# SpringDoc OpenAPI 설정
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    # 그룹 표시 순서
+    groups-order: ASC
+    # 태그 표시 순서
+    tags-sorter: alpha
+    # API 작업 표시 순서
+    operations-sorter: alpha
+    # 모델 표시
+    display-request-duration: true
+    # Try it out 기본 활성화
+    try-it-out-enabled: true
+    # API 필터 활성화
+    filter: true
+    # 문법 강조
+    syntax-highlight:
+      activated: true
+      theme: monokai
+    # 기본 모델 렌더링 깊이
+    default-models-expand-depth: 1
+    default-model-expand-depth: 1
+    # 문서 확장 설정
+    doc-expansion: none
+    # 지속성 설정 (사용자 설정 저장)
+    persist-authorization: true
+    # 지원되는 Submit 메소드
+    supported-submit-methods: ["get", "post", "put", "delete", "patch"]
+  # 모델 정렬
+  model:
+    tags-sorter: alpha
+  # 경로 매칭
+  paths-to-match:
+    - /api/**
+  # 패키지 스캔
+  packages-to-scan:
+    - com.stark.shoot.adapter.in.rest
+    - com.stark.shoot.adapter.in.socket
+  # 기본 미디어 타입
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  # 응답 래핑 비활성화 (우리는 custom ResponseWrapper 사용)
+  override-with-generic-response: false
+  # 페이지네이션 지원
+  show-actuator: false

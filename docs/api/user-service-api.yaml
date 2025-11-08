@@ -1,0 +1,1395 @@
+openapi: 3.0.3
+
+info:
+  title: Shoot User Service API
+  version: 1.0.0
+  description: |
+    Shoot 애플리케이션의 User Service REST API 명세서
+
+    ## 주요 기능
+    - 사용자 인증 (로그인, 토큰 관리)
+    - 사용자 관리 (CRUD, 프로필, 상태)
+    - 사용자 차단
+    - 사용자 코드 관리
+
+    ## 인증 방식
+    - JWT Bearer Token 인증
+    - Access Token + Refresh Token
+
+    ## MSA 전환 대비
+    본 API는 향후 Microservice Architecture로 전환 시 User Service의 공개 API 계약으로 사용됩니다.
+
+  contact:
+    name: Shoot Development Team
+    email: dev@shoot.com
+
+  license:
+    name: Proprietary
+    url: https://shoot.com/license
+
+servers:
+  - url: http://localhost:8080
+    description: Local Development Server
+  - url: https://dev-api.shoot.com
+    description: Development Server
+  - url: https://staging-api.shoot.com
+    description: Staging Server
+  - url: https://api.shoot.com
+    description: Production Server
+
+tags:
+  - name: Authentication
+    description: 사용자 인증 관련 API (로그인, 토큰 관리)
+  - name: User Management
+    description: 사용자 관리 API (CRUD, 프로필)
+  - name: User Status
+    description: 사용자 상태 관리 API
+  - name: User Block
+    description: 사용자 차단 관리 API
+  - name: User Code
+    description: 사용자 코드 관리 API
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ==================== Authentication ====================
+
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: 사용자 로그인
+      description: |
+        username과 password로 로그인하여 JWT 토큰을 발급받습니다.
+
+        **성공 시:**
+        - Access Token (유효기간: 1시간)
+        - Refresh Token (유효기간: 30일)
+        - User ID
+
+        **실패 케이스:**
+        - 400: 잘못된 요청 (username 또는 password 누락)
+        - 401: 인증 실패 (잘못된 자격증명)
+        - 404: 사용자 없음
+      operationId: login
+      security: []  # 로그인은 인증 불필요
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              validLogin:
+                summary: 정상 로그인 요청
+                value:
+                  username: "john_doe"
+                  password: "SecureP@ssw0rd"
+      responses:
+        '200':
+          description: 로그인 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseDto'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+              examples:
+                success:
+                  summary: 로그인 성공
+                  value:
+                    success: true
+                    data:
+                      userId: "550e8400-e29b-41d4-a716-446655440000"
+                      accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    message: "로그인에 성공했습니다."
+                    errorCode: null
+                    timestamp: "2025-11-08T14:30:00Z"
+                    code: 200
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingFields:
+                  summary: 필수 필드 누락
+                  value:
+                    success: false
+                    data: null
+                    message: "username과 password는 필수입니다."
+                    errorCode: "INVALID_REQUEST"
+                    timestamp: "2025-11-08T14:30:00Z"
+                    code: 400
+        '401':
+          description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidCredentials:
+                  summary: 잘못된 자격증명
+                  value:
+                    success: false
+                    data: null
+                    message: "아이디 또는 비밀번호가 올바르지 않습니다."
+                    errorCode: "INVALID_CREDENTIALS"
+                    timestamp: "2025-11-08T14:30:00Z"
+                    code: 401
+        '404':
+          description: 사용자 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/auth/refresh-token:
+    post:
+      tags:
+        - Authentication
+      summary: Access Token 재발급
+      description: |
+        유효한 Refresh Token으로 새로운 Access Token과 Refresh Token을 발급받습니다.
+
+        **사용 시나리오:**
+        - Access Token이 만료되었을 때
+        - Access Token 유효기간 갱신이 필요할 때
+
+        **Refresh Token 정책:**
+        - 유효기간: 30일
+        - 재사용 시 새로운 Refresh Token 발급 (Refresh Token Rotation)
+        - 최대 동시 세션: 5개 (LRU 전략)
+
+        **보안:**
+        - Refresh Token은 안전하게 보관해야 함
+        - Refresh Token 탈취 시 모든 세션 종료 필요
+      operationId: refreshToken
+      security: []  # Refresh Token 자체로 인증
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: |
+            Refresh Token (Bearer 형식)
+
+            **형식:**
+            ```
+            Authorization: Bearer {refreshToken}
+            ```
+          schema:
+            type: string
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: 토큰 재발급 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseDto'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+              examples:
+                success:
+                  summary: 재발급 성공
+                  value:
+                    success: true
+                    data:
+                      userId: "550e8400-e29b-41d4-a716-446655440000"
+                      accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.NEW_ACCESS_TOKEN..."
+                      refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.NEW_REFRESH_TOKEN..."
+                    message: "새 액세스 토큰이 발급되었습니다."
+                    errorCode: null
+                    timestamp: "2025-11-08T15:00:00Z"
+                    code: 200
+        '400':
+          description: 잘못된 요청 (Authorization 헤더 누락 또는 형식 오류)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingHeader:
+                  summary: Authorization 헤더 누락
+                  value:
+                    success: false
+                    data: null
+                    message: "Authorization 헤더가 필요합니다."
+                    errorCode: "MISSING_AUTHORIZATION_HEADER"
+                    timestamp: "2025-11-08T15:00:00Z"
+                    code: 400
+                invalidFormat:
+                  summary: 잘못된 헤더 형식
+                  value:
+                    success: false
+                    data: null
+                    message: "Authorization 헤더 형식이 올바르지 않습니다. (Bearer {token} 형식)"
+                    errorCode: "INVALID_HEADER_FORMAT"
+                    timestamp: "2025-11-08T15:00:00Z"
+                    code: 400
+        '401':
+          description: Refresh Token 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                tokenExpired:
+                  summary: Refresh Token 만료
+                  value:
+                    success: false
+                    data: null
+                    message: "Refresh Token이 만료되었습니다. 다시 로그인해주세요."
+                    errorCode: "REFRESH_TOKEN_EXPIRED"
+                    timestamp: "2025-11-08T15:00:00Z"
+                    code: 401
+                tokenInvalid:
+                  summary: 유효하지 않은 Refresh Token
+                  value:
+                    success: false
+                    data: null
+                    message: "유효하지 않은 Refresh Token입니다."
+                    errorCode: "INVALID_REFRESH_TOKEN"
+                    timestamp: "2025-11-08T15:00:00Z"
+                    code: 401
+                tokenRevoked:
+                  summary: Refresh Token 취소됨
+                  value:
+                    success: false
+                    data: null
+                    message: "Refresh Token이 취소되었습니다. 다시 로그인해주세요."
+                    errorCode: "REFRESH_TOKEN_REVOKED"
+                    timestamp: "2025-11-08T15:00:00Z"
+                    code: 401
+        '404':
+          description: Refresh Token을 찾을 수 없음 (DB에 없음)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: 현재 사용자 정보 조회
+      description: |
+        현재 로그인된 사용자의 전체 정보를 반환합니다.
+
+        **인증 필요:** Bearer Token
+
+        **반환 정보:**
+        - 사용자 ID, username, nickname
+        - 프로필 이미지, 배경 이미지
+        - 사용자 상태 (ACTIVE, INACTIVE, SUSPENDED 등)
+        - 사용자 코드 (8자리)
+        - 마지막 접속 시간
+      operationId: getCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 사용자 정보 조회 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseDto'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+              examples:
+                success:
+                  summary: 정상 응답
+                  value:
+                    success: true
+                    data:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      username: "john_doe"
+                      nickname: "John Doe"
+                      status: "ACTIVE"
+                      profileImageUrl: "https://cdn.shoot.com/profiles/john_doe.jpg"
+                      backgroundImageUrl: "https://cdn.shoot.com/backgrounds/john_doe.jpg"
+                      bio: "Software Engineer | Coffee Lover ☕"
+                      userCode: "ABC12345"
+                      lastSeenAt: "2025-11-08T14:25:00Z"
+                    message: null
+                    errorCode: null
+                    timestamp: "2025-11-08T14:30:00Z"
+                    code: 200
+        '401':
+          description: 인증 실패 (토큰 없음, 만료, 유효하지 않음)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                tokenExpired:
+                  summary: 토큰 만료
+                  value:
+                    success: false
+                    data: null
+                    message: "Access Token이 만료되었습니다."
+                    errorCode: "TOKEN_EXPIRED"
+                    timestamp: "2025-11-08T14:30:00Z"
+                    code: 401
+                tokenInvalid:
+                  summary: 유효하지 않은 토큰
+                  value:
+                    success: false
+                    data: null
+                    message: "유효하지 않은 Access Token입니다."
+                    errorCode: "INVALID_TOKEN"
+                    timestamp: "2025-11-08T14:30:00Z"
+                    code: 401
+        '404':
+          description: 사용자 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ==================== User Management ====================
+
+  /api/v1/users:
+    post:
+      tags:
+        - User Management
+      summary: 사용자 생성 (회원가입)
+      description: |
+        새로운 사용자를 생성합니다 (회원가입).
+
+        **필수 정보:**
+        - username: 사용자 이름 (3-20자, 고유)
+        - nickname: 닉네임 (1-30자)
+        - password: 비밀번호 (최소 8자)
+        - email: 이메일 (유효한 이메일 형식)
+
+        **선택 정보:**
+        - bio: 자기소개 (최대 500자)
+        - profileImage: 프로필 이미지 파일 (최대 5MB, jpg/png)
+
+        **자동 생성:**
+        - 사용자 ID (UUID)
+        - 사용자 코드 (8자리, 대문자+숫자)
+        - 회원가입 시간
+
+        **비즈니스 규칙:**
+        - username은 중복 불가
+        - email은 중복 불가
+        - password는 암호화되어 저장
+        - 프로필 이미지는 CDN에 업로드 후 URL 반환
+      operationId: createUser
+      security: []  # 회원가입은 인증 불필요
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            encoding:
+              profileImage:
+                contentType: image/jpeg, image/png
+      responses:
+        '201':
+          description: 회원가입 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseDto'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+              examples:
+                success:
+                  summary: 회원가입 성공
+                  value:
+                    success: true
+                    data:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      username: "new_user"
+                      nickname: "New User"
+                      status: "ACTIVE"
+                      profileImageUrl: "https://cdn.shoot.com/profiles/new_user.jpg"
+                      backgroundImageUrl: null
+                      bio: "Hello, I'm new here!"
+                      userCode: "ABC12345"
+                      lastSeenAt: null
+                    message: "회원가입이 완료되었습니다."
+                    errorCode: null
+                    timestamp: "2025-11-08T15:30:00Z"
+                    code: 200
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingField:
+                  summary: 필수 필드 누락
+                  value:
+                    success: false
+                    data: null
+                    message: "username, nickname, password, email은 필수입니다."
+                    errorCode: "MISSING_REQUIRED_FIELD"
+                    timestamp: "2025-11-08T15:30:00Z"
+                    code: 400
+                invalidEmail:
+                  summary: 이메일 형식 오류
+                  value:
+                    success: false
+                    data: null
+                    message: "유효하지 않은 이메일 형식입니다."
+                    errorCode: "INVALID_EMAIL_FORMAT"
+                    timestamp: "2025-11-08T15:30:00Z"
+                    code: 400
+                weakPassword:
+                  summary: 비밀번호 강도 부족
+                  value:
+                    success: false
+                    data: null
+                    message: "비밀번호는 최소 8자 이상이어야 합니다."
+                    errorCode: "WEAK_PASSWORD"
+                    timestamp: "2025-11-08T15:30:00Z"
+                    code: 400
+                fileTooLarge:
+                  summary: 파일 크기 초과
+                  value:
+                    success: false
+                    data: null
+                    message: "프로필 이미지는 최대 5MB까지 업로드 가능합니다."
+                    errorCode: "FILE_TOO_LARGE"
+                    timestamp: "2025-11-08T15:30:00Z"
+                    code: 400
+        '409':
+          description: 중복 데이터 (username 또는 email)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicateUsername:
+                  summary: Username 중복
+                  value:
+                    success: false
+                    data: null
+                    message: "이미 사용 중인 사용자 이름입니다."
+                    errorCode: "DUPLICATE_USERNAME"
+                    timestamp: "2025-11-08T15:30:00Z"
+                    code: 409
+                duplicateEmail:
+                  summary: Email 중복
+                  value:
+                    success: false
+                    data: null
+                    message: "이미 사용 중인 이메일입니다."
+                    errorCode: "DUPLICATE_EMAIL"
+                    timestamp: "2025-11-08T15:30:00Z"
+                    code: 409
+
+  /api/v1/users/{userId}:
+    get:
+      tags:
+        - User Management
+      summary: 사용자 프로필 조회
+      description: |
+        특정 사용자의 공개 프로필 정보를 조회합니다.
+
+        **조회 가능 정보:**
+        - 사용자 ID, username, nickname
+        - 프로필 이미지, 배경 이미지
+        - 사용자 상태
+        - 사용자 코드
+        - 마지막 접속 시간
+
+        **권한:**
+        - 로그인한 사용자만 조회 가능
+        - 차단한 사용자는 조회 불가
+
+        **사용 시나리오:**
+        - 친구 프로필 보기
+        - 사용자 검색 결과 상세보기
+        - 채팅방에서 상대방 프로필 보기
+      operationId: getUserProfile
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: 조회할 사용자 ID
+          schema:
+            type: integer
+            format: int64
+            example: 12345
+      responses:
+        '200':
+          description: 프로필 조회 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseDto'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+              examples:
+                success:
+                  summary: 조회 성공
+                  value:
+                    success: true
+                    data:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      username: "jane_smith"
+                      nickname: "Jane Smith"
+                      status: "ACTIVE"
+                      profileImageUrl: "https://cdn.shoot.com/profiles/jane_smith.jpg"
+                      backgroundImageUrl: "https://cdn.shoot.com/backgrounds/jane_smith.jpg"
+                      bio: "Designer | Traveler 🌍"
+                      userCode: "XYZ98765"
+                      lastSeenAt: "2025-11-08T15:50:00Z"
+                    message: "프로필 정보를 성공적으로 조회했습니다."
+                    errorCode: null
+                    timestamp: "2025-11-08T16:00:00Z"
+                    code: 200
+        '401':
+          description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 권한 없음 (차단된 사용자)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                blocked:
+                  summary: 차단된 사용자
+                  value:
+                    success: false
+                    data: null
+                    message: "차단된 사용자의 프로필은 조회할 수 없습니다."
+                    errorCode: "USER_BLOCKED"
+                    timestamp: "2025-11-08T16:00:00Z"
+                    code: 403
+        '404':
+          description: 사용자 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: 사용자 없음
+                  value:
+                    success: false
+                    data: null
+                    message: "사용자를 찾을 수 없습니다: 12345"
+                    errorCode: "USER_NOT_FOUND"
+                    timestamp: "2025-11-08T16:00:00Z"
+                    code: 404
+
+  /api/v1/users/me:
+    put:
+      tags:
+        - User Management
+      summary: 내 프로필 수정
+      description: |
+        현재 로그인한 사용자의 프로필 정보를 수정합니다.
+
+        **수정 가능한 필드:**
+        - nickname: 닉네임 (1-30자)
+        - profileImageUrl: 프로필 이미지 URL
+        - backgroundImageUrl: 배경 이미지 URL
+        - bio: 자기소개 (최대 500자)
+
+        **모든 필드는 선택적:**
+        - 수정하고 싶은 필드만 보내면 됨
+        - null 값은 기존 값 유지
+        - 빈 문자열("")은 값 삭제
+
+        **이미지 업로드 플로우:**
+        1. 별도 API로 이미지 파일 업로드 → URL 획득
+        2. 획득한 URL로 프로필 수정 요청
+      operationId: updateProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+            examples:
+              updateAll:
+                summary: 모든 필드 수정
+                value:
+                  nickname: "John Updated"
+                  profileImageUrl: "https://cdn.shoot.com/profiles/new-profile.jpg"
+                  backgroundImageUrl: "https://cdn.shoot.com/backgrounds/new-bg.jpg"
+                  bio: "Updated bio"
+              updateNicknameOnly:
+                summary: 닉네임만 수정
+                value:
+                  nickname: "New Nickname"
+                  profileImageUrl: null
+                  backgroundImageUrl: null
+                  bio: null
+      responses:
+        '200':
+          description: 프로필 수정 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseDto'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+              examples:
+                success:
+                  summary: 수정 성공
+                  value:
+                    success: true
+                    data:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      username: "john_doe"
+                      nickname: "John Updated"
+                      status: "ACTIVE"
+                      profileImageUrl: "https://cdn.shoot.com/profiles/new-profile.jpg"
+                      backgroundImageUrl: "https://cdn.shoot.com/backgrounds/new-bg.jpg"
+                      bio: "Updated bio"
+                      userCode: "ABC12345"
+                      lastSeenAt: "2025-11-08T16:00:00Z"
+                    message: "프로필이 성공적으로 업데이트되었습니다."
+                    errorCode: null
+                    timestamp: "2025-11-08T16:05:00Z"
+                    code: 200
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidNickname:
+                  summary: 닉네임 길이 초과
+                  value:
+                    success: false
+                    data: null
+                    message: "닉네임은 최대 30자까지 가능합니다."
+                    errorCode: "INVALID_NICKNAME_LENGTH"
+                    timestamp: "2025-11-08T16:05:00Z"
+                    code: 400
+        '401':
+          description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/users/me/profile-image:
+    put:
+      tags:
+        - User Management
+      summary: 프로필 사진 설정
+      description: |
+        현재 로그인한 사용자의 프로필 사진을 설정합니다.
+
+        **이미지 업로드 플로우:**
+        1. 별도 File Upload API로 이미지 파일 업로드 → URL 획득
+        2. 획득한 URL로 프로필 사진 설정 요청
+
+        **이미지 요구사항:**
+        - 형식: JPG, PNG
+        - 최대 크기: 5MB
+        - 권장 해상도: 512x512px 이상
+
+        **동작:**
+        - 기존 프로필 사진 URL을 새 URL로 교체
+        - null 값 전송 시 프로필 사진 제거
+      operationId: setProfileImage
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetProfileImageRequest'
+            examples:
+              setImage:
+                summary: 프로필 사진 설정
+                value:
+                  profileImageUrl: "https://cdn.shoot.com/profiles/new-avatar.jpg"
+      responses:
+        '200':
+          description: 프로필 사진 설정 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseDto'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+              examples:
+                success:
+                  summary: 설정 성공
+                  value:
+                    success: true
+                    data:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      username: "john_doe"
+                      nickname: "John Doe"
+                      status: "ACTIVE"
+                      profileImageUrl: "https://cdn.shoot.com/profiles/new-avatar.jpg"
+                      backgroundImageUrl: "https://cdn.shoot.com/backgrounds/john_doe.jpg"
+                      bio: "Software Engineer"
+                      userCode: "ABC12345"
+                      lastSeenAt: "2025-11-08T16:10:00Z"
+                    message: "프로필 사진이 성공적으로 설정되었습니다."
+                    errorCode: null
+                    timestamp: "2025-11-08T16:15:00Z"
+                    code: 200
+        '400':
+          description: 잘못된 요청 (URL 형식 오류)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/users/me/background-image:
+    put:
+      tags:
+        - User Management
+      summary: 배경 이미지 설정
+      description: |
+        현재 로그인한 사용자의 배경 이미지를 설정합니다.
+
+        **이미지 업로드 플로우:**
+        1. 별도 File Upload API로 이미지 파일 업로드 → URL 획득
+        2. 획득한 URL로 배경 이미지 설정 요청
+
+        **이미지 요구사항:**
+        - 형식: JPG, PNG
+        - 최대 크기: 10MB
+        - 권장 해상도: 1920x1080px 이상
+
+        **동작:**
+        - 기존 배경 이미지 URL을 새 URL로 교체
+        - null 값 전송 시 배경 이미지 제거
+      operationId: setBackgroundImage
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetBackgroundImageRequest'
+            examples:
+              setImage:
+                summary: 배경 이미지 설정
+                value:
+                  backgroundImageUrl: "https://cdn.shoot.com/backgrounds/new-background.jpg"
+      responses:
+        '200':
+          description: 배경 이미지 설정 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseDto'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+              examples:
+                success:
+                  summary: 설정 성공
+                  value:
+                    success: true
+                    data:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      username: "john_doe"
+                      nickname: "John Doe"
+                      status: "ACTIVE"
+                      profileImageUrl: "https://cdn.shoot.com/profiles/john_doe.jpg"
+                      backgroundImageUrl: "https://cdn.shoot.com/backgrounds/new-background.jpg"
+                      bio: "Software Engineer"
+                      userCode: "ABC12345"
+                      lastSeenAt: "2025-11-08T16:10:00Z"
+                    message: "배경 이미지가 성공적으로 설정되었습니다."
+                    errorCode: null
+                    timestamp: "2025-11-08T16:20:00Z"
+                    code: 200
+        '400':
+          description: 잘못된 요청 (URL 형식 오류)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/users/me/status:
+    put:
+      tags:
+        - User Status
+      summary: 사용자 상태 변경
+      description: |
+        현재 로그인한 사용자의 상태를 변경합니다.
+
+        **사용 가능한 상태:**
+        - ACTIVE: 활성화 (정상 사용 가능)
+        - INACTIVE: 비활성화 (일시적 휴면)
+
+        **관리자 전용 상태:**
+        - SUSPENDED: 정지됨 (관리자가 설정)
+        - DELETED: 삭제됨 (탈퇴)
+
+        **상태 변경 규칙:**
+        - 일반 사용자는 ACTIVE ↔ INACTIVE 전환만 가능
+        - SUSPENDED → ACTIVE 전환은 관리자만 가능
+        - DELETED 상태로는 변경 불가 (회원 탈퇴 API 사용)
+
+        **사용 시나리오:**
+        - 휴가로 인한 비활성화 (ACTIVE → INACTIVE)
+        - 휴가 복귀 (INACTIVE → ACTIVE)
+      operationId: updateUserStatus
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStatusRequest'
+            examples:
+              activateUser:
+                summary: 사용자 활성화
+                value:
+                  userId: "550e8400-e29b-41d4-a716-446655440000"
+                  status: "ACTIVE"
+              deactivateUser:
+                summary: 사용자 비활성화
+                value:
+                  userId: "550e8400-e29b-41d4-a716-446655440000"
+                  status: "INACTIVE"
+      responses:
+        '200':
+          description: 상태 변경 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseDto'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+              examples:
+                success:
+                  summary: 상태 변경 성공
+                  value:
+                    success: true
+                    data:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      username: "john_doe"
+                      nickname: "John Doe"
+                      status: "INACTIVE"
+                      profileImageUrl: "https://cdn.shoot.com/profiles/john_doe.jpg"
+                      backgroundImageUrl: "https://cdn.shoot.com/backgrounds/john_doe.jpg"
+                      bio: "Software Engineer"
+                      userCode: "ABC12345"
+                      lastSeenAt: "2025-11-08T16:25:00Z"
+                    message: "사용자 상태가 변경되었습니다."
+                    errorCode: null
+                    timestamp: "2025-11-08T16:30:00Z"
+                    code: 200
+        '400':
+          description: 잘못된 요청 (유효하지 않은 상태값)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidStatus:
+                  summary: 유효하지 않은 상태
+                  value:
+                    success: false
+                    data: null
+                    message: "유효하지 않은 상태입니다. ACTIVE 또는 INACTIVE만 가능합니다."
+                    errorCode: "INVALID_USER_STATUS"
+                    timestamp: "2025-11-08T16:30:00Z"
+                    code: 400
+        '401':
+          description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 권한 없음 (관리자 전용 상태로 변경 시도)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                forbidden:
+                  summary: 권한 없음
+                  value:
+                    success: false
+                    data: null
+                    message: "SUSPENDED 상태로 변경할 권한이 없습니다."
+                    errorCode: "FORBIDDEN_STATUS_CHANGE"
+                    timestamp: "2025-11-08T16:30:00Z"
+                    code: 403
+
+  /api/v1/users/me:
+    delete:
+      tags:
+        - User Management
+      summary: 회원 탈퇴
+      description: |
+        현재 로그인한 사용자를 탈퇴 처리합니다.
+
+        **탈퇴 처리:**
+        - 사용자 상태를 DELETED로 변경
+        - UserDeletedEvent 발행
+        - 관련 데이터 정리 (Friend, ChatRoom 참여 등)
+
+        **복구 불가:**
+        - 탈퇴한 사용자는 복구할 수 없음
+        - 동일한 username 재사용 불가 (30일간)
+
+        **데이터 보존:**
+        - 메시지 내역은 보존 (다른 사용자 채팅방에 영향)
+        - 사용자 표시는 "탈퇴한 사용자"로 표시
+      operationId: deleteUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 회원 탈퇴 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseDto'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        nullable: true
+              examples:
+                success:
+                  summary: 탈퇴 성공
+                  value:
+                    success: true
+                    data: null
+                    message: "회원 탈퇴가 완료되었습니다."
+                    errorCode: null
+                    timestamp: "2025-11-08T15:45:00Z"
+                    code: 200
+        '401':
+          description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 사용자 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: 이미 탈퇴한 사용자
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                alreadyDeleted:
+                  summary: 이미 탈퇴함
+                  value:
+                    success: false
+                    data: null
+                    message: "이미 탈퇴한 사용자입니다."
+                    errorCode: "ALREADY_DELETED"
+                    timestamp: "2025-11-08T15:45:00Z"
+                    code: 409
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT Access Token을 사용한 인증
+
+        **헤더 형식:**
+        ```
+        Authorization: Bearer {accessToken}
+        ```
+
+        **토큰 획득 방법:**
+        1. POST /api/v1/auth/login 으로 로그인
+        2. 응답에서 accessToken 획득
+        3. 이후 모든 요청에 Authorization 헤더 포함
+
+  schemas:
+    # ==================== Common Schemas ====================
+
+    ResponseDto:
+      type: object
+      description: 공통 API 응답 포맷 (모든 API 응답은 이 구조를 따름)
+      required:
+        - success
+        - timestamp
+        - code
+      properties:
+        success:
+          type: boolean
+          description: 요청 성공 여부
+          example: true
+        data:
+          type: object
+          nullable: true
+          description: 응답 데이터 (타입은 엔드포인트마다 다름)
+        message:
+          type: string
+          nullable: true
+          description: 응답 메시지 (선택적)
+          example: "요청이 성공적으로 처리되었습니다."
+        errorCode:
+          type: string
+          nullable: true
+          description: 오류 코드 (에러 발생 시)
+          example: "INVALID_REQUEST"
+        timestamp:
+          type: string
+          format: date-time
+          description: 응답 생성 시간 (ISO 8601 형식)
+          example: "2025-11-08T14:30:00Z"
+        code:
+          type: integer
+          description: HTTP 상태 코드
+          example: 200
+
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ResponseDto'
+        - type: object
+          required:
+            - success
+            - message
+            - errorCode
+          properties:
+            success:
+              type: boolean
+              enum: [false]
+              description: 에러 응답은 항상 false
+            data:
+              type: object
+              nullable: true
+              description: 에러 응답은 data가 null
+            message:
+              type: string
+              description: 오류 메시지
+              example: "잘못된 요청입니다."
+            errorCode:
+              type: string
+              description: 오류 코드
+              example: "INVALID_REQUEST"
+
+    # ==================== Authentication Schemas ====================
+
+    LoginRequest:
+      type: object
+      description: 로그인 요청
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: 사용자 이름 (3-20자)
+          minLength: 3
+          maxLength: 20
+          example: "john_doe"
+        password:
+          type: string
+          description: 비밀번호 (최소 8자)
+          format: password
+          minLength: 8
+          example: "SecureP@ssw0rd"
+
+    LoginResponse:
+      type: object
+      description: 로그인 응답
+      required:
+        - userId
+        - accessToken
+        - refreshToken
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: 사용자 고유 ID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        accessToken:
+          type: string
+          description: JWT Access Token (유효기간: 1시간)
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAiLCJleHAiOjE2OTk0NTI2MDB9.xyz..."
+        refreshToken:
+          type: string
+          description: JWT Refresh Token (유효기간: 30일)
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAiLCJleHAiOjE3MDIwNDQ2MDB9.abc..."
+
+    # ==================== User Schemas ====================
+
+    UpdateStatusRequest:
+      type: object
+      description: 사용자 상태 변경 요청
+      required:
+        - userId
+        - status
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: 사용자 ID (인증 토큰에서 추출, 검증용)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        status:
+          $ref: '#/components/schemas/UserStatus'
+
+    UpdateProfileRequest:
+      type: object
+      description: 프로필 수정 요청 (모든 필드 선택적)
+      properties:
+        nickname:
+          type: string
+          nullable: true
+          description: 닉네임 (1-30자, null이면 변경 안 함)
+          minLength: 1
+          maxLength: 30
+          example: "Updated Nickname"
+        profileImageUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: 프로필 이미지 URL (null이면 변경 안 함, 빈 문자열이면 삭제)
+          example: "https://cdn.shoot.com/profiles/new-profile.jpg"
+        backgroundImageUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: 배경 이미지 URL (null이면 변경 안 함, 빈 문자열이면 삭제)
+          example: "https://cdn.shoot.com/backgrounds/new-bg.jpg"
+        bio:
+          type: string
+          nullable: true
+          description: 자기소개 (최대 500자, null이면 변경 안 함, 빈 문자열이면 삭제)
+          maxLength: 500
+          example: "Updated bio text"
+
+    SetProfileImageRequest:
+      type: object
+      description: 프로필 사진 설정 요청
+      required:
+        - profileImageUrl
+      properties:
+        profileImageUrl:
+          type: string
+          format: uri
+          description: 프로필 이미지 URL (CDN URL)
+          example: "https://cdn.shoot.com/profiles/new-avatar.jpg"
+
+    SetBackgroundImageRequest:
+      type: object
+      description: 배경 이미지 설정 요청
+      required:
+        - backgroundImageUrl
+      properties:
+        backgroundImageUrl:
+          type: string
+          format: uri
+          description: 배경 이미지 URL (CDN URL)
+          example: "https://cdn.shoot.com/backgrounds/new-background.jpg"
+
+    CreateUserRequest:
+      type: object
+      description: 회원가입 요청 (multipart/form-data)
+      required:
+        - username
+        - nickname
+        - password
+        - email
+      properties:
+        username:
+          type: string
+          description: 사용자 이름 (3-20자, 고유, 영문/숫자/언더스코어만)
+          minLength: 3
+          maxLength: 20
+          pattern: '^[a-zA-Z0-9_]+$'
+          example: "john_doe"
+        nickname:
+          type: string
+          description: 닉네임 (1-30자)
+          minLength: 1
+          maxLength: 30
+          example: "John Doe"
+        password:
+          type: string
+          description: 비밀번호 (최소 8자, 영문+숫자+특수문자 조합 권장)
+          format: password
+          minLength: 8
+          example: "SecureP@ssw0rd"
+        email:
+          type: string
+          format: email
+          description: 이메일 주소 (유효한 형식, 고유)
+          example: "john.doe@example.com"
+        bio:
+          type: string
+          nullable: true
+          description: 자기소개 (최대 500자, 선택)
+          maxLength: 500
+          example: "Software Engineer | Coffee Lover ☕"
+        profileImage:
+          type: string
+          format: binary
+          nullable: true
+          description: 프로필 이미지 파일 (jpg/png, 최대 5MB, 선택)
+
+    UserResponse:
+      type: object
+      description: 사용자 상세 정보
+      required:
+        - id
+        - username
+        - nickname
+        - status
+        - userCode
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 사용자 고유 ID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        username:
+          type: string
+          description: 사용자 이름 (3-20자, 고유)
+          minLength: 3
+          maxLength: 20
+          example: "john_doe"
+        nickname:
+          type: string
+          description: 닉네임 (1-30자)
+          minLength: 1
+          maxLength: 30
+          example: "John Doe"
+        status:
+          $ref: '#/components/schemas/UserStatus'
+        profileImageUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: 프로필 이미지 URL
+          example: "https://cdn.shoot.com/profiles/john_doe.jpg"
+        backgroundImageUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: 배경 이미지 URL
+          example: "https://cdn.shoot.com/backgrounds/john_doe.jpg"
+        bio:
+          type: string
+          nullable: true
+          description: 사용자 소개 (최대 500자)
+          maxLength: 500
+          example: "Software Engineer | Coffee Lover ☕"
+        userCode:
+          type: string
+          description: 사용자 코드 (8자리 대문자+숫자, 고유)
+          pattern: '^[A-Z0-9]{8}$'
+          example: "ABC12345"
+        lastSeenAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: 마지막 접속 시간 (ISO 8601)
+          example: "2025-11-08T14:25:00Z"
+
+    UserStatus:
+      type: string
+      description: 사용자 상태
+      enum:
+        - ACTIVE      # 활성화
+        - INACTIVE    # 비활성화
+        - SUSPENDED   # 정지됨
+        - DELETED     # 삭제됨
+      example: "ACTIVE"
+
+  examples:
+    # 추가 예시는 향후 필요 시 여기에 작성
+
+  # ==================== API Response Headers ====================
+
+  headers:
+    X-Request-ID:
+      description: 요청 추적용 고유 ID
+      schema:
+        type: string
+        format: uuid
+      example: "123e4567-e89b-12d3-a456-426614174000"
+
+    X-Rate-Limit-Limit:
+      description: Rate Limit 최대 요청 수
+      schema:
+        type: integer
+      example: 100
+
+    X-Rate-Limit-Remaining:
+      description: Rate Limit 남은 요청 수
+      schema:
+        type: integer
+      example: 95
+
+    X-Rate-Limit-Reset:
+      description: Rate Limit 리셋 시간 (Unix timestamp)
+      schema:
+        type: integer
+      example: 1699452600

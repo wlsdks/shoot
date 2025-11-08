@@ -83,7 +83,7 @@ class FriendRequestConcurrencyTest {
         assertThat(results.failures()).hasSize(1)
 
         // 실패한 요청은 FriendRequestAlreadyReceived 예외여야 함
-        val failures = results.failuresOfType<FriendException.FriendRequestAlreadyReceived>()
+        val failures = results.failuresOfType<FriendException.FriendRequestAlreadyReceived, Unit>()
         assertThat(failures).hasSize(1)
     }
 
@@ -136,7 +136,7 @@ class FriendRequestConcurrencyTest {
         assertThat(results.failures()).hasSize(2)
 
         // 실패한 요청은 FriendRequestAlreadySent 예외여야 함
-        val failures = results.failuresOfType<FriendException.FriendRequestAlreadySent>()
+        val failures = results.failuresOfType<FriendException.FriendRequestAlreadySent, Unit>()
         assertThat(failures).hasSize(2)
     }
 

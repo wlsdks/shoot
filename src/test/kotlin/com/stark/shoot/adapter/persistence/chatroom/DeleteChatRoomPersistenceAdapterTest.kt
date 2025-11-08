@@ -3,7 +3,7 @@ package com.stark.shoot.adapter.persistence.chatroom
 import com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom.ChatRoomCommandPersistenceAdapter
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
-import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.util.TestEntityFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName

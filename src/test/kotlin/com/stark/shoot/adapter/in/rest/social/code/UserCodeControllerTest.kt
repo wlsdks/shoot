@@ -162,4 +162,5 @@ class UserCodeControllerTest {
             backgroundImageUrl = backgroundImageUrl?.let { BackgroundImageUrl.from(it) },
             lastSeenAt = Instant.now()
         )
+    }
 }

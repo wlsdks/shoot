@@ -1,9 +1,9 @@
 package com.stark.shoot.domain.notification
 
+import com.stark.shoot.domain.notification.exception.NotificationException
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.shared.UserId
-import com.stark.shoot.infrastructure.exception.NotificationException
 import org.junit.jupiter.api.DisplayName
 import kotlin.test.Test
 import kotlin.test.assertFailsWith

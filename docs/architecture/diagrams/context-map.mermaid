@@ -1,0 +1,59 @@
+graph TB
+    subgraph "User Context"
+        User[User Aggregate<br/>- Username, Password<br/>- Nickname, Email<br/>- UserCode]
+        RefreshToken[RefreshToken<br/>Aggregate]
+    end
+
+    subgraph "Social Context"
+        Friend[Friendship Aggregate<br/>- userId, friendId]
+        FriendRequest[FriendRequest Aggregate<br/>- senderId, receiverId<br/>- status]
+        FriendGroup[FriendGroup<br/>- deprecated, 이동 예정]
+    end
+
+    subgraph "ChatRoom Context"
+        ChatRoom[ChatRoom Aggregate<br/>- participants<br/>- type, lastActiveAt]
+        ChatRoomSettings[ChatRoomSettings<br/>Entity]
+    end
+
+    subgraph "Chat Context"
+        ChatMessage[ChatMessage Aggregate<br/>- roomId, senderId<br/>- content, reactions]
+        Reaction[Reaction<br/>Value Object]
+    end
+
+    subgraph "Notification Context"
+        Notification[Notification Aggregate<br/>- userId, type<br/>- content, isRead]
+    end
+
+    subgraph "Shared Kernel"
+        SK[UserId<br/>공유 Value Object]
+    end
+
+    %% Shared Kernel 관계
+    User -.->|공유| SK
+    Friend -.->|공유| SK
+    FriendRequest -.->|공유| SK
+    ChatRoom -.->|공유| SK
+    ChatMessage -.->|공유| SK
+    Notification -.->|공유| SK
+
+    %% Context 간 관계
+    Social -->|Conformist| User
+    Social -.->|Domain Event<br/>FriendAddedEvent| Notification
+
+    ChatRoom -->|ACL<br/>ChatRoomIdConverter| Chat
+    ChatRoom -.->|Domain Event<br/>ChatRoomCreatedEvent| Notification
+
+    Chat -->|Conformist| User
+    Chat -.->|Domain Event<br/>MessageSentEvent| Notification
+    Chat -.->|Domain Event<br/>MentionEvent| Notification
+
+    Notification -->|Conformist| User
+
+    %% 범례
+    classDef sharedKernel fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef aggregate fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef entity fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+
+    class SK sharedKernel
+    class User,Friend,FriendRequest,ChatRoom,ChatMessage,Notification aggregate
+    class ChatRoomSettings,RefreshToken entity

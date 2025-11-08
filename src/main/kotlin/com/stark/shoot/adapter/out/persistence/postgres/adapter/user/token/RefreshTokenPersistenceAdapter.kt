@@ -24,6 +24,10 @@ class RefreshTokenPersistenceAdapter(
 
     /**
      * 새 리프레시 토큰 생성 및 저장
+     *
+     * 비즈니스 규칙 (CLAUDE.md):
+     * - 최대 동시 로그인 세션: 5개
+     * - 5개 이상 시 가장 오래된 토큰 자동 삭제 (LRU 전략)
      */
     override fun createRefreshToken(
         userId: UserId,
@@ -34,9 +38,23 @@ class RefreshTokenPersistenceAdapter(
         val userEntity = userRepository.findById(userId.value)
             .orElseThrow { ResourceNotFoundException("User not found: ${userId.value}") }
 
-        // 토큰 만료 시간 설정 (30일)
+        // 1. 현재 사용자의 유효한 토큰 조회
+        val existingTokens = refreshTokenRepository.findAllByUserId(userId.value)
+            .filter { !it.isRevoked && it.expirationDate.isAfter(Instant.now()) }
+
+        // 2. 최대 5개 세션 제한 (CLAUDE.md 규칙)
+        if (existingTokens.size >= 5) {
+            // 가장 오래된 토큰 삭제 (LRU 전략)
+            val oldestToken = existingTokens.minByOrNull { it.createdAt }
+            oldestToken?.let {
+                refreshTokenRepository.delete(it)
+            }
+        }
+
+        // 3. 토큰 만료 시간 설정 (30일)
         val expirationDate = Instant.now().plusSeconds(30 * 24 * 60 * 60)
 
+        // 4. 새 토큰 생성 및 저장
         val refreshTokenEntity = RefreshTokenEntity(
             user = userEntity,
             token = token.value,

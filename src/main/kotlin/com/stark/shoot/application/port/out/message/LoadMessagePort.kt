@@ -36,4 +36,15 @@ interface LoadMessagePort {
     fun findByRoomIdFlow(roomId: ChatRoomId, limit: Int): Flow<ChatMessage>
     fun findByRoomIdAndBeforeIdFlow(roomId: ChatRoomId, beforeMessageId: MessageId, limit: Int): Flow<ChatMessage>
     fun findByRoomIdAndAfterIdFlow(roomId: ChatRoomId, afterMessageId: MessageId, limit: Int): Flow<ChatMessage>
+
+    /**
+     * 여러 메시지 ID로 메시지를 배치 조회
+     * N+1 쿼리 문제를 방지하기 위한 배치 조회
+     *
+     * 사용처: 채팅방 목록 조회 시 마지막 메시지 정보를 배치로 가져오기
+     *
+     * @param messageIds 조회할 메시지 ID 목록
+     * @return 메시지 목록 (존재하지 않는 ID는 제외)
+     */
+    fun findAllByIds(messageIds: List<MessageId>): List<ChatMessage>
 }

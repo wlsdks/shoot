@@ -6,6 +6,8 @@ import com.stark.shoot.application.port.`in`.chatroom.FindChatRoomUseCase
 import com.stark.shoot.application.port.`in`.chatroom.command.FindDirectChatCommand
 import com.stark.shoot.application.port.`in`.chatroom.command.GetChatRoomsCommand
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
+import com.stark.shoot.application.port.out.message.MessageQueryPort
+import com.stark.shoot.application.acl.*
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.infrastructure.annotation.UseCase
 import org.springframework.transaction.annotation.Transactional
@@ -14,12 +16,15 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class FindChatroomService(
     private val chatRoomQueryPort: ChatRoomQueryPort,
+    private val messageQueryPort: MessageQueryPort,
     private val chatRoomResponseMapper: ChatRoomResponseMapper,
     private val chatRoomDomainService: ChatRoomDomainService
 ) : FindChatRoomUseCase {
 
     /**
      * 사용자가 참여한 채팅방 목록을 조회합니다.
+     *
+     * N+1 쿼리 방지: 마지막 메시지를 배치로 조회하여 성능 최적화
      *
      * @param command 채팅방 목록 조회 커맨드
      * @return ChatRoomResponse 채팅방 목록
@@ -32,11 +37,76 @@ class FindChatroomService(
 
         // 채팅방 정보 준비
         val titles = chatRoomDomainService.prepareChatRoomTitles(chatRooms, userId)
-        val lastMessages = chatRoomDomainService.prepareLastMessages(chatRooms)
+
+        // N+1 방지: 마지막 메시지를 배치로 조회
+        val lastMessages = prepareLastMessagesBatch(chatRooms)
+
         val timestamps = chatRoomDomainService.prepareTimestamps(chatRooms)
 
         // 채팅방 목록을 ChatRoomResponse로 변환하여 반환합니다.
         return chatRoomResponseMapper.toResponseList(chatRooms, userId, titles, lastMessages, timestamps)
+    }
+
+    /**
+     * 마지막 메시지들을 배치로 조회
+     * N+1 쿼리 문제를 방지하기 위해 한 번의 쿼리로 모든 마지막 메시지 조회
+     *
+     * @param chatRooms 채팅방 목록
+     * @return roomId -> 마지막 메시지 텍스트 맵
+     */
+    private fun prepareLastMessagesBatch(
+        chatRooms: List<com.stark.shoot.domain.chatroom.ChatRoom>
+    ): Map<Long, String> {
+        // 1. 마지막 메시지 ID가 있는 채팅방만 필터링
+        val roomsWithMessages = chatRooms.filter { it.lastMessageId != null }
+
+        if (roomsWithMessages.isEmpty()) {
+            return chatRooms.associate { room ->
+                val roomId = room.id?.value ?: 0L
+                roomId to "메시지가 없습니다."
+            }
+        }
+
+        // 2. 모든 lastMessageId를 수집 (ACL 변환)
+        val messageIds = roomsWithMessages.mapNotNull { room ->
+            room.lastMessageId?.toChatMessageId()
+        }
+
+        // 3. 배치로 메시지 조회 (단 1번의 MongoDB 쿼리)
+        val messages = messageQueryPort.findAllByIds(messageIds)
+        val messagesById = messages.associateBy { it.id }
+
+        // 4. 채팅방별 마지막 메시지 텍스트 맵 생성
+        return chatRooms.associate { room ->
+            val roomId = room.id?.value ?: 0L
+            val lastMessageText = room.lastMessageId?.let { lastMsgId ->
+                val chatMessageId = lastMsgId.toChatMessageId()
+                val message = messagesById[chatMessageId]
+                message?.let { formatMessageContent(it) } ?: "최근 메시지"
+            } ?: "메시지가 없습니다."
+
+            roomId to lastMessageText
+        }
+    }
+
+    /**
+     * 메시지 내용을 포맷팅
+     */
+    private fun formatMessageContent(message: com.stark.shoot.domain.chat.message.ChatMessage): String {
+        return when {
+            message.content.isDeleted -> "(삭제된 메시지)"
+            message.content.text.isNotBlank() -> message.content.text
+            message.content.attachments.isNotEmpty() -> {
+                val attachment = message.content.attachments.first()
+                when {
+                    attachment.contentType.startsWith("image/") -> "\ud83d\uddbc\ufe0f 사진"
+                    attachment.contentType.startsWith("video/") -> "\ud83c\udfa5 동영상"
+                    attachment.contentType.startsWith("audio/") -> "\ud83c\udfa7 음성 메시지"
+                    else -> "\ud83d\udcc4 ${attachment.filename}"
+                }
+            }
+            else -> "최근 메시지"
+        }
     }
 
     /**

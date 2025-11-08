@@ -184,7 +184,7 @@ private fun handleCompensationFailure(
 - **예상 시간**: 1주 → **실제: 4시간**
 - **담당자**: Claude
 - **완료일**: 2025-11-08
-- **커밋**: `[대기 중]`
+- **커밋**: `499e90dd`
 
 #### 문제점
 - `FriendReceiveService.acceptFriendRequest()`에서 여러 Aggregate 수정

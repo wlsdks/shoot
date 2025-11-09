@@ -3,14 +3,12 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.token
 import com.stark.shoot.adapter.out.persistence.postgres.entity.RefreshTokenEntity
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.RefreshTokenMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.RefreshTokenRepository
-import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.token.RefreshTokenCommandPort
 import com.stark.shoot.application.port.out.user.token.RefreshTokenQueryPort
 import com.stark.shoot.domain.user.RefreshToken
 import com.stark.shoot.domain.user.vo.RefreshTokenValue
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
-import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
@@ -18,7 +16,6 @@ import java.time.Instant
 @Transactional
 class RefreshTokenPersistenceAdapter(
     private val refreshTokenRepository: RefreshTokenRepository,
-    private val userRepository: UserRepository,
     private val refreshTokenMapper: RefreshTokenMapper
 ) : RefreshTokenCommandPort, RefreshTokenQueryPort {
 
@@ -35,9 +32,6 @@ class RefreshTokenPersistenceAdapter(
         deviceInfo: String?,
         ipAddress: String?
     ): RefreshToken {
-        val userEntity = userRepository.findById(userId.value)
-            .orElseThrow { ResourceNotFoundException("User not found: ${userId.value}") }
-
         // 1. 현재 사용자의 유효한 토큰 조회
         val existingTokens = refreshTokenRepository.findAllByUserId(userId.value)
             .filter { !it.isRevoked && it.expirationDate.isAfter(Instant.now()) }
@@ -56,7 +50,7 @@ class RefreshTokenPersistenceAdapter(
 
         // 4. 새 토큰 생성 및 저장
         val refreshTokenEntity = RefreshTokenEntity(
-            user = userEntity,
+            userId = userId.value,
             token = token.value,
             expirationDate = expirationDate,
             deviceInfo = deviceInfo,

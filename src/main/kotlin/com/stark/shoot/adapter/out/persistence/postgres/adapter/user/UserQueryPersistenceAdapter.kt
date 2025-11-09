@@ -178,7 +178,7 @@ class UserQueryPersistenceAdapter(
         // 정방향 친구 관계 조회 (내가 상대방을 친구로 추가한 경우)
         val outgoingFriendships = friendshipMappingRepository
             .findAllByUserIdAndFriendIdIn(userId.value, targetIdValues)
-            .mapNotNull { it.friend.id?.let { id -> UserId.from(id) } }
+            .map { UserId.from(it.friendId) }
             .toSet()
 
         return outgoingFriendships
@@ -199,7 +199,7 @@ class UserQueryPersistenceAdapter(
                 targetIdValues,
                 FriendRequestStatus.PENDING
             )
-            .mapNotNull { it.receiver.id?.let { id -> UserId.from(id) } }
+            .map { UserId.from(it.receiverId) }
             .toSet()
 
         return friendRequests
@@ -220,7 +220,7 @@ class UserQueryPersistenceAdapter(
                 userId.value,
                 FriendRequestStatus.PENDING
             )
-            .mapNotNull { it.sender.id?.let { id -> UserId.from(id) } }
+            .map { UserId.from(it.senderId) }
             .toSet()
 
         return friendRequests

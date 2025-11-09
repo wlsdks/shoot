@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.out.persistence.postgres.entity.BlockedUserEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.BlockedUserRepository
 import com.stark.shoot.application.port.out.user.block.BlockedUserQueryPort
 import com.stark.shoot.domain.social.BlockedUser
+import com.stark.shoot.domain.social.vo.BlockedUserId
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
@@ -35,7 +36,7 @@ class BlockedUserQueryAdapter(
         entity: BlockedUserEntity
     ): BlockedUser {
         return BlockedUser(
-            id = entity.id,
+            id = entity.id?.let { BlockedUserId.from(it) },
             userId = UserId.Companion.from(entity.user.id),
             blockedUserId = UserId.Companion.from(entity.blockedUser.id),
             createdAt = entity.blockedAt

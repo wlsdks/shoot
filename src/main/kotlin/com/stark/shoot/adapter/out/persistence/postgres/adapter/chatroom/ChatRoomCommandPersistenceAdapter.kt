@@ -98,35 +98,22 @@ class ChatRoomCommandPersistenceAdapter(
             title = savedChatRoomEntity.title?.let { ChatRoomTitle.from(it) },
             type = savedChatRoomEntity.type,
             participants = currentParticipantIds.map { UserId.from(it) }.toMutableSet(),
-            pinnedParticipants = existingParticipants.filter { it.value.isPinned }.keys.map { UserId.from(it) }
-                .toMutableSet(),
             announcement = savedChatRoomEntity.announcement?.let { ChatRoomAnnouncement.from(it) }
         )
 
         val participantChanges = existingChatRoom.calculateParticipantChanges(
-            newParticipants = chatRoom.participants,
-            newPinnedParticipants = chatRoom.pinnedParticipants
+            newParticipants = chatRoom.participants
         )
 
         participantChanges.participantsToAdd.forEach { participantId ->
             val user = userMap[participantId.value] ?: return@forEach
-            val isPinned = chatRoom.pinnedParticipants.contains(participantId)
 
             val chatRoomUser = ChatRoomUserEntity(
                 chatRoom = savedChatRoomEntity,
                 user = user,
-                isPinned = isPinned
+                isPinned = false  // 기본값으로 false 설정
             )
             chatRoomUserRepository.save(chatRoomUser)
-        }
-
-        participantChanges.pinnedStatusChanges.forEach { (participantId, isPinned) ->
-            val existingUser = existingParticipants[participantId.value] ?: return@forEach
-
-            if (existingUser.isPinned != isPinned) {
-                existingUser.isPinned = isPinned
-                chatRoomUserRepository.save(existingUser)
-            }
         }
 
         if (participantChanges.participantsToRemove.isNotEmpty()) {

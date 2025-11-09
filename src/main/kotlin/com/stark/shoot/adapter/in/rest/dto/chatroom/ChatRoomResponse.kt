@@ -22,13 +22,12 @@ data class ChatRoomResponse(
         /**
          * 특정 사용자의 관점에서 도메인 ChatRoom을 DTO로 변환합니다.
          *
-         * 도메인 ChatRoom에는 metadata 대신 title, pinnedParticipants 등의 필드가 있으므로,
+         * DDD 개선: isPinned는 ChatRoomFavorite Aggregate에서 관리됨
          * - unreadMessages는 별도 정보가 없으므로 기본값 0으로 처리합니다.
-         * - isPinned는 현재 사용자(userId)가 pinnedParticipants에 포함되어 있는지 여부로 판단합니다.
+         * - isPinned는 호출자가 ChatRoomFavorite Aggregate를 조회하여 제공합니다.
          * - 1:1 채팅인 경우, 다른 참여자의 이름을 가져오려면 추가 조회가 필요하므로 여기서는 단순하게 title을 사용합니다.
          */
-        fun from(chatRoom: ChatRoom, userId: Long): ChatRoomResponse {
-            val isPinned = chatRoom.pinnedParticipants.any { it.value == userId }
+        fun from(chatRoom: ChatRoom, userId: Long, isPinned: Boolean = false): ChatRoomResponse {
             val roomTitle = if (chatRoom.type == ChatRoomType.INDIVIDUAL) {
                 // 1:1 채팅인 경우: 다른 참여자의 이름을 사용하고 싶다면 추가 조회가 필요하지만,
                 // 여기서는 채팅방의 title이 있으면 사용하고, 없으면 기본 "채팅방"으로 처리합니다.

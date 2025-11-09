@@ -9,5 +9,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class ChatRoomConstants(
     val maxParticipants: Int = 100,
     val minGroupParticipants: Int = 2,
-    val maxPinnedMessages: Int = 5
+    val maxPinnedMessages: Int = 5,
+    val maxPinnedChatRooms: Int = 20  // 사용자당 최대 고정 가능한 채팅방 수
 )

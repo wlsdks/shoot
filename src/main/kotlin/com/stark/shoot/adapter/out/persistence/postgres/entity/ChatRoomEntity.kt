@@ -15,7 +15,11 @@ class ChatRoomEntity(
     type: ChatRoomType,
     announcement: String?,
     lastMessageId: Long?,
-    lastActiveAt: Instant
+    lastActiveAt: Instant,
+    isNotificationEnabled: Boolean = true,
+    retentionDays: Int? = null,
+    isEncrypted: Boolean = false,
+    customSettings: String? = null
 ) : BaseEntity() {
 
     // BaseEntity에서 version 필드를 상속받으므로 별도 선언 불필요
@@ -36,18 +40,39 @@ class ChatRoomEntity(
     var lastActiveAt: Instant = lastActiveAt
         protected set
 
+    // ChatRoomSettings fields (embedded as columns)
+    var isNotificationEnabled: Boolean = isNotificationEnabled
+        protected set
+
+    var retentionDays: Int? = retentionDays
+        protected set
+
+    var isEncrypted: Boolean = isEncrypted
+        protected set
+
+    var customSettings: String? = customSettings
+        protected set
+
     fun update(
         title: String? = this.title,
         type: ChatRoomType = this.type,
         announcement: String? = this.announcement,
         lastMessageId: Long? = this.lastMessageId,
-        lastActiveAt: Instant = this.lastActiveAt
+        lastActiveAt: Instant = this.lastActiveAt,
+        isNotificationEnabled: Boolean = this.isNotificationEnabled,
+        retentionDays: Int? = this.retentionDays,
+        isEncrypted: Boolean = this.isEncrypted,
+        customSettings: String? = this.customSettings
     ) {
         this.title = title
         this.type = type
         this.announcement = announcement
         this.lastMessageId = lastMessageId
         this.lastActiveAt = lastActiveAt
+        this.isNotificationEnabled = isNotificationEnabled
+        this.retentionDays = retentionDays
+        this.isEncrypted = isEncrypted
+        this.customSettings = customSettings
     }
 
 }

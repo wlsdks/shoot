@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.persistence.chatroom
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom.ChatRoomCommandPersistenceAdapter
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
@@ -12,11 +13,13 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.boot.test.context.TestConfiguration
 import org.hamcrest.Matchers.hasSize
 
 @DataJpaTest
-@Import(ChatRoomCommandPersistenceAdapter::class, ChatRoomMapper::class)
+@Import(SaveChatRoomPersistenceAdapterTest.TestConfig::class, ChatRoomCommandPersistenceAdapter::class, ChatRoomMapper::class)
 @DisplayName("채팅방 저장 어댑터 테스트")
 @org.springframework.test.context.ActiveProfiles("test")
 class SaveChatRoomPersistenceAdapterTest @Autowired constructor(
@@ -34,7 +37,6 @@ class SaveChatRoomPersistenceAdapterTest @Autowired constructor(
 
         val domainRoom = TestEntityFactory.createChatRoomDomain(
             participants = mutableSetOf(user1.id, user2.id),
-            pinned = mutableSetOf(user1.id),
             type = ChatRoomType.GROUP,
             title = "test"
         )
@@ -45,7 +47,14 @@ class SaveChatRoomPersistenceAdapterTest @Autowired constructor(
         assertThat(chatRoomRepository.count()).isEqualTo(1)
         val participants = chatRoomUserRepository.findByChatRoomId(saved.id!!.value)
         assertThat(participants).hasSize(2)
-        val pinned = participants.first { it.user.id == user1.id }
-        assertThat(pinned.isPinned).isTrue()
+        // DDD 개선: isPinned 기능은 ChatRoomFavorite Aggregate로 이동
+        val user1Participant = participants.first { it.user.id == user1.id }
+        assertThat(user1Participant.user.id).isEqualTo(user1.id)
+    }
+
+    @TestConfiguration
+    class TestConfig {
+        @Bean
+        fun objectMapper(): ObjectMapper = ObjectMapper()
     }
 }

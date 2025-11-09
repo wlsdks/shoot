@@ -33,14 +33,14 @@ class ChatRoomParticipantDomainServiceTest {
         )
         val changes = ChatRoom.ParticipantChanges(
             participantsToAdd = setOf(UserId.from(3L)),
-            participantsToRemove = setOf(UserId.from(2L)),
-            pinnedStatusChanges = mapOf(UserId.from(1L) to true)
+            participantsToRemove = setOf(UserId.from(2L))
+            // DDD 개선: pinnedStatusChanges 제거 (ChatRoomFavorite Aggregate에서 관리)
         )
 
-        val updated = service.applyChanges(room, changes) { 0 }
+        val updated = service.applyChanges(room, changes)
 
         assertThat(updated.participants).containsExactlyInAnyOrder(UserId.from(1L), UserId.from(3L))
-        assertThat(updated.pinnedParticipants).containsExactly(UserId.from(1L))
+        // DDD 개선: pinnedParticipants는 ChatRoomFavorite Aggregate에서 관리
     }
 
     @Test

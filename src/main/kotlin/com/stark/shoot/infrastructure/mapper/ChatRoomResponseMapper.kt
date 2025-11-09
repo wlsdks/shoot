@@ -45,11 +45,14 @@ class ChatRoomResponseMapper {
     /**
      * 채팅방을 응답 DTO로 변환합니다.
      *
+     * DDD 개선: isPinned는 ChatRoomFavorite Aggregate에서 관리됨
+     *
      * @param room 채팅방
      * @param userId 사용자 ID
      * @param title 채팅방 제목
      * @param lastMessage 마지막 메시지
      * @param timestamp 포맷된 타임스탬프
+     * @param isPinned 즐겨찾기 여부 (호출자가 ChatRoomFavorite에서 조회하여 제공)
      * @return 채팅방 응답 DTO
      */
     fun toResponse(
@@ -57,14 +60,15 @@ class ChatRoomResponseMapper {
         userId: UserId,
         title: String,
         lastMessage: String,
-        timestamp: String
+        timestamp: String,
+        isPinned: Boolean = false
     ): ChatRoomResponse {
         return ChatRoomResponse(
             roomId = room.id?.value ?: 0L,
             title = title,
             lastMessage = lastMessage,
             unreadMessages = 0, // 실제 구현시 읽지 않은 메시지 수 계산 로직 추가
-            isPinned = room.pinnedParticipants.any { it.value == userId.value },
+            isPinned = isPinned,
             timestamp = timestamp
         )
     }

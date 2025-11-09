@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.chat.bookmark
 
+import com.stark.shoot.domain.chat.bookmark.vo.MessageBookmarkId
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
@@ -33,13 +34,13 @@ class MessageBookmarkTest {
         fun `모든 정보를 사용하여 북마크를 생성할 수 있다`() {
             val now = Instant.now()
             val bookmark = MessageBookmark(
-                id = "b1",
+                id = MessageBookmarkId.from("b1"),
                 messageId = MessageId.from("m1"),
                 userId = UserId.from(2L),
                 createdAt = now
             )
 
-            assertThat(bookmark.id).isEqualTo("b1")
+            assertThat(bookmark.id).isEqualTo(MessageBookmarkId.from("b1"))
             assertThat(bookmark.messageId).isEqualTo(MessageId.from("m1"))
             assertThat(bookmark.userId).isEqualTo(UserId.from(2L))
             assertThat(bookmark.createdAt).isEqualTo(now)

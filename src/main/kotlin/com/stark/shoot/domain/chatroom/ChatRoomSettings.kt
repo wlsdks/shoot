@@ -1,9 +1,9 @@
 package com.stark.shoot.domain.chatroom
 
 import com.stark.shoot.domain.chatroom.vo.RetentionDays
-import com.stark.shoot.infrastructure.annotation.AggregateRoot
+import com.stark.shoot.infrastructure.annotation.ValueObject
 
-@AggregateRoot
+@ValueObject
 data class ChatRoomSettings(
     val isNotificationEnabled: Boolean = true,
     val retentionDays: RetentionDays? = null,

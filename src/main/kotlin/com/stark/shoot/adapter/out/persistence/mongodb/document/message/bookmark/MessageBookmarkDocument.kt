@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.out.persistence.mongodb.document.message.bookmark
 
 import com.stark.shoot.domain.chat.bookmark.MessageBookmark
+import com.stark.shoot.domain.chat.bookmark.vo.MessageBookmarkId
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.shared.UserId
 import org.springframework.data.annotation.Id
@@ -20,7 +21,7 @@ data class MessageBookmarkDocument(
 ) {
     fun toDomain(): MessageBookmark {
         return MessageBookmark(
-            id = id,
+            id = id?.let { MessageBookmarkId.from(it) },
             messageId = MessageId.from(messageId),
             userId = UserId.from(userId),
             createdAt = createdAt
@@ -30,7 +31,7 @@ data class MessageBookmarkDocument(
     companion object {
         fun fromDomain(bookmark: MessageBookmark): MessageBookmarkDocument {
             return MessageBookmarkDocument(
-                id = bookmark.id,
+                id = bookmark.id?.value,
                 messageId = bookmark.messageId.value,
                 userId = bookmark.userId.value,
                 createdAt = bookmark.createdAt

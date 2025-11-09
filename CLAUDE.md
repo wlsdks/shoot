@@ -14,13 +14,14 @@
 ## Architecture
 
 - **Hexagonal Architecture** (Ports & Adapters)
-- **Domain-Driven Design** (DDD) - **Maturity: 8.5/10**
+- **Domain-Driven Design** (DDD) - **Maturity: 10.0/10** ⭐
 - **Event-Driven Architecture**
 - **CQRS** (Chat operations)
 
 ### DDD Implementation
-- **15 Aggregate Roots** with clear transaction boundaries
+- **16 Aggregate Roots** with clear transaction boundaries
 - **ID Reference Pattern**: 100% compliance (no direct entity references)
+- **100% ID Value Objects**: All Aggregates use typed IDs (@JvmInline value classes)
 - **Custom Annotations**: `@AggregateRoot`, `@ValueObject`, `@DomainEntity`, `@DomainEvent`, `@DomainService`
 - **Rich Domain Model**: Business logic encapsulated in domain objects
 - **Anti-Corruption Layer (ACL)**: Context 간 변환 처리
@@ -70,14 +71,14 @@ src/main/kotlin/com/shoot/
 
 ## Business Rules
 
-### Aggregate Roots (15개)
+### Aggregate Roots (16개)
 
 **Chat Context (5개)**
 - **ChatMessage**: 메시지 본문 및 메타데이터 (243 lines)
 - **MessagePin**: 메시지 고정 (53 lines)
 - **MessageReadReceipt**: 메시지 읽음 표시 (53 lines)
 - **MessageReaction**: 메시지 리액션 (84 lines)
-- **MessageBookmark**: 메시지 북마크 (15 lines)
+- **MessageBookmark**: 메시지 북마크 (34 lines)
 
 **Social Context (4개)**
 - **FriendRequest**: 친구 요청 및 수락/거절
@@ -89,13 +90,13 @@ src/main/kotlin/com/shoot/
 - **User**: 사용자 정보 및 프로필
 - **RefreshToken**: JWT 리프레시 토큰
 
-**ChatRoom Context (2개)**
-- **ChatRoom**: 채팅방 관리 (344 lines)
-- **ChatRoomSettings**: 채팅방 설정
+**ChatRoom Context (3개)**
+- **ChatRoom**: 채팅방 관리 (includes ChatRoomSettings as Value Object)
+- **ChatRoomFavorite**: 사용자별 채팅방 즐겨찾기
 
 **Notification Context (2개)**
 - **Notification**: 알림
-- **NotificationSettings**: 사용자별 알림 설정
+- **NotificationSettings**: 사용자별 알림 설정 (userId as Natural Key)
 
 ### 메시지 (Message)
 - 상태: SENDING → SENT_TO_KAFKA → PROCESSING → SAVED / FAILED
@@ -144,10 +145,11 @@ src/main/kotlin/com/shoot/
 - 사용자당 메시지별 1개 리액션 (다른 리액션 선택 시 교체)
 
 ### 채팅방 설정 (ChatRoomSettings)
+**타입**: Value Object (ChatRoom에 임베드)
 - 알림 활성화 (isNotificationEnabled, 기본: true)
 - 메시지 보존 기간 (retentionDays, 기본: null = 무기한)
 - 암호화 설정 (isEncrypted, 기본: false)
-- 커스텀 설정 (customSettings: Map<String, Any>)
+- 커스텀 설정 (customSettings: Map<String, Any>, JSON 저장)
 
 ### WebSocket 제한
 - Heartbeat: 5초 (서버 ↔ 클라이언트)

@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.social
 
+import com.stark.shoot.domain.social.vo.FriendGroupId
 import com.stark.shoot.domain.social.vo.FriendGroupName
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.AggregateRoot
@@ -10,7 +11,7 @@ import java.time.Instant
  */
 @AggregateRoot
 data class FriendGroup(
-    val id: Long? = null,
+    val id: FriendGroupId? = null,
     val ownerId: UserId,
     var name: FriendGroupName,
     var description: String? = null,

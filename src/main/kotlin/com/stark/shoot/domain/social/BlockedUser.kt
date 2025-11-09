@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.social
 
+import com.stark.shoot.domain.social.vo.BlockedUserId
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.AggregateRoot
 import java.time.Instant
@@ -10,7 +11,7 @@ import java.time.Instant
  */
 @AggregateRoot
 data class BlockedUser(
-    val id: Long? = null,
+    val id: BlockedUserId? = null,
     val userId: UserId,
     val blockedUserId: UserId,
     var createdAt: Instant = Instant.now(),

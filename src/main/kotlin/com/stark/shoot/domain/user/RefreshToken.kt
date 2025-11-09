@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.user
 
+import com.stark.shoot.domain.user.vo.RefreshTokenId
 import com.stark.shoot.domain.user.vo.RefreshTokenValue
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.AggregateRoot
@@ -7,7 +8,7 @@ import java.time.Instant
 
 @AggregateRoot
 data class RefreshToken(
-    val id: Long? = null,
+    val id: RefreshTokenId? = null,
     val userId: UserId,                 // 사용자 ID 참조
     val token: RefreshTokenValue,     // 리프레시 토큰 값
     var expirationDate: Instant,      // 만료 시간

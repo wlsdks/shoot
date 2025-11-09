@@ -25,7 +25,6 @@ class ChatRoomResponseMapperTest {
             title = ChatRoomTitle.from("title"),
             type = ChatRoomType.GROUP,
             participants = mutableSetOf(UserId.from(1L), UserId.from(2L)),
-            pinnedParticipants = mutableSetOf(UserId.from(1L)),
             lastActiveAt = Instant.parse("2024-01-01T00:00:00Z")
         )
 
@@ -34,7 +33,8 @@ class ChatRoomResponseMapperTest {
             UserId.from(1L),
             "Room",
             "Hello",
-            "time"
+            "time",
+            isPinned = true  // DDD 개선: isPinned는 ChatRoomFavorite Aggregate에서 조회하여 전달
         )
 
         assertThat(response.roomId).isEqualTo(1L)

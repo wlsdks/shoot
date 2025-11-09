@@ -1,13 +1,15 @@
 package com.stark.shoot.domain.chat.room
 
 import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.ChatRoom
+import com.stark.shoot.domain.chatroom.exception.FavoriteLimitExceededException
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomAnnouncement
-import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId as ChatRoomIdService
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
+import com.stark.shoot.domain.chatroom.vo.MessageId as MessageIdService
 import com.stark.shoot.domain.shared.UserId
-import com.stark.shoot.infrastructure.exception.FavoriteLimitExceededException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -75,7 +77,7 @@ class ChatRoomTest {
         fun `채팅방 정보를 업데이트할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                id = ChatRoomId.from(1L),
+                id = ChatRoomIdService.from(1L),
                 title = ChatRoomTitle.from("원래 제목"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(UserId.from(1L), UserId.from(2L))
@@ -579,7 +581,7 @@ class ChatRoomTest {
                 title = ChatRoomTitle.from("채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(UserId.from(1L), UserId.from(2L)),
-                lastMessageId = MessageId.from("message123")
+                lastMessageId = MessageIdService.from("message123")
             )
             val chatRoomWithoutMessage = ChatRoom(
                 title = ChatRoomTitle.from("채팅방"),

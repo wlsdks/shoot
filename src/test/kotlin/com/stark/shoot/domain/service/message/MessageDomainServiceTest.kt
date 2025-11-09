@@ -47,6 +47,8 @@ class MessageDomainServiceTest {
         val event = service.createMessageEvent(message)
 
         assertThat(event.type).isEqualTo(EventType.MESSAGE_CREATED)
-        assertThat(event.data).isEqualTo(message)
+        assertThat(event.content).isEqualTo("hello")
+        assertThat(event.senderId).isEqualTo(UserId.from(2L))
+        assertThat(event.roomId).isEqualTo(ChatRoomId.from(1L))
     }
 }

@@ -1,6 +1,6 @@
 package com.stark.shoot.infrastructure.config.redis
 
-import com.stark.shoot.domain.exception.web.LockAcquisitionException
+import com.stark.shoot.infrastructure.exception.web.LockAcquisitionException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach

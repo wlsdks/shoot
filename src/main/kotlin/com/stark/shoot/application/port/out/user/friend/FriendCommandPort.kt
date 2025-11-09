@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.out.user.friend
 
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 interface FriendCommandPort {
     fun removeOutgoingFriendRequest(userId: UserId, targetUserId: UserId)

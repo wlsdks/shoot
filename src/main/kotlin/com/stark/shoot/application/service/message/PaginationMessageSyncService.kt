@@ -63,7 +63,9 @@ class PaginationMessageSyncService(
                 } else {
                     null
                 }
-                emit(messageSyncMapper.toSyncInfoDto(message, replyCount))
+                // TODO: MessageReactionQueryPort를 통해 reactions 조회 필요
+                // 현재는 성능상의 이유로 빈 맵 전달 (필요 시 별도 API로 조회)
+                emit(messageSyncMapper.toSyncInfoDto(message, emptyMap(), replyCount))
             }
     }
 

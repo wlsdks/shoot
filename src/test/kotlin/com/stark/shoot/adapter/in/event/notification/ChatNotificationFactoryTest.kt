@@ -6,9 +6,10 @@ import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId as ChatRoomIdService
 import com.stark.shoot.domain.notification.type.NotificationType
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -34,7 +35,13 @@ class ChatNotificationFactoryTest {
     @DisplayName("[happy] 멘션 알림을 생성한다")
     fun `멘션 알림을 생성한다`() {
         val msg = sampleMessage("hello world")
-        val notification = factory.createMentionNotification(1L, msg)
+        val notification = factory.createMentionNotification(
+            userId = 1L,
+            messageId = msg.id!!,
+            roomId = ChatRoomIdService.from(msg.roomId.value),
+            senderId = msg.senderId,
+            content = msg.content.text
+        )
         assertThat(notification.userId).isEqualTo(UserId.from(1L))
         assertThat(notification.type).isEqualTo(NotificationType.MENTION)
         assertThat(notification.metadata["senderId"]).isEqualTo("2")
@@ -45,7 +52,13 @@ class ChatNotificationFactoryTest {
     @DisplayName("[happy] 메시지 알림을 생성한다")
     fun `메시지 알림을 생성한다`() {
         val msg = sampleMessage("a".repeat(60))
-        val notification = factory.createMessageNotification(3L, msg)
+        val notification = factory.createMessageNotification(
+            userId = 3L,
+            messageId = msg.id!!,
+            roomId = ChatRoomIdService.from(msg.roomId.value),
+            senderId = msg.senderId,
+            content = msg.content.text
+        )
         assertThat(notification.type).isEqualTo(NotificationType.NEW_MESSAGE)
         assertThat(notification.message.value.length).isLessThanOrEqualTo(53)
     }
@@ -57,7 +70,7 @@ class ChatNotificationFactoryTest {
             userId = UserId.from(1L),
             reactingUserId = UserId.from(2L),
             messageId = MessageId.from("m2"),
-            roomId = ChatRoomId.from(1L),
+            roomId = ChatRoomIdService.from(1L),
             reactionType = "like"
         )
         assertThat(notification.type).isEqualTo(NotificationType.REACTION)

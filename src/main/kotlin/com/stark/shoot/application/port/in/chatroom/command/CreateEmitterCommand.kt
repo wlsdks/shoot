@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.chatroom.command
 
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * Command for creating an SSE emitter for a user

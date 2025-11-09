@@ -5,28 +5,37 @@ import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.`in`.message.reaction.ToggleMessageReactionUseCase
 import com.stark.shoot.application.port.`in`.message.reaction.command.ToggleMessageReactionCommand
 import com.stark.shoot.application.port.out.event.EventPublishPort
-import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
-import com.stark.shoot.domain.chat.message.service.MessageReactionService
-import com.stark.shoot.domain.chat.message.vo.ReactionToggleResult
+import com.stark.shoot.application.port.out.message.reaction.MessageReactionCommandPort
+import com.stark.shoot.application.port.out.message.reaction.MessageReactionQueryPort
+import com.stark.shoot.domain.chat.reaction.MessageReaction
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.domain.shared.event.MessageReactionEvent
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.infrastructure.config.redis.RedisLockManager
-import com.stark.shoot.domain.exception.web.InvalidInputException
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.InvalidInputException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.util.WebSocketResponseBuilder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 
+/**
+ * 메시지 리액션 토글 서비스
+ *
+ * DDD Aggregate 분리:
+ * - MessageReaction Aggregate를 별도로 관리
+ * - ChatMessage와 독립적인 트랜잭션 처리
+ * - 높은 동시성 처리 (Redis 분산 락 사용)
+ */
 @Transactional
 @UseCase
 class ToggleMessageReactionService(
     private val messageQueryPort: MessageQueryPort,
-    private val messageCommandPort: MessageCommandPort,
+    private val messageReactionQueryPort: MessageReactionQueryPort,
+    private val messageReactionCommandPort: MessageReactionCommandPort,
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val eventPublisher: EventPublishPort,
-    private val messageReactionService: MessageReactionService,
     private val redisLockManager: RedisLockManager
 ) : ToggleMessageReactionUseCase {
 
@@ -63,36 +72,91 @@ class ToggleMessageReactionService(
                         throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=${command.messageId}")
                     }
 
-                // 도메인 객체에 토글 로직 위임
-                val result = message.toggleReaction(command.userId, type)
-                val updatedMessage = messageCommandPort.save(result.message)
+                // 기존 리액션 조회
+                val existingReaction = messageReactionQueryPort.findByMessageIdAndUserId(
+                    command.messageId,
+                    command.userId
+                )
+
+                // 토글 처리
+                val toggleResult = when {
+                    // 1. 기존 리액션이 같은 타입 → 제거
+                    existingReaction != null && existingReaction.reactionType == type -> {
+                        messageReactionCommandPort.deleteByMessageIdAndUserId(
+                            command.messageId,
+                            command.userId
+                        )
+                        ToggleResult(
+                            isAdded = false,
+                            isReplacement = false,
+                            previousReactionType = null
+                        )
+                    }
+
+                    // 2. 기존 리액션이 다른 타입 → 교체
+                    existingReaction != null -> {
+                        val previousType = existingReaction.reactionType
+                        existingReaction.changeReactionType(type)
+                        messageReactionCommandPort.save(existingReaction)
+                        ToggleResult(
+                            isAdded = true,
+                            isReplacement = true,
+                            previousReactionType = previousType.code
+                        )
+                    }
+
+                    // 3. 기존 리액션이 없음 → 추가
+                    else -> {
+                        val newReaction = MessageReaction.create(
+                            messageId = command.messageId,
+                            userId = command.userId,
+                            reactionType = type
+                        )
+                        messageReactionCommandPort.save(newReaction)
+                        ToggleResult(
+                            isAdded = true,
+                            isReplacement = false,
+                            previousReactionType = null
+                        )
+                    }
+                }
+
+                // 최신 리액션 목록 조회
+                val updatedReactions = messageReactionQueryPort.findAllByMessageId(command.messageId)
+                    .groupBy { it.reactionType.code }
+                    .mapValues { (_, reactions) ->
+                        reactions.map { it.userId.value }.toSet()
+                    }
 
                 // 채팅방의 모든 참여자에게 반응 변경 알림
                 webSocketMessageBroker.sendMessage(
-                    "/topic/message/reaction/${updatedMessage.roomId.value}",
+                    "/topic/message/reaction/${message.roomId.value}",
                     mapOf(
-                        "messageId" to updatedMessage.id?.value,
-                        "reactions" to updatedMessage.reactions,
+                        "messageId" to command.messageId.value,
+                        "reactions" to updatedReactions,
                         "userId" to command.userId.value,
                         "reactionType" to command.reactionType,
-                        "action" to if (result.isAdded) "ADDED" else "REMOVED"
+                        "action" to if (toggleResult.isAdded) "ADDED" else "REMOVED"
                     )
                 )
 
-                // 요청자에게 성공 응답 전송
-                val messageId = updatedMessage.id?.value
-                    ?: throw IllegalStateException("Message ID should not be null after save operation")
-
+                // 응답 생성
                 val reactionResponse = ReactionResponse.from(
-                    messageId = messageId,
-                    reactions = updatedMessage.reactions,
-                    updatedAt = updatedMessage.updatedAt?.toString() ?: ""
+                    messageId = command.messageId.value,
+                    reactions = updatedReactions,
+                    updatedAt = java.time.Instant.now().toString()
                 )
 
                 sendSuccessResponse(command.userId, "반응이 업데이트되었습니다.", reactionResponse)
 
-                // 결과에 따라 알림 및 이벤트 처리
-                handleNotificationsAndEvents(result)
+                // 이벤트 발행
+                publishReactionEvents(
+                    messageId = command.messageId,
+                    roomId = message.roomId,
+                    userId = command.userId,
+                    reactionType = command.reactionType,
+                    toggleResult = toggleResult
+                )
 
                 reactionResponse
             }
@@ -119,15 +183,61 @@ class ToggleMessageReactionService(
     }
 
     /**
-     * 토글 결과에 따라 알림 및 이벤트를 처리합니다.
-     *
-     * @param messageId 메시지 ID
-     * @param result 토글 결과
+     * 리액션 이벤트 발행
      */
-    private fun handleNotificationsAndEvents(result: ReactionToggleResult) {
-        // 도메인 서비스를 통해 이벤트 생성 및 발행
-        val events = messageReactionService.processReactionToggleResult(result)
-        events.forEach { eventPublisher.publishEvent(it) }
+    private fun publishReactionEvents(
+        messageId: com.stark.shoot.domain.chat.message.vo.MessageId,
+        roomId: com.stark.shoot.domain.chat.vo.ChatRoomId,
+        userId: UserId,
+        reactionType: String,
+        toggleResult: ToggleResult
+    ) {
+        // 리액션 교체인 경우 2개의 이벤트 발행 (기존 제거 + 새로운 추가)
+        if (toggleResult.isReplacement && toggleResult.previousReactionType != null) {
+            // 기존 리액션 제거 이벤트
+            eventPublisher.publishEvent(
+                MessageReactionEvent.create(
+                    messageId = messageId,
+                    roomId = roomId,
+                    userId = userId,
+                    reactionType = toggleResult.previousReactionType,
+                    isAdded = false,
+                    isReplacement = true
+                )
+            )
+
+            // 새 리액션 추가 이벤트
+            eventPublisher.publishEvent(
+                MessageReactionEvent.create(
+                    messageId = messageId,
+                    roomId = roomId,
+                    userId = userId,
+                    reactionType = reactionType,
+                    isAdded = true,
+                    isReplacement = true
+                )
+            )
+        } else {
+            // 일반 추가/제거 이벤트
+            eventPublisher.publishEvent(
+                MessageReactionEvent.create(
+                    messageId = messageId,
+                    roomId = roomId,
+                    userId = userId,
+                    reactionType = reactionType,
+                    isAdded = toggleResult.isAdded,
+                    isReplacement = false
+                )
+            )
+        }
     }
 
+    /**
+     * 토글 결과를 나타내는 데이터 클래스
+     */
+    private data class ToggleResult(
+        val isAdded: Boolean,
+        val isReplacement: Boolean,
+        val previousReactionType: String?
+    )
 }

@@ -2,7 +2,7 @@ package com.stark.shoot.domain.chat.message.vo
 
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 리액션 토글 결과를 나타내는 데이터 클래스

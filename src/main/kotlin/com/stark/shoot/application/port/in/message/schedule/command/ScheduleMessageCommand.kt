@@ -2,7 +2,7 @@ package com.stark.shoot.application.port.`in`.message.schedule.command
 
 import com.stark.shoot.adapter.`in`.rest.dto.message.schedule.ScheduleMessageRequest
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import org.springframework.security.core.Authentication
 import java.time.Instant
 import java.time.ZoneId

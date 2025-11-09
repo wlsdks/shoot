@@ -7,15 +7,14 @@ import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestQueryPort
-import com.stark.shoot.application.port.out.user.friend.FriendCommandPort
-import com.stark.shoot.domain.event.FriendRequestRejectedEvent
-import com.stark.shoot.domain.user.FriendRequest
-import com.stark.shoot.domain.user.service.FriendDomainService
-import com.stark.shoot.domain.user.type.FriendRequestStatus
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.application.service.saga.friend.FriendRequestSagaOrchestrator
+import com.stark.shoot.domain.saga.SagaState
+import com.stark.shoot.domain.shared.event.FriendRequestRejectedEvent
+import com.stark.shoot.domain.social.type.FriendRequestStatus
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.domain.exception.web.InvalidInputException
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.InvalidInputException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable
@@ -23,16 +22,14 @@ import org.springframework.transaction.annotation.Transactional
 import jakarta.persistence.OptimisticLockException
 import java.time.Instant
 
-@Transactional
 @UseCase
 class FriendReceiveService(
     private val userQueryPort: UserQueryPort,
-    private val friendCommandPort: FriendCommandPort,
     private val friendRequestQueryPort: FriendRequestQueryPort,
     private val friendRequestCommandPort: FriendRequestCommandPort,
     private val eventPublisher: EventPublishPort,
-    private val friendDomainService: FriendDomainService,
-    private val friendCacheManager: FriendCacheManager
+    private val friendCacheManager: FriendCacheManager,
+    private val friendRequestSagaOrchestrator: FriendRequestSagaOrchestrator
 ) : FriendReceiveUseCase {
 
     private val logger = KotlinLogging.logger {}
@@ -40,40 +37,34 @@ class FriendReceiveService(
     /**
      * 친구 요청을 수락합니다.
      *
-     * OptimisticLockException 발생 시 자동으로 최대 3번까지 재시도합니다.
-     * - 동시에 두 사용자가 친구 요청을 수락/거절하는 경우
-     * - 지수 백오프: 100ms → 200ms → 400ms
+     * DDD 개선: Saga Pattern 적용
+     * - 여러 Aggregate 수정을 별도 트랜잭션으로 분리
+     * - 실패 시 보상 트랜잭션 자동 실행
+     * - OptimisticLockException 자동 재시도 (Orchestrator 레벨)
      *
      * @param command 친구 요청 수락 커맨드
      */
-    @Retryable(
-        retryFor = [OptimisticLockException::class],
-        maxAttempts = 3,
-        backoff = Backoff(delay = 100, multiplier = 2.0, maxDelay = 1000)
-    )
     override fun acceptFriendRequest(command: AcceptFriendRequestCommand) {
         val currentUserId = command.currentUserId
         val requesterId = command.requesterId
 
-        // 친구 요청 조회 및 유효성 검사
-        val friendRequest = findFriendRequest(currentUserId, requesterId)
+        // 사용자 존재 여부 확인
+        validateUsers(currentUserId, requesterId)
 
-        // 도메인 서비스를 사용하여 친구 요청 수락 처리
-        val result = friendDomainService.processFriendAccept(friendRequest)
+        // Saga 실행
+        val context = friendRequestSagaOrchestrator.execute(requesterId, currentUserId)
 
-        // 친구 요청 상태 업데이트
-        friendRequestCommandPort.updateStatus(requesterId, currentUserId, FriendRequestStatus.ACCEPTED)
-
-        // 친구 관계 생성 (도메인 서비스에서 생성된 Friendship 사용)
-        result.friendships.forEach { friendship ->
-            friendCommandPort.addFriendRelation(friendship.userId, friendship.friendId)
+        // Saga 실패 시 예외 발생
+        if (context.state != SagaState.COMPLETED) {
+            val errorMessage = context.error?.message ?: "친구 요청 수락 처리 중 오류가 발생했습니다."
+            logger.error { "Friend request saga failed: sagaId=${context.sagaId}, error=$errorMessage" }
+            throw InvalidInputException(errorMessage)
         }
-
-        // 이벤트 발행
-        result.events.forEach { event -> eventPublisher.publishEvent(event) }
 
         // 캐시 무효화
         friendCacheManager.invalidateFriendshipCaches(currentUserId, requesterId)
+
+        logger.info { "Friend request accepted successfully: requesterId=${requesterId.value}, receiverId=${currentUserId.value}" }
     }
 
     /**
@@ -92,8 +83,13 @@ class FriendReceiveService(
         val currentUserId = command.currentUserId
         val requesterId = command.requesterId
 
-        // 친구 요청 조회 및 유효성 검사
-        findFriendRequest(currentUserId, requesterId)
+        // 사용자 존재 여부 확인
+        validateUsers(currentUserId, requesterId)
+
+        // 친구 요청 존재 여부 확인
+        val friendRequest = friendRequestQueryPort
+            .findRequest(requesterId, currentUserId, FriendRequestStatus.PENDING)
+            ?: throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
 
         // 친구 요청 상태 업데이트
         friendRequestCommandPort.updateStatus(requesterId, currentUserId, FriendRequestStatus.REJECTED)
@@ -107,28 +103,21 @@ class FriendReceiveService(
 
 
     /**
-     * 친구 요청을 조회합니다. (유효성 검사 포함)
+     * 사용자 존재 여부를 검증합니다.
      *
      * @param currentUserId 현재 사용자 ID
      * @param requesterId 친구 요청을 보낸 사용자 ID
-     * @return 친구 요청 정보
      */
-    private fun findFriendRequest(
+    private fun validateUsers(
         currentUserId: UserId,
         requesterId: UserId
-    ): FriendRequest {
-        // 사용자 존재 여부 확인
+    ) {
         if (!userQueryPort.existsById(currentUserId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $currentUserId")
         }
         if (!userQueryPort.existsById(requesterId)) {
             throw ResourceNotFoundException("사용자를 찾을 수 없습니다: $requesterId")
         }
-
-        // 친구 요청 조회
-        return friendRequestQueryPort
-            .findRequest(requesterId, currentUserId, FriendRequestStatus.PENDING)
-            ?: throw InvalidInputException("해당 친구 요청이 존재하지 않습니다.")
     }
 
     /**

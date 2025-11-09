@@ -1,8 +1,8 @@
 package com.stark.shoot.domain.chatroom.service
 
 import com.stark.shoot.domain.chatroom.ChatRoom
-import com.stark.shoot.domain.user.vo.UserId
-import com.stark.shoot.domain.constants.DomainConstants
+import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.domain.chatroom.constants.ChatRoomConstants
 import org.springframework.stereotype.Service
 
 /**
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ChatRoomParticipantDomainService(
-    private val domainConstants: DomainConstants
+    private val chatRoomConstants: ChatRoomConstants
 ) {
 
     data class RemovalResult(
@@ -45,15 +45,15 @@ class ChatRoomParticipantDomainService(
     /**
      * 참여자 변경 정보를 적용합니다.
      *
+     * DDD 개선: 즐겨찾기(핀) 기능은 ChatRoomFavorite Aggregate에서 관리
+     *
      * @param chatRoom 대상 채팅방
      * @param changes 변경 정보
-     * @param pinnedCountProvider 사용자의 핀 채팅방 수 조회 함수
      * @return 업데이트된 채팅방
      */
     fun applyChanges(
         chatRoom: ChatRoom,
-        changes: ChatRoom.ParticipantChanges,
-        pinnedCountProvider: (Long) -> Int
+        changes: ChatRoom.ParticipantChanges
     ): ChatRoom {
         if (changes.participantsToAdd.isNotEmpty()) {
             chatRoom.addParticipants(changes.participantsToAdd)
@@ -61,15 +61,6 @@ class ChatRoomParticipantDomainService(
 
         if (changes.participantsToRemove.isNotEmpty()) {
             chatRoom.removeParticipants(changes.participantsToRemove)
-        }
-
-        changes.pinnedStatusChanges.forEach { (userId, isPinned) ->
-            chatRoom.updateFavoriteStatus(
-                userId = userId,
-                isFavorite = isPinned,
-                userPinnedRoomsCount = pinnedCountProvider(userId.value),
-                maxPinnedLimit = domainConstants.chatRoom.maxPinnedMessages
-            )
         }
 
         return chatRoom

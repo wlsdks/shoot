@@ -3,9 +3,12 @@ package com.stark.shoot.application.service.event.message
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
+import com.stark.shoot.application.acl.*
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.event.MessageSentEvent
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.event.MessageSentEvent
+import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase
@@ -30,18 +33,21 @@ class MessageSentEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMessageSent(event: MessageSentEvent) {
-        val message = event.message
-        val roomId = message.roomId
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.MESSAGE_SENT_V1, "MessageSentEventListener")
+
+        // DDD 개선: 이벤트에서 직접 필드 사용
+        val roomId = event.roomId
 
         // 채팅방 정보 조회 (없으면 로그 경고 후 종료)
-        val chatRoom = chatRoomQueryPort.findById(roomId) ?: run {
+        val chatRoom = chatRoomQueryPort.findById(roomId.toChatRoom()) ?: run {
             logger.warn { "ChatRoom not found: ${roomId.value}" }
             return
         }
 
         // 배치 쿼리로 모든 참여자의 unread count를 한번에 조회 (N+1 문제 해결)
         val unreadCounts = try {
-            messageQueryPort.countUnreadMessagesBatch(chatRoom.participants, roomId)
+            messageQueryPort.countUnreadMessagesBatch(chatRoom.participants, roomId.toChatRoom())
         } catch (e: Exception) {
             logger.warn(e) { "Failed to batch count unread messages for room $roomId" }
             // 실패 시 모든 참여자 0으로 초기화
@@ -52,17 +58,17 @@ class MessageSentEventListener(
         chatRoom.participants.forEach { participantId ->
             try {
                 // 발신자는 항상 0, 나머지는 배치 쿼리 결과 사용
-                val unreadCount = if (participantId == message.senderId) 0
+                val unreadCount = if (participantId == event.senderId) 0
                                   else unreadCounts[participantId] ?: 0
 
                 // 채팅방 목록 업데이트 데이터 생성
                 val chatRoomUpdate = mapOf(
                     "roomId" to roomId.value,
                     "lastMessage" to mapOf(
-                        "id" to message.id?.value,
-                        "content" to message.content.text,
-                        "senderId" to message.senderId.value,
-                        "createdAt" to message.createdAt?.toString()
+                        "id" to event.messageId.value,
+                        "content" to event.content,
+                        "senderId" to event.senderId.value,
+                        "createdAt" to event.createdAt.toString()
                     ),
                     "unreadCount" to unreadCount,
                     "lastActiveAt" to chatRoom.lastActiveAt.toString()

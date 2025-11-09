@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.persistence.cache.user.friend
 
 import com.stark.shoot.adapter.out.cache.user.friend.FriendCacheAdapter
 import com.stark.shoot.application.service.user.friend.recommend.RecommendFriendService
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock

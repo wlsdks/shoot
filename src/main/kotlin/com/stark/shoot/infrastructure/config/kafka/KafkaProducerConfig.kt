@@ -1,6 +1,6 @@
 package com.stark.shoot.infrastructure.config.kafka
 
-import com.stark.shoot.domain.event.MessageEvent
+import com.stark.shoot.domain.shared.event.MessageEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord

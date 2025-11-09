@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.message.bookmark.command
 
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 메시지 북마크 제거 커맨드

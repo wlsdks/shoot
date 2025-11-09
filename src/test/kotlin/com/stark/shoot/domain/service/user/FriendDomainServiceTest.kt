@@ -1,15 +1,15 @@
 package com.stark.shoot.domain.service.user
 
-import com.stark.shoot.domain.user.FriendRequest
-import com.stark.shoot.domain.user.service.FriendDomainService
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.social.FriendRequest
+import com.stark.shoot.domain.social.type.FriendRequestStatus
+import com.stark.shoot.domain.social.service.FriendDomainService
+import com.stark.shoot.domain.social.exception.FriendException
+import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import com.stark.shoot.domain.exception.UserException
 
 @DisplayName("친구 도메인 서비스 테스트")
 class FriendDomainServiceTest {
@@ -21,7 +21,7 @@ class FriendDomainServiceTest {
         @Test
         @DisplayName("[bad] 자신에게 요청하면 예외가 발생한다")
         fun `자신에게 요청하면 예외`() {
-            assertThrows<UserException.SelfFriendRequestNotAllowed> {
+            assertThrows<FriendException.SelfFriendRequestNotAllowed> {
                 service.validateFriendRequest(UserId.from(1L), UserId.from(1L), false, false, false)
             }
         }
@@ -29,7 +29,7 @@ class FriendDomainServiceTest {
         @Test
         @DisplayName("[bad] 이미 친구인 경우 예외가 발생한다")
         fun `이미 친구인 경우 예외`() {
-            assertThrows<UserException.AlreadyFriends> {
+            assertThrows<FriendException.AlreadyFriends> {
                 service.validateFriendRequest(UserId.from(1L), UserId.from(2L), true, false, false)
             }
         }
@@ -37,7 +37,7 @@ class FriendDomainServiceTest {
         @Test
         @DisplayName("[bad] 이미 친구 요청을 보낸 경우 예외가 발생한다")
         fun `이미 친구 요청을 보낸 경우 예외`() {
-            assertThrows<UserException.FriendRequestAlreadySent> {
+            assertThrows<FriendException.FriendRequestAlreadySent> {
                 service.validateFriendRequest(UserId.from(1L), UserId.from(2L), false, true, false)
             }
         }
@@ -45,7 +45,7 @@ class FriendDomainServiceTest {
         @Test
         @DisplayName("[bad] 상대방이 이미 친구 요청을 보낸 경우 예외가 발생한다")
         fun `상대방이 이미 친구 요청을 보낸 경우 예외`() {
-            assertThrows<UserException.FriendRequestAlreadyReceived> {
+            assertThrows<FriendException.FriendRequestAlreadyReceived> {
                 service.validateFriendRequest(UserId.from(1L), UserId.from(2L), false, false, true)
             }
         }
@@ -72,7 +72,7 @@ class FriendDomainServiceTest {
         // then
         assertThat(result.senderId).isEqualTo(senderId)
         assertThat(result.receiverId).isEqualTo(receiverId)
-        assertThat(result.status).isEqualTo(com.stark.shoot.domain.user.type.FriendRequestStatus.PENDING)
+        assertThat(result.status).isEqualTo(FriendRequestStatus.PENDING)
         assertThat(result.respondedAt).isNull()
     }
 
@@ -137,7 +137,7 @@ class FriendDomainServiceTest {
             val result = service.processFriendAccept(friendRequest)
 
             // Check that the request status is updated
-            assertThat(result.updatedRequest.status).isEqualTo(com.stark.shoot.domain.user.type.FriendRequestStatus.ACCEPTED)
+            assertThat(result.updatedRequest.status).isEqualTo(FriendRequestStatus.ACCEPTED)
             assertThat(result.updatedRequest.respondedAt).isNotNull()
         }
     }

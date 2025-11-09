@@ -1,7 +1,7 @@
 package com.stark.shoot.domain.service.user
 
-import com.stark.shoot.domain.user.service.group.FriendGroupDomainService
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.social.service.group.FriendGroupDomainService
+import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

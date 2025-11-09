@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.user.code.command
 
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * Command for removing a user's code

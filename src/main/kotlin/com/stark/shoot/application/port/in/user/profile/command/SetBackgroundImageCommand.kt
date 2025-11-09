@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.user.profile.command
 
 import com.stark.shoot.domain.user.vo.BackgroundImageUrl
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * Command for setting a user's background image

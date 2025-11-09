@@ -5,9 +5,12 @@ import com.stark.shoot.application.port.`in`.chatroom.command.CreateDirectChatCo
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
-import com.stark.shoot.domain.event.FriendAddedEvent
+import com.stark.shoot.domain.shared.event.FriendAddedEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.notification.type.SourceType
 import com.stark.shoot.domain.notification.vo.NotificationMessage
 import com.stark.shoot.domain.notification.vo.NotificationTitle
@@ -39,6 +42,9 @@ class FriendAddedEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleFriendAdded(event: FriendAddedEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.FRIEND_ADDED_V1, "FriendAddedEventListener")
+
         logger.info { "Processing friend added event: userId=${event.userId.value}, friendId=${event.friendId.value}" }
 
         try {
@@ -123,7 +129,7 @@ class FriendAddedEventListener(
      * 친구 수락 알림 생성
      */
     private fun createFriendAcceptedNotification(
-        recipientId: com.stark.shoot.domain.user.vo.UserId,
+        recipientId: com.stark.shoot.domain.shared.UserId,
         friendName: String,
         sourceId: String
     ): Notification {

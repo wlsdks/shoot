@@ -4,7 +4,7 @@ import com.stark.shoot.application.port.`in`.user.UserCreateUseCase
 import com.stark.shoot.application.port.`in`.user.command.CreateUserCommand
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.user.UserCommandPort
-import com.stark.shoot.domain.event.UserCreatedEvent
+import com.stark.shoot.domain.shared.event.UserCreatedEvent
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging

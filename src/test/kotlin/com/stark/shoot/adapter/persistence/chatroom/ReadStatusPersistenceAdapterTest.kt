@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.persistence.chatroom
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom.ChatRoomCommandPersistenceAdapter
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
@@ -7,18 +8,21 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserR
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.util.TestEntityFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 
 @DataJpaTest
-@Import(ChatRoomCommandPersistenceAdapter::class, ChatRoomMapper::class)
+@Import(ReadStatusPersistenceAdapterTest.TestConfig::class, ChatRoomCommandPersistenceAdapter::class, ChatRoomMapper::class)
 @DisplayName("채팅방 읽음 상태 어댑터 테스트")
+@org.springframework.test.context.ActiveProfiles("test")
 class ReadStatusPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomUserRepository: ChatRoomUserRepository,
@@ -66,4 +70,9 @@ class ReadStatusPersistenceAdapterTest @Autowired constructor(
         assertThat(currentMessageId).isEqualTo(longMessageId)
     }
 
+    @TestConfiguration
+    class TestConfig {
+        @Bean
+        fun objectMapper(): ObjectMapper = ObjectMapper()
+    }
 }

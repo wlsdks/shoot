@@ -6,7 +6,7 @@ import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 import com.stark.shoot.infrastructure.util.toObjectId
 import kotlinx.coroutines.flow.Flow
@@ -289,6 +289,33 @@ class MessageQueryMongoAdapter(
 
         return mongoTemplate.find(query, com.stark.shoot.adapter.out.persistence.mongodb.document.message.ChatMessageDocument::class.java)
             .map(chatMessageMapper::toDomain)
+    }
+
+    /**
+     * 여러 메시지 ID로 메시지를 배치 조회
+     * N+1 쿼리 문제를 방지하기 위한 배치 조회
+     *
+     * MongoDB의 $in 연산자를 사용하여 한 번의 쿼리로 여러 메시지를 조회합니다.
+     *
+     * @param messageIds 조회할 메시지 ID 목록
+     * @return 메시지 목록 (존재하지 않는 ID는 제외)
+     */
+    override fun findAllByIds(messageIds: List<MessageId>): List<ChatMessage> {
+        if (messageIds.isEmpty()) return emptyList()
+
+        return try {
+            // MessageId를 ObjectId로 변환
+            val objectIds = messageIds.map { it.value.toObjectId() }
+
+            // MongoDB의 findAllById 메서드 사용 (내부적으로 $in 쿼리 사용)
+            val documents = chatMessageRepository.findAllById(objectIds)
+
+            // Document를 Domain으로 변환
+            documents.map(chatMessageMapper::toDomain)
+        } catch (e: Exception) {
+            // ObjectId 변환 실패 시 빈 리스트 반환
+            emptyList()
+        }
     }
 
 }

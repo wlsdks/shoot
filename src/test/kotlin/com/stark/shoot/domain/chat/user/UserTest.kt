@@ -1,12 +1,12 @@
 package com.stark.shoot.domain.chat.user
 
 import com.stark.shoot.domain.user.User
+import com.stark.shoot.domain.user.exception.InvalidUserDataException
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.Nickname
 import com.stark.shoot.domain.user.vo.UserCode
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.vo.Username
-import com.stark.shoot.domain.exception.InvalidUserDataException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

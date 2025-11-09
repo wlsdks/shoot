@@ -1,6 +1,8 @@
 package com.stark.shoot.application.service.event.friend
 
-import com.stark.shoot.domain.event.FriendRemovedEvent
+import com.stark.shoot.domain.shared.event.FriendRemovedEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase
@@ -27,6 +29,9 @@ class FriendRemovedEventListener {
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleFriendRemoved(event: FriendRemovedEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.FRIEND_REMOVED_V1, "FriendRemovedEventListener")
+
         logger.info {
             "Friend removed: " +
             "userId=${event.userId.value}, " +

@@ -4,6 +4,8 @@ import com.stark.shoot.adapter.`in`.rest.dto.ResponseDto
 import com.stark.shoot.adapter.`in`.rest.dto.message.pin.PinnedMessagesResponse
 import com.stark.shoot.application.port.`in`.message.pin.GetPinnedMessageUseCase
 import com.stark.shoot.application.port.`in`.message.pin.command.GetPinnedMessagesCommand
+import com.stark.shoot.application.port.out.message.pin.MessagePinQueryPort
+import com.stark.shoot.domain.chat.vo.ChatRoomId as ChatChatRoomId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,7 +17,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/messages")
 @RestController
 class GetPinnedMessageController(
-    private val getPinnedMessageUseCase: GetPinnedMessageUseCase
+    private val getPinnedMessageUseCase: GetPinnedMessageUseCase,
+    private val messagePinQueryPort: MessagePinQueryPort
 ) {
 
     @Operation(
@@ -28,7 +31,12 @@ class GetPinnedMessageController(
     ): ResponseDto<PinnedMessagesResponse> {
         val command = GetPinnedMessagesCommand.of(roomId)
         val pinnedMessages = getPinnedMessageUseCase.getPinnedMessages(command)
-        return ResponseDto.success(PinnedMessagesResponse.from(roomId, pinnedMessages))
+
+        // MessagePin Aggregate 조회
+        val chatRoomId = ChatChatRoomId.from(roomId)
+        val messagePins = messagePinQueryPort.findAllByRoomId(chatRoomId)
+
+        return ResponseDto.success(PinnedMessagesResponse.from(roomId, pinnedMessages, messagePins))
     }
 
 }

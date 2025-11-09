@@ -2,7 +2,7 @@ package com.stark.shoot.infrastructure.aop
 
 import com.stark.shoot.adapter.`in`.rest.dto.ApiException
 import com.stark.shoot.adapter.`in`.rest.dto.ErrorCode
-import com.stark.shoot.domain.exception.web.*
+import com.stark.shoot.infrastructure.exception.web.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around

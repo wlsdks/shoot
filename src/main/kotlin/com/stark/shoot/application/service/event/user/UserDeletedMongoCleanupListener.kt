@@ -2,7 +2,7 @@ package com.stark.shoot.application.service.event.user
 
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
-import com.stark.shoot.domain.event.UserDeletedEvent
+import com.stark.shoot.domain.shared.event.UserDeletedEvent
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener

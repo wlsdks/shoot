@@ -22,11 +22,9 @@ data class MessageResponseDto(
     val reactions: Map<String, Set<Long>> = emptyMap(),
     val mentions: Set<Long> = emptySet(),
     val createdAt: Instant? = null,
-    val updatedAt: Instant? = null,
-    val readBy: Map<Long, Boolean> = emptyMap(),
-    val isPinned: Boolean = false,
-    val pinnedBy: Long? = null,
-    val pinnedAt: Instant? = null
+    val updatedAt: Instant? = null
+    // 메시지 고정 정보는 별도 PinResponse DTO로 제공됩니다.
+    // 메시지 읽음 표시는 별도 ReadReceipt API로 제공됩니다.
 )
 
 /**

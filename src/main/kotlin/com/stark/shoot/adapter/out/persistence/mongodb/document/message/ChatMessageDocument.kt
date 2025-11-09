@@ -18,8 +18,7 @@ import java.time.Instant
     // 스레드 메시지 조회 최적화
     CompoundIndex(name = "thread_id_idx", def = "{'threadId': 1, 'createdAt': -1}"),
 
-    // 고정 메시지 조회 최적화
-    CompoundIndex(name = "room_pinned_idx", def = "{'roomId': 1, 'isPinned': 1, 'createdAt': -1}"),
+    // 고정 메시지 조회는 별도 MessagePin collection에서 수행
 
     // 삭제되지 않은 메시지 조회 최적화
     CompoundIndex(name = "room_not_deleted_idx", def = "{'roomId': 1, 'isDeleted': 1, 'createdAt': -1}")
@@ -29,13 +28,11 @@ data class ChatMessageDocument(
     val senderId: Long,                                     // 메시지 보낸 사용자 ID
     val content: MessageContentDocument,                    // 메시지 내용
     val status: MessageStatus = MessageStatus.SENT,         // 메시지 상태 (e.g., SENT, READ 등)
-    val readBy: MutableMap<Long, Boolean> = mutableMapOf(), // 읽음 상태 추가
     val threadId: ObjectId? = null,                         // 스레드 ID (루트 메시지 ID)
     val replyToMessageId: ObjectId? = null,                 // 답장할 메시지 ID
-    val reactions: Map<String, Set<Long>> = emptyMap(),     // 이모티콘 ID to 사용자 ID 목록
+    val reactions: Map<String, Set<Long>> = emptyMap(),     // 이모티콘 ID to 사용자 ID 목록 (deprecated, 별도 Aggregate)
     val mentions: Set<Long> = emptySet(),                   // 멘션된 사용자 ID 목록
-    val isPinned: Boolean = false,                          // 고정 여부
-    val pinnedBy: Long? = null,                             // 고정한 사용자 ID
-    val pinnedAt: Instant? = null,                          // 고정 시간
+    // 메시지 고정 정보는 별도 MessagePin Aggregate로 분리되었습니다.
+    // 메시지 읽음 표시는 별도 MessageReadReceipt Aggregate로 분리되었습니다.
     val isDeleted: Boolean = false,                         // 삭제 여부
 ) : BaseMongoDocument()

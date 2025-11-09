@@ -1,6 +1,6 @@
 package com.stark.shoot.infrastructure.util
 
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 /**
  * 리소스 조회 결과를 검증하고 null인 경우 ResourceNotFoundException을 발생시킵니다.

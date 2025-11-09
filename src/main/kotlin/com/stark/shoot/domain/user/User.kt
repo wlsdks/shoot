@@ -1,10 +1,13 @@
 package com.stark.shoot.domain.user
 
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.*
-import com.stark.shoot.domain.exception.InvalidUserDataException
+import com.stark.shoot.domain.user.exception.InvalidUserDataException
+import com.stark.shoot.infrastructure.annotation.AggregateRoot
 import java.time.Instant
 
+@AggregateRoot
 data class User(
     val id: UserId? = null,
     val username: Username,

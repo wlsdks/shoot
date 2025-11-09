@@ -1,8 +1,9 @@
 package com.stark.shoot.application.service.message.listener
 
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
-import com.stark.shoot.domain.event.MessageDeletedEvent
-import com.stark.shoot.domain.event.MessageEditedEvent
+import com.stark.shoot.application.port.out.message.MessageQueryPort
+import com.stark.shoot.domain.shared.event.MessageDeletedEvent
+import com.stark.shoot.domain.shared.event.MessageEditedEvent
 import com.stark.shoot.infrastructure.util.WebSocketResponseBuilder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener
@@ -26,10 +27,13 @@ import org.springframework.stereotype.Component
  * - MongoDB 저장 완료 후 별도 스레드에서 WebSocket 전송
  * - 저장 작업이 빠르게 완료됨
  * - WebSocket 전송 지연이 API 응답에 영향 없음
+ *
+ * DDD 개선: 이벤트에서 도메인 객체 제거, Application Layer에서 필요 시 조회
  */
 @Component
 class MessageEventWebSocketListener(
-    private val webSocketMessageBroker: WebSocketMessageBroker
+    private val webSocketMessageBroker: WebSocketMessageBroker,
+    private val messageQueryPort: MessageQueryPort
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -45,16 +49,23 @@ class MessageEventWebSocketListener(
     @EventListener
     fun handleMessageEdited(event: MessageEditedEvent) {
         try {
+            // Application Layer에서 메시지 조회
+            val message = messageQueryPort.findById(event.messageId)
+            if (message == null) {
+                logger.warn { "메시지를 찾을 수 없음: messageId=${event.messageId.value}" }
+                return
+            }
+
             // 채팅방의 모든 참여자에게 메시지 편집 알림
             webSocketMessageBroker.sendMessage(
                 "/topic/message/edit/${event.roomId.value}",
-                event.message
+                message
             )
 
             // 요청자에게 성공 응답 전송
             webSocketMessageBroker.sendMessage(
                 "/queue/message/edit/response/${event.userId.value}",
-                WebSocketResponseBuilder.success(event.message, "메시지가 수정되었습니다.")
+                WebSocketResponseBuilder.success(message, "메시지가 수정되었습니다.")
             )
 
             logger.debug {
@@ -83,16 +94,23 @@ class MessageEventWebSocketListener(
     @EventListener
     fun handleMessageDeleted(event: MessageDeletedEvent) {
         try {
+            // Application Layer에서 메시지 조회
+            val message = messageQueryPort.findById(event.messageId)
+            if (message == null) {
+                logger.warn { "메시지를 찾을 수 없음: messageId=${event.messageId.value}" }
+                return
+            }
+
             // 채팅방의 모든 참여자에게 메시지 삭제 알림
             webSocketMessageBroker.sendMessage(
                 "/topic/message/delete/${event.roomId.value}",
-                event.message
+                message
             )
 
             // 요청자에게 성공 응답 전송
             webSocketMessageBroker.sendMessage(
                 "/queue/message/delete/response/${event.userId.value}",
-                WebSocketResponseBuilder.success(event.message, "메시지가 삭제되었습니다.")
+                WebSocketResponseBuilder.success(message, "메시지가 삭제되었습니다.")
             )
 
             logger.debug {

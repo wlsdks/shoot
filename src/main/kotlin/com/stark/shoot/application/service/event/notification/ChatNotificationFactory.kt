@@ -1,16 +1,17 @@
 package com.stark.shoot.application.service.event.notification
 
-import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import org.springframework.stereotype.Component
 
 /**
  * 채팅 관련 알림을 생성하는 팩토리 클래스입니다.
  * 다양한 유형의 알림을 생성하는 메서드를 제공합니다.
+ *
+ * DDD 개선: ChatMessage 도메인 객체 대신 primitive + VO 사용
  */
 @Component
 class ChatNotificationFactory {
@@ -19,22 +20,28 @@ class ChatNotificationFactory {
      * 멘션 알림을 생성합니다.
      *
      * @param userId 알림을 받을 사용자 ID
-     * @param message 채팅 메시지
+     * @param messageId 메시지 ID
+     * @param roomId 채팅방 ID
+     * @param senderId 발신자 ID
+     * @param content 메시지 내용
      * @return 생성된 멘션 알림
      */
     fun createMentionNotification(
         userId: Long,
-        message: ChatMessage
+        messageId: MessageId,
+        roomId: ChatRoomId,
+        senderId: UserId,
+        content: String
     ): Notification {
-        val truncatedText = truncateMessageText(message.content.text)
+        val truncatedText = truncateMessageText(content)
 
         return Notification.fromChatEvent(
             userId = UserId.from(userId),
             title = "새로운 멘션",
             message = "메시지에서 언급되었습니다: $truncatedText",
             type = NotificationType.MENTION,
-            sourceId = message.roomId.toString(),
-            metadata = createMessageMetadata(message)
+            sourceId = roomId.toString(),
+            metadata = createMessageMetadata(messageId, senderId)
         )
     }
 
@@ -42,22 +49,28 @@ class ChatNotificationFactory {
      * 일반 메시지 알림을 생성합니다.
      *
      * @param userId 알림을 받을 사용자 ID
-     * @param message 채팅 메시지
+     * @param messageId 메시지 ID
+     * @param roomId 채팅방 ID
+     * @param senderId 발신자 ID
+     * @param content 메시지 내용
      * @return 생성된 메시지 알림
      */
     fun createMessageNotification(
         userId: Long,
-        message: ChatMessage
+        messageId: MessageId,
+        roomId: ChatRoomId,
+        senderId: UserId,
+        content: String
     ): Notification {
-        val truncatedText = truncateMessageText(message.content.text)
+        val truncatedText = truncateMessageText(content)
 
         return Notification.fromChatEvent(
             userId = UserId.from(userId),
             title = "새로운 메시지",
             message = truncatedText,
             type = NotificationType.NEW_MESSAGE,
-            sourceId = message.roomId.toString(),
-            metadata = createMessageMetadata(message)
+            sourceId = roomId.toString(),
+            metadata = createMessageMetadata(messageId, senderId)
         )
     }
 
@@ -79,13 +92,14 @@ class ChatNotificationFactory {
     /**
      * 메시지 메타데이터를 생성합니다.
      *
-     * @param message 채팅 메시지
+     * @param messageId 메시지 ID
+     * @param senderId 발신자 ID
      * @return 메타데이터 맵
      */
-    private fun createMessageMetadata(message: ChatMessage): Map<String, Any> {
+    private fun createMessageMetadata(messageId: MessageId, senderId: UserId): Map<String, Any> {
         return mapOf(
-            "senderId" to message.senderId.toString(),
-            "messageId" to (message.id ?: "").toString()
+            "senderId" to senderId.toString(),
+            "messageId" to messageId.toString()
         )
     }
 

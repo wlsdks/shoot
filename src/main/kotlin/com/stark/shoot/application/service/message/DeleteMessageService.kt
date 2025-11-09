@@ -1,13 +1,14 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.port.`in`.message.DeleteMessageUseCase
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.application.port.`in`.message.command.DeleteMessageCommand
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.event.MessageDeletedEvent
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.shared.event.MessageDeletedEvent
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
@@ -73,14 +74,13 @@ class DeleteMessageService(
      */
     private fun publishMessageDeletedEvent(
         message: ChatMessage,
-        userId: com.stark.shoot.domain.user.vo.UserId
+        userId: com.stark.shoot.domain.shared.UserId
     ) {
         try {
             val event = MessageDeletedEvent.create(
                 messageId = message.id ?: return,
                 roomId = message.roomId,
                 userId = userId,
-                message = message,  // WebSocket 전송용
                 deletedAt = Instant.now()
             )
             eventPublisher.publishEvent(event)

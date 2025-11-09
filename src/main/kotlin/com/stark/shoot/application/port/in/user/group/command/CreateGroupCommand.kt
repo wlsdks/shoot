@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.user.group.command
 
 import com.stark.shoot.adapter.`in`.rest.dto.social.group.CreateGroupRequest
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * Command for creating a new friend group

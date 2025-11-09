@@ -6,10 +6,10 @@ import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
 import com.stark.shoot.application.port.out.user.friend.relate.FriendshipCommandPort
 import com.stark.shoot.application.port.out.user.friend.relate.FriendshipQueryPort
-import com.stark.shoot.domain.event.FriendRemovedEvent
+import com.stark.shoot.domain.shared.event.FriendRemovedEvent
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.annotation.Transactional
 
@@ -60,7 +60,7 @@ class FriendRemoveService(
      * 친구 삭제 이벤트를 발행합니다.
      * 트랜잭션 커밋 후 리스너들이 1:1 채팅방 처리, 알림 전송 등을 수행할 수 있습니다.
      */
-    private fun publishFriendRemovedEvent(userId: com.stark.shoot.domain.user.vo.UserId, friendId: com.stark.shoot.domain.user.vo.UserId) {
+    private fun publishFriendRemovedEvent(userId: com.stark.shoot.domain.shared.UserId, friendId: com.stark.shoot.domain.shared.UserId) {
         try {
             val event = FriendRemovedEvent.create(
                 userId = userId,

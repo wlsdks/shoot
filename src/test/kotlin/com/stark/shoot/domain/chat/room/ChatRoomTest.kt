@@ -1,13 +1,15 @@
 package com.stark.shoot.domain.chat.room
 
 import com.stark.shoot.domain.chat.message.vo.MessageId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.ChatRoom
+import com.stark.shoot.domain.chatroom.exception.FavoriteLimitExceededException
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomAnnouncement
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId as ChatRoomIdService
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
-import com.stark.shoot.domain.user.vo.UserId
-import com.stark.shoot.domain.exception.FavoriteLimitExceededException
+import com.stark.shoot.domain.chatroom.vo.MessageId as MessageIdService
+import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -42,7 +44,6 @@ class ChatRoomTest {
             assertThat(chatRoom.participants).containsExactlyInAnyOrderElementsOf(participants)
             assertThat(chatRoom.lastMessageId).isNull()
             assertThat(chatRoom.announcement).isNull()
-            assertThat(chatRoom.pinnedParticipants).isEmpty()
         }
 
         @Test
@@ -62,7 +63,6 @@ class ChatRoomTest {
             assertThat(chatRoom.participants).containsExactlyInAnyOrder(UserId.from(userId), UserId.from(friendId))
             assertThat(chatRoom.lastMessageId).isNull()
             assertThat(chatRoom.announcement).isNull()
-            assertThat(chatRoom.pinnedParticipants).isEmpty()
         }
     }
 
@@ -75,14 +75,14 @@ class ChatRoomTest {
         fun `채팅방 정보를 업데이트할 수 있다`() {
             // given
             val chatRoom = ChatRoom(
-                id = ChatRoomId.from(1L),
+                id = ChatRoomIdService.from(1L),
                 title = ChatRoomTitle.from("원래 제목"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(UserId.from(1L), UserId.from(2L))
             )
             val newTitle = "새 제목"
             val newAnnouncement = ChatRoomAnnouncement.from("새 공지사항")
-            val newLastMessageId = MessageId.from("message123")
+            val newLastMessageId = MessageIdService.from("message123")
             val newLastActiveAt = Instant.now().plusSeconds(3600)
 
             // when
@@ -301,21 +301,16 @@ class ChatRoomTest {
             val chatRoom = ChatRoom(
                 title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
-                participants = mutableSetOf(UserId.from(1L), UserId.from(2L), UserId.from(3L)),
-                pinnedParticipants = mutableSetOf(UserId.from(1L))
+                participants = mutableSetOf(UserId.from(1L), UserId.from(2L), UserId.from(3L))
             )
             val newParticipants = setOf(UserId.from(2L), UserId.from(3L), UserId.from(4L)) // 1L 제거, 4L 추가
-            val newPinnedParticipants = setOf(UserId.from(2L), UserId.from(4L)) // 1L 제거, 2L, 4L 추가
 
             // when
-            val changes = chatRoom.calculateParticipantChanges(newParticipants, newPinnedParticipants)
+            val changes = chatRoom.calculateParticipantChanges(newParticipants)
 
             // then
             assertThat(changes.participantsToAdd).containsExactly(UserId.from(4L))
             assertThat(changes.participantsToRemove).containsExactly(UserId.from(1L))
-            assertThat(changes.pinnedStatusChanges).hasSize(2)
-            assertThat(changes.pinnedStatusChanges[UserId.from(2L)]).isTrue()
-            assertThat(changes.pinnedStatusChanges[UserId.from(4L)]).isTrue()
         }
 
         @Test
@@ -325,112 +320,22 @@ class ChatRoomTest {
             val chatRoom = ChatRoom(
                 title = ChatRoomTitle.from("테스트 채팅방"),
                 type = ChatRoomType.GROUP,
-                participants = mutableSetOf(UserId.from(1L), UserId.from(2L)),
-                pinnedParticipants = mutableSetOf(UserId.from(1L))
+                participants = mutableSetOf(UserId.from(1L), UserId.from(2L))
             )
             val sameParticipants = setOf(UserId.from(1L), UserId.from(2L))
-            val samePinnedParticipants = setOf(UserId.from(1L))
 
             // when
-            val changes = chatRoom.calculateParticipantChanges(sameParticipants, samePinnedParticipants)
+            val changes = chatRoom.calculateParticipantChanges(sameParticipants)
 
             // then
             assertThat(changes.isEmpty()).isTrue()
             assertThat(changes.participantsToAdd).isEmpty()
             assertThat(changes.participantsToRemove).isEmpty()
-            assertThat(changes.pinnedStatusChanges).isEmpty()
         }
     }
 
-    @Nested
-    @DisplayName("즐겨찾기 관리 시")
-    inner class ManageFavorites {
-
-        @Test
-        @DisplayName("[happy] 채팅방을 즐겨찾기에 추가할 수 있다")
-        fun `채팅방을 즐겨찾기에 추가할 수 있다`() {
-            // given
-            val chatRoom = ChatRoom(
-                title = ChatRoomTitle.from("테스트 채팅방"),
-                type = ChatRoomType.GROUP,
-                participants = mutableSetOf(UserId.from(1L), UserId.from(2L))
-            )
-            val userId = UserId.from(1L)
-            val isFavorite = true
-            val userPinnedRoomsCount = 0
-            val maxPinnedLimit = 10
-
-            // when
-            chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount, maxPinnedLimit)
-
-            // then
-            assertThat(chatRoom.pinnedParticipants).contains(userId)
-        }
-
-        @Test
-        @DisplayName("[happy] 이미 즐겨찾기된 채팅방을 다시 즐겨찾기하면 제거된다")
-        fun `이미 즐겨찾기된 채팅방을 다시 즐겨찾기하면 제거된다`() {
-            // given
-            val userId = UserId.from(1L)
-            val chatRoom = ChatRoom(
-                title = ChatRoomTitle.from("테스트 채팅방"),
-                type = ChatRoomType.GROUP,
-                participants = mutableSetOf(userId, UserId.from(2L)),
-                pinnedParticipants = mutableSetOf(userId)
-            )
-            val isFavorite = true
-            val userPinnedRoomsCount = 1
-            val maxPinnedLimit = 10
-
-            // when
-            chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount, maxPinnedLimit)
-
-            // then
-            assertThat(chatRoom.pinnedParticipants).doesNotContain(userId)
-        }
-
-        @Test
-        @DisplayName("[happy] 즐겨찾기를 해제할 수 있다")
-        fun `즐겨찾기를 해제할 수 있다`() {
-            // given
-            val userId = UserId.from(1L)
-            val chatRoom = ChatRoom(
-                title = ChatRoomTitle.from("테스트 채팅방"),
-                type = ChatRoomType.GROUP,
-                participants = mutableSetOf(userId, UserId.from(2L)),
-                pinnedParticipants = mutableSetOf(userId)
-            )
-            val isFavorite = false
-            val userPinnedRoomsCount = 1
-            val maxPinnedLimit = 10
-
-            // when
-            chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount, maxPinnedLimit)
-
-            // then
-            assertThat(chatRoom.pinnedParticipants).doesNotContain(userId)
-        }
-
-        @Test
-        @DisplayName("[happy] 즐겨찾기 최대 개수를 초과하면 예외가 발생한다")
-        fun `즐겨찾기 최대 개수를 초과하면 예외가 발생한다`() {
-            // given
-            val chatRoom = ChatRoom(
-                title = ChatRoomTitle.from("테스트 채팅방"),
-                type = ChatRoomType.GROUP,
-                participants = mutableSetOf(UserId.from(1L), UserId.from(2L))
-            )
-            val userId = UserId.from(1L)
-            val isFavorite = true
-            val userPinnedRoomsCount = 5 // 최대 개수
-            val maxPinnedLimit = 5
-
-            // when & then
-            assertThrows<FavoriteLimitExceededException> {
-                chatRoom.updateFavoriteStatus(userId, isFavorite, userPinnedRoomsCount, maxPinnedLimit)
-            }
-        }
-    }
+    // DDD 개선: 즐겨찾기 관리 기능은 ChatRoomFavorite Aggregate로 이동
+    // 관련 테스트: ChatRoomFavoriteTest.kt
 
     @Nested
     @DisplayName("채팅방 상태 확인 시")
@@ -579,7 +484,7 @@ class ChatRoomTest {
                 title = ChatRoomTitle.from("채팅방"),
                 type = ChatRoomType.GROUP,
                 participants = mutableSetOf(UserId.from(1L), UserId.from(2L)),
-                lastMessageId = MessageId.from("message123")
+                lastMessageId = MessageIdService.from("message123")
             )
             val chatRoomWithoutMessage = ChatRoom(
                 title = ChatRoomTitle.from("채팅방"),

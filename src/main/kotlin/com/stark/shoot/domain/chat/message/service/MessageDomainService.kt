@@ -4,10 +4,10 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.event.MessageEvent
-import com.stark.shoot.domain.event.type.EventType
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.shared.event.MessageEvent
+import com.stark.shoot.domain.shared.event.type.EventType
+import com.stark.shoot.domain.shared.UserId
 import java.util.*
 
 /**
@@ -61,11 +61,25 @@ class MessageDomainService {
     /**
      * 도메인 메시지 객체로부터 도메인 이벤트를 생성합니다.
      *
+     * DDD 개선: Event factory 제거, 직접 생성 (Shared Kernel 독립성)
+     *
      * @param chatMessage 도메인 메시지 객체
      * @return 생성된 도메인 이벤트
      */
     fun createMessageEvent(chatMessage: ChatMessage): MessageEvent {
-        return MessageEvent.fromMessage(chatMessage, EventType.MESSAGE_CREATED)
+        return MessageEvent(
+            type = EventType.MESSAGE_CREATED,
+            messageId = chatMessage.id,
+            roomId = chatMessage.roomId,
+            senderId = chatMessage.senderId,
+            content = chatMessage.content.text,
+            messageType = chatMessage.content.type,
+            mentions = chatMessage.mentions,
+            tempId = chatMessage.metadata.tempId,
+            needsUrlPreview = chatMessage.metadata.needsUrlPreview,
+            previewUrl = chatMessage.metadata.previewUrl,
+            createdAt = chatMessage.createdAt ?: java.time.Instant.now()
+        )
     }
 
 }

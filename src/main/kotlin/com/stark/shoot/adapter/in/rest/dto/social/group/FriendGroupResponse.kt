@@ -1,6 +1,6 @@
 package com.stark.shoot.adapter.`in`.rest.dto.social.group
 
-import com.stark.shoot.domain.user.FriendGroup
+import com.stark.shoot.domain.social.FriendGroup
 import com.stark.shoot.infrastructure.annotation.ApplicationDto
 
 @ApplicationDto
@@ -13,7 +13,7 @@ data class FriendGroupResponse(
 )
 
 fun FriendGroup.toResponse() = FriendGroupResponse(
-    id = id ?: 0L,
+    id = id?.value ?: 0L,
     ownerId = ownerId.value,
     name = name.value,
     description = description,

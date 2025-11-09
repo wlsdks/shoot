@@ -3,10 +3,11 @@ package com.stark.shoot.application.service.event.notification
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
+import com.stark.shoot.application.acl.*
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.event.MessageReactionEvent
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.event.MessageReactionEvent
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase
@@ -73,7 +74,7 @@ class ReactionEventNotificationListener(
                 userId = message.senderId,
                 reactingUserId = reactingUserId,
                 messageId = event.messageId,
-                roomId = event.roomId,
+                roomId = event.roomId.toChatRoom(),
                 reactionType = event.reactionType
             )
 

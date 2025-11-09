@@ -1,14 +1,15 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.application.port.`in`.message.EditMessageUseCase
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.application.port.`in`.message.command.EditMessageCommand
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageEditDomainService
-import com.stark.shoot.domain.event.MessageEditedEvent
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.domain.shared.event.MessageEditedEvent
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
@@ -77,7 +78,7 @@ class EditMessageService(
      */
     private fun publishMessageEditedEvent(
         message: ChatMessage,
-        userId: com.stark.shoot.domain.user.vo.UserId,
+        userId: com.stark.shoot.domain.shared.UserId,
         oldContent: String,
         newContent: String
     ) {
@@ -88,7 +89,6 @@ class EditMessageService(
                 userId = userId,
                 oldContent = oldContent,
                 newContent = newContent,
-                message = message,  // WebSocket 전송용
                 editedAt = Instant.now()
             )
             eventPublisher.publishEvent(event)

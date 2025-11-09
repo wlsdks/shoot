@@ -8,6 +8,7 @@ import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
+import com.stark.shoot.application.acl.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageForwardDomainService
 import com.stark.shoot.domain.chat.message.vo.MessageId
@@ -16,9 +17,9 @@ import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
 import com.stark.shoot.domain.chatroom.service.ChatRoomMetadataDomainService
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 @UseCase
 class ForwardMessageToUserService(
@@ -100,7 +101,7 @@ class ForwardMessageToUserService(
         val forwardedContent = messageForwardDomainService.createForwardedContent(originalMessage)
 
         val forwardedMessage = messageForwardDomainService.createForwardedMessage(
-            targetRoomId = targetRoomId,
+            targetRoomId = targetRoomId.toChat(),
             forwardingUserId = forwardingUserId,
             forwardedContent = forwardedContent
         )
@@ -119,9 +120,14 @@ class ForwardMessageToUserService(
         val chatRoom = chatRoomQueryPort.findById(targetRoomId)
             ?: throw ResourceNotFoundException("대상 채팅방을 찾을 수 없습니다. id=$targetRoomId")
 
+        // DDD 개선: messageId와 createdAt만 전달
+        val messageIdStr = savedForwardMessage.id?.value
+            ?: throw IllegalStateException("Saved message has no ID")
+        val chatRoomMessageId = com.stark.shoot.domain.chatroom.vo.MessageId.from(messageIdStr)
         val updatedRoom = chatRoomMetadataDomainService.updateChatRoomWithNewMessage(
             chatRoom = chatRoom,
-            message = savedForwardMessage
+            messageId = chatRoomMessageId,
+            createdAt = savedForwardMessage.createdAt ?: java.time.Instant.now()
         )
 
         chatRoomCommandPort.save(updatedRoom)

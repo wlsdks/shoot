@@ -1,6 +1,8 @@
 package com.stark.shoot.application.service.event.message
 
-import com.stark.shoot.domain.event.MessageEditedEvent
+import com.stark.shoot.domain.shared.event.MessageEditedEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener
@@ -23,6 +25,9 @@ class MessageEditedEventListener {
      */
     @EventListener
     fun handleMessageEdited(event: MessageEditedEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.MESSAGE_EDITED_V1, "MessageEditedEventListener")
+
         logger.info {
             "Message edited: " +
             "messageId=${event.messageId.value}, " +

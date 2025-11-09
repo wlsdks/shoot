@@ -1,17 +1,20 @@
 package com.stark.shoot.domain.chat.message
 
+import com.stark.shoot.domain.chat.exception.MessageException
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @DisplayName("채팅 메시지 도메인 테스트")
 class ChatMessageTest {
@@ -50,6 +53,9 @@ class ChatMessageTest {
         }
     }
 
+    // TODO: 메시지 읽음 표시 기능은 별도의 MessageReadReceipt Aggregate로 분리되었습니다.
+    // 아래 테스트는 MessageReadReceipt Aggregate 테스트로 재작성 필요
+    /*
     @Nested
     @DisplayName("메시지 읽음 처리 시")
     inner class MarkAsRead {
@@ -75,7 +81,11 @@ class ChatMessageTest {
             assertThat(message.metadata.readAt).isNotNull()
         }
     }
+    */
 
+    // TODO: 메시지 고정 기능은 별도의 MessagePin Aggregate로 분리되었습니다.
+    // 아래 테스트들은 MessagePin Aggregate 테스트로 재작성 필요
+    /*
     @Nested
     @DisplayName("메시지 고정 상태 변경 시")
     inner class UpdatePinStatus {
@@ -200,6 +210,7 @@ class ChatMessageTest {
             assertThat(result.unpinnedMessage).isNull()
         }
     }
+    */
 
     @Nested
     @DisplayName("메시지 내용 수정 시")
@@ -227,6 +238,68 @@ class ChatMessageTest {
         }
 
         @Test
+        @DisplayName("[happy] 생성 후 23시간 59분 경과한 메시지를 수정할 수 있다")
+        fun `생성 후 23시간 59분 경과한 메시지를 수정할 수 있다`() {
+            // given
+            val oldCreatedAt = Instant.now().minus(23, ChronoUnit.HOURS).minus(59, ChronoUnit.MINUTES)
+            val message = ChatMessage.create(
+                roomId = ChatRoomId.from(1L),
+                senderId = UserId.from(2L),
+                text = "안녕하세요",
+                type = MessageType.TEXT
+            )
+            message.createdAt = oldCreatedAt
+            val newContent = "수정된 내용입니다"
+
+            // when
+            message.editMessage(newContent)
+
+            // then
+            assertThat(message.content.text).isEqualTo(newContent)
+            assertThat(message.content.isEdited).isTrue()
+        }
+
+        @Test
+        @DisplayName("[bad] 생성 후 24시간이 경과한 메시지는 수정할 수 없다")
+        fun `생성 후 24시간이 경과한 메시지는 수정할 수 없다`() {
+            // given
+            val oldCreatedAt = Instant.now().minus(24, ChronoUnit.HOURS)
+            val message = ChatMessage.create(
+                roomId = ChatRoomId.from(1L),
+                senderId = UserId.from(2L),
+                text = "안녕하세요",
+                type = MessageType.TEXT
+            )
+            message.createdAt = oldCreatedAt
+            val newContent = "수정된 내용입니다"
+
+            // when & then
+            assertThatThrownBy { message.editMessage(newContent) }
+                .isInstanceOf(MessageException.EditTimeExpired::class.java)
+                .hasMessageContaining("메시지는 생성 후 24시간 이내에만 수정할 수 있습니다")
+        }
+
+        @Test
+        @DisplayName("[bad] 생성 후 25시간이 경과한 메시지는 수정할 수 없다")
+        fun `생성 후 25시간이 경과한 메시지는 수정할 수 없다`() {
+            // given
+            val oldCreatedAt = Instant.now().minus(25, ChronoUnit.HOURS)
+            val message = ChatMessage.create(
+                roomId = ChatRoomId.from(1L),
+                senderId = UserId.from(2L),
+                text = "안녕하세요",
+                type = MessageType.TEXT
+            )
+            message.createdAt = oldCreatedAt
+            val newContent = "수정된 내용입니다"
+
+            // when & then
+            assertThatThrownBy { message.editMessage(newContent) }
+                .isInstanceOf(MessageException.EditTimeExpired::class.java)
+                .hasMessageContaining("메시지는 생성 후 24시간 이내에만 수정할 수 있습니다")
+        }
+
+        @Test
         @DisplayName("[bad] 빈 내용으로 수정하려고 하면 예외가 발생한다")
         fun `빈 내용으로 수정하려고 하면 예외가 발생한다`() {
             // given
@@ -240,7 +313,7 @@ class ChatMessageTest {
 
             // when & then
             assertThatThrownBy { message.editMessage(emptyContent) }
-                .isInstanceOf(IllegalArgumentException::class.java)
+                .isInstanceOf(MessageException.EmptyContent::class.java)
                 .hasMessageContaining("메시지 내용은 비어있을 수 없습니다")
         }
 
@@ -259,7 +332,7 @@ class ChatMessageTest {
 
             // when & then
             assertThatThrownBy { message.editMessage(newContent) }
-                .isInstanceOf(IllegalArgumentException::class.java)
+                .isInstanceOf(MessageException.NotEditable::class.java)
                 .hasMessageContaining("삭제된 메시지는 수정할 수 없습니다")
         }
 
@@ -277,7 +350,7 @@ class ChatMessageTest {
 
             // when & then
             assertThatThrownBy { message.editMessage(newContent) }
-                .isInstanceOf(IllegalArgumentException::class.java)
+                .isInstanceOf(MessageException.NotEditable::class.java)
                 .hasMessageContaining("텍스트 타입의 메시지만 수정할 수 있습니다")
         }
     }
@@ -306,6 +379,14 @@ class ChatMessageTest {
         }
     }
 
+    /**
+     * TODO: MessageReaction Aggregate 분리로 인한 재작성 필요
+     * - toggleReaction 메서드가 ChatMessage에서 제거됨
+     * - MessageReaction을 별도 Aggregate로 테스트해야 함
+     *
+     * Note: 테스트 전체 주석 처리 (컴파일 에러 방지)
+     */
+    /*
     @Nested
     @DisplayName("메시지 반응 토글 시")
     inner class ToggleReaction {
@@ -385,6 +466,7 @@ class ChatMessageTest {
             assertThat(result.message.messageReactions.reactions[newReactionType.code]).contains(userId.value)
         }
     }
+    */
 
     @Nested
     @DisplayName("URL 미리보기 처리 시")

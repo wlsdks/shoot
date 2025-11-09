@@ -4,8 +4,8 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.shared.UserId
 import java.time.Instant
 
 /**
@@ -45,13 +45,13 @@ class MessageForwardDomainService {
         forwardedContent: MessageContent
     ): ChatMessage {
         // 전달할 메시지 생성
+        // 리액션은 별도 Aggregate(MessageReaction)로 관리
         return ChatMessage(
             roomId = targetRoomId,
             senderId = forwardingUserId,
             content = forwardedContent,
             status = MessageStatus.SENT,
             replyToMessageId = null,
-            messageReactions = MessageReactions(),
             mentions = emptySet(),
             createdAt = Instant.now(),
             updatedAt = null

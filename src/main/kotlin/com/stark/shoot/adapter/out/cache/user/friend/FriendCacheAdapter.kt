@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.out.cache.user.friend
 
 import com.stark.shoot.application.port.out.user.friend.FriendCachePort
 import com.stark.shoot.application.service.user.friend.recommend.RecommendFriendService
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 /**

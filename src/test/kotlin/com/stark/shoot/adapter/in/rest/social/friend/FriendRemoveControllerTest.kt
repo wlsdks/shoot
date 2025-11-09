@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.rest.social.friend
 
 import com.stark.shoot.application.port.`in`.user.friend.FriendRemoveUseCase
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.application.port.`in`.user.friend.command.RemoveFriendCommand
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.type.UserStatus

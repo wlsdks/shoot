@@ -3,7 +3,9 @@ package com.stark.shoot.application.service.event.chatroom
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
-import com.stark.shoot.domain.event.ChatRoomParticipantChangedEvent
+import com.stark.shoot.domain.shared.event.ChatRoomParticipantChangedEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase
@@ -25,6 +27,9 @@ class ChatRoomParticipantChangedEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleParticipantChanged(event: ChatRoomParticipantChangedEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.CHATROOM_PARTICIPANT_CHANGED_V1, "ChatRoomParticipantChangedEventListener")
+
         logger.info { 
             "Processing participant changed event: roomId=${event.roomId.value}, " +
             "added=${event.participantsAdded.size}, removed=${event.participantsRemoved.size}" 

@@ -1,12 +1,14 @@
 package com.stark.shoot.domain.notification
 
 import com.stark.shoot.domain.notification.type.NotificationType
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.infrastructure.annotation.AggregateRoot
 import java.time.Instant
 
 /**
  * 사용자별 알림 설정을 관리하는 애그리게이트
  */
+@AggregateRoot
 data class NotificationSettings(
     val userId: UserId,
     var preferences: Map<NotificationType, Boolean> = emptyMap(),

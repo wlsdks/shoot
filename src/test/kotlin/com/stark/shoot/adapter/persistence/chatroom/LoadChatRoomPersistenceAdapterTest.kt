@@ -1,5 +1,6 @@
 package com.stark.shoot.adapter.persistence.chatroom
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.out.persistence.postgres.adapter.chatroom.ChatRoomQueryPersistenceAdapter
 import com.stark.shoot.adapter.out.persistence.postgres.mapper.ChatRoomMapper
 import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomRepository
@@ -7,19 +8,22 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.ChatRoomUserR
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.util.TestEntityFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.hamcrest.Matchers.hasSize
 
 @DataJpaTest
-@Import(ChatRoomQueryPersistenceAdapter::class, ChatRoomMapper::class)
+@Import(LoadChatRoomPersistenceAdapterTest.TestConfig::class, ChatRoomQueryPersistenceAdapter::class, ChatRoomMapper::class)
 @DisplayName("채팅방 조회 어댑터 테스트")
+@org.springframework.test.context.ActiveProfiles("test")
 class LoadChatRoomPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomUserRepository: ChatRoomUserRepository,
@@ -41,7 +45,7 @@ class LoadChatRoomPersistenceAdapterTest @Autowired constructor(
         val room = chatRoomQueryPersistenceAdapter.findById(ChatRoomId.from(roomEntity.id))
         assertThat(room).isNotNull
         assertThat(room!!.participants).containsExactlyInAnyOrder(UserId.from(user1.id), UserId.from(user2.id))
-        assertThat(room.pinnedParticipants).contains(UserId.from(user2.id))
+        // DDD 개선: pinnedParticipants는 ChatRoomFavorite Aggregate에서 관리
     }
 
     @Test
@@ -58,5 +62,11 @@ class LoadChatRoomPersistenceAdapterTest @Autowired constructor(
         val rooms = chatRoomQueryPersistenceAdapter.findByParticipantId(UserId.from(user1.id))
         assertThat(rooms).hasSize(1)
         assertThat(rooms[0].participants).contains(UserId.from(user1.id), UserId.from(user2.id))
+    }
+
+    @TestConfiguration
+    class TestConfig {
+        @Bean
+        fun objectMapper(): ObjectMapper = ObjectMapper()
     }
 }

@@ -7,11 +7,12 @@ import com.stark.shoot.application.port.`in`.message.command.SendMessageCommand
 import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
+import com.stark.shoot.application.acl.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageDomainService
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -60,7 +61,7 @@ class SendMessageService(
         messageRequest: ChatMessageRequest
     ): ChatMessage {
         val messageWithPreview = messageDomainService.createAndProcessMessage(
-            roomId = ChatRoomId.from(messageRequest.roomId),
+            roomId = ChatRoomId.from(messageRequest.roomId).toChat(),
             senderId = UserId.from(messageRequest.senderId),
             contentText = messageRequest.content.text,
             contentType = messageRequest.content.type,

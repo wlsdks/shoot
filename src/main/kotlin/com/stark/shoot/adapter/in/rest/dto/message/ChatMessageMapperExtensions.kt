@@ -1,12 +1,13 @@
 package com.stark.shoot.adapter.`in`.rest.dto.message
 
+import com.stark.shoot.application.acl.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 fun ChatMessageMetadataRequest.toDomain(): ChatMessageMetadata {
     return ChatMessageMetadata(
@@ -50,13 +51,13 @@ fun ChatMessageRequest.toDomain(): ChatMessage {
 
     return ChatMessage(
         id = this.id?.let { MessageId.from(it) },
-        roomId = ChatRoomId.from(this.roomId),
+        roomId = ChatRoomId.from(this.roomId).toChat(),
         senderId = UserId.from(this.senderId),
         content = content,
         threadId = this.threadId?.let { MessageId.from(it) },
         status = this.status ?: MessageStatus.SENT,
-        readBy = this.readBy?.mapKeys { UserId.from(it.key.toLong()) }?.toMutableMap() ?: mutableMapOf(),
         metadata = metadata
+        // 읽음 표시는 별도 MessageReadReceipt Aggregate로 관리
     )
 }
 

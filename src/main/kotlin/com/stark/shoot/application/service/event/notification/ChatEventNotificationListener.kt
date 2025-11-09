@@ -3,8 +3,8 @@ package com.stark.shoot.application.service.event.notification
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
-import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.event.MessageSentEvent
+import com.stark.shoot.application.acl.*
+import com.stark.shoot.domain.shared.event.MessageSentEvent
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -19,6 +19,8 @@ import org.springframework.transaction.event.TransactionalEventListener
  * 2. 멘션된 사용자에 대한 알림 생성
  * 3. 일반 메시지 수신자에 대한 알림 생성
  * 4. 알림 저장 및 전송
+ *
+ * DDD 개선: MessageSentEvent에서 ChatMessage 도메인 객체 제거, 이벤트 필드 직접 사용
  */
 @ApplicationEventListener
 class ChatEventNotificationListener(
@@ -45,24 +47,24 @@ class ChatEventNotificationListener(
      * 생성된 메시지에 대한 알림을 처리합니다.
      * 메시지 수신자를 식별하고, 알림을 생성하여 저장 및 전송합니다.
      *
+     * DDD 개선: 이벤트에서 직접 필드 사용
+     *
      * @param event 처리할 채팅 이벤트
      */
     private fun handleMessageCreated(event: MessageSentEvent) {
-        val message = event.message
-
         try {
             // 메시지 수신자 식별
-            val recipients = identifyRecipients(message)
+            val recipients = identifyRecipients(event)
             if (recipients.isEmpty()) {
-                logger.info { "알림 수신자가 없습니다: roomId=${message.roomId}, messageId=${message.id}" }
+                logger.info { "알림 수신자가 없습니다: roomId=${event.roomId.value}, messageId=${event.messageId.value}" }
                 return
             }
 
             // 알림 생성
-            val notifications = createNotifications(message, recipients)
+            val notifications = createNotifications(event, recipients)
 
             // 알림 저장 및 전송
-            processNotifications(notifications, message.roomId.value)
+            processNotifications(notifications, event.roomId.value)
 
         } catch (e: Exception) {
             logger.error(e) { "채팅 이벤트 처리 중 오류가 발생했습니다: ${e.message}" }
@@ -73,34 +75,38 @@ class ChatEventNotificationListener(
      * 메시지 수신자를 식별합니다.
      * 자신의 메시지에 대해서는 알림이 전송되지 않도록 합니다.
      *
-     * @param message 채팅 메시지
+     * DDD 개선: 이벤트에서 직접 필드 사용
+     *
+     * @param event 채팅 이벤트
      * @return 알림을 받을 사용자 ID 집합
      */
-    private fun identifyRecipients(message: ChatMessage): Set<Long> {
-        val chatRoom = chatRoomQueryPort.findById(message.roomId) ?: return emptySet()
-        return chatRoom.participants.filter { it != message.senderId }.map { it.value }.toSet()
+    private fun identifyRecipients(event: MessageSentEvent): Set<Long> {
+        val chatRoom = chatRoomQueryPort.findById(event.roomId.toChatRoom()) ?: return emptySet()
+        return chatRoom.participants.filter { it != event.senderId }.map { it.value }.toSet()
     }
 
     /**
      * 메시지에 대한 알림을 생성합니다.
      * 멘션된 사용자에 대한 알림과 일반 메시지 수신자에 대한 알림을 생성합니다.
      *
-     * @param message 채팅 메시지
+     * DDD 개선: 이벤트에서 직접 필드 사용
+     *
+     * @param event 채팅 이벤트
      * @param recipients 알림을 받을 사용자 ID 집합
      * @return 생성된 알림 목록
      */
     private fun createNotifications(
-        message: ChatMessage,
+        event: MessageSentEvent,
         recipients: Set<Long>
     ): List<Notification> {
         val notifications = mutableListOf<Notification>()
 
         // 멘션 알림 생성
-        val mentionNotifications = createMentionNotifications(message)
+        val mentionNotifications = createMentionNotifications(event)
         notifications.addAll(mentionNotifications)
 
         // 일반 메시지 알림 생성
-        val messageNotifications = createMessageNotifications(message, recipients)
+        val messageNotifications = createMessageNotifications(event, recipients)
         notifications.addAll(messageNotifications)
 
         return notifications
@@ -109,19 +115,21 @@ class ChatEventNotificationListener(
     /**
      * 멘션된 사용자에 대한 알림을 생성합니다.
      *
-     * @param message 채팅 메시지
+     * DDD 개선: 이벤트에서 직접 필드 사용
+     *
+     * @param event 채팅 이벤트
      * @return 생성된 멘션 알림 목록
      */
     private fun createMentionNotifications(
-        message: ChatMessage
+        event: MessageSentEvent
     ): List<Notification> {
         // 멘션된 사용자가 없으면 빈 리스트 반환
-        if (message.mentions.isEmpty()) {
+        if (event.mentions.isEmpty()) {
             return emptyList()
         }
 
         // 자신을 멘션한 경우는 제외
-        val mentionedUsers = message.mentions.filter { it != message.senderId }.toSet()
+        val mentionedUsers = event.mentions.filter { it != event.senderId }.toSet()
         if (mentionedUsers.isEmpty()) {
             return emptyList()
         }
@@ -130,7 +138,10 @@ class ChatEventNotificationListener(
         return mentionedUsers.map { userId ->
             chatNotificationFactory.createMentionNotification(
                 userId = userId.value,
-                message = message
+                messageId = event.messageId,
+                roomId = event.roomId.toChatRoom(),
+                senderId = event.senderId,
+                content = event.content
             )
         }
     }
@@ -138,18 +149,23 @@ class ChatEventNotificationListener(
     /**
      * 일반 메시지 수신자에 대한 알림을 생성합니다.
      *
-     * @param message 채팅 메시지
+     * DDD 개선: 이벤트에서 직접 필드 사용
+     *
+     * @param event 채팅 이벤트
      * @param recipients 알림을 받을 사용자 ID 집합
      * @return 생성된 메시지 알림 목록
      */
     private fun createMessageNotifications(
-        message: ChatMessage,
+        event: MessageSentEvent,
         recipients: Set<Long>
     ): List<Notification> {
         return recipients.map { userId ->
             chatNotificationFactory.createMessageNotification(
                 userId = userId,
-                message = message
+                messageId = event.messageId,
+                roomId = event.roomId.toChatRoom(),
+                senderId = event.senderId,
+                content = event.content
             )
         }
     }

@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.rest.user
 
 import com.stark.shoot.adapter.`in`.rest.dto.user.SetBackgroundImageRequest
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.adapter.`in`.rest.dto.user.SetProfileImageRequest
 import com.stark.shoot.adapter.`in`.rest.dto.user.UpdateProfileRequest
 import com.stark.shoot.application.port.`in`.user.FindUserUseCase
@@ -12,7 +13,7 @@ import com.stark.shoot.application.port.`in`.user.profile.command.UpdateProfileC
 import com.stark.shoot.domain.user.User
 import com.stark.shoot.domain.user.type.UserStatus
 import com.stark.shoot.domain.user.vo.*
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

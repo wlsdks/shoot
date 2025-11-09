@@ -2,6 +2,7 @@ package com.stark.shoot.infrastructure.config.security
 
 import com.stark.shoot.infrastructure.config.jwt.JwtProvider
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -19,6 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
+@ConditionalOnProperty(name = ["security.enabled"], havingValue = "true", matchIfMissing = true)
 class SecurityConfig(
     private val jwtAuthFilter: JwtAuthFilter,
     private val jwtProvider: JwtProvider

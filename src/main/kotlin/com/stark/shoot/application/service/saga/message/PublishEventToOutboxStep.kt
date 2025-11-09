@@ -3,8 +3,8 @@ package com.stark.shoot.application.service.saga.message
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.stark.shoot.adapter.out.persistence.postgres.entity.OutboxEventEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxEventRepository
-import com.stark.shoot.domain.event.MentionEvent
-import com.stark.shoot.domain.event.MessageSentEvent
+import com.stark.shoot.domain.shared.event.MentionEvent
+import com.stark.shoot.domain.shared.event.MessageSentEvent
 import com.stark.shoot.domain.saga.SagaStep
 import com.stark.shoot.domain.saga.message.MessageSagaContext
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -19,12 +19,15 @@ import org.springframework.transaction.annotation.Transactional
  *
  * @Transactional(MANDATORY): Step 2에서 시작된 트랜잭션에 필수로 참여
  * Step 2와 함께 커밋/롤백되어 데이터 일관성을 보장합니다.
+ *
+ * DDD 개선: Context에서 도메인 객체 제거, messageId로 조회
  */
 @Component
 class PublishEventToOutboxStep(
     private val outboxEventRepository: OutboxEventRepository,
     private val objectMapper: ObjectMapper,
-    private val userQueryPort: com.stark.shoot.application.port.out.user.UserQueryPort
+    private val userQueryPort: com.stark.shoot.application.port.out.user.UserQueryPort,
+    private val messageQueryPort: com.stark.shoot.application.port.out.message.MessageQueryPort
 ) : SagaStep<MessageSagaContext> {
 
     private val logger = KotlinLogging.logger {}
@@ -32,11 +35,25 @@ class PublishEventToOutboxStep(
     @Transactional(propagation = Propagation.MANDATORY)  // 기존 트랜잭션 필수
     override fun execute(context: MessageSagaContext): Boolean {
         return try {
-            val savedMessage = context.savedMessage
+            val messageIdStr = context.savedMessageId
                 ?: throw IllegalStateException("Message not saved yet")
 
+            // DDD 개선: messageId로 메시지 조회
+            val messageId = com.stark.shoot.domain.chat.message.vo.MessageId.from(messageIdStr)
+            val savedMessage = messageQueryPort.findById(messageId)
+                ?: throw IllegalStateException("Saved message not found: $messageIdStr")
+
             // 1. MessageSentEvent 발행
-            val messageSentEvent = MessageSentEvent.create(savedMessage)
+            // DDD 개선: Event factory 제거, 직접 생성 (Shared Kernel 독립성)
+            val messageSentEvent = MessageSentEvent(
+                messageId = savedMessage.id ?: throw IllegalStateException("Message ID must not be null"),
+                roomId = savedMessage.roomId,
+                senderId = savedMessage.senderId,
+                content = savedMessage.content.text,
+                type = savedMessage.content.type,
+                mentions = savedMessage.mentions,
+                createdAt = savedMessage.createdAt ?: java.time.Instant.now()
+            )
             saveToOutbox(context.sagaId, messageSentEvent)
 
             // 2. 멘션이 있으면 MentionEvent 발행

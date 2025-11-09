@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.message.bookmark.command
 
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 북마크 목록 조회 커맨드

@@ -8,8 +8,8 @@ import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
 import com.stark.shoot.application.service.saga.message.MessageSagaOrchestrator
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
-import com.stark.shoot.domain.event.MessageEvent
-import com.stark.shoot.domain.event.type.EventType
+import com.stark.shoot.domain.shared.event.MessageEvent
+import com.stark.shoot.domain.shared.event.type.EventType
 import com.stark.shoot.domain.saga.SagaState
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -30,6 +30,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 @UseCase
 class HandleMessageEventService(
     private val messageSagaOrchestrator: MessageSagaOrchestrator,
+    private val messageQueryPort: com.stark.shoot.application.port.out.message.MessageQueryPort,
     private val loadUrlContentPort: LoadUrlContentPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
     private val messageStatusNotificationPort: MessageStatusNotificationPort,
@@ -41,6 +42,8 @@ class HandleMessageEventService(
     /**
      * 메시지를 Saga 패턴으로 저장하고 상태 업데이트를 전송합니다.
      *
+     * DDD 개선: MessageEvent에서 ChatMessage 재구성
+     *
      * 트랜잭션은 각 Step에서 관리:
      * - UpdateChatRoomMetadataStep: @Transactional 시작
      * - PublishEventToOutboxStep: @Transactional(MANDATORY)로 참여
@@ -48,8 +51,25 @@ class HandleMessageEventService(
     override fun handle(event: MessageEvent): Boolean {
         if (event.type != EventType.MESSAGE_CREATED) return false
 
-        val message = event.data
-        val tempId = message.metadata.tempId
+        // DDD 개선: 이벤트 필드에서 ChatMessage 재구성
+        val message = ChatMessage(
+            id = event.messageId,
+            roomId = event.roomId,
+            senderId = event.senderId,
+            content = com.stark.shoot.domain.chat.message.vo.MessageContent(
+                text = event.content,
+                type = event.messageType
+            ),
+            status = com.stark.shoot.domain.chat.message.type.MessageStatus.SENT,
+            mentions = event.mentions,
+            createdAt = event.createdAt,
+            metadata = com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata(
+                tempId = event.tempId,
+                needsUrlPreview = event.needsUrlPreview,
+                previewUrl = event.previewUrl
+            )
+        )
+        val tempId = event.tempId
 
         return try {
             // Saga 실행: MongoDB 저장 → PostgreSQL 업데이트 → Outbox 저장
@@ -61,8 +81,13 @@ class HandleMessageEventService(
             // Saga 결과에 따라 처리
             when (sagaContext.state) {
                 SagaState.COMPLETED -> {
+                    // DDD 개선: savedMessageId로 메시지 조회
+                    val savedMessage = sagaContext.savedMessageId?.let { messageIdStr ->
+                        val messageId = com.stark.shoot.domain.chat.message.vo.MessageId.from(messageIdStr)
+                        messageQueryPort.findById(messageId)
+                    }
                     // 성공: 사용자에게 성공 알림
-                    notifyPersistenceSuccess(sagaContext.savedMessage ?: message, tempId)
+                    notifyPersistenceSuccess(savedMessage ?: message, tempId)
                     logger.info { "Message saga completed: sagaId=${sagaContext.sagaId}" }
                     true
                 }

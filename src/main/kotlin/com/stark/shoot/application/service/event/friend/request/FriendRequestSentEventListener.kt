@@ -3,7 +3,9 @@ package com.stark.shoot.application.service.event.friend.request
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
-import com.stark.shoot.domain.event.FriendRequestSentEvent
+import com.stark.shoot.domain.shared.event.FriendRequestSentEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
@@ -35,6 +37,9 @@ class FriendRequestSentEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleFriendRequestSent(event: FriendRequestSentEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.FRIEND_REQUEST_SENT_V1, "FriendRequestSentEventListener")
+
         logger.info {
             "Processing friend request sent event: " +
             "senderId=${event.senderId.value}, receiverId=${event.receiverId.value}"

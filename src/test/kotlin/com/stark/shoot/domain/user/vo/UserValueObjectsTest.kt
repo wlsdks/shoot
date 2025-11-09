@@ -1,12 +1,12 @@
 package com.stark.shoot.domain.user.vo
 
-import com.stark.shoot.domain.exception.InvalidUserDataException
+import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.domain.user.exception.InvalidUserDataException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.hamcrest.Matchers.hasSize
 
 @DisplayName("사용자 VO 테스트")
 class UserValueObjectsTest {
@@ -145,30 +145,8 @@ class UserValueObjectsTest {
         }
     }
 
-    @Nested
-    inner class FriendGroupNameTest {
-        @Test
-        @DisplayName("[happy] 정상 생성")
-        fun `정상 생성`() {
-            val name = FriendGroupName.from("친구")
-            assertThat(name.value).isEqualTo("친구")
-        }
-
-        @Test
-        @DisplayName("[bad] 빈값 예외")
-        fun `빈값 예외`() {
-            assertThatThrownBy { FriendGroupName.from(" ") }
-                .isInstanceOf(IllegalArgumentException::class.java)
-        }
-
-        @Test
-        @DisplayName("[bad] 길이초과 예외")
-        fun `길이초과 예외`() {
-            val long = "a".repeat(51)
-            assertThatThrownBy { FriendGroupName.from(long) }
-                .isInstanceOf(IllegalArgumentException::class.java)
-        }
-    }
+    // FriendGroupName은 Social Context로 이동 (domain/social/vo/FriendGroupName.kt)
+    // 테스트는 SocialValueObjectsTest로 이동해야 함
 
     @Nested
     inner class RefreshTokenValueTest {

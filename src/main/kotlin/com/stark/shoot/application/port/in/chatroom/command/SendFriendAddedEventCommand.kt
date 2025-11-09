@@ -1,6 +1,6 @@
 package com.stark.shoot.application.port.`in`.chatroom.command
 
-import com.stark.shoot.domain.event.FriendAddedEvent
+import com.stark.shoot.domain.shared.event.FriendAddedEvent
 
 /**
  * Command for sending a friend added event

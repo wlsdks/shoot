@@ -2,7 +2,9 @@ package com.stark.shoot.application.service.event.chatroom
 
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
 import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
-import com.stark.shoot.domain.event.ChatRoomCreatedEvent
+import com.stark.shoot.domain.shared.event.ChatRoomCreatedEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.infrastructure.annotation.ApplicationEventListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.transaction.event.TransactionPhase
@@ -23,6 +25,9 @@ class ChatRoomCreatedEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleChatRoomCreated(event: ChatRoomCreatedEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.CHATROOM_CREATED_V1, "ChatRoomCreatedEventListener")
+
         logger.info { "Processing chat room created event: roomId=${event.roomId.value}, userId=${event.userId.value}" }
 
         val chatRoom = chatRoomQueryPort.findById(event.roomId)

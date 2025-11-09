@@ -2,9 +2,10 @@ package com.stark.shoot.adapter.out.persistence.postgres.mapper
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendGroupEntity
 import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
-import com.stark.shoot.domain.user.FriendGroup
-import com.stark.shoot.domain.user.vo.FriendGroupName
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.social.FriendGroup
+import com.stark.shoot.domain.social.vo.FriendGroupId
+import com.stark.shoot.domain.social.vo.FriendGroupName
+import com.stark.shoot.domain.shared.UserId
 import org.springframework.stereotype.Component
 
 @Component
@@ -15,7 +16,7 @@ class FriendGroupMapper {
         memberIds: Set<Long>
     ): FriendGroup {
         return FriendGroup(
-            id = entity.id,
+            id = entity.id?.let { FriendGroupId.from(it) },
             ownerId = UserId.from(entity.owner.id),
             name = FriendGroupName.from(entity.name),
             description = entity.description,

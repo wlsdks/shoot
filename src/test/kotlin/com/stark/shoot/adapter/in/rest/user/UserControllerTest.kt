@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.rest.user
 
 import com.stark.shoot.adapter.`in`.rest.dto.user.CreateUserRequest
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.application.port.`in`.user.UserCreateUseCase
 import com.stark.shoot.application.port.`in`.user.UserDeleteUseCase
 import com.stark.shoot.application.port.`in`.user.command.CreateUserCommand

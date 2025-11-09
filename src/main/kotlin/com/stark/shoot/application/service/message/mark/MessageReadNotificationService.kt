@@ -1,11 +1,10 @@
 package com.stark.shoot.application.service.message.mark
 
 import com.stark.shoot.adapter.`in`.socket.WebSocketMessageBroker
-import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.vo.MessageId
-import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.event.MessageBulkReadEvent
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.shared.event.MessageBulkReadEvent
+import com.stark.shoot.domain.shared.UserId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 
@@ -24,44 +23,25 @@ class MessageReadNotificationService(
      * 단일 메시지 읽음 상태 알림을 전송합니다.
      *
      * @param roomId 채팅방 ID
-     * @param message 읽음 처리된 메시지
+     * @param messageId 읽음 처리된 메시지 ID
      * @param userId 읽음 처리한 사용자 ID
      */
     fun sendSingleReadNotification(
         roomId: ChatRoomId,
-        message: ChatMessage,
+        messageId: MessageId,
         userId: UserId
     ) {
         try {
             webSocketMessageBroker.sendMessage(
                 "/topic/read/${roomId.value}",
                 mapOf(
-                    "messageId" to message.id?.value,
-                    "userId" to userId.value,
-                    "readBy" to message.readBy
+                    "messageId" to messageId.value,
+                    "userId" to userId.value
                 )
             )
         } catch (e: Exception) {
-            logger.error(e) { "단일 메시지 읽음 알림 전송 실패: roomId=$roomId, messageId=${message.id}, userId=$userId" }
+            logger.error(e) { "단일 메시지 읽음 알림 전송 실패: roomId=$roomId, messageId=$messageId, userId=$userId" }
             // WebSocket 알림 실패는 전체 프로세스를 중단시킬 만큼 치명적이지 않음
-        }
-    }
-
-    /**
-     * 업데이트된 메시지를 WebSocket으로 전송합니다.
-     *
-     * @param roomId 채팅방 ID
-     * @param message 업데이트된 메시지
-     */
-    fun sendUpdatedMessage(roomId: ChatRoomId, message: ChatMessage) {
-        try {
-            webSocketMessageBroker.sendMessage(
-                destination = "/topic/messages/${roomId.value}",
-                payload = message
-            )
-        } catch (e: Exception) {
-            logger.error(e) { "업데이트된 메시지 전송 실패: roomId=$roomId, messageId=${message.id}" }
-            // WebSocket 전송 실패는 전체 프로세스를 중단시킬 만큼 치명적이지 않음
         }
     }
 

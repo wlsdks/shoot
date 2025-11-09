@@ -1,84 +1,60 @@
 package com.stark.shoot.domain.chatroom
 
-import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomAnnouncement
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
-import com.stark.shoot.domain.user.vo.UserId
-import com.stark.shoot.domain.exception.FavoriteLimitExceededException
-import com.stark.shoot.domain.exception.ChatRoomException
+import com.stark.shoot.domain.chatroom.vo.MessageId
+import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.domain.chatroom.exception.FavoriteLimitExceededException
+import com.stark.shoot.domain.chatroom.exception.ChatRoomException
+import com.stark.shoot.infrastructure.annotation.AggregateRoot
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+@AggregateRoot
 data class ChatRoom(
     val id: ChatRoomId? = null,
     var title: ChatRoomTitle? = null,
     val type: ChatRoomType,
     var participants: Set<UserId>,
-    var lastMessageId: MessageId? = null,
+    var lastMessageId: MessageId? = null,  // MessageId VO 사용 (ACL을 통한 변환)
     var lastActiveAt: Instant = Instant.now(),
     var createdAt: Instant = Instant.now(),
 
     // 필요한 경우에만 남길 선택적 필드
     var announcement: ChatRoomAnnouncement? = null,
-    var pinnedParticipants: Set<UserId> = emptySet(),
     var updatedAt: Instant? = null,
+    var settings: ChatRoomSettings = ChatRoomSettings.createDefault(),
 ) {
     /**
      * 참여자 변경 정보를 담는 데이터 클래스
      */
     data class ParticipantChanges(
         val participantsToAdd: Set<UserId> = emptySet(),
-        val participantsToRemove: Set<UserId> = emptySet(),
-        val pinnedStatusChanges: Map<UserId, Boolean> = emptyMap()
+        val participantsToRemove: Set<UserId> = emptySet()
     ) {
         fun isEmpty(): Boolean =
-            participantsToAdd.isEmpty() && participantsToRemove.isEmpty() && pinnedStatusChanges.isEmpty()
+            participantsToAdd.isEmpty() && participantsToRemove.isEmpty()
     }
 
     /**
      * 현재 참여자 목록과 새 참여자 목록을 비교하여 변경 사항을 계산
      *
      * @param newParticipants 새 참여자 목록
-     * @param newPinnedParticipants 새 고정 참여자 목록
      * @return 참여자 변경 정보
      */
-    fun calculateParticipantChanges(
-        newParticipants: Set<UserId>,
-        newPinnedParticipants: Set<UserId> = this.pinnedParticipants
-    ): ParticipantChanges {
+    fun calculateParticipantChanges(newParticipants: Set<UserId>): ParticipantChanges {
         // 추가할 참여자 (새로운 참여자)
         val participantsToAdd = newParticipants - this.participants
 
         // 제거할 참여자 (더 이상 참여하지 않는 사용자)
         val participantsToRemove = this.participants - newParticipants
 
-        // 핀 상태가 변경된 참여자
-        val pinnedStatusChanges = mutableMapOf<UserId, Boolean>()
-
-        // 새 참여자 중 핀 상태 확인
-        (participants intersect newParticipants).forEach { participantId ->
-            val wasPinned = participantId in pinnedParticipants
-            val isPinned = participantId in newPinnedParticipants
-
-            if (wasPinned != isPinned) {
-                pinnedStatusChanges[participantId] = isPinned
-            }
-        }
-
-        // 새로 추가되는 참여자 중 핀 상태인 참여자 추가
-        participantsToAdd.forEach { participantId ->
-            if (participantId in newPinnedParticipants) {
-                pinnedStatusChanges[participantId] = true
-            }
-        }
-
         return ParticipantChanges(
             participantsToAdd = participantsToAdd,
-            participantsToRemove = participantsToRemove,
-            pinnedStatusChanges = pinnedStatusChanges
+            participantsToRemove = participantsToRemove
         )
     }
 
@@ -122,7 +98,6 @@ data class ChatRoom(
                 type = ChatRoomType.INDIVIDUAL,
                 announcement = null,
                 participants = setOf(userIdVo, friendIdVo),
-                pinnedParticipants = emptySet(),
                 lastMessageId = null,
                 lastActiveAt = Instant.now(),
                 createdAt = Instant.now()
@@ -207,55 +182,6 @@ data class ChatRoom(
         }
     }
 
-    /**
-     * 즐겨찾기(핀) 상태 업데이트
-     *
-     * @param userId 사용자 ID
-     * @param isFavorite 즐겨찾기 여부
-     * @param userPinnedRoomsCount 사용자가 현재 핀한 채팅방 수
-     * @param maxPinnedLimit 최대 핀 가능한 채팅방 수
-     */
-    fun updateFavoriteStatus(
-        userId: UserId,
-        isFavorite: Boolean,
-        userPinnedRoomsCount: Int,
-        maxPinnedLimit: Int
-    ) {
-        this.pinnedParticipants = updatePinnedParticipants(userId, isFavorite, userPinnedRoomsCount, maxPinnedLimit)
-        this.updatedAt = Instant.now()
-    }
-
-    /**
-     * 고정 참여자 목록 업데이트
-     *
-     * @param userId 사용자 ID
-     * @param isFavorite 즐겨찾기 여부
-     * @param userPinnedRoomsCount 사용자가 현재 핀한 채팅방 수 (현재 채팅방 제외)
-     * @param maxPinnedLimit 최대 핀 가능한 채팅방 수
-     * @return 업데이트된 고정 참여자 목록
-     */
-    private fun updatePinnedParticipants(
-        userId: UserId,
-        isFavorite: Boolean,
-        userPinnedRoomsCount: Int,
-        maxPinnedLimit: Int
-    ): Set<UserId> {
-        val isAlreadyPinned = userId in pinnedParticipants
-
-        return when {
-            // 이미 즐겨찾기된 채팅방을 다시 즐겨찾기하려고 하면 제거 (토글 동작)
-            isFavorite && isAlreadyPinned -> pinnedParticipants - userId
-            // 즐겨찾기 추가 요청이고 아직 즐겨찾기되지 않은 경우
-            isFavorite -> {
-                if (userPinnedRoomsCount >= maxPinnedLimit) {
-                    throw FavoriteLimitExceededException("최대 핀 채팅방 개수를 초과했습니다. (최대: ${maxPinnedLimit}개)")
-                }
-                pinnedParticipants + userId
-            }
-            // 즐겨찾기 해제 요청
-            else -> pinnedParticipants - userId
-        }
-    }
 
     /**
      * 채팅방 공지사항 업데이트

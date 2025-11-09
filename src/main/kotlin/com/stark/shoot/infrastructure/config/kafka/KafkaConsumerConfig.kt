@@ -1,7 +1,7 @@
 package com.stark.shoot.infrastructure.config.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.stark.shoot.domain.event.MessageEvent
+import com.stark.shoot.domain.shared.event.MessageEvent
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer

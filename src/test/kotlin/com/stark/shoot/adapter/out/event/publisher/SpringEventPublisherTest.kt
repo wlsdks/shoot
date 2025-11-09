@@ -1,7 +1,8 @@
 package com.stark.shoot.adapter.out.event.publisher
 
 import com.stark.shoot.adapter.out.event.SpringEventPublisher
-import com.stark.shoot.domain.event.DomainEvent
+import com.stark.shoot.domain.shared.event.DomainEvent
+import com.stark.shoot.domain.shared.event.EventVersion
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -15,7 +16,10 @@ class SpringEventPublisherTest {
     private val eventPublisher = SpringEventPublisher(applicationEventPublisher)
 
     // 테스트용 도메인 이벤트 구현
-    private class TestDomainEvent(override val occurredOn: Long = System.currentTimeMillis()) : DomainEvent
+    private class TestDomainEvent(
+        override val version: EventVersion = EventVersion.from("1.0.0"),
+        override val occurredOn: Long = System.currentTimeMillis()
+    ) : DomainEvent
 
     @Test
     @DisplayName("[happy] 도메인 이벤트를 발행할 수 있다")

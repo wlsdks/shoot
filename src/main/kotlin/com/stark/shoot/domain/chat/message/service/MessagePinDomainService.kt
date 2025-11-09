@@ -1,8 +1,8 @@
 package com.stark.shoot.domain.chat.message.service
 
 import com.stark.shoot.domain.chat.message.ChatMessage
-import com.stark.shoot.domain.event.MessagePinEvent
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.event.MessagePinEvent
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 메시지 고정 관련 도메인 서비스

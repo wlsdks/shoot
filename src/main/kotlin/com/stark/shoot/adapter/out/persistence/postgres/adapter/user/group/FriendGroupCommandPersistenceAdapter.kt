@@ -7,10 +7,10 @@ import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendGroupMe
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendGroupRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.group.FriendGroupCommandPort
-import com.stark.shoot.domain.user.FriendGroup
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.social.FriendGroup
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
-import com.stark.shoot.domain.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 
 @Adapter
 class FriendGroupCommandPersistenceAdapter(
@@ -25,7 +25,7 @@ class FriendGroupCommandPersistenceAdapter(
             .orElseThrow { ResourceNotFoundException("사용자를 찾을 수 없습니다: ${group.ownerId}") }
 
         val entity: FriendGroupEntity = if (group.id != null) {
-            val existing = groupRepository.findById(group.id)
+            val existing = groupRepository.findById(group.id.value)
                 .orElseThrow { ResourceNotFoundException("그룹을 찾을 수 없습니다: ${group.id}") }
             existing.name = group.name.value
             existing.description = group.description

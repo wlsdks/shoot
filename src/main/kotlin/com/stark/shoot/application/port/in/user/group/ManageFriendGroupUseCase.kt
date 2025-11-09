@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.user.group
 
 import com.stark.shoot.application.port.`in`.user.group.command.*
-import com.stark.shoot.domain.user.FriendGroup
+import com.stark.shoot.domain.social.FriendGroup
 
 interface ManageFriendGroupUseCase {
     fun createGroup(command: CreateGroupCommand): FriendGroup

@@ -1,6 +1,6 @@
 package com.stark.shoot.domain.event
 
-import com.stark.shoot.domain.event.type.EventType
+import com.stark.shoot.domain.shared.event.type.EventType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

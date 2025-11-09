@@ -5,13 +5,14 @@ import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentRequest
 import com.stark.shoot.adapter.`in`.rest.dto.message.toRequestDto
 import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.ScheduledMessagePort
+import com.stark.shoot.application.acl.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.ScheduledMessage
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.ScheduledMessageStatus
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.config.redis.RedisLockManager
 import com.stark.shoot.infrastructure.util.toObjectId
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -243,7 +244,7 @@ class ScheduledMessageProcessor(
     private fun createChatMessage(scheduledMessage: ScheduledMessage): ChatMessage {
         return ChatMessage(
             id = MessageId.from(UUID.randomUUID().toString()),
-            roomId = ChatRoomId.from(scheduledMessage.roomId),
+            roomId = ChatRoomId.from(scheduledMessage.roomId).toChat(),
             senderId = UserId.from(scheduledMessage.senderId),
             content = scheduledMessage.content,
             status = MessageStatus.SENT, // 예약 메시지는 실행 시점에 이미 처리 완료된 상태

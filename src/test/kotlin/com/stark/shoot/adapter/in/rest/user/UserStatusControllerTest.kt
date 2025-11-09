@@ -1,6 +1,7 @@
 package com.stark.shoot.adapter.`in`.rest.user
 
 import com.stark.shoot.adapter.`in`.rest.dto.user.UpdateStatusRequest
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.application.port.`in`.user.profile.UserStatusUseCase
 import com.stark.shoot.application.port.`in`.user.profile.command.UpdateUserStatusCommand
 import com.stark.shoot.domain.user.User

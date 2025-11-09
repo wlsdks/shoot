@@ -3,9 +3,10 @@ package com.stark.shoot.adapter.`in`.rest.social.group
 import com.stark.shoot.application.port.`in`.user.group.FindFriendGroupUseCase
 import com.stark.shoot.application.port.`in`.user.group.ManageFriendGroupUseCase
 import com.stark.shoot.application.port.`in`.user.group.command.*
-import com.stark.shoot.domain.user.FriendGroup
-import com.stark.shoot.domain.user.vo.FriendGroupName
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.social.FriendGroup
+import com.stark.shoot.domain.social.vo.FriendGroupId
+import com.stark.shoot.domain.social.vo.FriendGroupName
+import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -263,7 +264,7 @@ class FriendGroupControllerTest {
         memberIds: Set<Long> = emptySet()
     ): FriendGroup {
         return FriendGroup(
-            id = id,
+            id = FriendGroupId.from(id),
             ownerId = UserId.from(ownerId),
             name = FriendGroupName.from(name),
             description = description,

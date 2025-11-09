@@ -3,9 +3,9 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend.rel
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendshipMappingEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
 import com.stark.shoot.application.port.out.user.friend.relate.FriendshipQueryPort
-import com.stark.shoot.domain.user.Friendship
-import com.stark.shoot.domain.user.vo.FriendshipId
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.social.Friendship
+import com.stark.shoot.domain.social.vo.FriendshipId
+import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.Adapter
 
 @Adapter

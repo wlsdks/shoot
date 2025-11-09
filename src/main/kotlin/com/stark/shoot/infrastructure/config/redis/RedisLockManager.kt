@@ -1,6 +1,6 @@
 package com.stark.shoot.infrastructure.config.redis
 
-import com.stark.shoot.domain.exception.web.LockAcquisitionException
+import com.stark.shoot.infrastructure.exception.web.LockAcquisitionException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.script.RedisScript

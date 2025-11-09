@@ -5,8 +5,8 @@ import com.stark.shoot.domain.chatroom.service.ChatRoomParticipantDomainService
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
-import com.stark.shoot.domain.user.vo.UserId
-import com.stark.shoot.domain.constants.DomainConstants
+import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.domain.chatroom.constants.ChatRoomConstants
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -15,12 +15,10 @@ import org.mockito.Mockito.`when`
 
 @DisplayName("채팅방 참여자 도메인 서비스 테스트")
 class ChatRoomParticipantDomainServiceTest {
-    private val chatRoomConstants = mock(DomainConstants.ChatRoomConstants::class.java)
-    private val domainConstants = mock(DomainConstants::class.java)
-    private val service = ChatRoomParticipantDomainService(domainConstants)
-    
+    private val chatRoomConstants = mock(ChatRoomConstants::class.java) as ChatRoomConstants
+    private val service = ChatRoomParticipantDomainService(chatRoomConstants)
+
     init {
-        `when`(domainConstants.chatRoom).thenReturn(chatRoomConstants)
         `when`(chatRoomConstants.maxPinnedMessages).thenReturn(5)
     }
 
@@ -35,14 +33,14 @@ class ChatRoomParticipantDomainServiceTest {
         )
         val changes = ChatRoom.ParticipantChanges(
             participantsToAdd = setOf(UserId.from(3L)),
-            participantsToRemove = setOf(UserId.from(2L)),
-            pinnedStatusChanges = mapOf(UserId.from(1L) to true)
+            participantsToRemove = setOf(UserId.from(2L))
+            // DDD 개선: pinnedStatusChanges 제거 (ChatRoomFavorite Aggregate에서 관리)
         )
 
-        val updated = service.applyChanges(room, changes) { 0 }
+        val updated = service.applyChanges(room, changes)
 
         assertThat(updated.participants).containsExactlyInAnyOrder(UserId.from(1L), UserId.from(3L))
-        assertThat(updated.pinnedParticipants).containsExactly(UserId.from(1L))
+        // DDD 개선: pinnedParticipants는 ChatRoomFavorite Aggregate에서 관리
     }
 
     @Test

@@ -30,6 +30,8 @@ interface ChatRoomRepository : JpaRepository<ChatRoomEntity, Long> {
      * 사용자가 참여 중인 채팅방 ID 목록을 한 번의 쿼리로 조회
      * N+1 쿼리 문제를 해결하기 위한 최적화된 메서드
      *
+     * Note: 정렬은 별도의 쿼리(findAllByIdOrderByLastActiveAtDesc)에서 수행됨
+     *
      * @param userId 사용자 ID
      * @return 채팅방 ID 목록
      */
@@ -37,7 +39,6 @@ interface ChatRoomRepository : JpaRepository<ChatRoomEntity, Long> {
         SELECT DISTINCT cru.chatRoom.id
         FROM ChatRoomUserEntity cru
         WHERE cru.user.id = :userId
-        ORDER BY cru.chatRoom.lastActiveAt DESC
     """)
     fun findChatRoomIdsByUserId(@Param("userId") userId: Long): List<Long>
 

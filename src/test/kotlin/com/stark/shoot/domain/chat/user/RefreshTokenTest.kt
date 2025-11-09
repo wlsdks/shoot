@@ -1,8 +1,9 @@
 package com.stark.shoot.domain.chat.user
 
 import com.stark.shoot.domain.user.RefreshToken
+import com.stark.shoot.domain.user.vo.RefreshTokenId
 import com.stark.shoot.domain.user.vo.RefreshTokenValue
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -60,7 +61,7 @@ class RefreshTokenTest {
 
             // when
             val refreshToken = RefreshToken(
-                id = id,
+                id = RefreshTokenId.from(id),
                 userId = userId,
                 token = token,
                 expirationDate = expirationDate,
@@ -72,7 +73,7 @@ class RefreshTokenTest {
             )
 
             // then
-            assertThat(refreshToken.id).isEqualTo(id)
+            assertThat(refreshToken.id).isEqualTo(RefreshTokenId.from(id))
             assertThat(refreshToken.userId).isEqualTo(userId)
             assertThat(refreshToken.token).isEqualTo(token)
             assertThat(refreshToken.expirationDate).isEqualTo(expirationDate)

@@ -2,7 +2,7 @@ package com.stark.shoot.adapter.persistence.cache
 
 import com.stark.shoot.adapter.out.cache.RedisCacheInvalidationAdapter
 import com.stark.shoot.application.port.out.user.friend.FriendCachePort
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*

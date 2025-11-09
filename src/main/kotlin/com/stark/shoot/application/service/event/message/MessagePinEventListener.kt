@@ -4,7 +4,10 @@ import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.notification.NotificationCommandPort
 import com.stark.shoot.application.port.out.notification.SendNotificationPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
-import com.stark.shoot.domain.event.MessagePinEvent
+import com.stark.shoot.application.acl.*
+import com.stark.shoot.domain.shared.event.MessagePinEvent
+import com.stark.shoot.domain.shared.event.EventVersion
+import com.stark.shoot.domain.shared.event.EventVersionValidator
 import com.stark.shoot.domain.notification.Notification
 import com.stark.shoot.domain.notification.type.NotificationType
 import com.stark.shoot.domain.notification.type.SourceType
@@ -37,6 +40,9 @@ class MessagePinEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleMessagePin(event: MessagePinEvent) {
+        // Event Version 검증
+        EventVersionValidator.checkAndLog(event, EventVersion.MESSAGE_PIN_V1, "MessagePinEventListener")
+
         logger.info {
             "Processing message pin event: " +
             "messageId=${event.messageId.value}, roomId=${event.roomId.value}, " +
@@ -65,7 +71,7 @@ class MessagePinEventListener(
     private fun sendPinNotifications(event: MessagePinEvent) {
         try {
             // 채팅방 정보 조회
-            val chatRoom = chatRoomQueryPort.findById(event.roomId)
+            val chatRoom = chatRoomQueryPort.findById(event.roomId.toChatRoom())
             if (chatRoom == null) {
                 logger.warn { "ChatRoom not found: roomId=${event.roomId.value}" }
                 return

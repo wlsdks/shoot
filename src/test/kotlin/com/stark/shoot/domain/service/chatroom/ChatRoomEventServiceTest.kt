@@ -5,13 +5,13 @@ import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomTitle
-import com.stark.shoot.domain.event.ChatRoomCreatedEvent
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.event.ChatRoomCreatedEvent
+import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.hamcrest.Matchers.hasSize
-import com.stark.shoot.domain.exception.ChatRoomException
+import com.stark.shoot.domain.chatroom.exception.ChatRoomException
 
 @DisplayName("채팅방 이벤트 도메인 서비스 테스트")
 class ChatRoomEventServiceTest {

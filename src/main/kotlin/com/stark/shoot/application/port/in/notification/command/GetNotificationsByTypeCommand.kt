@@ -1,7 +1,7 @@
 package com.stark.shoot.application.port.`in`.notification.command
 
 import com.stark.shoot.domain.notification.type.NotificationType
-import com.stark.shoot.domain.user.vo.UserId
+import com.stark.shoot.domain.shared.UserId
 
 /**
  * 사용자의 알림을 타입별로 조회하는 커맨드

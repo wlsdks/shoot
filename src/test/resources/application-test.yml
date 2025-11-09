@@ -28,16 +28,13 @@ spring:
   flyway:
     enabled: false
 
-  # MongoDB Embedded 설정
+  # MongoDB Embedded & Redis Embedded 설정
   data:
     mongodb:
       host: localhost
       port: 0  # Embedded MongoDB가 자동으로 빈 포트 찾음
       database: test_shoot
       # Embedded MongoDB는 인증 불필요
-
-  # Redis Embedded 설정
-  data:
     redis:
       host: localhost
       port: 6370  # 실제 Redis와 충돌 방지 (6379 대신 6370)

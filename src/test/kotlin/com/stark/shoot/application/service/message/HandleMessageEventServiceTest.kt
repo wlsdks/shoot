@@ -27,6 +27,13 @@ import java.time.Instant
 @DisplayName("HandleMessageEventService 테스트")
 class HandleMessageEventServiceTest {
 
+    // Kotlin에서 Mockito any() 사용을 위한 헬퍼 함수
+    private fun <T> any(): T {
+        ArgumentMatchers.any<T>()
+        @Suppress("UNCHECKED_CAST")
+        return null as T
+    }
+
     @Test
     @DisplayName("[happy] 이벤트를 성공적으로 처리하면 true를 반환한다")
     fun `이벤트를 성공적으로 처리하면 true를 반환한다`() {
@@ -78,7 +85,7 @@ class HandleMessageEventServiceTest {
             senderId = message.senderId
         )
         successContext.markCompleted()
-        `when`(messageSagaOrchestrator.execute(ArgumentMatchers.any(ChatMessage::class.java))).thenReturn(successContext)
+        `when`(messageSagaOrchestrator.execute(any())).thenReturn(successContext)
 
         val result = service.handle(event)
 
@@ -136,7 +143,7 @@ class HandleMessageEventServiceTest {
             senderId = message.senderId
         )
         failedContext.markFailed(RuntimeException("Saga failed"))
-        `when`(messageSagaOrchestrator.execute(ArgumentMatchers.any(ChatMessage::class.java))).thenReturn(failedContext)
+        `when`(messageSagaOrchestrator.execute(any())).thenReturn(failedContext)
 
         val result = service.handle(event)
 

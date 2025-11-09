@@ -14,6 +14,7 @@ import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.domain.chatroom.constants.ChatRoomConstants
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -34,9 +35,9 @@ class MessagePinServiceTest {
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
         val eventPublisher = mock(EventPublishPort::class.java)
         val messagePinDomainService = mock(MessagePinDomainService::class.java)
-        val domainConstants = mock(com.stark.shoot.domain.constants.DomainConstants::class.java)
-        val chatRoomConstants = com.stark.shoot.domain.constants.DomainConstants.ChatRoomConstants(maxPinnedMessages = 5)
-        `when`(domainConstants.chatRoom).thenReturn(chatRoomConstants)
+        val chatRoomConstants = mock(ChatRoomConstants::class.java) as ChatRoomConstants
+        // ChatRoomConstants with maxPinnedMessages = 5
+        `when`(chatRoomConstants.maxPinnedMessages).thenReturn(5)
 
         val messagePinService = MessagePinService(
             messageQueryPort,
@@ -44,7 +45,7 @@ class MessagePinServiceTest {
             webSocketMessageBroker,
             eventPublisher,
             messagePinDomainService,
-            domainConstants
+            chatRoomConstants
         )
 
         val messageId = MessageId.from("5f9f1b9b9c9d1b9b9c9d1b9b")
@@ -74,9 +75,9 @@ class MessagePinServiceTest {
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
         val eventPublisher = mock(EventPublishPort::class.java)
         val messagePinDomainService = mock(MessagePinDomainService::class.java)
-        val domainConstants = mock(com.stark.shoot.domain.constants.DomainConstants::class.java)
-        val chatRoomConstants = com.stark.shoot.domain.constants.DomainConstants.ChatRoomConstants(maxPinnedMessages = 5)
-        `when`(domainConstants.chatRoom).thenReturn(chatRoomConstants)
+        val chatRoomConstants = mock(ChatRoomConstants::class.java) as ChatRoomConstants
+        // ChatRoomConstants with maxPinnedMessages = 5
+        `when`(chatRoomConstants.maxPinnedMessages).thenReturn(5)
 
         val messagePinService = MessagePinService(
             messageQueryPort,
@@ -84,7 +85,7 @@ class MessagePinServiceTest {
             webSocketMessageBroker,
             eventPublisher,
             messagePinDomainService,
-            domainConstants
+            chatRoomConstants
         )
 
         val messageId = MessageId.from("5f9f1b9b9c9d1b9b9c9d1b9b")
@@ -128,9 +129,9 @@ class MessagePinServiceTest {
         val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
         val eventPublisher = mock(EventPublishPort::class.java)
         val messagePinDomainService = mock(MessagePinDomainService::class.java)
-        val domainConstants = mock(com.stark.shoot.domain.constants.DomainConstants::class.java)
-        val chatRoomConstants = com.stark.shoot.domain.constants.DomainConstants.ChatRoomConstants(maxPinnedMessages = 5)
-        `when`(domainConstants.chatRoom).thenReturn(chatRoomConstants)
+        val chatRoomConstants = mock(ChatRoomConstants::class.java) as ChatRoomConstants
+        // ChatRoomConstants with maxPinnedMessages = 5
+        `when`(chatRoomConstants.maxPinnedMessages).thenReturn(5)
 
         val messagePinService = MessagePinService(
             messageQueryPort,
@@ -138,7 +139,7 @@ class MessagePinServiceTest {
             webSocketMessageBroker,
             eventPublisher,
             messagePinDomainService,
-            domainConstants
+            chatRoomConstants
         )
 
         val messageId = MessageId.from("5f9f1b9b9c9d1b9b9c9d1b9b")

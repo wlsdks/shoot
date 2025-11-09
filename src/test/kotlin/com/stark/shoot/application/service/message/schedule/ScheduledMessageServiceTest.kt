@@ -1,5 +1,7 @@
 package com.stark.shoot.application.service.message.schedule
 
+import com.stark.shoot.domain.chat.constants.MessageConstants
+
 import com.stark.shoot.adapter.`in`.rest.dto.ApiException
 import com.stark.shoot.adapter.`in`.rest.dto.ErrorCode
 import com.stark.shoot.adapter.`in`.rest.dto.message.MessageContentResponseDto
@@ -18,6 +20,7 @@ import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.ChatRoom
 import com.stark.shoot.domain.chatroom.type.ChatRoomType
 import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId as ChatRoomIdService
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -48,7 +51,7 @@ class ScheduledMessageServiceTest {
     fun `존재하지 않는 채팅방에 메시지를 예약하면 예외가 발생한다`() {
         // given
         val roomIdLong = 1L
-        val roomId = ChatRoomId.from(roomIdLong)
+        val roomId = ChatRoomIdService.from(roomIdLong)
         val senderIdLong = 2L
         val senderId = UserId.from(senderIdLong)
         val content = "테스트 예약 메시지"
@@ -72,7 +75,7 @@ class ScheduledMessageServiceTest {
     fun `채팅방에 속하지 않은 사용자가 메시지를 예약하면 예외가 발생한다`() {
         // given
         val roomIdLong = 1L
-        val roomId = ChatRoomId.from(roomIdLong)
+        val roomId = ChatRoomIdService.from(roomIdLong)
         val senderIdLong = 2L
         val senderId = UserId.from(senderIdLong)
         val content = "테스트 예약 메시지"
@@ -103,7 +106,7 @@ class ScheduledMessageServiceTest {
     fun `과거 시간으로 메시지를 예약하면 예외가 발생한다`() {
         // given
         val roomIdLong = 1L
-        val roomId = ChatRoomId.from(roomIdLong)
+        val roomId = ChatRoomIdService.from(roomIdLong)
         val senderIdLong = 2L
         val senderId = UserId.from(senderIdLong)
         val content = "테스트 예약 메시지"
@@ -169,7 +172,7 @@ class ScheduledMessageServiceTest {
 
         // given
         val roomIdLong = 1L
-        val roomId = ChatRoomId.from(roomIdLong)
+        val roomId = ChatRoomIdService.from(roomIdLong)
         val senderIdLong = 2L
         val senderId = UserId.from(senderIdLong)
         val content = "테스트 예약 메시지"
@@ -517,7 +520,7 @@ class ScheduledMessageServiceTest {
         assertThat(allResults.all { it.status == ScheduledMessageStatus.PENDING }).isTrue()
 
         // when - 특정 채팅방의 예약 메시지 조회
-        val roomResults = testService.getScheduledMessagesByUser(GetScheduledMessagesCommand(UserId.from(userIdLong), ChatRoomId.from(1L)))
+        val roomResults = testService.getScheduledMessagesByUser(GetScheduledMessagesCommand(UserId.from(userIdLong), ChatRoomIdService.from(1L)))
 
         // then - 해당 채팅방의 대기 중인 메시지만 반환되어야 함
         assertThat(roomResults).hasSize(1)

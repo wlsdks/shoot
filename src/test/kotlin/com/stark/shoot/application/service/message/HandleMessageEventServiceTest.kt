@@ -72,7 +72,11 @@ class HandleMessageEventServiceTest {
         )
 
         // Mock saga orchestrator to return successful context
-        val successContext = MessageSagaContext(message = message)
+        val successContext = MessageSagaContext(
+            messageId = message.id!!,
+            roomId = message.roomId,
+            senderId = message.senderId
+        )
         successContext.markCompleted()
         `when`(messageSagaOrchestrator.execute(ArgumentMatchers.any(ChatMessage::class.java))).thenReturn(successContext)
 
@@ -86,6 +90,7 @@ class HandleMessageEventServiceTest {
     fun `처리 중 예외가 발생하면 false를 반환한다`() {
         // Create lenient mocks
         val messageSagaOrchestrator = mock(MessageSagaOrchestrator::class.java, withSettings().lenient())
+        val messageQueryPort = mock(MessageQueryPort::class.java, withSettings().lenient())
         val loadUrlContentPort = mock(LoadUrlContentPort::class.java, withSettings().lenient())
         val cacheUrlPreviewPort = mock(CacheUrlPreviewPort::class.java, withSettings().lenient())
         val messageStatusNotificationPort = mock(MessageStatusNotificationPort::class.java, withSettings().lenient())
@@ -93,6 +98,7 @@ class HandleMessageEventServiceTest {
 
         val service = HandleMessageEventService(
             messageSagaOrchestrator,
+            messageQueryPort,
             loadUrlContentPort,
             cacheUrlPreviewPort,
             messageStatusNotificationPort,
@@ -109,10 +115,26 @@ class HandleMessageEventServiceTest {
             metadata = ChatMessageMetadata(tempId = "t2")
         )
 
-        val event = MessageEvent.fromMessage(message, EventType.MESSAGE_CREATED)
+        val event = MessageEvent(
+            type = EventType.MESSAGE_CREATED,
+            messageId = message.id,
+            roomId = message.roomId,
+            senderId = message.senderId,
+            content = message.content.text,
+            messageType = message.content.type,
+            mentions = emptySet(),
+            tempId = message.metadata.tempId,
+            needsUrlPreview = false,
+            previewUrl = null,
+            createdAt = message.createdAt ?: Instant.now()
+        )
 
         // Mock saga orchestrator to return failed context
-        val failedContext = MessageSagaContext(message = message)
+        val failedContext = MessageSagaContext(
+            messageId = message.id!!,
+            roomId = message.roomId,
+            senderId = message.senderId
+        )
         failedContext.markFailed(RuntimeException("Saga failed"))
         `when`(messageSagaOrchestrator.execute(ArgumentMatchers.any(ChatMessage::class.java))).thenReturn(failedContext)
 

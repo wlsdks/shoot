@@ -13,9 +13,9 @@ interface RefreshTokenRepository : JpaRepository<RefreshTokenEntity, Long> {
 
     @Query(
         """
-        SELECT r 
-        FROM RefreshTokenEntity r 
-        WHERE r.user.id = :userId
+        SELECT r
+        FROM RefreshTokenEntity r
+        WHERE r.userId = :userId
     """
     )
     fun findAllByUserId(@Param("userId") userId: Long): List<RefreshTokenEntity>
@@ -23,9 +23,9 @@ interface RefreshTokenRepository : JpaRepository<RefreshTokenEntity, Long> {
     @Modifying
     @Query(
         """
-        UPDATE RefreshTokenEntity r 
-        SET r.isRevoked = true 
-        WHERE r.user.id = :userId
+        UPDATE RefreshTokenEntity r
+        SET r.isRevoked = true
+        WHERE r.userId = :userId
     """
     )
     fun revokeAllByUserId(@Param("userId") userId: Long): Int

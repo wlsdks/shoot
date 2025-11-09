@@ -48,7 +48,7 @@ interface FriendRequestRepository : JpaRepository<FriendRequestEntity, Long> {
     @Query("""
         DELETE
         FROM FriendRequestEntity f
-        WHERE f.sender.id = :senderId
+        WHERE f.senderId = :senderId
     """)
     fun deleteBySenderId(@Param("senderId") senderId: Long)
 
@@ -56,7 +56,7 @@ interface FriendRequestRepository : JpaRepository<FriendRequestEntity, Long> {
     @Query("""
         DELETE
         FROM FriendRequestEntity f
-        WHERE f.receiver.id = :receiverId
+        WHERE f.receiverId = :receiverId
     """)
     fun deleteByReceiverId(@Param("receiverId") receiverId: Long)
 }

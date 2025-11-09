@@ -1,7 +1,6 @@
 package com.stark.shoot.adapter.out.persistence.postgres.mapper
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendGroupEntity
-import com.stark.shoot.adapter.out.persistence.postgres.entity.UserEntity
 import com.stark.shoot.domain.social.FriendGroup
 import com.stark.shoot.domain.social.vo.FriendGroupId
 import com.stark.shoot.domain.social.vo.FriendGroupName
@@ -17,7 +16,7 @@ class FriendGroupMapper {
     ): FriendGroup {
         return FriendGroup(
             id = entity.id?.let { FriendGroupId.from(it) },
-            ownerId = UserId.from(entity.owner.id),
+            ownerId = UserId.from(entity.ownerId),
             name = FriendGroupName.from(entity.name),
             description = entity.description,
             memberIds = memberIds.map { UserId.from(it) }.toSet(),
@@ -27,11 +26,10 @@ class FriendGroupMapper {
     }
 
     fun toEntity(
-        domain: FriendGroup,
-        owner: UserEntity
+        domain: FriendGroup
     ): FriendGroupEntity {
         return FriendGroupEntity(
-            owner = owner,
+            ownerId = domain.ownerId.value,
             name = domain.name.value,
             description = domain.description
         )

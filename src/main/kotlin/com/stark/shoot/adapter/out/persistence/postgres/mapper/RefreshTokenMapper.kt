@@ -16,7 +16,7 @@ class RefreshTokenMapper {
     fun toDomain(entity: RefreshTokenEntity): RefreshToken {
         return RefreshToken(
             id = entity.id?.let { RefreshTokenId.from(it) },
-            userId = UserId.from(entity.user.id),
+            userId = UserId.from(entity.userId),
             token = RefreshTokenValue.from(entity.token),
             expirationDate = entity.expirationDate,
             deviceInfo = entity.deviceInfo,

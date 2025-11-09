@@ -53,8 +53,8 @@ interface FriendshipMappingRepository : JpaRepository<FriendshipMappingEntity, L
     @Modifying
     @Query("""
         DELETE FROM FriendshipMappingEntity f
-        WHERE (f.user.id = :userId1 AND f.friend.id = :userId2)
-           OR (f.user.id = :userId2 AND f.friend.id = :userId1)
+        WHERE (f.userId = :userId1 AND f.friendId = :userId2)
+           OR (f.userId = :userId2 AND f.friendId = :userId1)
     """)
     fun deleteBidirectional(
         @Param("userId1") userId1: Long,
@@ -65,8 +65,8 @@ interface FriendshipMappingRepository : JpaRepository<FriendshipMappingEntity, L
     @Query("""
         DELETE
         FROM FriendshipMappingEntity f
-        WHERE f.user.id = :userId
-            AND f.friend.id = :friendId
+        WHERE f.userId = :userId
+            AND f.friendId = :friendId
     """)
     fun deleteByUserIdAndFriendId(@Param("userId") userId: Long, @Param("friendId") friendId: Long)
 
@@ -74,7 +74,7 @@ interface FriendshipMappingRepository : JpaRepository<FriendshipMappingEntity, L
     @Query("""
         DELETE
         FROM FriendshipMappingEntity f
-        WHERE f.user.id = :userId
+        WHERE f.userId = :userId
     """)
     fun deleteByUserId(@Param("userId") userId: Long)
 
@@ -82,7 +82,7 @@ interface FriendshipMappingRepository : JpaRepository<FriendshipMappingEntity, L
     @Query("""
         DELETE
         FROM FriendshipMappingEntity f
-        WHERE f.friend.id = :friendId
+        WHERE f.friendId = :friendId
     """)
     fun deleteByFriendId(@Param("friendId") friendId: Long)
 }

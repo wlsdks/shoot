@@ -10,6 +10,7 @@ import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.vo.ChatRoomId
+import com.stark.shoot.domain.chatroom.vo.ChatRoomId as ChatRoomIdService
 import com.stark.shoot.domain.shared.UserId
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -93,7 +94,7 @@ class MessageQueryMongoAdapterTest {
         `when`(chatMessageMapper.toDomain(documents[1])).thenReturn(messages[1])
 
         // when
-        val result = adapter.findByRoomId(roomId, limit)
+        val result = adapter.findByRoomId(ChatRoomIdService.from(roomId.value), limit)
 
         // then
         assertThat(result).hasSize(2)
@@ -132,7 +133,7 @@ class MessageQueryMongoAdapterTest {
         `when`(chatMessageMapper.toDomain(documents[1])).thenReturn(messages[1])
 
         // when
-        val result = adapter.findByRoomIdAndBeforeId(roomId, beforeMessageId, limit)
+        val result = adapter.findByRoomIdAndBeforeId(ChatRoomIdService.from(roomId.value), beforeMessageId, limit)
 
         // then
         assertThat(result).hasSize(2)
@@ -175,7 +176,7 @@ class MessageQueryMongoAdapterTest {
         `when`(chatMessageMapper.toDomain(documents[1])).thenReturn(messages[1])
 
         // when
-        val result = adapter.findByRoomIdAndAfterId(roomId, afterMessageId, limit)
+        val result = adapter.findByRoomIdAndAfterId(ChatRoomIdService.from(roomId.value), afterMessageId, limit)
 
         // then
         assertThat(result).hasSize(2)
@@ -213,7 +214,7 @@ class MessageQueryMongoAdapterTest {
         `when`(chatMessageMapper.toDomain(documents[1])).thenReturn(messages[1])
 
         // when
-        val result = adapter.findUnreadByRoomId(roomId, userId, limit)
+        val result = adapter.findUnreadByRoomId(ChatRoomIdService.from(roomId.value), userId, limit)
 
         // then
         assertThat(result).hasSize(2)
@@ -246,7 +247,7 @@ class MessageQueryMongoAdapterTest {
         `when`(chatMessageMapper.toDomain(documents[1])).thenReturn(messages[1])
 
         // when
-        val result = adapter.findPinnedMessagesByRoomId(roomId, limit)
+        val result = adapter.findPinnedMessagesByRoomId(ChatRoomIdService.from(roomId.value), limit)
 
         // then
         assertThat(result).hasSize(2)
@@ -271,15 +272,15 @@ class MessageQueryMongoAdapterTest {
 
             // Create a spy of the adapter to mock the findByRoomId method
             val adapterSpy = spy(adapter)
-            doReturn(messages).`when`(adapterSpy).findByRoomId(roomId, limit)
+            doReturn(messages).`when`(adapterSpy).findByRoomId(ChatRoomIdService.from(roomId.value), limit)
 
             // when
-            val result = adapterSpy.findByRoomIdFlow(roomId, limit).toList()
+            val result = adapterSpy.findByRoomIdFlow(ChatRoomIdService.from(roomId.value), limit).toList()
 
             // then
             assertThat(result).hasSize(2)
             assertThat(result).isEqualTo(messages)
-            verify(adapterSpy).findByRoomId(roomId, limit)
+            verify(adapterSpy).findByRoomId(ChatRoomIdService.from(roomId.value), limit)
         }
     }
 
@@ -299,15 +300,15 @@ class MessageQueryMongoAdapterTest {
 
             // Create a spy of the adapter to mock the findByRoomIdAndBeforeId method
             val adapterSpy = spy(adapter)
-            doReturn(messages).`when`(adapterSpy).findByRoomIdAndBeforeId(roomId, beforeMessageId, limit)
+            doReturn(messages).`when`(adapterSpy).findByRoomIdAndBeforeId(ChatRoomIdService.from(roomId.value), beforeMessageId, limit)
 
             // when
-            val result = adapterSpy.findByRoomIdAndBeforeIdFlow(roomId, beforeMessageId, limit).toList()
+            val result = adapterSpy.findByRoomIdAndBeforeIdFlow(ChatRoomIdService.from(roomId.value), beforeMessageId, limit).toList()
 
             // then
             assertThat(result).hasSize(2)
             assertThat(result).isEqualTo(messages)
-            verify(adapterSpy).findByRoomIdAndBeforeId(roomId, beforeMessageId, limit)
+            verify(adapterSpy).findByRoomIdAndBeforeId(ChatRoomIdService.from(roomId.value), beforeMessageId, limit)
         }
     }
 
@@ -327,15 +328,15 @@ class MessageQueryMongoAdapterTest {
 
             // Create a spy of the adapter to mock the findByRoomIdAndAfterId method
             val adapterSpy = spy(adapter)
-            doReturn(messages).`when`(adapterSpy).findByRoomIdAndAfterId(roomId, afterMessageId, limit)
+            doReturn(messages).`when`(adapterSpy).findByRoomIdAndAfterId(ChatRoomIdService.from(roomId.value), afterMessageId, limit)
 
             // when
-            val result = adapterSpy.findByRoomIdAndAfterIdFlow(roomId, afterMessageId, limit).toList()
+            val result = adapterSpy.findByRoomIdAndAfterIdFlow(ChatRoomIdService.from(roomId.value), afterMessageId, limit).toList()
 
             // then
             assertThat(result).hasSize(2)
             assertThat(result).isEqualTo(messages)
-            verify(adapterSpy).findByRoomIdAndAfterId(roomId, afterMessageId, limit)
+            verify(adapterSpy).findByRoomIdAndAfterId(ChatRoomIdService.from(roomId.value), afterMessageId, limit)
         }
     }
 }

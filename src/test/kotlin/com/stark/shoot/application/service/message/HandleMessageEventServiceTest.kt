@@ -1,6 +1,7 @@
 package com.stark.shoot.application.service.message
 
 import com.stark.shoot.adapter.out.persistence.postgres.repository.OutboxEventRepository
+import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.message.MessageStatusNotificationPort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.LoadUrlContentPort
@@ -13,8 +14,8 @@ import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.vo.ChatRoomId
-import com.stark.shoot.domain.event.MessageEvent
-import com.stark.shoot.domain.event.type.EventType
+import com.stark.shoot.domain.shared.event.MessageEvent
+import com.stark.shoot.domain.shared.event.type.EventType
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -31,6 +32,7 @@ class HandleMessageEventServiceTest {
     fun `이벤트를 성공적으로 처리하면 true를 반환한다`() {
         // Create lenient mocks to avoid strict verification issues
         val messageSagaOrchestrator = mock(MessageSagaOrchestrator::class.java, withSettings().lenient())
+        val messageQueryPort = mock(MessageQueryPort::class.java, withSettings().lenient())
         val loadUrlContentPort = mock(LoadUrlContentPort::class.java, withSettings().lenient())
         val cacheUrlPreviewPort = mock(CacheUrlPreviewPort::class.java, withSettings().lenient())
         val messageStatusNotificationPort = mock(MessageStatusNotificationPort::class.java, withSettings().lenient())
@@ -38,6 +40,7 @@ class HandleMessageEventServiceTest {
 
         val service = HandleMessageEventService(
             messageSagaOrchestrator,
+            messageQueryPort,
             loadUrlContentPort,
             cacheUrlPreviewPort,
             messageStatusNotificationPort,
@@ -54,7 +57,19 @@ class HandleMessageEventServiceTest {
             metadata = ChatMessageMetadata(tempId = "t1")
         )
 
-        val event = MessageEvent.fromMessage(message, EventType.MESSAGE_CREATED)
+        val event = MessageEvent(
+            type = EventType.MESSAGE_CREATED,
+            messageId = message.id,
+            roomId = message.roomId,
+            senderId = message.senderId,
+            content = message.content.text,
+            messageType = message.content.type,
+            mentions = emptySet(),
+            tempId = message.metadata.tempId,
+            needsUrlPreview = false,
+            previewUrl = null,
+            createdAt = message.createdAt ?: Instant.now()
+        )
 
         // Mock saga orchestrator to return successful context
         val successContext = MessageSagaContext(message = message)

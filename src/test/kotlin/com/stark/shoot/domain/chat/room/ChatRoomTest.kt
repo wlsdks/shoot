@@ -84,7 +84,7 @@ class ChatRoomTest {
             )
             val newTitle = "새 제목"
             val newAnnouncement = ChatRoomAnnouncement.from("새 공지사항")
-            val newLastMessageId = MessageId.from("message123")
+            val newLastMessageId = MessageIdService.from("message123")
             val newLastActiveAt = Instant.now().plusSeconds(3600)
 
             // when

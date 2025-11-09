@@ -7,8 +7,8 @@ import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.MessageContent
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.vo.ChatRoomId
-import com.stark.shoot.domain.event.MessageEvent
-import com.stark.shoot.domain.event.type.EventType
+import com.stark.shoot.domain.shared.event.MessageEvent
+import com.stark.shoot.domain.shared.event.type.EventType
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.exception.web.KafkaPublishException
 import kotlinx.coroutines.runBlocking
@@ -39,9 +39,19 @@ class KafkaMessagePublishAdapterTest {
     }
 
     private fun createMessageEvent(): MessageEvent {
+        val message = createChatMessage()
         return MessageEvent(
             type = EventType.MESSAGE_CREATED,
-            data = createChatMessage()
+            messageId = message.id,
+            roomId = message.roomId,
+            senderId = message.senderId,
+            content = message.content.text,
+            messageType = message.content.type,
+            mentions = emptySet(),
+            tempId = null,
+            needsUrlPreview = false,
+            previewUrl = null,
+            createdAt = message.createdAt ?: Instant.now()
         )
     }
 

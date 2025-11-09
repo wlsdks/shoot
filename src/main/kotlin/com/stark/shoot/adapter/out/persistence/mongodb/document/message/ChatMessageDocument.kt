@@ -30,9 +30,9 @@ data class ChatMessageDocument(
     val status: MessageStatus = MessageStatus.SENT,         // 메시지 상태 (e.g., SENT, READ 등)
     val threadId: ObjectId? = null,                         // 스레드 ID (루트 메시지 ID)
     val replyToMessageId: ObjectId? = null,                 // 답장할 메시지 ID
-    val reactions: Map<String, Set<Long>> = emptyMap(),     // 이모티콘 ID to 사용자 ID 목록 (deprecated, 별도 Aggregate)
     val mentions: Set<Long> = emptySet(),                   // 멘션된 사용자 ID 목록
     // 메시지 고정 정보는 별도 MessagePin Aggregate로 분리되었습니다.
     // 메시지 읽음 표시는 별도 MessageReadReceipt Aggregate로 분리되었습니다.
+    // 메시지 리액션 정보는 별도 MessageReaction Aggregate로 분리되었습니다.
     val isDeleted: Boolean = false,                         // 삭제 여부
 ) : BaseMongoDocument()

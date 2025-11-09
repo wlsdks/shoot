@@ -30,11 +30,11 @@ class ChatMessageMapper {
             status = domain.status,
             threadId = domain.threadId?.let { ObjectId(it.value) },
             replyToMessageId = domain.replyToMessageId?.let { ObjectId(it.value) },
-            reactions = emptyMap(),  // 리액션은 별도 Aggregate로 관리
             mentions = domain.mentions.map { it.value }.toSet(),
             isDeleted = domain.isDeleted
             // 메시지 고정 정보는 별도 MessagePin Aggregate로 관리
             // 메시지 읽음 표시는 별도 MessageReadReceipt Aggregate로 관리
+            // 메시지 리액션 정보는 별도 MessageReaction Aggregate로 관리
         ).apply {
             id = domain.id?.let { ObjectId(it.value) }
             createdAt = domain.createdAt

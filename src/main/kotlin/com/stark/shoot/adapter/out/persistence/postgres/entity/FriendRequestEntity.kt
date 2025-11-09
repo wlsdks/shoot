@@ -17,14 +17,12 @@ import java.time.Instant
 )
 class FriendRequestEntity(
     // 친구 요청을 보낸 사람
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "sender_id", referencedColumnName = "id")
-    val sender: UserEntity,
+    @Column(name = "sender_id", nullable = false)
+    val senderId: Long,
 
     // 친구 요청을 받은 사람
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "receiver_id", referencedColumnName = "id")
-    val receiver: UserEntity,
+    @Column(name = "receiver_id", nullable = false)
+    val receiverId: Long,
 
     @Enumerated(EnumType.STRING)
     var status: FriendRequestStatus = FriendRequestStatus.PENDING,

@@ -19,14 +19,12 @@ import java.time.Instant
 )
 class BlockedUserEntity(
     // 차단을 수행한 사용자
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    val user: UserEntity,
+    @Column(name = "user_id", nullable = false)
+    val userId: Long,
 
     // 차단된 사용자
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "blocked_user_id", referencedColumnName = "id")
-    val blockedUser: UserEntity,
+    @Column(name = "blocked_user_id", nullable = false)
+    val blockedUserId: Long,
 
     // 차단 시간
     val blockedAt: Instant = Instant.now(),

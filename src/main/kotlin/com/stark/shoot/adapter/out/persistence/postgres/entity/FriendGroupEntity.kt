@@ -5,9 +5,8 @@ import jakarta.persistence.*
 @Entity
 @Table(name = "friend_groups")
 class FriendGroupEntity(
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
-    val owner: UserEntity,
+    @Column(name = "owner_id", nullable = false)
+    val ownerId: Long,
     var name: String,
     var description: String?
 ) : BaseEntity()

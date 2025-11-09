@@ -8,11 +8,9 @@ import jakarta.persistence.*
     uniqueConstraints = [UniqueConstraint(columnNames = ["group_id", "member_id"])]
 )
 class FriendGroupMemberEntity(
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
-    val group: FriendGroupEntity,
+    @Column(name = "group_id", nullable = false)
+    val groupId: Long,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    val member: UserEntity,
+    @Column(name = "member_id", nullable = false)
+    val memberId: Long,
 ) : BaseEntity()

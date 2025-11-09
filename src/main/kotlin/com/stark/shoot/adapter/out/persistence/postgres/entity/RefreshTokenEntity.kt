@@ -6,9 +6,8 @@ import java.time.Instant
 @Entity
 @Table(name = "refresh_tokens")
 class RefreshTokenEntity(
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    val user: UserEntity,
+    @Column(name = "user_id", nullable = false)
+    val userId: Long,
 
     @Column(nullable = false, unique = true, length = 512)
     val token: String,

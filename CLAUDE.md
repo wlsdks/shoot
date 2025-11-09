@@ -14,9 +14,16 @@
 ## Architecture
 
 - **Hexagonal Architecture** (Ports & Adapters)
-- **Domain-Driven Design** (DDD)
+- **Domain-Driven Design** (DDD) - **Maturity: 8.5/10**
 - **Event-Driven Architecture**
 - **CQRS** (Chat operations)
+
+### DDD Implementation
+- **15 Aggregate Roots** with clear transaction boundaries
+- **ID Reference Pattern**: 100% compliance (no direct entity references)
+- **Custom Annotations**: `@AggregateRoot`, `@ValueObject`, `@DomainEntity`, `@DomainEvent`, `@DomainService`
+- **Rich Domain Model**: Business logic encapsulated in domain objects
+- **Anti-Corruption Layer (ACL)**: Context 간 변환 처리
 
 ## Project Structure
 
@@ -63,6 +70,33 @@ src/main/kotlin/com/shoot/
 
 ## Business Rules
 
+### Aggregate Roots (15개)
+
+**Chat Context (5개)**
+- **ChatMessage**: 메시지 본문 및 메타데이터 (243 lines)
+- **MessagePin**: 메시지 고정 (53 lines)
+- **MessageReadReceipt**: 메시지 읽음 표시 (53 lines)
+- **MessageReaction**: 메시지 리액션 (84 lines)
+- **MessageBookmark**: 메시지 북마크 (15 lines)
+
+**Social Context (4개)**
+- **FriendRequest**: 친구 요청 및 수락/거절
+- **Friendship**: 친구 관계 (양방향)
+- **BlockedUser**: 사용자 차단
+- **FriendGroup**: 친구 그룹 관리
+
+**User Context (2개)**
+- **User**: 사용자 정보 및 프로필
+- **RefreshToken**: JWT 리프레시 토큰
+
+**ChatRoom Context (2개)**
+- **ChatRoom**: 채팅방 관리 (344 lines)
+- **ChatRoomSettings**: 채팅방 설정
+
+**Notification Context (2개)**
+- **Notification**: 알림
+- **NotificationSettings**: 사용자별 알림 설정
+
 ### 메시지 (Message)
 - 상태: SENDING → SENT_TO_KAFKA → PROCESSING → SAVED / FAILED
 - 최대 길이: 4,000자 (DomainConstants)
@@ -72,6 +106,13 @@ src/main/kotlin/com/shoot/
 - 수정: TEXT 타입만 가능, 삭제된 메시지 수정 불가
 - **수정 시간 제한: 24시간** (생성 후 24시간 이후 수정 불가)
 - 빈 내용으로 수정 불가
+
+### 메시지 읽음 표시 (MessageReadReceipt)
+- **별도 Aggregate로 분리**: ChatMessage와 독립적 트랜잭션 경계
+- 사용자별 메시지 읽음 시간 기록
+- 동시성 제어: 여러 사용자가 동시에 읽음 처리 가능
+- Unique 제약: (messageId, userId) 복합 인덱스
+- Eventual Consistency: 읽음 수 집계는 비동기 처리
 
 ### 사용자 (User)
 - Username: 3-20자
@@ -141,23 +182,33 @@ src/main/kotlin/com/shoot/
 - 지수 백오프 재시도 메커니즘
 - 채팅방별 독립적 락으로 병렬성 유지
 
-**📖 상세 도메인 모델**: `DOMAIN.md` 참조
+**📖 상세 정보**:
+- 도메인 모델: `docs/architecture/DOMAIN.md`
+- Context Map: `docs/architecture/CONTEXT_MAP.md`
+- Bounded Contexts: `docs/architecture/BOUNDED_CONTEXTS.md`
+- ACL 패턴: `knowledge/patterns/ACL_PATTERN_GUIDE.md`
 
 ## Development Rules
 
 ### DO
 - Domain 우선 설계 (엔티티, 이벤트 먼저)
 - Port 인터페이스 정의 후 구현
+- **Aggregate Root에 `@AggregateRoot` 어노테이션 명시**
+- **Value Object에 `@ValueObject` 어노테이션 명시**
+- **ID Reference Pattern 사용** (다른 Aggregate는 ID로만 참조)
 - 단일 표현식 함수 사용
 - `in` 연산자 사용 (`.contains()` 대신)
 - 불필요한 `this` 제거
 - Event-driven으로 도메인 간 통신
 - DomainConstants에서 상수값 참조
+- ACL을 통한 Context 간 변환
 
 ### DON'T
 - Domain에서 infrastructure 직접 의존 금지
 - Adapter에 비즈니스 로직 작성 금지
 - Controller에서 직접 repository 호출 금지
+- **Aggregate 간 직접 객체 참조 금지** (ID만 사용)
+- **하나의 트랜잭션에서 여러 Aggregate 수정 금지**
 - 중복 주석 작성 금지
 - 매직넘버 하드코딩 금지 (DomainConstants 사용)
 
@@ -226,4 +277,4 @@ src/main/kotlin/com/shoot/
 
 ---
 
-*Last updated: 2025-10-23*
+*Last updated: 2025-11-09*

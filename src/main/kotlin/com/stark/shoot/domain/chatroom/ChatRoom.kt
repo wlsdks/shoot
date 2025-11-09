@@ -8,10 +8,12 @@ import com.stark.shoot.domain.chatroom.vo.MessageId
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.chatroom.exception.FavoriteLimitExceededException
 import com.stark.shoot.domain.chatroom.exception.ChatRoomException
+import com.stark.shoot.infrastructure.annotation.AggregateRoot
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+@AggregateRoot
 data class ChatRoom(
     val id: ChatRoomId? = null,
     var title: ChatRoomTitle? = null,

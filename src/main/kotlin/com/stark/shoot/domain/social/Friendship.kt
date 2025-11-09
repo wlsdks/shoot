@@ -2,12 +2,14 @@ package com.stark.shoot.domain.social
 
 import com.stark.shoot.domain.social.vo.FriendshipId
 import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.infrastructure.annotation.AggregateRoot
 import java.time.Instant
 
 /**
  * 친구 관계 애그리게이트
  * 두 사용자 간의 친구 관계를 나타냅니다.
  */
+@AggregateRoot
 data class Friendship(
     val id: FriendshipId? = null,
     val userId: UserId,

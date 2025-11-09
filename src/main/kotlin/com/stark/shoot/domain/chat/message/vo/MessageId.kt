@@ -1,5 +1,8 @@
 package com.stark.shoot.domain.chat.message.vo
 
+import com.stark.shoot.infrastructure.annotation.ValueObject
+
+@ValueObject
 @JvmInline
 value class MessageId private constructor(val value: String) {
     companion object {

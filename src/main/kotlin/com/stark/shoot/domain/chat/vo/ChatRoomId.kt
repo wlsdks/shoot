@@ -1,5 +1,7 @@
 package com.stark.shoot.domain.chat.vo
 
+import com.stark.shoot.infrastructure.annotation.ValueObject
+
 /**
  * Chat Context의 ChatRoomId
  *
@@ -9,6 +11,7 @@ package com.stark.shoot.domain.chat.vo
  * - ChatRoom Context의 ChatRoomId와 구조적으로 동일하지만, 타입은 다름
  * - 필요시 Anti-Corruption Layer에서 변환 처리
  */
+@ValueObject
 @JvmInline
 value class ChatRoomId private constructor(val value: Long) {
 

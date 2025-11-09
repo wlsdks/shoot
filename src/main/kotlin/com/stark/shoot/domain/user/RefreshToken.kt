@@ -2,8 +2,10 @@ package com.stark.shoot.domain.user
 
 import com.stark.shoot.domain.user.vo.RefreshTokenValue
 import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.infrastructure.annotation.AggregateRoot
 import java.time.Instant
 
+@AggregateRoot
 data class RefreshToken(
     val id: Long? = null,
     val userId: UserId,                 // 사용자 ID 참조

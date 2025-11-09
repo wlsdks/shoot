@@ -1,12 +1,14 @@
 package com.stark.shoot.domain.social
 
 import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.infrastructure.annotation.AggregateRoot
 import java.time.Instant
 
 /**
  * 차단된 사용자 애그리게이트
  * 한 사용자가 다른 사용자를 차단한 관계를 나타냅니다.
  */
+@AggregateRoot
 data class BlockedUser(
     val id: Long? = null,
     val userId: UserId,

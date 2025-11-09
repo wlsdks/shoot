@@ -4,6 +4,7 @@ import com.stark.shoot.domain.shared.event.FriendAddedEvent
 import com.stark.shoot.domain.social.type.FriendRequestStatus
 import com.stark.shoot.domain.social.vo.FriendRequestId
 import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.infrastructure.annotation.AggregateRoot
 import java.time.Instant
 
 /**
@@ -11,6 +12,7 @@ import java.time.Instant
  *
  * DDD Rich Model: 친구 요청 수락 시 Friendship과 Event를 직접 생성합니다.
  */
+@AggregateRoot
 data class FriendRequest(
     val id: FriendRequestId? = null,
     val senderId: UserId,

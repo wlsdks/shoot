@@ -8,6 +8,7 @@ import com.stark.shoot.domain.notification.vo.NotificationMessage
 import com.stark.shoot.domain.notification.vo.NotificationTitle
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.domain.notification.exception.NotificationException
+import com.stark.shoot.infrastructure.annotation.AggregateRoot
 import java.time.Instant
 
 /**
@@ -16,6 +17,7 @@ import java.time.Instant
  * 알림은 사용자에게 전달되는 메시지로, 다양한 소스(채팅, 친구 요청 등)에서 발생할 수 있습니다.
  * 알림은 읽음 상태와 삭제 상태를 가지며, 이러한 상태 변경은 도메인 로직을 통해 이루어집니다.
  */
+@AggregateRoot
 data class Notification(
     val id: NotificationId? = null,
     val userId: UserId,

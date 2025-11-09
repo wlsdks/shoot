@@ -1,5 +1,8 @@
 package com.stark.shoot.domain.shared
 
+import com.stark.shoot.infrastructure.annotation.ValueObject
+
+@ValueObject
 @JvmInline
 value class UserId private constructor(val value: Long) {
     companion object {

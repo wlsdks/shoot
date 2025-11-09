@@ -2,11 +2,13 @@ package com.stark.shoot.domain.social
 
 import com.stark.shoot.domain.social.vo.FriendGroupName
 import com.stark.shoot.domain.shared.UserId
+import com.stark.shoot.infrastructure.annotation.AggregateRoot
 import java.time.Instant
 
 /**
  * 친구를 그룹화하여 관리하기 위한 애그리게이트
  */
+@AggregateRoot
 data class FriendGroup(
     val id: Long? = null,
     val ownerId: UserId,

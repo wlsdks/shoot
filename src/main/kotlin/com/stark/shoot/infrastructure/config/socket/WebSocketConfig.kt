@@ -9,6 +9,7 @@ import com.stark.shoot.infrastructure.config.socket.interceptor.CustomHandshakeH
 import com.stark.shoot.infrastructure.config.socket.interceptor.RateLimitInterceptor
 import com.stark.shoot.infrastructure.config.socket.interceptor.StompChannelInterceptor
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.messaging.simp.config.ChannelRegistration
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit
 
 @Configuration
 @EnableWebSocketMessageBroker // STOMP 메시징을 활성화 이로 인해 서버는 STOMP 프로토콜 형식의 메시지를 기대합니다.
+@ConditionalOnProperty(name = ["websocket.enabled"], havingValue = "true", matchIfMissing = true)
 class WebSocketConfig(
     private val chatRoomQueryPort: ChatRoomQueryPort,
     private val userQueryPort: UserQueryPort,

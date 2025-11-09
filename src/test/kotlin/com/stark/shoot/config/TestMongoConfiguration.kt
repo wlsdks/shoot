@@ -4,10 +4,13 @@ import com.stark.shoot.adapter.out.persistence.mongodb.repository.ChatMessageMon
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.MessageBookmarkMongoRepository
 import com.stark.shoot.adapter.out.persistence.mongodb.repository.NotificationMongoRepository
 import org.mockito.Mockito
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 
 /**
  * 테스트용 MongoDB 설정
@@ -38,5 +41,11 @@ class TestMongoConfiguration {
     @Primary
     fun messageBookmarkMongoRepository(): MessageBookmarkMongoRepository {
         return Mockito.mock(MessageBookmarkMongoRepository::class.java)
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    fun passwordEncoder(): PasswordEncoder {
+        return BCryptPasswordEncoder()
     }
 }

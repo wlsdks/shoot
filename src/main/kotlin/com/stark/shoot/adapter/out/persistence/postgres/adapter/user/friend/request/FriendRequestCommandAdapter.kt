@@ -2,7 +2,6 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend.req
 
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendRequestEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
-import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
 import com.stark.shoot.domain.social.FriendRequest
 import com.stark.shoot.domain.social.type.FriendRequestStatus
@@ -13,21 +12,16 @@ import java.time.Instant
 
 @Adapter
 class FriendRequestCommandAdapter(
-    private val friendRequestRepository: FriendRequestRepository,
-    private val userRepository: UserRepository
+    private val friendRequestRepository: FriendRequestRepository
 ) : FriendRequestCommandPort {
 
     override fun createRequest(
         friendRequest: FriendRequest
     ): FriendRequest {
-        // 애플리케이션 서비스에서 이미 사용자 존재 여부를 확인했으므로 여기서는 존재한다고 가정
-        val sender = userRepository.getReferenceById(friendRequest.senderId.value)
-        val receiver = userRepository.getReferenceById(friendRequest.receiverId.value)
-
         // 새로운 친구 요청 생성 및 저장
         val entity = FriendRequestEntity(
-            sender = sender,
-            receiver = receiver,
+            senderId = friendRequest.senderId.value,
+            receiverId = friendRequest.receiverId.value,
             status = friendRequest.status,
             requestDate = friendRequest.createdAt,
             respondedAt = friendRequest.respondedAt
@@ -39,11 +33,11 @@ class FriendRequestCommandAdapter(
     override fun saveFriendRequest(
         request: FriendRequest
     ) {
-        // 애플리케이션 서비스에서 이미 사용자 존재 여부를 확인했으므로 여기서는 존재한다고 가정
-        val sender = userRepository.getReferenceById(request.senderId.value)
-        val receiver = userRepository.getReferenceById(request.receiverId.value)
-
-        val entity = FriendRequestEntity(sender, receiver, request.status)
+        val entity = FriendRequestEntity(
+            senderId = request.senderId.value,
+            receiverId = request.receiverId.value,
+            status = request.status
+        )
         friendRequestRepository.save(entity)
     }
 
@@ -82,8 +76,8 @@ class FriendRequestCommandAdapter(
     ): FriendRequest {
         return FriendRequest(
             id = entity.id?.let { FriendRequestId.Companion.from(it) },
-            senderId = UserId.Companion.from(entity.sender.id),
-            receiverId = UserId.Companion.from(entity.receiver.id),
+            senderId = UserId.Companion.from(entity.senderId),
+            receiverId = UserId.Companion.from(entity.receiverId),
             status = entity.status,
             createdAt = entity.requestDate,
             respondedAt = entity.respondedAt

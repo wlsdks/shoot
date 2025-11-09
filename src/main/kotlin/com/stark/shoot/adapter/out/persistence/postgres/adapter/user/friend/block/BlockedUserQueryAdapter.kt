@@ -37,8 +37,8 @@ class BlockedUserQueryAdapter(
     ): BlockedUser {
         return BlockedUser(
             id = entity.id?.let { BlockedUserId.from(it) },
-            userId = UserId.Companion.from(entity.user.id),
-            blockedUserId = UserId.Companion.from(entity.blockedUser.id),
+            userId = UserId.Companion.from(entity.userId),
+            blockedUserId = UserId.Companion.from(entity.blockedUserId),
             createdAt = entity.blockedAt
         )
     }

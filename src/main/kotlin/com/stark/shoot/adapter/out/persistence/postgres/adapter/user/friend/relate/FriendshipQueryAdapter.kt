@@ -32,8 +32,8 @@ class FriendshipQueryAdapter(
     ): Friendship {
         return Friendship(
             id = entity.id?.let { FriendshipId.from(it) },
-            userId = UserId.from(entity.user.id),
-            friendId = UserId.from(entity.friend.id),
+            userId = UserId.from(entity.userId),
+            friendId = UserId.from(entity.friendId),
             createdAt = entity.createdAt
         )
     }

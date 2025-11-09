@@ -20,7 +20,7 @@ class FriendGroupQueryPersistenceAdapter(
             ?: return null
 
         val members = memberRepository.findAllByGroupId(entity.id)
-            .map { it.member.id }.toSet()
+            .map { it.memberId }.toSet()
 
         return mapper.toDomain(entity, members)
     }
@@ -30,7 +30,7 @@ class FriendGroupQueryPersistenceAdapter(
 
         return groups.map { entity ->
             val members = memberRepository.findAllByGroupId(entity.id)
-                .map { it.member.id }.toSet()
+                .map { it.memberId }.toSet()
 
             mapper.toDomain(entity, members)
         }

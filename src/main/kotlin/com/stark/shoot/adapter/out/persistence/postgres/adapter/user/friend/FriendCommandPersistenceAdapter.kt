@@ -3,7 +3,6 @@ package com.stark.shoot.adapter.out.persistence.postgres.adapter.user.friend
 import com.stark.shoot.adapter.out.persistence.postgres.entity.FriendshipMappingEntity
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendRequestRepository
 import com.stark.shoot.adapter.out.persistence.postgres.repository.FriendshipMappingRepository
-import com.stark.shoot.adapter.out.persistence.postgres.repository.UserRepository
 import com.stark.shoot.application.port.out.user.friend.FriendCommandPort
 import com.stark.shoot.domain.social.type.FriendRequestStatus
 import com.stark.shoot.domain.shared.UserId
@@ -12,7 +11,6 @@ import java.time.Instant
 
 @Adapter
 class FriendCommandPersistenceAdapter(
-    private val userRepository: UserRepository,
     private val friendRequestRepository: FriendRequestRepository,
     private val friendshipMappingRepository: FriendshipMappingRepository
 ) : FriendCommandPort {
@@ -70,12 +68,8 @@ class FriendCommandPersistenceAdapter(
             return // 이미 친구 관계면 중복 생성하지 않음
         }
 
-        // 애플리케이션 서비스에서 이미 사용자 존재 여부를 확인했으므로 여기서는 존재한다고 가정
-        val user = userRepository.getReferenceById(userId.value)
-        val friend = userRepository.getReferenceById(friendId.value)
-
         // 새로운 친구 관계 생성 및 저장
-        val friendship = FriendshipMappingEntity(user, friend)
+        val friendship = FriendshipMappingEntity(userId.value, friendId.value)
         friendshipMappingRepository.save(friendship)
     }
 

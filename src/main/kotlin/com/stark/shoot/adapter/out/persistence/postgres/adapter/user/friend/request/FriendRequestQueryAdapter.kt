@@ -75,8 +75,8 @@ class FriendRequestQueryAdapter(
     ): FriendRequest {
         return FriendRequest(
             id = entity.id?.let { FriendRequestId.from(it) },
-            senderId = UserId.from(entity.sender.id),
-            receiverId = UserId.from(entity.receiver.id),
+            senderId = UserId.from(entity.senderId),
+            receiverId = UserId.from(entity.receiverId),
             status = entity.status,
             createdAt = entity.requestDate,
             respondedAt = entity.respondedAt

@@ -60,12 +60,12 @@ class RecommendFriendAdapter(
         // 4. 최종 결과에서 현재 친구인 사용자 제외 (추가 검증, 양방향 관계 모두 확인)
         // 4.1 사용자가 추가한 친구들 (정방향 친구 관계)
         val outgoingFriendIds = friendshipMappingRepository.findAllByUserId(userId.value)
-            .map { UserId.from(it.friend.id) }
+            .map { UserId.from(it.friendId) }
             .toSet()
 
         // 4.2 사용자를 친구로 추가한 사용자들 (역방향 친구 관계)
         val incomingFriendIds = friendshipMappingRepository.findAllByFriendId(userId.value)
-            .map { UserId.from(it.user.id) }
+            .map { UserId.from(it.userId) }
             .toSet()
 
         // 양방향 친구 관계를 합쳐서 전체 친구 목록 생성
@@ -88,24 +88,24 @@ class RecommendFriendAdapter(
         // 친구 목록 추가 (양방향 관계 모두 조회)
         // 1. 사용자가 추가한 친구들 (정방향 친구 관계)
         val outgoingFriendIds = friendshipMappingRepository.findAllByUserId(userId.value)
-            .map { UserId.from(it.friend.id) }
+            .map { UserId.from(it.friendId) }
         excludeIds.addAll(outgoingFriendIds)
 
         // 2. 사용자를 친구로 추가한 사용자들 (역방향 친구 관계)
         val incomingFriendIds = friendshipMappingRepository.findAllByFriendId(userId.value)
-            .map { UserId.from(it.user.id) }
+            .map { UserId.from(it.userId) }
         excludeIds.addAll(incomingFriendIds)
 
         // 보낸 친구 요청 추가
         val outgoingRequestIds = friendRequestRepository
             .findAllBySenderIdAndStatus(userId.value, FriendRequestStatus.PENDING)
-            .map { UserId.from(it.receiver.id) }
+            .map { UserId.from(it.receiverId) }
         excludeIds.addAll(outgoingRequestIds)
 
         // 받은 친구 요청 추가
         val incomingRequestIds = friendRequestRepository
             .findAllByReceiverIdAndStatus(userId.value, FriendRequestStatus.PENDING)
-            .map { UserId.from(it.sender.id) }
+            .map { UserId.from(it.senderId) }
         excludeIds.addAll(incomingRequestIds)
 
         return excludeIds
@@ -134,7 +134,7 @@ class RecommendFriendAdapter(
 
         // 시작 사용자의 친구들을 큐에 추가 (거리 1)
         val directFriends = friendshipMappingRepository.findAllByUserId(userId.value)
-            .mapNotNull { it.friend.id }
+            .map { it.friendId }
 
         // 친구가 없으면 빈 리스트 반환하지 않고 랜덤 유저 추천
         if (directFriends.isEmpty()) {

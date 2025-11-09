@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Import
 @DataJpaTest
 @Import(ChatRoomCommandPersistenceAdapter::class, ChatRoomMapper::class)
 @DisplayName("채팅방 읽음 상태 어댑터 테스트")
+@org.springframework.test.context.ActiveProfiles("test")
 class ReadStatusPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomUserRepository: ChatRoomUserRepository,

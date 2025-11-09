@@ -45,7 +45,20 @@ class ToggleMessageReactionServiceTest {
     private val webSocketMessageBroker = mock(WebSocketMessageBroker::class.java)
     private val eventPublisher = mock(EventPublishPort::class.java)
     private val messageReactionService = mock(MessageReactionService::class.java)
-    private val redisLockManager = mock(com.stark.shoot.infrastructure.config.redis.RedisLockManager::class.java)
+
+    // RedisLockManager를 위한 모킹: 실제 동작하도록 람다를 즉시 실행
+    private val redisLockManager = object : com.stark.shoot.infrastructure.config.redis.RedisLockManager(
+        mock(org.springframework.data.redis.core.StringRedisTemplate::class.java),
+        mock(com.stark.shoot.infrastructure.config.redis.RedisLockProperties::class.java)
+    ) {
+        override fun <T> withLock(
+            lockKey: String,
+            ownerId: String,
+            retryCount: Int,
+            autoExtend: Boolean,
+            action: () -> T
+        ): T = action()
+    }
 
     private val toggleMessageReactionService = ToggleMessageReactionService(
         messageQueryPort,
@@ -55,24 +68,6 @@ class ToggleMessageReactionServiceTest {
         messageReactionService,
         redisLockManager
     )
-
-    @BeforeEach
-    fun setUp() {
-        // RedisLockManager의 withLock 메서드를 모킹하여 람다를 즉시 실행하도록 설정
-        `when`(
-            redisLockManager.withLock<Any>(
-                anyString(),
-                anyString(),
-                anyInt(),
-                anyBoolean(),
-                any()
-            )
-        ).thenAnswer(Answer { invocation ->
-            @Suppress("UNCHECKED_CAST")
-            val action = invocation.getArgument(4) as () -> Any
-            action.invoke()
-        })
-    }
 
     @Nested
     @DisplayName("메시지 리액션 토글 시")

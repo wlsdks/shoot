@@ -18,6 +18,7 @@ import org.hamcrest.Matchers.hasSize
 @DataJpaTest
 @Import(ChatRoomCommandPersistenceAdapter::class, ChatRoomMapper::class)
 @DisplayName("채팅방 저장 어댑터 테스트")
+@org.springframework.test.context.ActiveProfiles("test")
 class SaveChatRoomPersistenceAdapterTest @Autowired constructor(
     private val chatRoomRepository: ChatRoomRepository,
     private val chatRoomUserRepository: ChatRoomUserRepository,

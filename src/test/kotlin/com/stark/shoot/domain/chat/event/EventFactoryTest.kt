@@ -46,7 +46,8 @@ class EventFactoryTest {
     @DisplayName("[happy] ChatRoomCreatedEvent create 함수는 주어진 값으로 이벤트를 생성한다")
     fun `ChatRoomCreatedEvent create 함수는 주어진 값으로 이벤트를 생성한다`() {
         val event = ChatRoomCreatedEvent.create(ChatRoomIdService.from(1L), UserId.from(2L))
-        assertThat(event).isEqualTo(ChatRoomCreatedEvent(roomId = ChatRoomIdService.from(1L), userId = UserId.from(2L)))
+        assertThat(event.roomId).isEqualTo(ChatRoomIdService.from(1L))
+        assertThat(event.userId).isEqualTo(UserId.from(2L))
     }
 
     @Test

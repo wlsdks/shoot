@@ -26,9 +26,16 @@ import org.springframework.transaction.annotation.Transactional
  *
  * Race Condition과 OptimisticLockException 처리를 검증합니다.
  */
-@SpringBootTest
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.NONE,
+    properties = [
+        "spring.data.mongodb.auto-index-creation=false",
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration,org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration,org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration,org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration,org.springframework.boot.autoconfigure.websocket.servlet.WebSocketServletAutoConfiguration,org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration"
+    ]
+)
 @ActiveProfiles("test")
 @Transactional
+@org.springframework.context.annotation.Import(com.stark.shoot.config.TestMongoConfiguration::class)
 class FriendRequestConcurrencyTest {
 
     @Autowired

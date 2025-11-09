@@ -81,12 +81,24 @@ class SagaOrchestrator<T : Any>(
             }
         }
 
-        // Context 상태 업데이트 (MessageSagaContext인 경우)
-        if (context is com.stark.shoot.domain.saga.message.MessageSagaContext) {
-            if (allCompensationsSucceeded) {
-                context.markCompensated()
-            } else {
-                context.markFailed(Exception("Compensation failed for one or more steps"))
+        // Context 상태 업데이트
+        // 보상할 단계가 있었고 모든 보상이 성공한 경우에만 COMPENSATED로 표시
+        if (executedSteps.isNotEmpty()) {
+            when (context) {
+                is com.stark.shoot.domain.saga.message.MessageSagaContext -> {
+                    if (allCompensationsSucceeded) {
+                        context.markCompensated()
+                    } else {
+                        context.markFailed(Exception("Compensation failed for one or more steps"))
+                    }
+                }
+                is com.stark.shoot.application.service.saga.friend.FriendRequestSagaContext -> {
+                    if (allCompensationsSucceeded) {
+                        context.markCompensated()
+                    } else {
+                        context.markFailed(Exception("Compensation failed for one or more steps"))
+                    }
+                }
             }
         }
 

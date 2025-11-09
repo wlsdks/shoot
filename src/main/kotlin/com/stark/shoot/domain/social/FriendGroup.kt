@@ -56,4 +56,25 @@ data class FriendGroup(
         return true
     }
 
+    companion object {
+        /**
+         * 친구 그룹 생성
+         *
+         * @param ownerId 그룹 소유자 ID
+         * @param name 그룹 이름
+         * @param description 그룹 설명 (선택)
+         * @return 생성된 친구 그룹
+         */
+        fun create(
+            ownerId: UserId,
+            name: String,
+            description: String? = null
+        ): FriendGroup {
+            return FriendGroup(
+                ownerId = ownerId,
+                name = FriendGroupName.from(name),
+                description = description
+            )
+        }
+    }
 }

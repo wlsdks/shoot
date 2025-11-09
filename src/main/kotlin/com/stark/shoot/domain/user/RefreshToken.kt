@@ -32,4 +32,32 @@ data class RefreshToken(
     fun revoke() {
         isRevoked = true
     }
+
+    companion object {
+        /**
+         * 리프레시 토큰 생성
+         *
+         * @param userId 사용자 ID
+         * @param token 토큰 값
+         * @param expirationDate 만료 시간
+         * @param deviceInfo 디바이스 정보 (선택)
+         * @param ipAddress IP 주소 (선택)
+         * @return 생성된 리프레시 토큰
+         */
+        fun create(
+            userId: UserId,
+            token: String,
+            expirationDate: Instant,
+            deviceInfo: String? = null,
+            ipAddress: String? = null
+        ): RefreshToken {
+            return RefreshToken(
+                userId = userId,
+                token = RefreshTokenValue.from(token),
+                expirationDate = expirationDate,
+                deviceInfo = deviceInfo,
+                ipAddress = ipAddress
+            )
+        }
+    }
 }

@@ -35,4 +35,37 @@ data class NotificationSettings(
         preferences = updated
         updatedAt = Instant.now()
     }
+
+    companion object {
+        /**
+         * 기본 알림 설정 생성
+         * 모든 알림 타입이 활성화된 상태로 생성됨
+         *
+         * @param userId 사용자 ID
+         * @return 기본 알림 설정
+         */
+        fun createDefault(userId: UserId): NotificationSettings {
+            return NotificationSettings(
+                userId = userId,
+                preferences = emptyMap() // 기본값: 모든 알림 활성화
+            )
+        }
+
+        /**
+         * 사용자 지정 알림 설정 생성
+         *
+         * @param userId 사용자 ID
+         * @param preferences 알림 타입별 활성화 여부
+         * @return 알림 설정
+         */
+        fun create(
+            userId: UserId,
+            preferences: Map<NotificationType, Boolean>
+        ): NotificationSettings {
+            return NotificationSettings(
+                userId = userId,
+                preferences = preferences
+            )
+        }
+    }
 }

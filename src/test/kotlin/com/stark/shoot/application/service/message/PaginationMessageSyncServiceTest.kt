@@ -98,7 +98,7 @@ class PaginationMessageSyncServiceTest {
 
             // Mock the mapper for each message
             for (i in messages.indices) {
-                `when`(messageSyncMapper.toSyncInfoDto(messages[i], 0L)).thenReturn(syncInfoDtos[i])
+                `when`(messageSyncMapper.toSyncInfoDto(messages[i], emptyMap(), 0L)).thenReturn(syncInfoDtos[i])
             }
 
             // when
@@ -114,7 +114,7 @@ class PaginationMessageSyncServiceTest {
                 message.id?.let { messageId ->
                     verify(threadQueryPort).countByThreadId(messageId)
                 }
-                verify(messageSyncMapper).toSyncInfoDto(message, 0L)
+                verify(messageSyncMapper).toSyncInfoDto(message, emptyMap(), 0L)
             }
         }
 
@@ -165,7 +165,7 @@ class PaginationMessageSyncServiceTest {
 
             // Mock the mapper for each message
             for (i in messages.indices) {
-                `when`(messageSyncMapper.toSyncInfoDto(messages[i], 0L)).thenReturn(syncInfoDtos[i])
+                `when`(messageSyncMapper.toSyncInfoDto(messages[i], emptyMap(), 0L)).thenReturn(syncInfoDtos[i])
             }
 
             // when
@@ -181,7 +181,7 @@ class PaginationMessageSyncServiceTest {
                 message.id?.let { messageId ->
                     verify(threadQueryPort).countByThreadId(messageId)
                 }
-                verify(messageSyncMapper).toSyncInfoDto(message, 0L)
+                verify(messageSyncMapper).toSyncInfoDto(message, emptyMap(), 0L)
             }
         }
     }

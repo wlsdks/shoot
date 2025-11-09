@@ -5,11 +5,13 @@ import com.stark.shoot.application.port.`in`.message.pin.MessagePinUseCase
 import com.stark.shoot.application.port.`in`.message.pin.command.PinMessageCommand
 import com.stark.shoot.application.port.`in`.message.pin.command.UnpinMessageCommand
 import com.stark.shoot.application.port.out.event.EventPublishPort
-import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
+import com.stark.shoot.application.port.out.message.pin.MessagePinCommandPort
+import com.stark.shoot.application.port.out.message.pin.MessagePinQueryPort
 import com.stark.shoot.application.acl.*
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
+import com.stark.shoot.domain.chat.pin.MessagePin
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
 import com.stark.shoot.domain.chatroom.constants.ChatRoomConstants
@@ -21,7 +23,8 @@ import java.time.Instant
 @UseCase
 class MessagePinService(
     private val messageQueryPort: MessageQueryPort,
-    private val messageCommandPort: MessageCommandPort,
+    private val messagePinCommandPort: MessagePinCommandPort,
+    private val messagePinQueryPort: MessagePinQueryPort,
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val eventPublisher: EventPublishPort,
     private val messagePinDomainService: MessagePinDomainService,
@@ -43,23 +46,38 @@ class MessagePinService(
         val message = messageQueryPort.findById(command.messageId)
             .orThrowNotFound("메시지", command.messageId)
 
+        // 이미 고정된 메시지인지 확인 (MessagePin Aggregate 조회)
+        val existingPin = messagePinQueryPort.findByMessageId(command.messageId)
+        if (existingPin != null) {
+            // 이미 고정된 메시지이므로 그대로 반환
+            return message
+        }
+
         // 채팅방에 이미 고정된 메시지 개수 확인
-        val currentPinnedMessages = messageQueryPort.findPinnedMessagesByRoomId(message.roomId.toChatRoom(), maxPinnedMessages)
-        val currentPinnedCount = currentPinnedMessages.size
+        val currentPinnedCount = messagePinQueryPort.countByRoomId(message.roomId)
 
-        // 도메인 객체의 메서드를 사용하여 메시지 고정 (도메인 규칙 적용)
-        val result = message.pinMessageInRoom(command.userId, currentPinnedCount, maxPinnedMessages)
+        // 최대 고정 개수 확인
+        if (currentPinnedCount >= maxPinnedMessages) {
+            throw IllegalStateException(
+                "최대 고정 메시지 개수를 초과했습니다. (현재: $currentPinnedCount, 최대: $maxPinnedMessages)"
+            )
+        }
 
-        // 새로 고정된 메시지 저장
-        val savedMessage = messageCommandPort.save(result.pinnedMessage)
+        // MessagePin Aggregate 생성 및 저장
+        val messagePin = MessagePin.create(
+            messageId = command.messageId,
+            roomId = message.roomId,
+            pinnedBy = command.userId
+        )
+        messagePinCommandPort.save(messagePin)
 
         // WebSocket을 통해 실시간 업데이트 전송
-        sendPinStatusToClients(savedMessage, command.userId, true)
+        sendPinStatusToClients(message, command.userId, true)
 
         // 이벤트 발행
-        publishPinEvent(savedMessage, command.userId, true)
+        publishPinEvent(message, command.userId, true)
 
-        return savedMessage
+        return message
     }
 
     /**
@@ -72,24 +90,24 @@ class MessagePinService(
         val message = messageQueryPort.findById(command.messageId)
             .orThrowNotFound("메시지", command.messageId)
 
+        // MessagePin Aggregate 조회
+        val messagePin = messagePinQueryPort.findByMessageId(command.messageId)
+
         // 고정되지 않은 메시지인지 확인
-        if (!message.isPinned) {
+        if (messagePin == null) {
             return message
         }
 
-        // 도메인 객체의 메서드를 사용하여 메시지 고정 상태 업데이트
-        message.updatePinStatus(false)
-
-        // 메시지 저장
-        val savedMessage = messageCommandPort.save(message)
+        // MessagePin Aggregate 삭제
+        messagePinCommandPort.deleteByMessageId(command.messageId)
 
         // WebSocket을 통해 실시간 업데이트 전송
-        sendPinStatusToClients(savedMessage, command.userId, false)
+        sendPinStatusToClients(message, command.userId, false)
 
         // 이벤트 발행
-        publishPinEvent(savedMessage, command.userId, false)
+        publishPinEvent(message, command.userId, false)
 
-        return savedMessage
+        return message
     }
 
 

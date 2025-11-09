@@ -30,15 +30,11 @@ class ChatMessageMapper {
             status = domain.status,
             threadId = domain.threadId?.let { ObjectId(it.value) },
             replyToMessageId = domain.replyToMessageId?.let { ObjectId(it.value) },
-            reactions = domain.reactions.mapValues { (_, userIds) ->
-                userIds
-            },
+            reactions = emptyMap(),  // 리액션은 별도 Aggregate로 관리
             mentions = domain.mentions.map { it.value }.toSet(),
-            isDeleted = domain.isDeleted,
-            readBy = domain.readBy.mapKeys { it.key.value }.toMutableMap(),
-            isPinned = domain.isPinned,
-            pinnedBy = domain.pinnedBy?.value,
-            pinnedAt = domain.pinnedAt
+            isDeleted = domain.isDeleted
+            // 메시지 고정 정보는 별도 MessagePin Aggregate로 관리
+            // 메시지 읽음 표시는 별도 MessageReadReceipt Aggregate로 관리
         ).apply {
             id = domain.id?.let { ObjectId(it.value) }
             createdAt = domain.createdAt
@@ -54,16 +50,12 @@ class ChatMessageMapper {
             status = document.status,
             threadId = document.threadId?.toString()?.let { MessageId.from(it) },
             replyToMessageId = document.replyToMessageId?.toString()?.let { MessageId.from(it) },
-            messageReactions = MessageReactions(document.reactions.mapValues { (_, userIds) ->
-                userIds
-            }),
+            // reactions는 별도 Aggregate로 관리 (MessageReaction)
             mentions = document.mentions.map { UserId.from(it) }.toSet(),
             createdAt = document.createdAt,
-            updatedAt = document.updatedAt,
-            readBy = document.readBy.mapKeys { UserId.from(it.key) },
-            isPinned = document.isPinned,
-            pinnedBy = document.pinnedBy?.let { UserId.from(it) },
-            pinnedAt = document.pinnedAt
+            updatedAt = document.updatedAt
+            // 메시지 고정 정보는 별도 MessagePin Aggregate로 관리
+            // 메시지 읽음 표시는 별도 MessageReadReceipt Aggregate로 관리
         )
     }
 
@@ -159,14 +151,12 @@ class ChatMessageMapper {
             status = message.status,
             threadId = message.threadId?.value,
             replyToMessageId = message.replyToMessageId?.value,
-            reactions = message.reactions,
+            reactions = emptyMap(),  // 리액션은 별도 Aggregate로 관리 (MessageReaction)
             mentions = message.mentions.map { it.value }.toSet(),
             createdAt = message.createdAt,
-            updatedAt = message.updatedAt,
-            readBy = message.readBy.mapKeys { it.key.value },
-            isPinned = message.isPinned,
-            pinnedBy = message.pinnedBy?.value,
-            pinnedAt = message.pinnedAt
+            updatedAt = message.updatedAt
+            // 메시지 고정 정보는 별도 MessagePin Aggregate로 관리
+            // 메시지 읽음 표시는 별도 MessageReadReceipt Aggregate로 관리
         )
     }
 

@@ -56,8 +56,8 @@ fun ChatMessageRequest.toDomain(): ChatMessage {
         content = content,
         threadId = this.threadId?.let { MessageId.from(it) },
         status = this.status ?: MessageStatus.SENT,
-        readBy = this.readBy?.mapKeys { UserId.from(it.key.toLong()) }?.toMutableMap() ?: mutableMapOf(),
         metadata = metadata
+        // 읽음 표시는 별도 MessageReadReceipt Aggregate로 관리
     )
 }
 

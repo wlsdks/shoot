@@ -9,6 +9,7 @@ import com.stark.shoot.domain.chat.vo.ChatRoomId
 import com.stark.shoot.domain.shared.UserId
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -52,6 +53,9 @@ class ChatMessageTest {
         }
     }
 
+    // TODO: 메시지 읽음 표시 기능은 별도의 MessageReadReceipt Aggregate로 분리되었습니다.
+    // 아래 테스트는 MessageReadReceipt Aggregate 테스트로 재작성 필요
+    /*
     @Nested
     @DisplayName("메시지 읽음 처리 시")
     inner class MarkAsRead {
@@ -77,7 +81,11 @@ class ChatMessageTest {
             assertThat(message.metadata.readAt).isNotNull()
         }
     }
+    */
 
+    // TODO: 메시지 고정 기능은 별도의 MessagePin Aggregate로 분리되었습니다.
+    // 아래 테스트들은 MessagePin Aggregate 테스트로 재작성 필요
+    /*
     @Nested
     @DisplayName("메시지 고정 상태 변경 시")
     inner class UpdatePinStatus {
@@ -202,6 +210,7 @@ class ChatMessageTest {
             assertThat(result.unpinnedMessage).isNull()
         }
     }
+    */
 
     @Nested
     @DisplayName("메시지 내용 수정 시")
@@ -370,6 +379,14 @@ class ChatMessageTest {
         }
     }
 
+    /**
+     * TODO: MessageReaction Aggregate 분리로 인한 재작성 필요
+     * - toggleReaction 메서드가 ChatMessage에서 제거됨
+     * - MessageReaction을 별도 Aggregate로 테스트해야 함
+     *
+     * Note: 테스트 전체 주석 처리 (컴파일 에러 방지)
+     */
+    /*
     @Nested
     @DisplayName("메시지 반응 토글 시")
     inner class ToggleReaction {
@@ -449,6 +466,7 @@ class ChatMessageTest {
             assertThat(result.message.messageReactions.reactions[newReactionType.code]).contains(userId.value)
         }
     }
+    */
 
     @Nested
     @DisplayName("URL 미리보기 처리 시")

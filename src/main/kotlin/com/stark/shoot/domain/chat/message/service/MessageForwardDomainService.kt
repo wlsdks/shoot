@@ -45,13 +45,13 @@ class MessageForwardDomainService {
         forwardedContent: MessageContent
     ): ChatMessage {
         // 전달할 메시지 생성
+        // 리액션은 별도 Aggregate(MessageReaction)로 관리
         return ChatMessage(
             roomId = targetRoomId,
             senderId = forwardingUserId,
             content = forwardedContent,
             status = MessageStatus.SENT,
             replyToMessageId = null,
-            messageReactions = MessageReactions(),
             mentions = emptySet(),
             createdAt = Instant.now(),
             updatedAt = null

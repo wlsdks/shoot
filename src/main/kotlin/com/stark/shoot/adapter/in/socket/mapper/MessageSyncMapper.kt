@@ -21,16 +21,22 @@ class MessageSyncMapper {
      * ChatMessage를 MessageSyncInfoDto로 변환
      *
      * @param message ChatMessage 객체
+     * @param reactions 리액션 맵 (ReactionType -> Set<UserId>) - MessageReaction Aggregate에서 조회
+     * @param replyCount 답글 개수
      * @return MessageSyncInfoDto 객체
      */
-    fun toSyncInfoDto(message: ChatMessage, replyCount: Long? = null): MessageSyncInfoDto {
+    fun toSyncInfoDto(
+        message: ChatMessage,
+        reactions: Map<String, Set<Long>> = emptyMap(),
+        replyCount: Long? = null
+    ): MessageSyncInfoDto {
         logger.trace { "메시지 변환: messageId=${message.id}, senderId=${message.senderId}" }
 
         // 도메인 Attachment 객체를 ID 문자열로 변환
         val attachmentIds = message.content.attachments.map { it.id }
 
         // 리액션 맵을 ReactionDto 리스트로 변환
-        val reactionDtos = message.reactions.map { (reactionType, userIds) ->
+        val reactionDtos = reactions.map { (reactionType, userIds) ->
             val reaction = ReactionType.fromCode(reactionType)
             ReactionDto(
                 reactionType = reactionType,
@@ -54,7 +60,7 @@ class MessageSyncMapper {
                 isEdited = message.content.isEdited,
                 isDeleted = message.content.isDeleted
             ),
-            readBy = message.readBy.mapKeys { it.key.value },
+            readBy = emptyMap(),  // 읽음 표시는 별도 MessageReadReceipt Aggregate로 관리
             reactions = reactionDtos,
             replyCount = replyCount
         )

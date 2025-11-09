@@ -2,6 +2,9 @@ package com.stark.shoot.application.service.saga.message
 
 import com.stark.shoot.application.port.out.message.MessageCommandPort
 import com.stark.shoot.application.port.out.message.SaveMessagePort
+import com.stark.shoot.application.port.out.message.readreceipt.MessageReadReceiptCommandPort
+import com.stark.shoot.application.port.out.message.readreceipt.MessageReadReceiptQueryPort
+import com.stark.shoot.domain.chat.readreceipt.MessageReadReceipt
 import com.stark.shoot.domain.saga.SagaStep
 import com.stark.shoot.domain.saga.message.MessageSagaContext
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -15,7 +18,9 @@ import org.springframework.stereotype.Component
 @Component
 class SaveMessageToMongoStep(
     private val saveMessagePort: SaveMessagePort,
-    private val messageCommandPort: MessageCommandPort
+    private val messageCommandPort: MessageCommandPort,
+    private val messageReadReceiptCommandPort: MessageReadReceiptCommandPort,
+    private val messageReadReceiptQueryPort: MessageReadReceiptQueryPort
 ) : SagaStep<MessageSagaContext> {
 
     private val logger = KotlinLogging.logger {}
@@ -36,21 +41,26 @@ class SaveMessageToMongoStep(
             val message = messageToProcess
                 ?: throw IllegalStateException("Message not set")
 
-            // 원본 메시지를 복사하여 수정 (멱등성 보장)
-            val messageToSave = message.copy()
+            // 메시지 저장
+            val savedMessage = saveMessagePort.save(message)
+            val savedMessageId = savedMessage.id
+                ?: throw IllegalStateException("Saved message has no ID")
 
-            // 메시지 저장 (발신자 읽음 처리 포함)
-            if (messageToSave.readBy[messageToSave.senderId] != true) {
-                messageToSave.markAsRead(messageToSave.senderId)
+            // 발신자 자동 읽음 처리 (MessageReadReceipt Aggregate 사용)
+            if (!messageReadReceiptQueryPort.hasRead(savedMessageId, message.senderId)) {
+                val senderReadReceipt = MessageReadReceipt.create(
+                    messageId = savedMessageId,
+                    roomId = message.roomId,
+                    userId = message.senderId
+                )
+                messageReadReceiptCommandPort.save(senderReadReceipt)
             }
 
-            val savedMessage = saveMessagePort.save(messageToSave)
-
             // Context에는 ID만 저장
-            context.savedMessageId = savedMessage.id?.value
+            context.savedMessageId = savedMessageId.value
             context.recordStep(stepName())
 
-            logger.info { "Message saved to MongoDB: messageId=${savedMessage.id?.value}" }
+            logger.info { "Message saved to MongoDB: messageId=${savedMessageId.value}" }
             true
         } catch (e: Exception) {
             logger.error(e) { "Failed to save message to MongoDB" }

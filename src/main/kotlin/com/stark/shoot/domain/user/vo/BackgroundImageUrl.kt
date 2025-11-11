@@ -1,5 +1,8 @@
 package com.stark.shoot.domain.user.vo
 
+import com.stark.shoot.infrastructure.annotation.ValueObject
+
+@ValueObject
 @JvmInline
 value class BackgroundImageUrl private constructor(val value: String) {
     companion object {

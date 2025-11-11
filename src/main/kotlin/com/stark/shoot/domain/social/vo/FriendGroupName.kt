@@ -1,5 +1,8 @@
 package com.stark.shoot.domain.social.vo
 
+import com.stark.shoot.infrastructure.annotation.ValueObject
+
+@ValueObject
 @JvmInline
 value class FriendGroupName private constructor(val value: String) {
     companion object {

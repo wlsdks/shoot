@@ -1,10 +1,12 @@
 package com.stark.shoot.domain.user.vo
 
+import com.stark.shoot.infrastructure.annotation.ValueObject
 import java.util.*
 
 /**
  * 사용자 코드를 나타내는 값 객체
  */
+@ValueObject
 @JvmInline
 value class UserCode private constructor(val value: String) {
     companion object {

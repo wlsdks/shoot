@@ -1,5 +1,8 @@
 package com.stark.shoot.domain.chatroom.vo
 
+import com.stark.shoot.infrastructure.annotation.ValueObject
+
+@ValueObject
 @JvmInline
 value class ChatRoomAnnouncement private constructor(val value: String) {
     companion object {

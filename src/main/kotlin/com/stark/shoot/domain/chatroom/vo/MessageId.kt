@@ -1,5 +1,7 @@
 package com.stark.shoot.domain.chatroom.vo
 
+import com.stark.shoot.infrastructure.annotation.ValueObject
+
 /**
  * MessageId Value Object (ChatRoom Context)
  *
@@ -8,6 +10,7 @@ package com.stark.shoot.domain.chatroom.vo
  * - ACL을 통해 Chat Context의 MessageId와 변환
  * - Context 간 독립성 유지
  */
+@ValueObject
 @JvmInline
 value class MessageId private constructor(val value: String) {
     companion object {

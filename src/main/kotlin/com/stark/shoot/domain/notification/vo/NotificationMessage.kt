@@ -1,5 +1,8 @@
 package com.stark.shoot.domain.notification.vo
 
+import com.stark.shoot.infrastructure.annotation.ValueObject
+
+@ValueObject
 @JvmInline
 value class NotificationMessage private constructor(val value: String) {
     companion object {

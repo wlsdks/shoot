@@ -60,15 +60,11 @@ class FriendSearchService(
             }
         }
 
-        // 검색어로 사용자 검색 (DB에서 검색)
-        val allUsers = userQueryPort.findAll()
+        // DB 레벨에서 검색어로 사용자 검색 (제외 목록 포함)
+        val searchedUsers = userQueryPort.searchUsers(query, excludedIds)
 
-        // 필터링된 사용자 목록
-        return allUsers.filter { user ->
-            user.id != null && !excludedIds.contains(user.id) &&
-                    (user.username.value.contains(query, ignoreCase = true) ||
-                            user.nickname.value.contains(query, ignoreCase = true))
-        }.map { user ->
+        // 응답 DTO로 변환
+        return searchedUsers.map { user ->
             FriendResponse(
                 id = user.id?.value ?: 0L,
                 username = user.username.value,

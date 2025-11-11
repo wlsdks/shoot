@@ -13,4 +13,13 @@ interface UserRepository : JpaRepository<UserEntity, Long> {
     @Modifying
     @Query("UPDATE UserEntity u SET u.userCode = :userCode WHERE u.id = :userId")
     fun updateUserCode(@Param("userId") userId: Long, @Param("userCode") userCode: String)
+
+    @Query("""
+        SELECT u
+        FROM UserEntity u
+        WHERE (LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%'))
+            OR LOWER(u.nickname) LIKE LOWER(CONCAT('%', :query, '%')))
+            AND u.id NOT IN :excludedIds
+    """)
+    fun searchUsers(@Param("query") query: String, @Param("excludedIds") excludedIds: List<Long>): List<UserEntity>
 }

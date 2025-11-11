@@ -226,4 +226,20 @@ class UserQueryPersistenceAdapter(
         return friendRequests
     }
 
+    /**
+     * 사용자 검색 (DB 레벨에서 필터링)
+     * username 또는 nickname에 검색어가 포함된 사용자를 조회하며, 제외할 사용자 ID 목록을 적용
+     *
+     * @param query 검색어 (username 또는 nickname에 포함 여부 확인)
+     * @param excludedIds 제외할 사용자 ID 목록
+     * @return 검색된 사용자 목록
+     */
+    override fun searchUsers(query: String, excludedIds: Set<UserId>): List<User> {
+        if (query.isBlank()) return emptyList()
+
+        val excludedIdValues = excludedIds.map { it.value }
+        val userEntities = userRepository.searchUsers(query, excludedIdValues)
+        return userEntities.map(userMapper::toDomain)
+    }
+
 }

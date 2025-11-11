@@ -64,4 +64,14 @@ interface FindUserPort {
      * @return 친구 요청을 보낸 사용자 ID 집합
      */
     fun checkIncomingFriendRequestBatch(userId: UserId, requesterIds: List<UserId>): Set<UserId>
+
+    /**
+     * 사용자 검색 (DB 레벨에서 필터링)
+     * username 또는 nickname에 검색어가 포함된 사용자를 조회하며, 제외할 사용자 ID 목록을 적용
+     *
+     * @param query 검색어 (username 또는 nickname에 포함 여부 확인)
+     * @param excludedIds 제외할 사용자 ID 목록 (본인, 친구, 친구 요청 대상 등)
+     * @return 검색된 사용자 목록
+     */
+    fun searchUsers(query: String, excludedIds: Set<UserId>): List<User>
 }

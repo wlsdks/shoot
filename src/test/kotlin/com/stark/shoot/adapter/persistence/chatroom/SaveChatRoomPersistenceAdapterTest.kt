@@ -48,8 +48,8 @@ class SaveChatRoomPersistenceAdapterTest @Autowired constructor(
         val participants = chatRoomUserRepository.findByChatRoomId(saved.id!!.value)
         assertThat(participants).hasSize(2)
         // DDD 개선: isPinned 기능은 ChatRoomFavorite Aggregate로 이동
-        val user1Participant = participants.first { it.user.id == user1.id }
-        assertThat(user1Participant.user.id).isEqualTo(user1.id)
+        val user1Participant = participants.first { it.userId == user1.id }
+        assertThat(user1Participant.userId).isEqualTo(user1.id)
     }
 
     @TestConfiguration

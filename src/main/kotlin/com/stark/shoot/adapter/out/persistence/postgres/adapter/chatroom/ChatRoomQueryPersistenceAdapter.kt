@@ -38,7 +38,7 @@ class ChatRoomQueryPersistenceAdapter(
 
         // 3. 모든 참여자를 한 번의 쿼리로 배치 조회
         val allParticipants = chatRoomUserRepository.findAllByChatRoomIds(chatRoomIds)
-        val participantsByChatRoomId = allParticipants.groupBy { it.chatRoom.id }
+        val participantsByChatRoomId = allParticipants.groupBy { it.chatRoomId }
 
         // 4. 정렬된 순서대로 도메인 객체 생성
         return chatRoomEntities.map { entity ->
@@ -58,14 +58,14 @@ class ChatRoomQueryPersistenceAdapter(
             return emptyList()
         }
 
-        val pinnedRoomIds = pinnedChatRoomUsers.map { it.chatRoom.id }
+        val pinnedRoomIds = pinnedChatRoomUsers.map { it.chatRoomId }
 
         // 2. 채팅방 엔티티를 정렬된 순서로 배치 조회
         val chatRoomEntities = chatRoomRepository.findAllByIdOrderByLastActiveAtDesc(pinnedRoomIds)
 
         // 3. 모든 참여자를 한 번의 쿼리로 배치 조회
         val allParticipants = chatRoomUserRepository.findAllByChatRoomIds(pinnedRoomIds)
-        val participantsByChatRoomId = allParticipants.groupBy { it.chatRoom.id }
+        val participantsByChatRoomId = allParticipants.groupBy { it.chatRoomId }
 
         // 4. 정렬된 순서대로 도메인 객체 생성
         return chatRoomEntities.map { entity ->

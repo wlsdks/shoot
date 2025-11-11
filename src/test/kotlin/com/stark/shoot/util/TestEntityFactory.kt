@@ -38,7 +38,13 @@ object TestEntityFactory {
         isPinned: Boolean = false,
         role: ChatRoomUserRole = ChatRoomUserRole.MEMBER,
     ): ChatRoomUserEntity {
-        return ChatRoomUserEntity(room, user, isPinned, role = role, lastReadMessageId = lastReadMessageId)
+        return ChatRoomUserEntity(
+            chatRoomId = room.id,
+            userId = user.id,
+            isPinned = isPinned,
+            lastReadMessageId = lastReadMessageId,
+            role = role
+        )
     }
 
     fun createChatRoomDomain(

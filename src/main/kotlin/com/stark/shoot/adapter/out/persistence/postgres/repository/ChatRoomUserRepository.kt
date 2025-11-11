@@ -14,10 +14,10 @@ interface ChatRoomUserRepository : JpaRepository<ChatRoomUserEntity, Long> {
     @Modifying
     @Query(
         """
-        UPDATE ChatRoomUserEntity cru 
-        SET cru.lastReadMessageId = :messageId 
-        WHERE cru.chatRoom.id = :roomId 
-            AND cru.user.id = :userId
+        UPDATE ChatRoomUserEntity cru
+        SET cru.lastReadMessageId = :messageId
+        WHERE cru.chatRoomId = :roomId
+            AND cru.userId = :userId
     """
     )
     fun updateLastReadMessageId(
@@ -28,10 +28,10 @@ interface ChatRoomUserRepository : JpaRepository<ChatRoomUserEntity, Long> {
 
     @Query(
         """
-        SELECT cru.lastReadMessageId 
-        FROM ChatRoomUserEntity cru 
-        WHERE cru.chatRoom.id = :roomId 
-            AND cru.user.id = :userId 
+        SELECT cru.lastReadMessageId
+        FROM ChatRoomUserEntity cru
+        WHERE cru.chatRoomId = :roomId
+            AND cru.userId = :userId
     """
     )
     fun findLastReadMessageId(
@@ -44,7 +44,7 @@ interface ChatRoomUserRepository : JpaRepository<ChatRoomUserEntity, Long> {
     fun findByUserId(userId: Long): List<ChatRoomUserEntity>
 
     /**
-     * 여러 채팅방의 참여자들을 한 번의 쿼리로 조회 (N+1 문제 해결)
+     * 여러 채팅방의 참여자들을 한 번의 쿼리로 조회
      *
      * @param chatRoomIds 채팅방 ID 목록
      * @return 해당 채팅방들의 모든 참여자 목록
@@ -53,8 +53,7 @@ interface ChatRoomUserRepository : JpaRepository<ChatRoomUserEntity, Long> {
         """
         SELECT cru
         FROM ChatRoomUserEntity cru
-        JOIN FETCH cru.user
-        WHERE cru.chatRoom.id IN :chatRoomIds
+        WHERE cru.chatRoomId IN :chatRoomIds
     """
     )
     fun findAllByChatRoomIds(@Param("chatRoomIds") chatRoomIds: List<Long>): List<ChatRoomUserEntity>

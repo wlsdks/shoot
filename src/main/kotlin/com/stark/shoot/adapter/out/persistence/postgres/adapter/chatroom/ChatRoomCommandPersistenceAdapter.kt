@@ -82,7 +82,7 @@ class ChatRoomCommandPersistenceAdapter(
 
         val existingParticipants = if (chatRoom.id != null) {
             chatRoomUserRepository.findByChatRoomId(savedChatRoomEntity.id)
-                .associateBy { it.user.id }
+                .associateBy { it.userId }
         } else {
             emptyMap()
         }
@@ -109,8 +109,8 @@ class ChatRoomCommandPersistenceAdapter(
             val user = userMap[participantId.value] ?: return@forEach
 
             val chatRoomUser = ChatRoomUserEntity(
-                chatRoom = savedChatRoomEntity,
-                user = user,
+                chatRoomId = savedChatRoomEntity.id,
+                userId = user.id,
                 isPinned = false  // 기본값으로 false 설정
             )
             chatRoomUserRepository.save(chatRoomUser)

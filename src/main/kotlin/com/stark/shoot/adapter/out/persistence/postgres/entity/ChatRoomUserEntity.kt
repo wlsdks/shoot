@@ -10,13 +10,11 @@ import java.time.Instant
     uniqueConstraints = [UniqueConstraint(columnNames = ["chat_room_id", "user_id"])]
 )
 class ChatRoomUserEntity(
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chat_room_id", nullable = false)
-    val chatRoom: ChatRoomEntity,
+    @Column(name = "chat_room_id", nullable = false)
+    val chatRoomId: Long,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    val user: UserEntity,
+    @Column(name = "user_id", nullable = false)
+    val userId: Long,
 
     @Column(name = "is_pinned")
     var isPinned: Boolean = false,

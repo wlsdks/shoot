@@ -8,11 +8,11 @@ import org.springframework.data.repository.query.Param
 interface ChatRoomRepository : JpaRepository<ChatRoomEntity, Long> {
 
     @Query("""
-        SELECT cr 
-        FROM ChatRoomEntity cr 
-        JOIN ChatRoomUserEntity cru 
-            ON cr.id = cru.chatRoom.id 
-        WHERE cru.user.id = :userId
+        SELECT cr
+        FROM ChatRoomEntity cr
+        JOIN ChatRoomUserEntity cru
+            ON cr.id = cru.chatRoomId
+        WHERE cru.userId = :userId
     """)
     fun findByParticipant(@Param("userId") userId: Long): List<ChatRoomEntity>
 
@@ -20,8 +20,8 @@ interface ChatRoomRepository : JpaRepository<ChatRoomEntity, Long> {
         SELECT cr
         FROM ChatRoomEntity cr
         JOIN ChatRoomUserEntity cru
-            ON cr.id = cru.chatRoom.id
-        WHERE cru.user.id = :userId
+            ON cr.id = cru.chatRoomId
+        WHERE cru.userId = :userId
             AND cru.isPinned = true
     """)
     fun findPinnedRoomsByUserId(@Param("userId") userId: Long): List<ChatRoomEntity>
@@ -36,9 +36,9 @@ interface ChatRoomRepository : JpaRepository<ChatRoomEntity, Long> {
      * @return 채팅방 ID 목록
      */
     @Query("""
-        SELECT DISTINCT cru.chatRoom.id
+        SELECT DISTINCT cru.chatRoomId
         FROM ChatRoomUserEntity cru
-        WHERE cru.user.id = :userId
+        WHERE cru.userId = :userId
     """)
     fun findChatRoomIdsByUserId(@Param("userId") userId: Long): List<Long>
 

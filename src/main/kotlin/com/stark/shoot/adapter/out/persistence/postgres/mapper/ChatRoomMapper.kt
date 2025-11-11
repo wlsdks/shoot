@@ -24,7 +24,7 @@ class ChatRoomMapper(
         participants: List<ChatRoomUserEntity>
     ): ChatRoom {
         // 참여자 ID 목록
-        val participantIds = participants.map { UserId.from(it.user.id) }.toMutableSet()
+        val participantIds = participants.map { UserId.from(it.userId) }.toMutableSet()
 
         // JPA 엔티티에서 바로 도메인 타입 사용
         val domainType = entity.type

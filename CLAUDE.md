@@ -19,7 +19,7 @@
 - **CQRS** (Chat operations)
 
 ### DDD Implementation
-- **16 Aggregate Roots** with clear transaction boundaries
+- **15 Aggregate Roots** with clear transaction boundaries
 - **ID Reference Pattern**: 100% compliance (no direct entity references)
 - **100% ID Value Objects**: All Aggregates use typed IDs (@JvmInline value classes)
 - **Custom Annotations**: `@AggregateRoot`, `@ValueObject`, `@DomainEntity`, `@DomainEvent`, `@DomainService`
@@ -117,7 +117,7 @@ src/main/kotlin/com/shoot/
 
 ### 사용자 (User)
 - Username: 3-20자
-- Nickname: 1-30자
+- Nickname: 2-30자
 - Password: 최소 8자
 - UserCode: 8자리 대문자+숫자, 중복 불가
 - 최대 친구 수: 1,000명

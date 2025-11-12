@@ -5,6 +5,7 @@ import com.stark.shoot.application.port.`in`.user.friend.command.AcceptFriendReq
 import com.stark.shoot.application.port.`in`.user.friend.command.RejectFriendRequestCommand
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
+import com.stark.shoot.application.port.out.user.block.BlockedUserQueryPort
 import com.stark.shoot.application.port.out.user.friend.relate.FriendshipQueryPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestQueryPort
@@ -30,6 +31,7 @@ class FriendReceiveService(
     private val friendRequestQueryPort: FriendRequestQueryPort,
     private val friendRequestCommandPort: FriendRequestCommandPort,
     private val friendshipQueryPort: FriendshipQueryPort,
+    private val blockedUserQueryPort: BlockedUserQueryPort,
     private val eventPublisher: EventPublishPort,
     private val friendCacheManager: FriendCacheManager,
     private val friendRequestSagaOrchestrator: FriendRequestSagaOrchestrator,
@@ -54,6 +56,14 @@ class FriendReceiveService(
 
         // 사용자 존재 여부 확인
         validateUsers(currentUserId, requesterId)
+
+        // 차단 관계 확인
+        if (blockedUserQueryPort.isUserBlocked(currentUserId, requesterId)) {
+            throw InvalidInputException("차단한 사용자의 친구 요청을 수락할 수 없습니다.")
+        }
+        if (blockedUserQueryPort.isUserBlocked(requesterId, currentUserId)) {
+            throw InvalidInputException("해당 사용자의 친구 요청을 수락할 수 없습니다.")
+        }
 
         // 친구 수 제한 검증 (양쪽 사용자 모두 확인)
         val currentUserFriendCount = friendshipQueryPort.countByUserId(currentUserId)

@@ -27,6 +27,10 @@ class FriendshipQueryAdapter(
         return friendshipMappingRepository.existsByUserIdAndFriendId(userId.value, friendId.value)
     }
 
+    override fun countByUserId(userId: UserId): Int {
+        return friendshipMappingRepository.countByUserId(userId.value)
+    }
+
     private fun mapToDomain(
         entity: FriendshipMappingEntity
     ): Friendship {

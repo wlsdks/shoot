@@ -39,4 +39,11 @@ sealed class MessageException(
     class EditTimeExpired(
         message: String = "메시지는 생성 후 24시간 이내에만 수정할 수 있습니다."
     ) : MessageException(message, "MESSAGE_EDIT_TIME_EXPIRED")
+
+    /**
+     * 메시지 내용이 너무 길 때 발생하는 예외
+     */
+    class ContentTooLong(
+        message: String = "메시지 내용이 너무 깁니다."
+    ) : MessageException(message, "MESSAGE_CONTENT_TOO_LONG")
 }

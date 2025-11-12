@@ -1,5 +1,7 @@
 package com.stark.shoot.domain.chat.message.service
 
+import com.stark.shoot.domain.chat.constants.MessageConstants
+import com.stark.shoot.domain.chat.exception.MessageException
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
@@ -14,7 +16,9 @@ import java.util.*
  * 메시지 관련 도메인 서비스
  * 메시지 생성, 처리, 이벤트 생성 등의 도메인 로직을 담당합니다.
  */
-class MessageDomainService {
+class MessageDomainService(
+    private val messageConstants: MessageConstants
+) {
 
     /**
      * 메시지 요청으로부터 도메인 메시지 객체를 생성하고 처리합니다.
@@ -39,6 +43,13 @@ class MessageDomainService {
         extractUrls: (String) -> List<String>,
         getCachedPreview: (String) -> ChatMessageMetadata.UrlPreview?
     ): ChatMessage {
+        // 메시지 길이 검증
+        if (contentText.length > messageConstants.maxContentLength) {
+            throw MessageException.ContentTooLong(
+                "메시지 내용이 너무 깁니다. (최대: ${messageConstants.maxContentLength}자, 현재: ${contentText.length}자)"
+            )
+        }
+
         // 1. 도메인 객체 생성 (기존 tempId 사용 또는 새로 생성)
         val finalTempId = tempId ?: UUID.randomUUID().toString() // 기존 tempId 우선 사용
         val chatMessage = ChatMessage.create(

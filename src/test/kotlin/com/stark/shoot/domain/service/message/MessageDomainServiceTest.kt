@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.service.message
 
+import com.stark.shoot.domain.chat.constants.MessageConstants
 import com.stark.shoot.domain.chat.message.service.MessageDomainService
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.Test
 @DisplayName("메시지 도메인 서비스 테스트")
 class MessageDomainServiceTest {
 
-    private val service = MessageDomainService()
+    private val service = MessageDomainService(MessageConstants())
 
     @Test
     @DisplayName("[happy] 메시지를 생성하고 URL 미리보기를 적용할 수 있다")

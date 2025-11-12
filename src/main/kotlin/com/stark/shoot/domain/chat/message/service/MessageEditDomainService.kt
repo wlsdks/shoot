@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.chat.message.service
 
+import com.stark.shoot.domain.chat.constants.MessageConstants
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageType
 import com.stark.shoot.domain.chat.message.EditabilityResult
@@ -11,7 +12,9 @@ import java.time.Instant
  * 메시지 편집 관련 도메인 서비스
  * 메시지 편집 가능 여부 확인 및 편집 처리를 담당합니다.
  */
-class MessageEditDomainService {
+class MessageEditDomainService(
+    private val messageConstants: MessageConstants
+) {
 
     companion object {
         // 메시지 편집 가능 시간 제한 (24시간)
@@ -73,6 +76,13 @@ class MessageEditDomainService {
         // 내용 유효성 검사
         if (newContent.isBlank()) {
             throw MessageException.EmptyContent()
+        }
+
+        // 메시지 길이 검증
+        if (newContent.length > messageConstants.maxContentLength) {
+            throw MessageException.ContentTooLong(
+                "메시지 내용이 너무 깁니다. (최대: ${messageConstants.maxContentLength}자, 현재: ${newContent.length}자)"
+            )
         }
 
         // 도메인 객체의 메서드를 사용하여 메시지 수정

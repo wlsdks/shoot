@@ -4,6 +4,7 @@ import com.stark.shoot.adapter.`in`.rest.dto.message.ChatMessageRequest
 import com.stark.shoot.adapter.`in`.rest.dto.message.updateFromDomain
 import com.stark.shoot.application.port.`in`.message.SendMessageUseCase
 import com.stark.shoot.application.port.`in`.message.command.SendMessageCommand
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.message.MessagePublisherPort
 import com.stark.shoot.application.port.out.message.preview.CacheUrlPreviewPort
 import com.stark.shoot.application.port.out.message.preview.ExtractUrlPort
@@ -14,11 +15,13 @@ import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chatroom.vo.ChatRoomId
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.exception.web.UnauthorizedException
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 
 @UseCase
 class SendMessageService(
+    private val chatRoomQueryPort: ChatRoomQueryPort,
     private val extractUrlPort: ExtractUrlPort,
     private val cacheUrlPreviewPort: CacheUrlPreviewPort,
     private val messagePublisherPort: MessagePublisherPort,
@@ -38,6 +41,16 @@ class SendMessageService(
      */
     override fun sendMessage(command: SendMessageCommand) {
         val messageRequest = command.message
+
+        // 권한 검증: 채팅방 참여자만 메시지를 전송할 수 있음
+        val chatRoomId = ChatRoomId.from(messageRequest.roomId)
+        val chatRoom = chatRoomQueryPort.findById(chatRoomId)
+            ?: throw IllegalStateException("채팅방을 찾을 수 없습니다: ${messageRequest.roomId}")
+
+        val senderId = UserId.from(messageRequest.senderId)
+        if (senderId !in chatRoom.participants) {
+            throw UnauthorizedException("채팅방 참여자만 메시지를 전송할 수 있습니다.")
+        }
 
         runCatching {
             // 1. 도메인 객체 생성 및 비즈니스 로직 처리

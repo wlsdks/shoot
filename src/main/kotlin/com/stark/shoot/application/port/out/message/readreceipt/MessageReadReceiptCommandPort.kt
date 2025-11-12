@@ -21,6 +21,15 @@ interface MessageReadReceiptCommandPort {
     fun save(readReceipt: MessageReadReceipt): MessageReadReceipt
 
     /**
+     * 읽음 표시가 없는 경우에만 저장합니다 (경쟁 조건 방지).
+     * 이미 존재하는 경우 기존 레코드를 반환합니다.
+     *
+     * @param readReceipt 저장할 읽음 표시
+     * @return 저장되거나 이미 존재하는 읽음 표시
+     */
+    fun saveIfNotExists(readReceipt: MessageReadReceipt): MessageReadReceipt
+
+    /**
      * 메시지 읽음 표시를 삭제합니다.
      *
      * @param id 삭제할 읽음 표시 ID

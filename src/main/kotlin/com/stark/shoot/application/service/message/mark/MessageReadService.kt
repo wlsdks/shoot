@@ -50,16 +50,11 @@ class MessageReadService(
         // 1. 메시지 조회
         val chatMessage = findMessageOrThrow(messageId)
 
-        // 2. 이미 읽은 메시지인지 확인
-        if (isAlreadyRead(messageId, userId)) {
-            return
-        }
-
-        // 3. MessageReadReceipt Aggregate 생성 및 저장
-        val readReceipt = createAndSaveReadReceipt(messageId, chatMessage.roomId, userId)
+        // 2. MessageReadReceipt Aggregate 생성 및 저장 (경쟁 조건 안전)
+        val readReceipt = createAndSaveReadReceiptIdempotent(messageId, chatMessage.roomId, userId)
         val roomId = chatMessage.roomId
 
-        // 4. 후속 작업 처리 (비동기적으로 처리되며 실패해도 메인 트랜잭션에 영향 없음)
+        // 3. 후속 작업 처리 (비동기적으로 처리되며 실패해도 메인 트랜잭션에 영향 없음)
         processSingleMessageReadSideEffects(roomId.toChatRoom(), messageId, userId)
     }
 
@@ -108,26 +103,16 @@ class MessageReadService(
     }
 
     /**
-     * 이미 읽은 메시지인지 확인합니다.
+     * MessageReadReceipt를 생성하고 저장합니다 (경쟁 조건 안전).
+     * 이미 읽음 표시가 있으면 기존 것을 반환합니다.
      */
-    private fun isAlreadyRead(messageId: MessageId, userId: UserId): Boolean {
-        if (messageReadReceiptQueryPort.hasRead(messageId, userId)) {
-            logger.debug { "이미 읽은 메시지입니다: messageId=$messageId, userId=$userId" }
-            return true
-        }
-        return false
-    }
-
-    /**
-     * MessageReadReceipt를 생성하고 저장합니다.
-     */
-    private fun createAndSaveReadReceipt(
+    private fun createAndSaveReadReceiptIdempotent(
         messageId: MessageId,
         roomId: com.stark.shoot.domain.chat.vo.ChatRoomId,
         userId: UserId
     ): MessageReadReceipt {
         val readReceipt = MessageReadReceipt.create(messageId, roomId, userId)
-        return messageReadReceiptCommandPort.save(readReceipt)
+        return messageReadReceiptCommandPort.saveIfNotExists(readReceipt)
     }
 
     /**

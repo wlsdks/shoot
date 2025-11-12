@@ -5,6 +5,7 @@ import com.stark.shoot.application.port.`in`.message.pin.MessagePinUseCase
 import com.stark.shoot.application.port.`in`.message.pin.command.PinMessageCommand
 import com.stark.shoot.application.port.`in`.message.pin.command.UnpinMessageCommand
 import com.stark.shoot.application.port.out.event.EventPublishPort
+import com.stark.shoot.application.port.out.chatroom.ChatRoomQueryPort
 import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.application.port.out.message.pin.MessagePinCommandPort
 import com.stark.shoot.application.port.out.message.pin.MessagePinQueryPort
@@ -14,6 +15,7 @@ import com.stark.shoot.domain.chat.message.service.MessagePinDomainService
 import com.stark.shoot.domain.chat.pin.MessagePin
 import com.stark.shoot.domain.shared.UserId
 import com.stark.shoot.infrastructure.annotation.UseCase
+import com.stark.shoot.infrastructure.exception.web.UnauthorizedException
 import com.stark.shoot.domain.chatroom.constants.ChatRoomConstants
 import com.stark.shoot.infrastructure.util.orThrowNotFound
 import org.springframework.transaction.annotation.Transactional
@@ -25,6 +27,7 @@ class MessagePinService(
     private val messageQueryPort: MessageQueryPort,
     private val messagePinCommandPort: MessagePinCommandPort,
     private val messagePinQueryPort: MessagePinQueryPort,
+    private val chatRoomQueryPort: ChatRoomQueryPort,
     private val webSocketMessageBroker: WebSocketMessageBroker,
     private val eventPublisher: EventPublishPort,
     private val messagePinDomainService: MessagePinDomainService,
@@ -45,6 +48,15 @@ class MessagePinService(
         // 메시지 조회
         val message = messageQueryPort.findById(command.messageId)
             .orThrowNotFound("메시지", command.messageId)
+
+        // 권한 검증: 채팅방 참여자만 메시지를 고정할 수 있음
+        val chatRoomId = com.stark.shoot.domain.chatroom.vo.ChatRoomId.from(message.roomId.value)
+        val chatRoom = chatRoomQueryPort.findById(chatRoomId)
+            ?: throw IllegalStateException("채팅방을 찾을 수 없습니다: ${message.roomId}")
+
+        if (command.userId !in chatRoom.participants) {
+            throw UnauthorizedException("채팅방 참여자만 메시지를 고정할 수 있습니다.")
+        }
 
         // 이미 고정된 메시지인지 확인 (MessagePin Aggregate 조회)
         val existingPin = messagePinQueryPort.findByMessageId(command.messageId)
@@ -89,6 +101,15 @@ class MessagePinService(
     override fun unpinMessage(command: UnpinMessageCommand): ChatMessage {
         val message = messageQueryPort.findById(command.messageId)
             .orThrowNotFound("메시지", command.messageId)
+
+        // 권한 검증: 채팅방 참여자만 메시지 고정을 해제할 수 있음
+        val chatRoomId = com.stark.shoot.domain.chatroom.vo.ChatRoomId.from(message.roomId.value)
+        val chatRoom = chatRoomQueryPort.findById(chatRoomId)
+            ?: throw IllegalStateException("채팅방을 찾을 수 없습니다: ${message.roomId}")
+
+        if (command.userId !in chatRoom.participants) {
+            throw UnauthorizedException("채팅방 참여자만 메시지 고정을 해제할 수 있습니다.")
+        }
 
         // MessagePin Aggregate 조회
         val messagePin = messagePinQueryPort.findByMessageId(command.messageId)

@@ -85,4 +85,12 @@ interface FriendshipMappingRepository : JpaRepository<FriendshipMappingEntity, L
         WHERE f.friendId = :friendId
     """)
     fun deleteByFriendId(@Param("friendId") friendId: Long)
+
+    /**
+     * 사용자의 친구 수 조회
+     *
+     * @param userId 사용자 ID
+     * @return 친구 수
+     */
+    fun countByUserId(userId: Long): Int
 }

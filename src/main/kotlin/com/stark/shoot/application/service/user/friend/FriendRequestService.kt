@@ -6,6 +6,7 @@ import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendReque
 import com.stark.shoot.application.port.`in`.user.friend.command.SendFriendRequestFromCodeCommand
 import com.stark.shoot.application.port.out.event.EventPublishPort
 import com.stark.shoot.application.port.out.user.UserQueryPort
+import com.stark.shoot.application.port.out.user.block.BlockedUserQueryPort
 import com.stark.shoot.application.port.out.user.friend.request.FriendRequestCommandPort
 import com.stark.shoot.domain.shared.event.FriendRequestCancelledEvent
 import com.stark.shoot.domain.shared.event.FriendRequestSentEvent
@@ -29,6 +30,7 @@ import java.time.Instant
 class FriendRequestService(
     private val userQueryPort: UserQueryPort,
     private val friendRequestCommandPort: FriendRequestCommandPort,
+    private val blockedUserQueryPort: BlockedUserQueryPort,
     private val friendDomainService: FriendDomainService,
     private val friendCacheManager: FriendCacheManager,
     private val eventPublisher: EventPublishPort,
@@ -53,6 +55,14 @@ class FriendRequestService(
         redisLockManager.withLock(lockKey, currentUserId.value.toString()) {
             // 사용자 존재 여부 확인
             validateUserExistence(currentUserId, targetUserId)
+
+            // 차단 관계 확인
+            if (blockedUserQueryPort.isUserBlocked(currentUserId, targetUserId)) {
+                throw InvalidInputException("차단한 사용자에게 친구 요청을 보낼 수 없습니다.")
+            }
+            if (blockedUserQueryPort.isUserBlocked(targetUserId, currentUserId)) {
+                throw InvalidInputException("해당 사용자에게 친구 요청을 보낼 수 없습니다.")
+            }
 
             // 도메인 서비스를 사용하여 친구 요청 유효성 검증
             try {

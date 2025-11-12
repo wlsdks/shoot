@@ -3,6 +3,7 @@ package com.stark.shoot.domain.chat.message
 import com.stark.shoot.domain.chat.exception.MessageException
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
+import com.stark.shoot.domain.chat.message.util.TextSanitizer
 import com.stark.shoot.domain.chat.message.vo.*
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
 import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
@@ -71,8 +72,11 @@ data class ChatMessage(
         // 24시간 제한 검증
         validateEditTimeLimit()
 
+        // XSS 방지: HTML 특수문자 이스케이프
+        val sanitizedContent = TextSanitizer.sanitize(newContent)
+
         // 내용 유효성 검사
-        if (newContent.isBlank()) {
+        if (sanitizedContent.isBlank()) {
             throw MessageException.EmptyContent()
         }
 
@@ -88,7 +92,7 @@ data class ChatMessage(
 
         // 내용 업데이트 및 편집 여부 설정
         this.content = this.content.copy(
-            text = newContent,
+            text = sanitizedContent,
             isEdited = true
         )
         this.updatedAt = Instant.now()
@@ -155,6 +159,25 @@ data class ChatMessage(
         if (this.content.type == MessageType.TEXT) {
             this.mentions = mentionExtractor(this.content.text)
             this.updatedAt = Instant.now()
+        }
+    }
+
+    /**
+     * 첨부파일 크기를 검증합니다.
+     *
+     * @param maxAttachmentSize 최대 첨부파일 크기 (바이트)
+     * @throws MessageException.AttachmentTooLarge 첨부파일 크기가 제한을 초과하는 경우
+     */
+    fun validateAttachmentSizes(maxAttachmentSize: Long) {
+        content.attachments.forEach { attachment ->
+            if (attachment.size > maxAttachmentSize) {
+                val sizeMB = attachment.size / (1024 * 1024)
+                val maxSizeMB = maxAttachmentSize / (1024 * 1024)
+                throw MessageException.AttachmentTooLarge(
+                    "첨부파일 '${attachment.filename}'의 크기가 너무 큽니다. " +
+                    "(파일 크기: ${sizeMB}MB, 최대: ${maxSizeMB}MB)"
+                )
+            }
         }
     }
 

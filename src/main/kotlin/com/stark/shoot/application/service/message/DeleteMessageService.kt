@@ -9,6 +9,7 @@ import com.stark.shoot.application.port.out.message.MessageQueryPort
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.shared.event.MessageDeletedEvent
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.UnauthorizedException
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
@@ -47,6 +48,11 @@ class DeleteMessageService(
         // 메시지 로드
         val existingMessage = messageQueryPort.findById(command.messageId)
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=${command.messageId}")
+
+        // 권한 검증: 본인의 메시지만 삭제 가능
+        if (existingMessage.senderId != command.userId) {
+            throw UnauthorizedException("본인의 메시지만 삭제할 수 있습니다.")
+        }
 
         // 도메인 객체의 메서드를 사용하여 메시지 삭제 상태로 변경
         existingMessage.markAsDeleted()

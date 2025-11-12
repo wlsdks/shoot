@@ -1,5 +1,6 @@
 package com.stark.shoot.domain.service.message
 
+import com.stark.shoot.domain.chat.constants.MessageConstants
 import com.stark.shoot.domain.chat.exception.MessageException
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageEditDomainService
@@ -19,7 +20,7 @@ import java.time.Instant
 
 @DisplayName("메시지 편집 도메인 서비스 테스트")
 class MessageEditDomainServiceTest {
-    private val service = MessageEditDomainService()
+    private val service = MessageEditDomainService(MessageConstants())
 
     private fun baseMessage(createdAt: Instant = Instant.now()) = ChatMessage(
         id = MessageId.from("m1"),

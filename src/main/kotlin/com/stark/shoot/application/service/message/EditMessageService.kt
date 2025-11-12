@@ -10,6 +10,7 @@ import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.service.MessageEditDomainService
 import com.stark.shoot.domain.shared.event.MessageEditedEvent
 import com.stark.shoot.infrastructure.exception.web.ResourceNotFoundException
+import com.stark.shoot.infrastructure.exception.web.UnauthorizedException
 import com.stark.shoot.infrastructure.annotation.UseCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
@@ -50,6 +51,11 @@ class EditMessageService(
         // 메시지 조회
         val existingMessage = messageQueryPort.findById(command.messageId)
             ?: throw ResourceNotFoundException("메시지를 찾을 수 없습니다: messageId=${command.messageId}")
+
+        // 권한 검증: 본인의 메시지만 수정 가능
+        if (existingMessage.senderId != command.userId) {
+            throw UnauthorizedException("본인의 메시지만 수정할 수 있습니다.")
+        }
 
         // 메시지 수정
         val oldContent = existingMessage.content.text

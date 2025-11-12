@@ -39,4 +39,18 @@ sealed class MessageException(
     class EditTimeExpired(
         message: String = "메시지는 생성 후 24시간 이내에만 수정할 수 있습니다."
     ) : MessageException(message, "MESSAGE_EDIT_TIME_EXPIRED")
+
+    /**
+     * 메시지 내용이 너무 길 때 발생하는 예외
+     */
+    class ContentTooLong(
+        message: String = "메시지 내용이 너무 깁니다."
+    ) : MessageException(message, "MESSAGE_CONTENT_TOO_LONG")
+
+    /**
+     * 첨부파일 크기가 너무 클 때 발생하는 예외
+     */
+    class AttachmentTooLarge(
+        message: String = "첨부파일 크기가 너무 큽니다."
+    ) : MessageException(message, "MESSAGE_ATTACHMENT_TOO_LARGE")
 }

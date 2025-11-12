@@ -27,8 +27,8 @@ class AuthControllerTest {
     @DisplayName("[happy] 사용자 로그인을 처리한다")
     fun `사용자 로그인을 처리한다`() {
         // given
-        val request = LoginRequest("testuser", "password123")
-        val command = LoginCommand.of("testuser", "password123")
+        val request = LoginRequest("testuser", "Password123!")
+        val command = LoginCommand.of("testuser", "Password123!")
         val loginResponse = LoginResponse(
             userId = "1",
             accessToken = "jwt.token.here",

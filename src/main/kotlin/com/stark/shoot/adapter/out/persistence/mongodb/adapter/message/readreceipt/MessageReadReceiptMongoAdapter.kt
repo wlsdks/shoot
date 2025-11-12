@@ -24,6 +24,30 @@ class MessageReadReceiptMongoAdapter(
         return savedDocument.toDomain()
     }
 
+    /**
+     * 읽음 표시가 없는 경우에만 저장합니다 (경쟁 조건 방지).
+     * 이미 존재하는 경우 기존 레코드를 반환합니다.
+     *
+     * @param readReceipt 저장할 읽음 표시
+     * @return 저장되거나 이미 존재하는 읽음 표시
+     */
+    override fun saveIfNotExists(readReceipt: MessageReadReceipt): MessageReadReceipt {
+        // 1. 이미 존재하는지 확인
+        val existing = findByMessageIdAndUserId(readReceipt.messageId, readReceipt.userId)
+        if (existing != null) {
+            return existing
+        }
+
+        // 2. 없으면 새로 저장 (중복 키 에러가 발생할 수 있음)
+        return try {
+            save(readReceipt)
+        } catch (e: Exception) {
+            // 3. 중복 키 에러 발생 시 (다른 요청이 동시에 저장한 경우) 다시 조회
+            findByMessageIdAndUserId(readReceipt.messageId, readReceipt.userId)
+                ?: throw e // 조회도 실패하면 원래 예외를 다시 던짐
+        }
+    }
+
     override fun delete(id: MessageReadReceiptId) {
         messageReadReceiptMongoRepository.deleteById(id.value)
     }

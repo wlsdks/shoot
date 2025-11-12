@@ -1,5 +1,6 @@
 package com.stark.shoot.infrastructure.config.domain
 
+import com.stark.shoot.domain.chat.constants.MessageConstants
 import com.stark.shoot.domain.chat.message.service.*
 import com.stark.shoot.domain.chatroom.service.ChatRoomDomainService
 import com.stark.shoot.domain.chatroom.service.ChatRoomEventService
@@ -20,7 +21,8 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 class DomainServiceConfig(
-    private val chatRoomConstants: ChatRoomConstants
+    private val chatRoomConstants: ChatRoomConstants,
+    private val messageConstants: MessageConstants
 ) {
 
     @Bean fun friendDomainService() = FriendDomainService()
@@ -37,9 +39,9 @@ class DomainServiceConfig(
 
     @Bean fun chatRoomValidationDomainService() = ChatRoomValidationDomainService(chatRoomConstants)
 
-    @Bean fun messageDomainService() = MessageDomainService()
+    @Bean fun messageDomainService() = MessageDomainService(messageConstants)
 
-    @Bean fun messageEditDomainService() = MessageEditDomainService()
+    @Bean fun messageEditDomainService() = MessageEditDomainService(messageConstants)
 
     @Bean fun messageForwardDomainService() = MessageForwardDomainService()
 

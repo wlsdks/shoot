@@ -23,4 +23,12 @@ interface FriendshipQueryPort {
      * @return 친구 관계 여부
      */
     fun isFriend(userId: UserId, friendId: UserId): Boolean
+
+    /**
+     * 사용자의 친구 수 조회
+     *
+     * @param userId 사용자 ID
+     * @return 친구 수
+     */
+    fun countByUserId(userId: UserId): Int
 }

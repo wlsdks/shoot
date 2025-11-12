@@ -65,6 +65,13 @@ data class User(
         /**
          * 비밀번호 유효성 검증
          *
+         * 보안 강화를 위해 다음 요구사항을 만족해야 합니다:
+         * - 최소 8자 이상
+         * - 최소 1개의 대문자 포함
+         * - 최소 1개의 소문자 포함
+         * - 최소 1개의 숫자 포함
+         * - 최소 1개의 특수문자 포함
+         *
          * @param password 검증할 비밀번호
          * @throws InvalidUserDataException 유효하지 않은 비밀번호
          */
@@ -74,6 +81,18 @@ data class User(
             }
             if (password.length < 8) {
                 throw InvalidUserDataException("비밀번호는 최소 8자 이상이어야 합니다.")
+            }
+            if (!password.any { it.isUpperCase() }) {
+                throw InvalidUserDataException("비밀번호는 최소 1개의 대문자를 포함해야 합니다.")
+            }
+            if (!password.any { it.isLowerCase() }) {
+                throw InvalidUserDataException("비밀번호는 최소 1개의 소문자를 포함해야 합니다.")
+            }
+            if (!password.any { it.isDigit() }) {
+                throw InvalidUserDataException("비밀번호는 최소 1개의 숫자를 포함해야 합니다.")
+            }
+            if (!password.any { !it.isLetterOrDigit() }) {
+                throw InvalidUserDataException("비밀번호는 최소 1개의 특수문자를 포함해야 합니다.")
             }
         }
     }

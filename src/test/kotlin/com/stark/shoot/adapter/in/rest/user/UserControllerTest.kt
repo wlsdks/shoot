@@ -31,7 +31,7 @@ class UserControllerTest {
         // given
         val username = "testuser"
         val nickname = "Test User"
-        val password = "password123"
+        val password = "Password123!"
         val email = "test@example.com"
         val bio = "This is a test user"
 

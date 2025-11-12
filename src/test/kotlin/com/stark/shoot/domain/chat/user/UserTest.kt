@@ -26,7 +26,7 @@ class UserTest {
             // given
             val username = "testuser"
             val nickname = "테스트유저"
-            val rawPassword = "password123"
+            val rawPassword = "Password123!"
             val passwordEncoder: (String) -> String = { "encoded_$it" }
 
             // when
@@ -54,7 +54,7 @@ class UserTest {
             // given
             val username = "testuser"
             val nickname = "테스트유저"
-            val rawPassword = "password123"
+            val rawPassword = "Password123!"
             val bio = "안녕하세요"
             val profileImageUrl = "https://example.com/profile.jpg"
             val passwordEncoder: (String) -> String = { "encoded_$it" }
@@ -83,7 +83,7 @@ class UserTest {
             // given
             val username = "ab" // 3자 미만
             val nickname = "테스트유저"
-            val rawPassword = "password123"
+            val rawPassword = "Password123!"
             val passwordEncoder: (String) -> String = { "encoded_$it" }
 
             // when & then
@@ -105,7 +105,7 @@ class UserTest {
             // given
             val username = "a".repeat(21) // 20자 초과
             val nickname = "테스트유저"
-            val rawPassword = "password123"
+            val rawPassword = "Password123!"
             val passwordEncoder: (String) -> String = { "encoded_$it" }
 
             // when & then
@@ -127,7 +127,7 @@ class UserTest {
             // given
             val username = ""
             val nickname = "테스트유저"
-            val rawPassword = "password123"
+            val rawPassword = "Password123!"
             val passwordEncoder: (String) -> String = { "encoded_$it" }
 
             // when & then
@@ -149,7 +149,7 @@ class UserTest {
             // given
             val username = "testuser"
             val nickname = "a" // 2자 미만
-            val rawPassword = "password123"
+            val rawPassword = "Password123!"
             val passwordEncoder: (String) -> String = { "encoded_$it" }
 
             // when & then
@@ -171,7 +171,7 @@ class UserTest {
             // given
             val username = "testuser"
             val nickname = "a".repeat(31) // 30자 초과
-            val rawPassword = "password123"
+            val rawPassword = "Password123!"
             val passwordEncoder: (String) -> String = { "encoded_$it" }
 
             // when & then
@@ -193,7 +193,7 @@ class UserTest {
             // given
             val username = "testuser"
             val nickname = ""
-            val rawPassword = "password123"
+            val rawPassword = "Password123!"
             val passwordEncoder: (String) -> String = { "encoded_$it" }
 
             // when & then
@@ -251,6 +251,94 @@ class UserTest {
             }
 
             assertThat(exception.message).contains("비밀번호는 비어있을 수 없습니다")
+        }
+
+        @Test
+        @DisplayName("[happy] 비밀번호에 대문자가 없으면 예외가 발생한다")
+        fun `비밀번호에 대문자가 없으면 예외가 발생한다`() {
+            // given
+            val username = "testuser"
+            val nickname = "테스트유저"
+            val rawPassword = "password123!" // 대문자 없음
+            val passwordEncoder: (String) -> String = { "encoded_$it" }
+
+            // when & then
+            val exception = assertThrows<InvalidUserDataException> {
+                User.create(
+                    username = username,
+                    nickname = nickname,
+                    rawPassword = rawPassword,
+                    passwordEncoder = passwordEncoder
+                )
+            }
+
+            assertThat(exception.message).contains("비밀번호는 최소 1개의 대문자를 포함해야 합니다")
+        }
+
+        @Test
+        @DisplayName("[happy] 비밀번호에 소문자가 없으면 예외가 발생한다")
+        fun `비밀번호에 소문자가 없으면 예외가 발생한다`() {
+            // given
+            val username = "testuser"
+            val nickname = "테스트유저"
+            val rawPassword = "PASSWORD123!" // 소문자 없음
+            val passwordEncoder: (String) -> String = { "encoded_$it" }
+
+            // when & then
+            val exception = assertThrows<InvalidUserDataException> {
+                User.create(
+                    username = username,
+                    nickname = nickname,
+                    rawPassword = rawPassword,
+                    passwordEncoder = passwordEncoder
+                )
+            }
+
+            assertThat(exception.message).contains("비밀번호는 최소 1개의 소문자를 포함해야 합니다")
+        }
+
+        @Test
+        @DisplayName("[happy] 비밀번호에 숫자가 없으면 예외가 발생한다")
+        fun `비밀번호에 숫자가 없으면 예외가 발생한다`() {
+            // given
+            val username = "testuser"
+            val nickname = "테스트유저"
+            val rawPassword = "Password!" // 숫자 없음
+            val passwordEncoder: (String) -> String = { "encoded_$it" }
+
+            // when & then
+            val exception = assertThrows<InvalidUserDataException> {
+                User.create(
+                    username = username,
+                    nickname = nickname,
+                    rawPassword = rawPassword,
+                    passwordEncoder = passwordEncoder
+                )
+            }
+
+            assertThat(exception.message).contains("비밀번호는 최소 1개의 숫자를 포함해야 합니다")
+        }
+
+        @Test
+        @DisplayName("[happy] 비밀번호에 특수문자가 없으면 예외가 발생한다")
+        fun `비밀번호에 특수문자가 없으면 예외가 발생한다`() {
+            // given
+            val username = "testuser"
+            val nickname = "테스트유저"
+            val rawPassword = "Password123" // 특수문자 없음
+            val passwordEncoder: (String) -> String = { "encoded_$it" }
+
+            // when & then
+            val exception = assertThrows<InvalidUserDataException> {
+                User.create(
+                    username = username,
+                    nickname = nickname,
+                    rawPassword = rawPassword,
+                    passwordEncoder = passwordEncoder
+                )
+            }
+
+            assertThat(exception.message).contains("비밀번호는 최소 1개의 특수문자를 포함해야 합니다")
         }
     }
 

@@ -4,6 +4,7 @@ import com.stark.shoot.domain.chat.constants.MessageConstants
 import com.stark.shoot.domain.chat.exception.MessageException
 import com.stark.shoot.domain.chat.message.ChatMessage
 import com.stark.shoot.domain.chat.message.type.MessageType
+import com.stark.shoot.domain.chat.message.util.TextSanitizer
 import com.stark.shoot.domain.chat.message.vo.ChatMessageMetadata
 import com.stark.shoot.domain.chat.message.vo.MessageId
 import com.stark.shoot.domain.chat.vo.ChatRoomId
@@ -43,10 +44,13 @@ class MessageDomainService(
         extractUrls: (String) -> List<String>,
         getCachedPreview: (String) -> ChatMessageMetadata.UrlPreview?
     ): ChatMessage {
+        // XSS 방지: HTML 특수문자 이스케이프
+        val sanitizedText = TextSanitizer.sanitize(contentText)
+
         // 메시지 길이 검증
-        if (contentText.length > messageConstants.maxContentLength) {
+        if (sanitizedText.length > messageConstants.maxContentLength) {
             throw MessageException.ContentTooLong(
-                "메시지 내용이 너무 깁니다. (최대: ${messageConstants.maxContentLength}자, 현재: ${contentText.length}자)"
+                "메시지 내용이 너무 깁니다. (최대: ${messageConstants.maxContentLength}자, 현재: ${sanitizedText.length}자)"
             )
         }
 
@@ -55,7 +59,7 @@ class MessageDomainService(
         val chatMessage = ChatMessage.create(
             roomId = roomId,
             senderId = senderId,
-            text = contentText,
+            text = sanitizedText,
             type = contentType,
             tempId = finalTempId, // 프론트엔드 tempId 유지
             threadId = threadId

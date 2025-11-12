@@ -3,6 +3,7 @@ package com.stark.shoot.domain.chat.message
 import com.stark.shoot.domain.chat.exception.MessageException
 import com.stark.shoot.domain.chat.message.type.MessageStatus
 import com.stark.shoot.domain.chat.message.type.MessageType
+import com.stark.shoot.domain.chat.message.util.TextSanitizer
 import com.stark.shoot.domain.chat.message.vo.*
 import com.stark.shoot.domain.chat.reaction.type.ReactionType
 import com.stark.shoot.domain.chat.reaction.vo.MessageReactions
@@ -71,8 +72,11 @@ data class ChatMessage(
         // 24시간 제한 검증
         validateEditTimeLimit()
 
+        // XSS 방지: HTML 특수문자 이스케이프
+        val sanitizedContent = TextSanitizer.sanitize(newContent)
+
         // 내용 유효성 검사
-        if (newContent.isBlank()) {
+        if (sanitizedContent.isBlank()) {
             throw MessageException.EmptyContent()
         }
 
@@ -88,7 +92,7 @@ data class ChatMessage(
 
         // 내용 업데이트 및 편집 여부 설정
         this.content = this.content.copy(
-            text = newContent,
+            text = sanitizedContent,
             isEdited = true
         )
         this.updatedAt = Instant.now()

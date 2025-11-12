@@ -46,4 +46,11 @@ sealed class MessageException(
     class ContentTooLong(
         message: String = "메시지 내용이 너무 깁니다."
     ) : MessageException(message, "MESSAGE_CONTENT_TOO_LONG")
+
+    /**
+     * 첨부파일 크기가 너무 클 때 발생하는 예외
+     */
+    class AttachmentTooLarge(
+        message: String = "첨부파일 크기가 너무 큽니다."
+    ) : MessageException(message, "MESSAGE_ATTACHMENT_TOO_LARGE")
 }

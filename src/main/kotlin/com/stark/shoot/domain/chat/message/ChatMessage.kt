@@ -158,6 +158,25 @@ data class ChatMessage(
         }
     }
 
+    /**
+     * 첨부파일 크기를 검증합니다.
+     *
+     * @param maxAttachmentSize 최대 첨부파일 크기 (바이트)
+     * @throws MessageException.AttachmentTooLarge 첨부파일 크기가 제한을 초과하는 경우
+     */
+    fun validateAttachmentSizes(maxAttachmentSize: Long) {
+        content.attachments.forEach { attachment ->
+            if (attachment.size > maxAttachmentSize) {
+                val sizeMB = attachment.size / (1024 * 1024)
+                val maxSizeMB = maxAttachmentSize / (1024 * 1024)
+                throw MessageException.AttachmentTooLarge(
+                    "첨부파일 '${attachment.filename}'의 크기가 너무 큽니다. " +
+                    "(파일 크기: ${sizeMB}MB, 최대: ${maxSizeMB}MB)"
+                )
+            }
+        }
+    }
+
     companion object {
 
         /**

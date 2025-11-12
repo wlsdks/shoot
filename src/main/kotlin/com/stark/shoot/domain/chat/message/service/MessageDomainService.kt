@@ -61,6 +61,9 @@ class MessageDomainService(
             threadId = threadId
         )
 
+        // 첨부파일 크기 검증
+        chatMessage.validateAttachmentSizes(messageConstants.maxAttachmentSize)
+
         // 2. URL 미리보기 처리 (도메인 로직 활용)
         return ChatMessage.processUrlPreview(
             message = chatMessage,

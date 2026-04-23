@@ -272,3 +272,6 @@ docker-volumes/
 data/
 .kotlin/
 docker/backup/
+
+# Claude Code worktree isolation directories
+.claude/worktrees/

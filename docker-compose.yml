@@ -118,7 +118,7 @@ services:
 
   kafka00:
     profiles: ["messaging", "cdc", "all"]
-    image: bitnami/kafka:3.7.0
+    image: soldevelo/kafka:3.7.1
     restart: unless-stopped
     container_name: shoot-kafka00
     ports:
@@ -150,7 +150,7 @@ services:
 
   kafka01:
     profiles: ["messaging", "cdc", "all"]
-    image: bitnami/kafka:3.7.0
+    image: soldevelo/kafka:3.7.1
     restart: unless-stopped
     container_name: shoot-kafka01
     ports:
@@ -179,7 +179,7 @@ services:
 
   kafka02:
     profiles: ["messaging", "cdc", "all"]
-    image: bitnami/kafka:3.7.0
+    image: soldevelo/kafka:3.7.1
     restart: unless-stopped
     container_name: shoot-kafka02
     ports:
